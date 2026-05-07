@@ -1,0 +1,268 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  TRAINER
+  MEMBER
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+enum MuscleGroup {
+  CHEST
+  BACK
+  SHOULDERS
+  BICEPS
+  TRICEPS
+  LEGS
+  GLUTES
+  ABS
+  CALVES
+  FOREARMS
+  TRAPS
+  FULL_BODY
+  CARDIO
+}
+
+enum Equipment {
+  BARBELL
+  DUMBBELL
+  MACHINE
+  CABLE
+  BODYWEIGHT
+  KETTLEBELL
+  BAND
+  SMITH_MACHINE
+  EZ_BAR
+  BENCH
+  PLATE
+  OTHER
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+  ATTENDED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentType {
+  MEMBERSHIP
+  CLASS_BOOKING
+}
+
+enum PlanType {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  DAY_PASS
+  WEEKLY
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  REMINDER
+  PAYMENT
+  CLASS
+  SYSTEM
+}
+
+model User {
+  id               String           @id @default(cuid())
+  name             String?
+  email            String           @unique
+  emailVerified    DateTime?
+  image            String?
+  password         String?
+  role             UserRole         @default(MEMBER)
+  membershipStatus MembershipStatus @default(ACTIVE)
+  phone            String?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  routines      Routine[]
+  workoutLogs   WorkoutLog[]
+  bookings      Booking[]
+  payments      Payment[]
+  notifications Notification[]
+  classes       Class[]     @relation("TrainerClasses")
+
+  accounts Account[]
+  sessions Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Routine {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  exercises   RoutineExercise[]
+  workoutLogs WorkoutLog[]
+}
+
+model Exercise {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  category    String?
+  muscleGroup MuscleGroup
+  equipment   Equipment   @default(OTHER)
+  imageUrl    String?
+  videoUrl    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  routines RoutineExercise[]
+}
+
+model RoutineExercise {
+  id          String @id @default(cuid())
+  routineId   String
+  exerciseId  String
+  sets        Int    @default(3)
+  reps        Int    @default(10)
+  weight      Float  @default(0)
+  restSeconds Int    @default(60)
+  order       Int    @default(0)
+  notes       String?
+
+  routine  Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
+
+model WorkoutLog {
+  id        String   @id @default(cuid())
+  userId    String
+  routineId String?
+  date      DateTime @default(now())
+  duration  Int?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  routine Routine? @relation(fields: [routineId], references: [id])
+}
+
+model Class {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  trainerId   String
+  capacity    Int
+  duration    Int
+  dayOfWeek   DayOfWeek
+  schedule    DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  trainer  User      @relation("TrainerClasses", fields: [trainerId], references: [id], onDelete: Cascade)
+  bookings Booking[]
+}
+
+model Booking {
+  id        String        @id @default(cuid())
+  userId    String
+  classId   String
+  status    BookingStatus @default(CONFIRMED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classItem Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  userId                String
+  amount                Float
+  currency              String        @default("usd")
+  status                PaymentStatus @default(PENDING)
+  stripeSessionId       String?       @unique
+  stripePaymentIntentId String?
+  type                  PaymentType   @default(MEMBERSHIP)
+  planType              PlanType?     @default(MONTHLY)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

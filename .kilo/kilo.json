@@ -1,0 +1,91 @@
+{
+  "name": "gym-app",
+  "version": "0.1.0",
+  "description": "Gym-App - Entrenamiento, rutinas y progreso. Next.js + Prisma + Tailwind + Docker.",
+  "stack": {
+    "frontend": "Next.js 15 + React 19 + Tailwind CSS 4 + shadcn/ui",
+    "backend": "Next.js API Routes + Server Actions",
+    "orm": "Prisma",
+    "database": "PostgreSQL 16",
+    "auth": "NextAuth.js (Auth.js v5)",
+    "payments": "Stripe",
+    "testing": "Vitest + Playwright",
+    "infra": "Docker + docker-compose"
+  },
+  "agent": {
+    "project-manager": {
+      "name": "Project Manager",
+      "description": "Coordina el equipo, prioriza tareas y gestiona el backlog del MVP",
+      "file": ".kilo/agent/project-manager.md"
+    },
+    "frontend-dev": {
+      "name": "Frontend Developer",
+      "description": "Next.js App Router, React Server Components, Tailwind CSS y shadcn/ui",
+      "file": ".kilo/agent/frontend-dev.md"
+    },
+    "backend-dev": {
+      "name": "Backend Developer",
+      "description": "API Routes, Server Actions, Prisma ORM, PostgreSQL, NextAuth.js y Stripe",
+      "file": ".kilo/agent/backend-dev.md"
+    },
+    "ux-ui-designer": {
+      "name": "UX/UI Designer",
+      "description": "Design system, experiencia de usuario, dark-first gym aesthetic",
+      "file": ".kilo/agent/ux-ui-designer.md"
+    },
+    "qa-tester": {
+      "name": "QA Tester",
+      "description": "Testing automatizado con Vitest y Playwright, cobertura > 80%",
+      "file": ".kilo/agent/qa-tester.md"
+    },
+    "devops-engineer": {
+      "name": "DevOps Engineer",
+      "description": "Docker, docker-compose, CI/CD con GitHub Actions, deploy y backups",
+      "file": ".kilo/agent/devops-engineer.md"
+    }
+  },
+  "commands": [
+    {
+      "name": "start-project",
+      "description": "Inicializa el proyecto Gym-App desde cero con Next.js + Docker",
+      "prompt": "Inicializa el proyecto Gym-App: 1) Crea el proyecto Next.js 15 con TypeScript y App Router 2) Instala dependencias: next, react, tailwindcss, shadcn/ui, prisma, next-auth, zod, react-hook-form, zustand, react-query, recharts, framer-motion, stripe 3) Configura Tailwind CSS con los colores del design system 4) Inicializa Prisma con el schema completo 5) Configura NextAuth.js 6) Configura ESLint + Prettier 7) Crea el docker-compose.yml y Dockerfile 8) Inicializa git"
+    },
+    {
+      "name": "setup-auth",
+      "description": "Configura autenticación completa con NextAuth.js",
+      "prompt": "Implementa autenticación completa: 1) Configura NextAuth.js con JWT + Google OAuth 2) Crea páginas /login y /register con formularios de React Hook Form + Zod 3) Crea el AuthProvider y middleware de Next.js 4) Protege rutas del dashboard 5) Implementa logout y refresh de sesión"
+    },
+    {
+      "name": "init-database",
+      "description": "Modela la BD con Prisma, ejecuta migración y seed",
+      "prompt": "Configura la base de datos: 1) Define el schema completo de Prisma con todos los modelos 2) Ejecuta `npx prisma migrate dev --name init` 3) Crea un seed con al menos 30 ejercicios, 5 rutinas de ejemplo y 2 clases 4) Verifica que docker-compose up levanta la BD correctamente"
+    },
+    {
+      "name": "deploy",
+      "description": "Despliega la aplicación con Docker",
+      "prompt": "Ejecuta el deploy: 1) Corre todos los tests y linting 2) Build de la imagen Docker 3) Ejecuta docker compose up -d 4) Corre migraciones de Prisma en producción 5) Verifica healthcheck del contenedor"
+    },
+    {
+      "name": "test-all",
+      "description": "Ejecuta todas las pruebas (unit, integration, e2e)",
+      "prompt": "Ejecuta la suite completa de tests: 1) Levanta servicios docker compose 2) npm run typecheck 3) npm run lint 4) npm run test (vitest) 5) npm run test:e2e (playwright) 6) Reporta coverage y resultados"
+    }
+  ],
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build --no-cache",
+    "db:migrate": "npx prisma migrate dev",
+    "db:migrate:prod": "npx prisma migrate deploy",
+    "db:seed": "npx prisma db seed",
+    "db:studio": "npx prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit"
+  }
+}
