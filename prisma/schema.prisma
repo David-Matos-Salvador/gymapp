@@ -10,11 +10,37 @@ enum UserRole {
   ADMIN
   TRAINER
   MEMBER
+  SUPER_ADMIN
+}
+
+enum UserSex {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ELITE
+}
+
+enum FitnessGoal {
+  WEIGHT_LOSS
+  MUSCLE_GAIN
+  TONING
+  STRENGTH
+  ENDURANCE
+  GENERAL_FITNESS
+  REHABILITATION
+  COMPETITION
 }
 
 enum MembershipStatus {
   ACTIVE
   INACTIVE
+  EXPIRED
   SUSPENDED
   CANCELLED
 }
@@ -73,17 +99,18 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum PaymentMethod {
+  CASH
+  TRANSFER
+  CARD
+  STRIPE
+  OTHER
+}
+
 enum PaymentType {
   MEMBERSHIP
   CLASS_BOOKING
-}
-
-enum PlanType {
-  MONTHLY
-  QUARTERLY
-  ANNUAL
-  DAY_PASS
-  WEEKLY
+  OTHER
 }
 
 enum NotificationType {
@@ -91,8 +118,29 @@ enum NotificationType {
   WARNING
   REMINDER
   PAYMENT
+  MEMBERSHIP
   CLASS
+  CHECK_IN
+  GOAL
   SYSTEM
+}
+
+model Gym {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  address   String?
+  phone     String?
+  email     String?
+  logoUrl   String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users           User[]
+  membershipPlans MembershipPlan[]
+  classes         Class[]
+  gymEquipments   GymEquipment[]
 }
 
 model User {
@@ -103,17 +151,39 @@ model User {
   image            String?
   password         String?
   role             UserRole         @default(MEMBER)
-  membershipStatus MembershipStatus @default(ACTIVE)
   phone            String?
+  sex              UserSex?
+  birthDate        DateTime?
+  objective        FitnessGoal?
+  experienceLevel  ExperienceLevel?
+  medicalNotes     String?
+  emergencyContact String?
+  emergencyPhone   String?
+  assignedTrainerId String?
+  gymId            String?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
-  routines      Routine[]
-  workoutLogs   WorkoutLog[]
-  bookings      Booking[]
-  payments      Payment[]
-  notifications Notification[]
-  classes       Class[]     @relation("TrainerClasses")
+  bio               String?
+  specialties       Json?
+  certifications    Json?
+  yearsExperience   Int?
+
+  gym              Gym?              @relation(fields: [gymId], references: [id])
+  assignedTrainer  User?             @relation("TrainerClients", fields: [assignedTrainerId], references: [id])
+  clients          User[]            @relation("TrainerClients")
+  assignedRoutines Routine[]         @relation("AssignedRoutines")
+
+  routines         Routine[]
+  workoutLogs      WorkoutLog[]
+  bookings         Booking[]
+  payments         Payment[]
+  notifications    Notification[]
+  memberShips      Membership[]
+  checkIns         CheckIn[]
+  bodyMeasurements BodyMeasurement[]
+  progressPhotos   ProgressPhoto[]
+  classes          Class[]           @relation("TrainerClasses")
 
   accounts Account[]
   sessions Session[]
@@ -155,17 +225,119 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Routine {
+model MembershipPlan {
   id          String   @id @default(cuid())
+  gymId       String
   name        String
   description String?
-  userId      String
+  price       Float
+  currency    String   @default("MXN")
+  durationDays Int
+  active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  exercises   RoutineExercise[]
-  workoutLogs WorkoutLog[]
+  gym        Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  memberships Membership[]
+}
+
+model Membership {
+  id              String           @id @default(cuid())
+  userId          String
+  planId          String
+  status          MembershipStatus @default(ACTIVE)
+  startDate       DateTime         @default(now())
+  endDate         DateTime
+  autoRenew       Boolean          @default(false)
+  paymentConfirmed Boolean         @default(false)
+  paymentMethod   PaymentMethod    @default(CASH)
+  paymentRef      String?
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan MembershipPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+}
+
+model CheckIn {
+  id        String   @id @default(cuid())
+  userId    String
+  gymId     String?
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BodyMeasurement {
+  id          String   @id @default(cuid())
+  userId      String
+  date        DateTime @default(now())
+  weight      Float?
+  height      Float?
+  bodyFat     Float?
+  muscleMass  Float?
+  bmi         Float?
+  neck        Float?
+  shoulders   Float?
+  chest       Float?
+  leftArm     Float?
+  rightArm    Float?
+  leftForearm Float?
+  rightForearm Float?
+  waist       Float?
+  hips        Float?
+  leftThigh   Float?
+  rightThigh  Float?
+  leftCalf    Float?
+  rightCalf   Float?
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProgressPhoto {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  date      DateTime @default(now())
+  category  String   @default("front")
+  notes     String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model GymEquipment {
+  id          String   @id @default(cuid())
+  gymId       String
+  name        String
+  category    String?
+  imageUrl    String?
+  location    String?
+  exerciseId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  gym      Gym       @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  exercise Exercise? @relation(fields: [exerciseId], references: [id])
+}
+
+model Routine {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  userId        String
+  assignedToId  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assignedTo      User?             @relation("AssignedRoutines", fields: [assignedToId], references: [id])
+  exercises       RoutineExercise[]
+  workoutLogs     WorkoutLog[]
 }
 
 model Exercise {
@@ -177,10 +349,12 @@ model Exercise {
   equipment   Equipment   @default(OTHER)
   imageUrl    String?
   videoUrl    String?
+  animationData Json?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   routines RoutineExercise[]
+  gymEquipments GymEquipment[]
 }
 
 model RoutineExercise {
@@ -209,10 +383,31 @@ model WorkoutLog {
 
   user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   routine Routine? @relation(fields: [routineId], references: [id])
+
+  sets WorkoutSetLog[]
+}
+
+model WorkoutSetLog {
+  id            String  @id @default(cuid())
+  workoutLogId  String
+  exerciseId    String
+  exerciseName  String
+  setNumber     Int
+  reps          Int     @default(0)
+  weight        Float   @default(0)
+  restSeconds   Int     @default(60)
+  completed     Boolean @default(true)
+  rpe           Float?
+  rir           Int?
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  workoutLog WorkoutLog @relation(fields: [workoutLogId], references: [id], onDelete: Cascade)
 }
 
 model Class {
   id          String    @id @default(cuid())
+  gymId       String?
   name        String
   description String?
   trainerId   String
@@ -223,6 +418,7 @@ model Class {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
+  gym      Gym?      @relation(fields: [gymId], references: [id])
   trainer  User      @relation("TrainerClasses", fields: [trainerId], references: [id], onDelete: Cascade)
   bookings Booking[]
 }
@@ -243,12 +439,14 @@ model Payment {
   id                    String        @id @default(cuid())
   userId                String
   amount                Float
-  currency              String        @default("usd")
+  currency              String        @default("mxn")
   status                PaymentStatus @default(PENDING)
+  method                PaymentMethod @default(CASH)
   stripeSessionId       String?       @unique
   stripePaymentIntentId String?
   type                  PaymentType   @default(MEMBERSHIP)
-  planType              PlanType?     @default(MONTHLY)
+  reference             String?
+  notes                 String?
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 

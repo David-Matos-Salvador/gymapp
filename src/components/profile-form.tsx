@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { User as UserIcon, Mail, Phone, Calendar, Shield } from "lucide-react"
+import { User as UserIcon, Mail, Phone, Calendar, Shield, Heart, Target, Activity, AlertTriangle } from "lucide-react"
 
 interface User {
   id: string
@@ -16,9 +16,16 @@ interface User {
   email: string
   phone: string | null
   role: string
-  membershipStatus: string
+  sex: string | null
+  birthDate: string | null
+  objective: string | null
+  experienceLevel: string | null
+  medicalNotes: string | null
+  emergencyContact: string | null
+  emergencyPhone: string | null
   image: string | null
   createdAt: string
+  updatedAt?: string
 }
 
 export function ProfileForm({ user }: { user: User }) {
@@ -52,12 +59,42 @@ export function ProfileForm({ user }: { user: User }) {
     month: "long",
   })
 
-  const statusLabels: Record<string, string> = {
-    ACTIVE: "Activo", INACTIVE: "Inactivo", SUSPENDED: "Suspendido", CANCELLED: "Cancelado",
+  const roleLabels: Record<string, string> = {
+    ADMIN: "Administrador", TRAINER: "Coach", MEMBER: "Miembro", SUPER_ADMIN: "Super Admin",
   }
 
-  const roleLabels: Record<string, string> = {
-    ADMIN: "Administrador", TRAINER: "Coach", MEMBER: "Miembro",
+  const objectiveLabels: Record<string, string> = {
+    WEIGHT_LOSS: "Pérdida de peso",
+    MUSCLE_GAIN: "Ganancia muscular",
+    TONING: "Tonificación",
+    STRENGTH: "Fuerza",
+    ENDURANCE: "Resistencia",
+    GENERAL_FITNESS: "Fitness general",
+    REHABILITATION: "Rehabilitación",
+    COMPETITION: "Competición",
+  }
+
+  const experienceLabels: Record<string, string> = {
+    BEGINNER: "Principiante",
+    INTERMEDIATE: "Intermedio",
+    ADVANCED: "Avanzado",
+    ELITE: "Élite",
+  }
+
+  const sexLabels: Record<string, string> = {
+    MALE: "Masculino",
+    FEMALE: "Femenino",
+    OTHER: "Otro",
+  }
+
+  function calculateAge(birthDate: string | null): string {
+    if (!birthDate) return "-"
+    const today = new Date()
+    const birth = new Date(birthDate)
+    let age = today.getFullYear() - birth.getFullYear()
+    const m = today.getMonth() - birth.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
+    return `${age} años`
   }
 
   return (
@@ -76,22 +113,52 @@ export function ProfileForm({ user }: { user: User }) {
           </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           <div className="flex items-center gap-2 text-sm">
             <Shield className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Rol:</span>
             <span className="font-medium">{roleLabels[user.role] ?? user.role}</span>
           </div>
           <div className="flex items-center gap-2 text-sm">
-            <div className={`h-2 w-2 rounded-full ${user.membershipStatus === "ACTIVE" ? "bg-gym-green" : "bg-destructive"}`} />
-            <span className="text-muted-foreground">Membresía:</span>
-            <span className="font-medium">{statusLabels[user.membershipStatus] ?? user.membershipStatus}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Miembro desde:</span>
             <span className="font-medium">{memberSince}</span>
           </div>
+          {user.sex && (
+            <div className="flex items-center gap-2 text-sm">
+              <UserIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Sexo:</span>
+              <span className="font-medium">{sexLabels[user.sex] ?? user.sex}</span>
+            </div>
+          )}
+          {user.birthDate && (
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Edad:</span>
+              <span className="font-medium">{calculateAge(user.birthDate)}</span>
+            </div>
+          )}
+          {user.objective && (
+            <div className="flex items-center gap-2 text-sm">
+              <Target className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Objetivo:</span>
+              <span className="font-medium">{objectiveLabels[user.objective] ?? user.objective}</span>
+            </div>
+          )}
+          {user.experienceLevel && (
+            <div className="flex items-center gap-2 text-sm">
+              <Activity className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Experiencia:</span>
+              <span className="font-medium">{experienceLabels[user.experienceLevel] ?? user.experienceLevel}</span>
+            </div>
+          )}
+          {user.medicalNotes && (
+            <div className="flex items-center gap-2 text-sm col-span-full">
+              <AlertTriangle className="h-4 w-4 text-gym-orange/70" />
+              <span className="text-muted-foreground">Notas médicas:</span>
+              <span className="font-medium text-xs">{user.medicalNotes}</span>
+            </div>
+          )}
         </div>
 
         <div className="space-y-4">
@@ -109,7 +176,7 @@ export function ProfileForm({ user }: { user: User }) {
               id="profilePhone"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              placeholder="+1234567890"
+              placeholder="+529991234567"
             />
           </div>
           <Button onClick={handleSave} disabled={saving}>

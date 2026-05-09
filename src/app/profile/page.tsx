@@ -16,9 +16,16 @@ export default async function ProfilePage() {
       email: true,
       phone: true,
       role: true,
-      membershipStatus: true,
+      sex: true,
+      birthDate: true,
+      objective: true,
+      experienceLevel: true,
+      medicalNotes: true,
+      emergencyContact: true,
+      emergencyPhone: true,
       image: true,
       createdAt: true,
+      updatedAt: true,
     },
   })
 
@@ -31,7 +38,12 @@ export default async function ProfilePage() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Perfil</h1>
           <p className="text-muted-foreground">Configuración de tu cuenta</p>
         </div>
-        <ProfileForm user={{ ...user, createdAt: user.createdAt.toISOString() }} />
+        <ProfileForm user={{
+          ...user,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt?.toISOString(),
+          birthDate: user.birthDate?.toISOString() ?? null,
+        }} />
       </div>
     </AppShell>
   )

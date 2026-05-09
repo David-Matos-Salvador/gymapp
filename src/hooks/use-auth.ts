@@ -1,7 +1,7 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import type { UserRole, MembershipStatus } from "@prisma/client"
+import type { UserRole } from "@prisma/client"
 
 interface AuthUser {
   id?: string
@@ -9,7 +9,6 @@ interface AuthUser {
   email?: string | null
   image?: string | null
   role?: UserRole
-  membershipStatus?: MembershipStatus
 }
 
 export function useAuth() {
@@ -22,7 +21,6 @@ export function useAuth() {
     isAdmin: (session?.user as AuthUser)?.role === "ADMIN",
     isTrainer: (session?.user as AuthUser)?.role === "TRAINER",
     isMember: (session?.user as AuthUser)?.role === "MEMBER",
-    isActive: (session?.user as AuthUser)?.membershipStatus === "ACTIVE",
     update,
   }
 }

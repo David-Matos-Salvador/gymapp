@@ -8,33 +8,34 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Dumbbell, Plus, ArrowRight, Clock, GripVertical } from "lucide-react"
 
-interface Exercise {
-  exercise: { id: string; name: string; muscleGroup: string; equipment: string }
-  sets: number
-  reps: number
-  weight: number
-  restSeconds: number
-  order: number
-}
-
-interface Routine {
+interface BaseRoutine {
   id: string
   name: string
-  description: string | null
-  exercises: Exercise[]
+  description?: string | null
+  exerciseCount: number
+  muscleGroups: string[]
+  totalDuration?: number
 }
 
 interface RoutinesListProps {
-  routines: Routine[]
+  routines: BaseRoutine[]
   isCoach: boolean
+  recommended?: boolean
 }
 
-export function RoutinesList({ routines, isCoach }: RoutinesListProps) {
+const muscleGroupLabels: Record<string, string> = {
+  CHEST: "Pecho", BACK: "Espalda", SHOULDERS: "Hombros", BICEPS: "Bíceps",
+  TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdomen",
+  CALVES: "Gemelos", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
+  FULL_BODY: "Cuerpo completo", CARDIO: "Cardio",
+}
+
+export function RoutinesList({ routines, isCoach, recommended }: RoutinesListProps) {
   const { play } = useSound()
 
   return (
     <div className="space-y-6">
-      {isCoach && (
+      {isCoach && !recommended && (
         <Button asChild onClick={() => play("click")}>
           <Link href="/routines/new">
             <Plus className="mr-2 h-4 w-4" /> Crear rutina
@@ -51,12 +52,14 @@ export function RoutinesList({ routines, isCoach }: RoutinesListProps) {
             <div>
               <p className="text-lg font-medium">No hay rutinas</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {isCoach
-                  ? "Crea tu primera rutina para tus atletas"
-                  : "Tu coach aún no te ha asignado rutinas"}
+                {recommended
+                  ? "No hay rutinas recomendadas disponibles"
+                  : isCoach
+                    ? "Crea tu primera rutina para tus atletas"
+                    : "Tu coach aún no te ha asignado rutinas"}
               </p>
             </div>
-            {isCoach && (
+            {isCoach && !recommended && (
               <Button asChild onClick={() => play("success")}>
                 <Link href="/routines/new">
                   <Plus className="mr-2 h-4 w-4" /> Crear rutina
@@ -75,10 +78,13 @@ export function RoutinesList({ routines, isCoach }: RoutinesListProps) {
               transition={{ duration: 0.3, delay: i * 0.05 }}
             >
               <Link href={`/routines/${routine.id}`} onClick={() => play("select")}>
-                <Card className="h-full hover:shadow-md transition-all hover:border-primary/40 group cursor-pointer">
+                <Card className={`h-full hover:shadow-md transition-all hover:border-primary/40 group cursor-pointer ${recommended ? "ring-1 ring-gym-violet/20" : ""}`}>
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-base">{routine.name}</CardTitle>
+                      {recommended && (
+                        <span className="text-[10px] bg-gym-violet/10 text-gym-violet px-1.5 py-0.5 rounded-full">+Popular</span>
+                      )}
                     </div>
                     {routine.description && (
                       <p className="text-xs text-muted-foreground line-clamp-2">{routine.description}</p>
@@ -88,27 +94,24 @@ export function RoutinesList({ routines, isCoach }: RoutinesListProps) {
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Dumbbell className="h-3 w-3" />
-                        {routine.exercises.length} ejercicios
+                        {routine.exerciseCount} ejercicios
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        ~{routine.exercises.reduce((sum, e) => sum + e.sets * e.reps * 3 + e.restSeconds, 0) / 60 | 0}min
-                      </span>
+                      {routine.totalDuration && (
+                        <span className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />~{routine.totalDuration}min
+                        </span>
+                      )}
                     </div>
-                    {routine.exercises.length > 0 && (
+                    {routine.muscleGroups.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1">
-                        {routine.exercises
-                          .map((e) => e.exercise.muscleGroup)
-                          .filter((v, i, a) => a.indexOf(v) === i)
-                          .slice(0, 3)
-                          .map((group) => (
-                            <span
-                              key={group}
-                              className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium"
-                            >
-                              {group}
-                            </span>
-                          ))}
+                        {routine.muscleGroups.slice(0, 4).map((group) => (
+                          <span
+                            key={group}
+                            className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium"
+                          >
+                            {muscleGroupLabels[group] ?? group}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </CardContent>

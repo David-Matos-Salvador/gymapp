@@ -28,6 +28,7 @@ services:
     environment:
       DATABASE_URL: "postgresql://gymuser:gympassword@db:5432/gymdb?schema=public"
       AUTH_SECRET: "hiTXOFdVPhNNc0eZoTseTtnAikyix8lU+vk8EUSu4gI="
+      AUTH_URL: "http://localhost:3000"
       AUTH_GOOGLE_ID: "675239987109-oq1qijd4tof7ilb5ja1jhrgcmc5dvu3n.apps.googleusercontent.com"
       AUTH_GOOGLE_SECRET: "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"
       NEXT_PUBLIC_APP_URL: "http://localhost:3000"
