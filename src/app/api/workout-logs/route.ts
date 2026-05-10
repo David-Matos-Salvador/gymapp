@@ -15,7 +15,7 @@ const setLogSchema = z.object({
 })
 
 const createWorkoutLogSchema = z.object({
-  routineId: z.string().optional(),
+  splitId: z.string().optional(),
   duration: z.number().int().positive().optional(),
   notes: z.string().optional(),
   sets: z.array(setLogSchema).min(1),
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     where: { userId: user.id },
     include: {
       sets: { orderBy: { setNumber: "asc" } },
-      routine: { select: { id: true, name: true } },
+      split: { select: { id: true, name: true } },
     },
     orderBy: { date: "desc" },
     skip,
@@ -76,12 +76,12 @@ export async function POST(request: Request) {
     )
   }
 
-  const { routineId, duration, notes, sets } = parsed.data
+  const { splitId, duration, notes, sets } = parsed.data
 
   const workoutLog = await prisma.workoutLog.create({
     data: {
       userId: user.id,
-      routineId,
+      splitId,
       duration,
       notes,
       sets: {

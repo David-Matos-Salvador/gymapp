@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AppShell } from "@/components/layout/shell"
 import { useSound } from "@/hooks/use-sound"
-import { User, Mail, Phone, Calendar, Target, Award, AlertTriangle, Dumbbell, TrendingUp, CheckCircle, Plus, ArrowLeft, Loader2 } from "lucide-react"
+import { User, Mail, Phone, Calendar, Target, Award, AlertTriangle, Dumbbell, TrendingUp, CheckCircle, Plus, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -25,14 +25,21 @@ const experienceLabels: Record<string, string> = {
 interface BodyMeasurement {
   id: string; date: string; weight: number | null; bodyFat: number | null; bmi: number | null
 }
-interface RoutineData { id: string; name: string; exercises: { exercise: { name: string } }[] }
-interface WorkoutLogData { id: string; routineId: string | null; date: string; duration: number | null; sets: { id: string; exerciseName: string; reps: number; weight: number }[] }
+interface PlanAssignment {
+  id: string
+  plan: {
+    id: string
+    name: string
+    splits: { id: string; label: string; name: string; muscleGroups: string[]; exercises: { exercise: { name: string } }[] }[]
+  }
+}
+interface WorkoutLogData { id: string; splitId: string | null; date: string; duration: number | null; sets: { id: string; exerciseName: string; reps: number; weight: number }[] }
 interface ClientData {
   id: string; name: string | null; email: string; phone: string | null; birthDate: string | null
   objective: string | null; experienceLevel: string | null; medicalNotes: string | null
   emergencyContact: string | null; emergencyPhone: string | null
   bodyMeasurements: BodyMeasurement[]
-  routines: RoutineData[]
+  assignedRoutinePlans: PlanAssignment[]
   workoutLogs: WorkoutLogData[]
   memberShips: { status: string; endDate: string; plan: { name: string } | null }[]
 }
@@ -51,6 +58,9 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
   const age = client.birthDate ? new Date().getFullYear() - new Date(client.birthDate).getFullYear() : null
   const currentMembership = client.memberShips[0]
   const isMembershipActive = currentMembership?.status === "ACTIVE" && new Date(currentMembership.endDate) > new Date()
+
+  const activeAssignment = client.assignedRoutinePlans[0]
+  const activePlan = activeAssignment?.plan
 
   async function handleAddMeasurement() {
     if (!measureForm.weight.trim() && !measureForm.bodyFat.trim()) {
@@ -75,12 +85,12 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
       })
       if (res.ok) {
         play("success")
-        toast.success("Medicion registrada")
+        toast.success("Medición registrada")
         setMeasureOpen(false)
         setMeasureForm({ weight: "", bodyFat: "", height: "", notes: "" })
         router.refresh()
       } else {
-        toast.error("Error al guardar medicion")
+        toast.error("Error al guardar medición")
       }
     } catch { toast.error("Error de conexion") }
     setMeasureSaving(false)
@@ -91,19 +101,18 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
     try {
       const res = await fetch("/api/routines")
       const data = await res.json()
-      const routines = data.routines || []
-      const existingIds = new Set(client.routines.map((r) => r.id))
-      setAvailableRoutines(routines.filter((r: { id: string }) => !existingIds.has(r.id)))
+      const plans = data.plans || []
+      setAvailableRoutines(plans.map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })))
     } catch { toast.error("Error al cargar rutinas") }
     setRoutineLoading(false)
   }
 
-  async function assignRoutine(routineId: string) {
+  async function assignRoutine(planId: string) {
     try {
-      const res = await fetch(`/api/routines/${routineId}`, {
-        method: "PATCH",
+      const res = await fetch("/api/routines/assign", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assignedToId: client.id }),
+        body: JSON.stringify({ planId, assignToUserId: client.id }),
       })
       if (res.ok) {
         play("success")
@@ -134,18 +143,18 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
               <div className="flex flex-wrap gap-2">
                 {isMembershipActive ? (
                   <span className="inline-flex items-center gap-1 text-xs text-gym-green bg-gym-green/10 rounded-full px-2 py-0.5"><CheckCircle className="h-3 w-3" /> Activo</span>
-                ) : <span className="inline-flex items-center gap-1 text-xs text-destructive bg-destructive/10 rounded-full px-2 py-0.5">Sin membresia activa</span>}
+                ) : <span className="inline-flex items-center gap-1 text-xs text-destructive bg-destructive/10 rounded-full px-2 py-0.5">Sin membresía activa</span>}
                 {currentMembership?.plan && <span className="text-xs text-muted-foreground">{currentMembership.plan.name}</span>}
               </div>
               <div className="space-y-1 text-sm pt-2">
                 {client.phone && <div className="flex items-center gap-2"><Phone className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">{client.phone}</span></div>}
-                <div className="flex items-center gap-2"><Calendar className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">{age ? `${age} anos` : "Edad no registrada"}</span></div>
+                <div className="flex items-center gap-2"><Calendar className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">{age ? `${age} años` : "Edad no registrada"}</span></div>
                 {client.objective && <div className="flex items-center gap-2"><Target className="h-3 w-3 text-muted-foreground" /><span>{objectiveLabels[client.objective] || client.objective}</span></div>}
                 {client.experienceLevel && <div className="flex items-center gap-2"><Award className="h-3 w-3 text-muted-foreground" /><span>{experienceLabels[client.experienceLevel] || client.experienceLevel}</span></div>}
               </div>
               {client.medicalNotes && (
                 <div className="rounded-lg bg-gym-orange/10 p-3 mt-2">
-                  <div className="flex items-center gap-1.5 text-xs"><AlertTriangle className="h-3 w-3 text-gym-orange" /><span className="font-medium text-gym-orange">Notas medicas</span></div>
+                  <div className="flex items-center gap-1.5 text-xs"><AlertTriangle className="h-3 w-3 text-gym-orange" /><span className="font-medium text-gym-orange">Notas médicas</span></div>
                   <p className="text-xs mt-1">{client.medicalNotes}</p>
                 </div>
               )}
@@ -155,9 +164,9 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
           <div className="md:col-span-2 space-y-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-gym-green" /> Ultimas mediciones</CardTitle>
+                <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-gym-green" /> Últimas mediciones</CardTitle>
                 <Button size="sm" onClick={() => { play("click"); setMeasureOpen(true) }}>
-                  <Plus className="mr-1 h-4 w-4" /> Nueva medicion
+                  <Plus className="mr-1 h-4 w-4" /> Nueva medición
                 </Button>
               </CardHeader>
               <CardContent>
@@ -196,14 +205,14 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
                 </Button>
               </CardHeader>
               <CardContent>
-                {client.routines.length === 0 ? (
+                {!activePlan ? (
                   <p className="text-sm text-muted-foreground text-center py-4">Sin rutinas asignadas</p>
                 ) : (
                   <div className="space-y-2">
-                    {client.routines.map((r) => (
-                      <Link key={r.id} href={`/routines/${r.id}`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gym-green/10"><Dumbbell className="h-5 w-5 text-gym-green" /></div>
-                        <div><p className="text-sm font-medium">{r.name}</p><p className="text-xs text-muted-foreground">{r.exercises.length} ejercicios</p></div>
+                    {activePlan.splits.map((s) => (
+                      <Link key={s.id} href={`/routines/${activePlan.id}`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gym-green/10 text-gym-green font-bold text-sm">{s.label}</div>
+                        <div><p className="text-sm font-medium">{s.name}</p><p className="text-xs text-muted-foreground">{s.exercises.length} ejercicios · {s.muscleGroups.join(", ")}</p></div>
                       </Link>
                     ))}
                   </div>
@@ -212,7 +221,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
             </Card>
 
             <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-gym-violet" /> Ultimos entrenamientos</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-gym-violet" /> Últimos entrenamientos</CardTitle></CardHeader>
               <CardContent>
                 {client.workoutLogs.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">Sin entrenamientos registrados</p>
@@ -221,7 +230,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
                     {client.workoutLogs.map((log) => (
                       <div key={log.id} className="rounded-lg border p-3">
                         <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium">{log.routineId ? "Entrenamiento con rutina" : "Entrenamiento libre"}</p>
+                          <p className="text-sm font-medium">{log.splitId ? "Entrenamiento con rutina" : "Entrenamiento libre"}</p>
                           <span className="text-xs text-muted-foreground">{new Date(log.date).toLocaleDateString("es")}</span>
                         </div>
                         {log.duration && <p className="text-xs text-muted-foreground">{log.duration} min</p>}
@@ -229,7 +238,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
                           {log.sets.slice(0, 5).map((s) => (
                             <span key={s.id} className="inline-flex items-center text-[10px] bg-muted px-1.5 py-0.5 rounded">{s.exerciseName}: {s.reps}x{s.weight}kg</span>
                           ))}
-                          {log.sets.length > 5 && <span className="text-[10px] text-muted-foreground">+{log.sets.length - 5} mas</span>}
+                          {log.sets.length > 5 && <span className="text-[10px] text-muted-foreground">+{log.sets.length - 5} más</span>}
                         </div>
                       </div>
                     ))}
@@ -242,7 +251,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
 
         <Dialog open={measureOpen} onOpenChange={setMeasureOpen}>
           <DialogContent className="sm:max-w-md">
-            <DialogHeader><DialogTitle>Nueva medicion para {client.name}</DialogTitle><DialogDescription>Registra peso, % grasa y altura.</DialogDescription></DialogHeader>
+            <DialogHeader><DialogTitle>Nueva medición para {client.name}</DialogTitle><DialogDescription>Registra peso, % grasa y altura.</DialogDescription></DialogHeader>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2"><Label htmlFor="mWeight">Peso (kg)</Label><Input id="mWeight" type="number" step="0.1" value={measureForm.weight} onChange={(e) => setMeasureForm((p) => ({ ...p, weight: e.target.value }))} /></div>

@@ -21,9 +21,11 @@ export default async function CoachPage() {
     orderBy: { name: "asc" },
   })
 
-  const routines = await prisma.routine.findMany({
+  const plans = await prisma.routinePlan.findMany({
     where: { userId: user.id },
-    include: { exercises: { include: { exercise: true } } },
+    include: {
+      splits: { include: { exercises: { include: { exercise: true } } } },
+    },
     orderBy: { updatedAt: "desc" },
   })
 
@@ -47,12 +49,12 @@ export default async function CoachPage() {
           hasActiveMembership: c.memberShips.some((m) => m.status === "ACTIVE" && new Date(m.endDate) > now),
           membershipPlan: c.memberShips[0]?.plan?.name ?? null,
         }))}
-        routines={routines.map((r) => ({ id: r.id, name: r.name, exerciseCount: r.exercises.length }))}
+        routines={plans.map((p) => ({ id: p.id, name: p.name, exerciseCount: p.splits.reduce((sum, s) => sum + s.exercises.length, 0) }))}
         classes={classes.map((c) => ({
           id: c.id, name: c.name, dayOfWeek: c.dayOfWeek, duration: c.duration,
           capacity: c.capacity, bookingsCount: c.bookings.length, schedule: c.schedule.toISOString(),
         }))}
-        stats={{ totalClients: clients.length, activeMemberships, upcomingClasses, totalRoutines: routines.length }}
+        stats={{ totalClients: clients.length, activeMemberships, upcomingClasses, totalRoutines: plans.length }}
         coach={{
           image: user.image,
           name: user.name ?? "Coach",

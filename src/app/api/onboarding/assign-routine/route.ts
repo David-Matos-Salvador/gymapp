@@ -1,11 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
-import { z } from "zod"
-
-const assignSchema = z.object({
-  routineId: z.string(),
-})
 
 export async function POST(request: Request) {
   const session = await auth()
@@ -22,67 +17,50 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 })
   }
 
-  let body: unknown
-  try {
-    body = await request.json()
-  } catch {
-    return NextResponse.json({ error: "Cuerpo JSON inválido" }, { status: 400 })
+  const { planId } = await request.json() as { planId: string }
+  if (!planId) {
+    return NextResponse.json({ error: "planId requerido" }, { status: 400 })
   }
 
-  const parsed = assignSchema.safeParse(body)
-  if (!parsed.success) {
-    return NextResponse.json({ error: "routineId requerido" }, { status: 400 })
-  }
-
-  const source = await prisma.routine.findUnique({
-    where: { id: parsed.data.routineId },
-    include: { exercises: { orderBy: { order: "asc" } } },
+  const plan = await prisma.routinePlan.findUnique({
+    where: { id: planId },
+    include: { splits: { include: { exercises: true }, orderBy: { order: "asc" } } },
   })
 
-  if (!source) {
-    return NextResponse.json({ error: "Rutina no encontrada" }, { status: 404 })
+  if (!plan) {
+    return NextResponse.json({ error: "Plan no encontrado" }, { status: 404 })
   }
 
-  const newRoutine = await prisma.routine.create({
-    data: {
-      name: source.name,
-      description: source.description,
-      userId: source.userId,
-      assignedToId: user.id,
-      exercises: {
-        create: source.exercises.map((e) => ({
-          exerciseId: e.exerciseId,
-          sets: e.sets,
-          reps: e.reps,
-          weight: e.weight,
-          restSeconds: e.restSeconds,
-          order: e.order,
-        })),
-      },
-    },
-    include: {
-      exercises: {
-        include: { exercise: true },
-        orderBy: { order: "asc" },
-      },
-    },
+  // Deactivate previous assignments
+  await prisma.assignedRoutinePlan.updateMany({
+    where: { userId: user.id, active: true },
+    data: { active: false },
   })
 
-  return NextResponse.json({
-    routine: {
-      id: newRoutine.id,
-      name: newRoutine.name,
-      description: newRoutine.description,
-      exercises: newRoutine.exercises.map((e) => ({
-        id: e.exercise.id,
-        name: e.exercise.name,
-        muscleGroup: e.exercise.muscleGroup,
-        equipment: e.exercise.equipment,
+  // Create new assignment
+  await prisma.assignedRoutinePlan.create({
+    data: { userId: user.id, planId: plan.id },
+  })
+
+  const serialize = {
+    id: plan.id,
+    name: plan.name,
+    description: plan.description,
+    splits: plan.splits.map((s) => ({
+      id: s.id,
+      label: s.label,
+      name: s.name,
+      muscleGroups: s.muscleGroups,
+      exercises: s.exercises.map((e) => ({
+        exerciseId: e.exerciseId,
         sets: e.sets,
         reps: e.reps,
         weight: e.weight,
         restSeconds: e.restSeconds,
+        order: e.order,
       })),
-    },
-  })
+    })),
+  }
+
+  return NextResponse.json({ plan: serialize })
 }

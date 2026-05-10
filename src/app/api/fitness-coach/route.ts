@@ -12,7 +12,7 @@ const fitnessCoachSchema = z.object({
 
 const SPLIT_TEMPLATES: Record<number, { name: string; focus: string; level: string; muscleGroups: string[][] }[]> = {
   3: [
-    { name: "Full Body A", focus: "Cuerpo completo", level: "BEGINNER", muscleGroups: [["FULL_BODY"], ["FULL_BODY"], ["FULL_BODY"]] },
+    { name: "Full Body", focus: "Cuerpo completo", level: "BEGINNER", muscleGroups: [["FULL_BODY"], ["FULL_BODY"], ["FULL_BODY"]] },
     { name: "Torso / Piernas", focus: "Fuerza", level: "INTERMEDIATE", muscleGroups: [["CHEST", "BACK", "SHOULDERS"], ["LEGS", "GLUTES", "CALVES"], ["FULL_BODY"]] },
     { name: "Empuje / Tirón / Piernas", focus: "Hipertrofia", level: "INTERMEDIATE", muscleGroups: [["CHEST", "SHOULDERS", "TRICEPS"], ["BACK", "BICEPS", "FOREARMS"], ["LEGS", "GLUTES", "CALVES"]] },
   ],
@@ -28,134 +28,128 @@ const SPLIT_TEMPLATES: Record<number, { name: string; focus: string; level: stri
   ],
 }
 
-const EXERCISES_BY_MUSCLE: Record<string, Array<{ name: string; sets: number; reps: number; restSeconds: number; equipment: string }>> = {
+const MUSCLE_POOL: Record<string, Array<{ name: string; equipment: string; sets: number; reps: string; restSeconds: number; isCompound?: boolean }>> = {
   CHEST: [
-    { name: "Press banca con barra", sets: 4, reps: 10, restSeconds: 90, equipment: "BARBELL" },
-    { name: "Press inclinado con mancuernas", sets: 3, reps: 12, restSeconds: 75, equipment: "DUMBBELL" },
-    { name: "Aperturas con mancuernas", sets: 3, reps: 12, restSeconds: 60, equipment: "DUMBBELL" },
-    { name: "Press declinado", sets: 3, reps: 10, restSeconds: 90, equipment: "BARBELL" },
-    { name: "Fondos en paralelas", sets: 3, reps: 10, restSeconds: 75, equipment: "BODYWEIGHT" },
-    { name: "Crossover con cables", sets: 3, reps: 15, restSeconds: 60, equipment: "CABLE" },
-    { name: "Press con máquina", sets: 4, reps: 10, restSeconds: 75, equipment: "MACHINE" },
+    { name: "Press de banca", equipment: "BARBELL", sets: 4, reps: "8-12", restSeconds: 90, isCompound: true },
+    { name: "Press inclinado con mancuernas", equipment: "DUMBBELL", sets: 3, reps: "10-12", restSeconds: 75 },
+    { name: "Aperturas con mancuernas", equipment: "DUMBBELL", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Fondos en paralelas", equipment: "BODYWEIGHT", sets: 3, reps: "8-12", restSeconds: 75 },
+    { name: "Cruce de cables", equipment: "CABLE", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Press declinado", equipment: "BARBELL", sets: 3, reps: "10-12", restSeconds: 75 },
   ],
   BACK: [
-    { name: "Dominadas", sets: 3, reps: 8, restSeconds: 90, equipment: "BODYWEIGHT" },
-    { name: "Remo con barra", sets: 4, reps: 10, restSeconds: 90, equipment: "BARBELL" },
-    { name: "Jalón al pecho", sets: 3, reps: 12, restSeconds: 75, equipment: "CABLE" },
-    { name: "Remo con mancuerna a una mano", sets: 3, reps: 10, restSeconds: 75, equipment: "DUMBBELL" },
-    { name: "Peso muerto", sets: 4, reps: 6, restSeconds: 120, equipment: "BARBELL" },
-    { name: "Pull-over con mancuerna", sets: 3, reps: 12, restSeconds: 60, equipment: "DUMBBELL" },
-    { name: "Remo en máquina", sets: 3, reps: 10, restSeconds: 75, equipment: "MACHINE" },
+    { name: "Dominadas", equipment: "BODYWEIGHT", sets: 4, reps: "8-12", restSeconds: 90, isCompound: true },
+    { name: "Remo con barra", equipment: "BARBELL", sets: 4, reps: "8-12", restSeconds: 90, isCompound: true },
+    { name: "Jalón al pecho", equipment: "CABLE", sets: 3, reps: "10-12", restSeconds: 75 },
+    { name: "Peso muerto", equipment: "BARBELL", sets: 5, reps: "5", restSeconds: 180, isCompound: true },
+    { name: "Remo en máquina", equipment: "MACHINE", sets: 3, reps: "10-12", restSeconds: 75 },
+    { name: "Pull-over con mancuerna", equipment: "DUMBBELL", sets: 3, reps: "12-15", restSeconds: 60 },
   ],
   SHOULDERS: [
-    { name: "Press militar con barra", sets: 4, reps: 10, restSeconds: 90, equipment: "BARBELL" },
-    { name: "Elevaciones laterales", sets: 3, reps: 15, restSeconds: 60, equipment: "DUMBBELL" },
-    { name: "Pájaro posterior", sets: 3, reps: 12, restSeconds: 60, equipment: "DUMBBELL" },
-    { name: "Press Arnold", sets: 3, reps: 10, restSeconds: 75, equipment: "DUMBBELL" },
-    { name: "Elevaciones frontales", sets: 3, reps: 12, restSeconds: 60, equipment: "DUMBBELL" },
-    { name: "Encogimientos de hombros", sets: 3, reps: 12, restSeconds: 75, equipment: "DUMBBELL" },
+    { name: "Press militar", equipment: "BARBELL", sets: 4, reps: "8-12", restSeconds: 90, isCompound: true },
+    { name: "Elevaciones laterales", equipment: "DUMBBELL", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Elevaciones frontales", equipment: "DUMBBELL", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Face pull", equipment: "CABLE", sets: 3, reps: "15-20", restSeconds: 60 },
+    { name: "Pájaros para deltoides posterior", equipment: "DUMBBELL", sets: 3, reps: "12-15", restSeconds: 60 },
   ],
   BICEPS: [
-    { name: "Curl con barra", sets: 3, reps: 12, restSeconds: 60, equipment: "BARBELL" },
-    { name: "Curl martillo", sets: 3, reps: 12, restSeconds: 60, equipment: "DUMBBELL" },
-    { name: "Curl predicador", sets: 3, reps: 10, restSeconds: 60, equipment: "EZ_BAR" },
-    { name: "Curl concentrado", sets: 3, reps: 12, restSeconds: 60, equipment: "DUMBBELL" },
-    { name: "Curl con cable", sets: 3, reps: 15, restSeconds: 45, equipment: "CABLE" },
+    { name: "Curl con barra", equipment: "BARBELL", sets: 3, reps: "10-12", restSeconds: 60 },
+    { name: "Curl martillo", equipment: "DUMBBELL", sets: 3, reps: "10-12", restSeconds: 60 },
+    { name: "Curl concentrado", equipment: "DUMBBELL", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Curl en polea", equipment: "CABLE", sets: 3, reps: "12-15", restSeconds: 60 },
   ],
   TRICEPS: [
-    { name: "Press francés con barra", sets: 3, reps: 12, restSeconds: 60, equipment: "EZ_BAR" },
-    { name: "Extensión en polea", sets: 3, reps: 12, restSeconds: 60, equipment: "CABLE" },
-    { name: "Fondos en banco", sets: 3, reps: 15, restSeconds: 60, equipment: "BODYWEIGHT" },
-    { name: "Press cerrado", sets: 3, reps: 10, restSeconds: 75, equipment: "BARBELL" },
-    { name: "Patada de tríceps", sets: 3, reps: 12, restSeconds: 60, equipment: "DUMBBELL" },
+    { name: "Press francés", equipment: "EZ_BAR", sets: 3, reps: "10-12", restSeconds: 60 },
+    { name: "Extensión en polea", equipment: "CABLE", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Fondos en banco", equipment: "BODYWEIGHT", sets: 3, reps: "10-15", restSeconds: 75 },
+    { name: "Press cerrado", equipment: "BARBELL", sets: 3, reps: "8-12", restSeconds: 75 },
   ],
   LEGS: [
-    { name: "Sentadilla con barra", sets: 4, reps: 10, restSeconds: 120, equipment: "BARBELL" },
-    { name: "Prensa de piernas", sets: 3, reps: 12, restSeconds: 90, equipment: "MACHINE" },
-    { name: "Extensión de cuádriceps", sets: 3, reps: 12, restSeconds: 75, equipment: "MACHINE" },
-    { name: "Curl femoral", sets: 3, reps: 12, restSeconds: 75, equipment: "MACHINE" },
-    { name: "Zancadas con mancuernas", sets: 3, reps: 10, restSeconds: 75, equipment: "DUMBBELL" },
-    { name: "Sentadilla búlgara", sets: 3, reps: 10, restSeconds: 90, equipment: "DUMBBELL" },
-    { name: "Peso muerto rumano", sets: 3, reps: 10, restSeconds: 90, equipment: "BARBELL" },
+    { name: "Sentadilla", equipment: "BARBELL", sets: 4, reps: "8-12", restSeconds: 120, isCompound: true },
+    { name: "Prensa de piernas", equipment: "MACHINE", sets: 3, reps: "10-15", restSeconds: 90 },
+    { name: "Extensión de cuádriceps", equipment: "MACHINE", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Curl femoral", equipment: "MACHINE", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Zancadas con mancuernas", equipment: "DUMBBELL", sets: 3, reps: "10-12", restSeconds: 75 },
   ],
   GLUTES: [
-    { name: "Hip thrust con barra", sets: 4, reps: 12, restSeconds: 90, equipment: "BARBELL" },
-    { name: "Puente de glúteos", sets: 3, reps: 12, restSeconds: 75, equipment: "BODYWEIGHT" },
-    { name: "Patada de glúteo en polea", sets: 3, reps: 15, restSeconds: 60, equipment: "CABLE" },
-    { name: "Sentadilla sumo", sets: 3, reps: 10, restSeconds: 90, equipment: "DUMBBELL" },
-  ],
-  CALVES: [
-    { name: "Elevación de talones de pie", sets: 4, reps: 20, restSeconds: 45, equipment: "MACHINE" },
-    { name: "Elevación de talones sentado", sets: 4, reps: 15, restSeconds: 45, equipment: "MACHINE" },
-    { name: "Elevación de talones en prensa", sets: 3, reps: 15, restSeconds: 45, equipment: "MACHINE" },
+    { name: "Hip thrust", equipment: "BARBELL", sets: 4, reps: "8-12", restSeconds: 90, isCompound: true },
+    { name: "Peso muerto rumano", equipment: "BARBELL", sets: 3, reps: "10-12", restSeconds: 90 },
+    { name: "Patada de glúteo en polea", equipment: "CABLE", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Abducción de cadera", equipment: "MACHINE", sets: 3, reps: "15-20", restSeconds: 60 },
   ],
   ABS: [
-    { name: "Crunch en máquina", sets: 3, reps: 20, restSeconds: 45, equipment: "MACHINE" },
-    { name: "Elevación de piernas colgado", sets: 3, reps: 15, restSeconds: 60, equipment: "BODYWEIGHT" },
-    { name: "Plancha abdominal", sets: 3, reps: 30, restSeconds: 45, equipment: "BODYWEIGHT" },
-    { name: "Rueda abdominal", sets: 3, reps: 10, restSeconds: 60, equipment: "OTHER" },
-    { name: "Crunches en cable", sets: 3, reps: 15, restSeconds: 45, equipment: "CABLE" },
+    { name: "Plancha", equipment: "BODYWEIGHT", sets: 3, reps: "30-60s", restSeconds: 60 },
+    { name: "Elevaciones de piernas", equipment: "BODYWEIGHT", sets: 3, reps: "15-20", restSeconds: 60 },
+    { name: "Crunches en máquina", equipment: "MACHINE", sets: 3, reps: "15-20", restSeconds: 60 },
+    { name: "Rueda abdominal", equipment: "OTHER", sets: 3, reps: "10-15", restSeconds: 60 },
+  ],
+  CALVES: [
+    { name: "Elevación de talones", equipment: "MACHINE", sets: 4, reps: "15-20", restSeconds: 60 },
+    { name: "Elevación de talones sentado", equipment: "MACHINE", sets: 3, reps: "15-20", restSeconds: 60 },
   ],
   FOREARMS: [
-    { name: "Curl de muñeca con barra", sets: 3, reps: 15, restSeconds: 45, equipment: "BARBELL" },
-    { name: "Curl de muñeca inverso", sets: 3, reps: 15, restSeconds: 45, equipment: "BARBELL" },
+    { name: "Curl de muñeca", equipment: "BARBELL", sets: 3, reps: "15-20", restSeconds: 45 },
+    { name: "Curl de muñeca inverso", equipment: "BARBELL", sets: 3, reps: "15-20", restSeconds: 45 },
   ],
   FULL_BODY: [
-    { name: "Press banca con barra", sets: 3, reps: 10, restSeconds: 90, equipment: "BARBELL" },
-    { name: "Sentadilla con barra", sets: 3, reps: 10, restSeconds: 120, equipment: "BARBELL" },
-    { name: "Dominadas", sets: 3, reps: 8, restSeconds: 90, equipment: "BODYWEIGHT" },
-    { name: "Press militar", sets: 3, reps: 10, restSeconds: 90, equipment: "BARBELL" },
-    { name: "Peso muerto", sets: 3, reps: 6, restSeconds: 120, equipment: "BARBELL" },
-    { name: "Curl con barra", sets: 3, reps: 12, restSeconds: 60, equipment: "BARBELL" },
-    { name: "Fondos en paralelas", sets: 3, reps: 10, restSeconds: 75, equipment: "BODYWEIGHT" },
-    { name: "Plancha abdominal", sets: 3, reps: 30, restSeconds: 45, equipment: "BODYWEIGHT" },
+    { name: "Burpees", equipment: "BODYWEIGHT", sets: 3, reps: "10-15", restSeconds: 60 },
+    { name: "Kettlebell swing", equipment: "KETTLEBELL", sets: 3, reps: "15-20", restSeconds: 45 },
+    { name: "Thrusters", equipment: "DUMBBELL", sets: 3, reps: "10-12", restSeconds: 75 },
+    { name: "Battle ropes", equipment: "OTHER", sets: 3, reps: "30s", restSeconds: 45 },
   ],
   CARDIO: [
-    { name: "Saltos de tijera", sets: 3, reps: 30, restSeconds: 30, equipment: "BODYWEIGHT" },
-    { name: "Burpees", sets: 3, reps: 15, restSeconds: 45, equipment: "BODYWEIGHT" },
-    { name: "Mountain climbers", sets: 3, reps: 20, restSeconds: 30, equipment: "BODYWEIGHT" },
-  ],
-  TRAPS: [
-    { name: "Encogimientos con barra", sets: 3, reps: 12, restSeconds: 60, equipment: "BARBELL" },
-    { name: "Remo al mentón", sets: 3, reps: 12, restSeconds: 60, equipment: "BARBELL" },
+    { name: "Burpees", equipment: "BODYWEIGHT", sets: 4, reps: "12-15", restSeconds: 45 },
+    { name: "Saltos al cajón", equipment: "OTHER", sets: 3, reps: "10-15", restSeconds: 60 },
+    { name: "Mountain climbers", equipment: "BODYWEIGHT", sets: 3, reps: "20", restSeconds: 45 },
   ],
 }
 
 function getDifficultyMultiplier(level: string): number {
   switch (level) {
-    case "BEGINNER": return 0.6
-    case "INTERMEDIATE": return 0.8
-    case "ADVANCED": return 1.0
-    case "ELITE": return 1.2
-    default: return 0.8
+    case "ELITE": return 2.0
+    case "ADVANCED": return 1.5
+    case "INTERMEDIATE": return 1.2
+    default: return 1.0
   }
 }
 
 function pickExercisesForMuscleGroup(
   muscleGroups: string[],
-  difficultyMultiplier: number,
-  usedExercises: Set<string>
-): Array<{ name: string; sets: number; reps: number; restSeconds: number; equipment: string }> {
-  const selected: Array<{ name: string; sets: number; reps: number; restSeconds: number; equipment: string }> = []
+  multiplier: number,
+  usedNames: Set<string>
+) {
+  const picked: Array<{
+    name: string
+    sets: number
+    reps: string
+    restSeconds: number
+    equipment: string
+    order: number
+  }> = []
+  const mainGroup = muscleGroups[0]
 
-  for (const mg of muscleGroups) {
-    const pool = (EXERCISES_BY_MUSCLE[mg] ?? []).filter((e) => !usedExercises.has(e.name))
+  const pool = MUSCLE_POOL[mainGroup] ?? MUSCLE_POOL.FULL_BODY
+  const available = pool.filter((ex) => !usedNames.has(ex.name)).slice(0, 4)
 
-    const count = mg === "ABS" || mg === "CALVES" || mg === "FOREARMS" ? 1
-      : mg === "FULL_BODY" ? Math.ceil(6 * difficultyMultiplier)
-      : Math.ceil(3 * difficultyMultiplier)
+  const count = Math.min(available.length, Math.max(2, Math.floor(3 * multiplier)))
+  const chosen = available.slice(0, count)
 
-    const exercises = pool.slice(0, count)
-    for (const ex of exercises) {
-      selected.push(ex)
-      usedExercises.add(ex.name)
-    }
+  for (const ex of chosen) {
+    usedNames.add(ex.name)
+    picked.push({
+      name: ex.name,
+      sets: Math.max(3, Math.round(ex.sets * multiplier)),
+      reps: ex.reps,
+      restSeconds: ex.restSeconds,
+      equipment: ex.equipment,
+      order: picked.length,
+    })
   }
 
-  return selected
+  return picked
 }
 
-export async function GET() {
+export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
@@ -163,66 +157,21 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: true, onboardingData: true },
+    select: { id: true, role: true },
   })
 
   if (!user || user.role !== "MEMBER") {
-    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    return NextResponse.json({ error: "Solo miembros" }, { status: 403 })
   }
 
-  const data = user.onboardingData as Record<string, unknown> | null
-  if (!data) {
-    return NextResponse.json({ error: "Onboarding no completado" }, { status: 400 })
+  const body = await request.json()
+  const parsed = fitnessCoachSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Datos inválidos", details: parsed.error.flatten().fieldErrors }, { status: 400 })
   }
 
-  return getRoutinesResponse(
-    (data.objective as string) ?? "UNSURE",
-    (data.experienceLevel as string) ?? "BEGINNER",
-    data.trainingFrequency as number ?? 3
-  )
-}
+  const { objective, experienceLevel, trainingFrequency } = parsed.data
 
-export async function POST(request: Request) {
-  try {
-    const session = await auth()
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true, role: true },
-    })
-
-    if (!user || user.role !== "MEMBER") {
-      return NextResponse.json({ error: "No autorizado" }, { status: 403 })
-    }
-
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch {
-      return NextResponse.json({ error: "Cuerpo JSON inválido" }, { status: 400 })
-    }
-
-    const parsed = fitnessCoachSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Datos inválidos", fieldErrors: parsed.error.flatten().fieldErrors }, { status: 400 })
-    }
-
-    const { objective, experienceLevel, trainingFrequency } = parsed.data
-
-    return getRoutinesResponse(objective, experienceLevel, trainingFrequency)
-  } catch (error) {
-    console.error("[fitness-coach] POST error:", error)
-    return NextResponse.json(
-      { error: "Error interno del servidor", details: error instanceof Error ? error.message : "Unknown error" },
-      { status: 500 }
-    )
-  }
-}
-
-async function getRoutinesResponse(objective: string, experienceLevel: string, trainingFrequency: number) {
   const superadmin = await prisma.user.findFirst({
     where: { role: "SUPER_ADMIN" },
     select: { id: true },
@@ -231,122 +180,115 @@ async function getRoutinesResponse(objective: string, experienceLevel: string, t
   const difficultyMultiplier = getDifficultyMultiplier(experienceLevel)
   const templates = SPLIT_TEMPLATES[trainingFrequency] ?? SPLIT_TEMPLATES[3]
 
-  const routines = await Promise.all(
+  const objectiveLabels: Record<string, string> = {
+    WEIGHT_LOSS: "Quema de grasa",
+    MUSCLE_GAIN: "Ganancia muscular",
+    GENERAL_FITNESS: "Acondicionamiento general",
+    UNSURE: "Acondicionamiento general",
+  }
+
+  const plans = await Promise.all(
     templates.map(async (template) => {
-      const usedExercises = new Set<string>()
-      const exercises: Array<{
-        name: string
-        sets: number
-        reps: number
-        restSeconds: number
-        equipment: string
-        muscleGroup: string
-        order: number
-      }> = []
+      const planName = `${template.name} · ${objectiveLabels[objective] ?? "General"} · ${trainingFrequency}d`
+      const description = `Rutina ${template.name}. ${objectiveLabels[objective] ?? "General"}. ${trainingFrequency} días por semana.`
 
-      for (const split of template.muscleGroups) {
-        const picked = pickExercisesForMuscleGroup(split, difficultyMultiplier, usedExercises)
-        for (const ex of picked) {
-          exercises.push({
-            ...ex,
-            muscleGroup: split[0],
-            order: exercises.length,
-          })
-        }
-      }
-
-      const objectiveLabel: Record<string, string> = {
-        WEIGHT_LOSS: "Quema de grasa",
-        MUSCLE_GAIN: "Ganancia muscular",
-        GENERAL_FITNESS: "Acondicionamiento general",
-        UNSURE: "Acondicionamiento general",
-      }
-
-      const description = `Rutina ${template.name} · ${objectiveLabel[objective] ?? "General"} · ${trainingFrequency} días/semana`
-      const localRoutineName = `${template.name} · ${trainingFrequency}d`
-
-      let existing = await prisma.routine.findFirst({
-        where: {
-          userId: superadmin?.id,
-          assignedToId: null,
-          name: localRoutineName,
-        },
-        include: {
-          exercises: {
-            include: { exercise: true },
-            orderBy: { order: "asc" },
-          },
-        },
+      const existingPlan = await prisma.routinePlan.findFirst({
+        where: { userId: superadmin?.id, name: planName },
+        include: { splits: { include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } }, orderBy: { order: "asc" } } },
       })
 
-      if (!existing) {
-        existing = await prisma.routine.create({
-          data: {
-            name: localRoutineName,
-            description,
-            userId: superadmin?.id ?? "seed",
-            exercises: {
-              create: await Promise.all(
-                exercises.map(async (ex) => {
-                  let dbExercise = await prisma.exercise.findFirst({
-                    where: { name: ex.name },
-                  })
+      if (existingPlan) return existingPlan
 
-                  if (!dbExercise) {
-                    dbExercise = await prisma.exercise.create({
-                      data: {
-                        name: ex.name,
-                        muscleGroup: ex.muscleGroup as MuscleGroup,
-                        equipment: ex.equipment as Equipment,
-                      },
+      const usedExercises = new Set<string>()
+      const splitData = template.muscleGroups.map((mg, i) => ({
+        label: String.fromCharCode(65 + i),
+        name: `${template.name} - ${String.fromCharCode(65 + i)}`,
+        muscleGroups: mg,
+        estimatedDuration: Math.round(mg.reduce((sum) => sum + 45 * difficultyMultiplier, 30)),
+        order: i,
+        exercises: pickExercisesForMuscleGroup(mg, difficultyMultiplier, usedExercises),
+      }))
+
+      return prisma.routinePlan.create({
+        data: {
+          userId: superadmin?.id ?? "seed",
+          name: planName,
+          description,
+          objective: objective === "UNSURE" ? "GENERAL_FITNESS" : objective,
+          frequency: trainingFrequency,
+          difficulty: template.level,
+          splits: {
+            create: await Promise.all(
+              splitData.map(async (split, splitIdx) => ({
+                label: split.label,
+                name: split.name,
+                muscleGroups: split.muscleGroups,
+                estimatedDuration: split.estimatedDuration,
+                order: splitIdx,
+                exercises: {
+                  create: await Promise.all(
+                    split.exercises.map(async (ex, exIdx) => {
+                      let dbExercise = await prisma.exercise.findFirst({ where: { name: ex.name } })
+                      if (!dbExercise) {
+                        dbExercise = await prisma.exercise.create({
+                          data: {
+                            name: ex.name,
+                            muscleGroup: ex.equipment === "BODYWEIGHT" ? "FULL_BODY" as MuscleGroup : split.muscleGroups[0] as MuscleGroup,
+                            equipment: ex.equipment as Equipment,
+                          },
+                        })
+                      }
+                      return {
+                        exerciseId: dbExercise.id,
+                        sets: ex.sets as number,
+                        reps: String(ex.reps),
+                        weight: 0,
+                        restSeconds: ex.restSeconds,
+                        order: exIdx,
+                      }
                     })
-                  }
-
-                  return {
-                    exerciseId: dbExercise.id,
-                    sets: ex.sets,
-                    reps: ex.reps,
-                    weight: 0,
-                    restSeconds: ex.restSeconds,
-                    order: ex.order,
-                  }
-                })
-              ),
-            },
+                  ),
+                },
+              }))
+            ),
           },
-          include: {
-            exercises: {
-              include: { exercise: true },
-              orderBy: { order: "asc" },
-            },
-          },
-        })
-      }
-
-      return existing
+        },
+        include: { splits: { include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } }, orderBy: { order: "asc" } } },
+      })
     })
   )
 
-  const serialize = (r: typeof routines[0]) => ({
-    id: r.id,
-    name: r.name,
-    description: r.description,
-    focus: (SPLIT_TEMPLATES[trainingFrequency] ?? SPLIT_TEMPLATES[3]).find((t) => r.name.startsWith(t.name))?.focus ?? "General",
-    level: (SPLIT_TEMPLATES[trainingFrequency] ?? SPLIT_TEMPLATES[3]).find((t) => r.name.startsWith(t.name))?.level ?? "INTERMEDIATE",
-    splits: (SPLIT_TEMPLATES[trainingFrequency] ?? SPLIT_TEMPLATES[3]).find((t) => r.name.startsWith(t.name))?.muscleGroups.map(
-      (mg) => mg.join("+")
-    ) ?? [],
-    exercises: r.exercises.map((e) => ({
-      id: e.exercise.id,
-      name: e.exercise.name,
-      muscleGroup: e.exercise.muscleGroup,
-      equipment: e.exercise.equipment,
-      sets: e.sets,
-      reps: e.reps,
-      weight: e.weight,
-      restSeconds: e.restSeconds,
+  const serializePlan = (p: typeof plans[0]) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    focus: templateForName(p.name)?.focus ?? "General",
+    difficulty: p.difficulty ?? templateForName(p.name)?.level ?? "INTERMEDIATE",
+    frequency: p.frequency ?? trainingFrequency,
+    objective: p.objective ?? "GENERAL_FITNESS",
+    splits: p.splits.map((s) => ({
+      id: s.id,
+      label: s.label,
+      name: s.name,
+      muscleGroups: s.muscleGroups,
+      estimatedDuration: s.estimatedDuration,
+      exercises: s.exercises.map((e) => ({
+        id: e.exercise.id,
+        name: e.exercise.name,
+        muscleGroup: e.exercise.muscleGroup,
+        equipment: e.exercise.equipment,
+        sets: e.sets,
+        reps: e.reps,
+        weight: e.weight,
+        restSeconds: e.restSeconds,
+        order: e.order,
+      })),
     })),
   })
 
-  return NextResponse.json({ routines: routines.map(serialize) })
+  function templateForName(name: string) {
+    return templates.find((t) => name.startsWith(t.name))
+  }
+
+  return NextResponse.json({ plans: plans.map(serializePlan) })
 }

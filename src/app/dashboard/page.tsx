@@ -4,29 +4,15 @@ import { prisma } from "@/lib/prisma"
 import { AppShell } from "@/components/layout/shell"
 import { DashboardCards } from "@/components/dashboard/cards"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dumbbell, Clock } from "lucide-react"
+import { Dumbbell, Sparkles, Clock } from "lucide-react"
 import Link from "next/link"
+import { getWeeklyStreak } from "@/lib/weekly-progress"
 
-function calculateStreak(logs: { date: Date }[]) {
-  if (logs.length === 0) return 0
-  let streak = 0
-  const checkDate = new Date()
-  checkDate.setHours(0, 0, 0, 0)
-
-  const daysWithWorkouts = new Set(
-    logs.map((log) => {
-      const d = new Date(log.date)
-      d.setHours(0, 0, 0, 0)
-      return d.toISOString()
-    })
-  )
-
-  while (daysWithWorkouts.has(checkDate.toISOString())) {
-    streak++
-    checkDate.setDate(checkDate.getDate() - 1)
-  }
-
-  return streak
+const MUSCLE_LABELS: Record<string, string> = {
+  CHEST: "Pecho", BACK: "Espalda", SHOULDERS: "Hombros", BICEPS: "B\u00edceps",
+  TRICEPS: "Tr\u00edceps", LEGS: "Piernas", GLUTES: "Gl\u00fateos", ABS: "Abdominales",
+  CALVES: "Pantorrillas", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
+  FULL_BODY: "Cuerpo completo", CARDIO: "Cardio",
 }
 
 export default async function DashboardPage() {
@@ -39,20 +25,6 @@ export default async function DashboardPage() {
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     include: {
-      routines: {
-        include: {
-          exercises: {
-            include: { exercise: true },
-            orderBy: { order: "asc" },
-          },
-        },
-        orderBy: { updatedAt: "desc" },
-        take: 3,
-      },
-      workoutLogs: {
-        orderBy: { date: "desc" },
-        take: 7,
-      },
       bookings: {
         include: {
           classItem: {
@@ -82,47 +54,56 @@ export default async function DashboardPage() {
     redirect("/coach")
   }
 
-  const streak = calculateStreak(user.workoutLogs)
   const totalWorkouts = await prisma.workoutLog.count({ where: { userId: user.id } })
 
-  const assignedRoutine = await prisma.routine.findFirst({
-    where: { assignedToId: user.id },
+  const assignment = await prisma.assignedRoutinePlan.findFirst({
+    where: { userId: user.id, active: true },
     include: {
-      exercises: {
-        include: { exercise: true },
-        orderBy: { order: "asc" },
+      plan: {
+        include: {
+          splits: {
+            include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
+            orderBy: { order: "asc" },
+          },
+        },
       },
     },
-    orderBy: { updatedAt: "desc" },
   })
 
-  const serializedAssignedRoutine = assignedRoutine
-    ? {
-        id: assignedRoutine.id,
-        name: assignedRoutine.name,
-        description: assignedRoutine.description,
-        exercises: assignedRoutine.exercises.map((e) => ({
-          id: e.exercise.id,
-          name: e.exercise.name,
-          muscleGroup: e.exercise.muscleGroup,
-          sets: e.sets,
-          reps: e.reps,
-          weight: e.weight,
-          restSeconds: e.restSeconds,
-        })),
-      }
-    : null
+  const frequency = assignment?.plan?.frequency ?? 3
+  const weeklyStreakData = await getWeeklyStreak(user.id, frequency)
 
-  const serializedRoutines = user.routines.map((r) => ({
-    id: r.id,
-    name: r.name,
-    exercises: r.exercises.map((e) => ({
-      exercise: {
-        name: e.exercise.name,
-        muscleGroup: e.exercise.muscleGroup,
-      },
-    })),
-  }))
+  let propuestoSplit: {
+    id: string
+    label: string
+    name: string
+    muscleGroups: string[]
+    exerciseCount: number
+    estimatedDuration: number | null
+  } | null = null
+
+  if (assignment?.plan) {
+    const splits = assignment.plan.splits
+    const lastLog = await prisma.workoutLog.findFirst({
+      where: { userId: user.id, split: { planId: assignment.plan.id } },
+      orderBy: { createdAt: "desc" },
+      include: { split: { select: { order: true } } },
+    })
+
+    const lastComplete = lastLog?.split ?? null
+    const lastIndex = lastComplete ? splits.findIndex((s) => s.order === lastComplete.order) : -1
+    const nextIndex = lastIndex === -1 ? 0 : (lastIndex + 1) % splits.length
+    const split = splits[nextIndex]
+
+    propuestoSplit = {
+      id: split.id,
+      label: split.label,
+      name: split.name,
+      muscleGroups: split.muscleGroups,
+      exerciseCount: split.exercises.length,
+      estimatedDuration: split.estimatedDuration,
+    }
+  }
 
   const serializedBookings = user.bookings.map((b) => ({
     id: b.id,
@@ -143,70 +124,87 @@ export default async function DashboardPage() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
             Bienvenido, {user.name?.split(" ")[0] ?? "Atleta"}
           </h1>
-          <p className="text-muted-foreground">Tu progreso hoy</p>
+          <p className="text-muted-foreground">Tu progreso</p>
         </div>
 
         <DashboardCards
-          streak={streak}
           totalWorkouts={totalWorkouts}
-          routinesCount={user.routines.length}
+          weeklyStreak={weeklyStreakData.streak}
           classesCount={user.bookings.length}
-          routines={serializedRoutines}
           bookings={serializedBookings}
         />
 
-        {serializedAssignedRoutine && (
-          <Card className="border-2 border-gym-green/20 bg-gradient-to-r from-gym-green/[0.03] to-transparent">
+        {propuestoSplit && (
+          <Card className="border-2 border-gym-amber/20 bg-gradient-to-r from-gym-amber/[0.03] to-transparent">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Dumbbell className="h-5 w-5 text-gym-green" />
-                Mi entrenamiento de hoy
+                <Sparkles className="h-5 w-5 text-gym-amber" />
+                Próximo entrenamiento
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 {new Date().toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" })}
               </p>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="font-bold text-xl">{serializedAssignedRoutine.name}</h3>
-                  {serializedAssignedRoutine.description && (
-                    <p className="text-sm text-muted-foreground">{serializedAssignedRoutine.description}</p>
-                  )}
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                {serializedAssignedRoutine.exercises.slice(0, 5).map((ex, i) => (
-                  <div key={ex.id} className="flex items-center gap-3 text-sm">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gym-green/10 text-xs font-bold text-gym-green">
-                      {i + 1}
-                    </span>
-                    <span className="flex-1 truncate">{ex.name}</span>
-                    <span className="text-muted-foreground tabular-nums">
-                      {ex.sets}x{ex.reps}
-                      {ex.weight > 0 && ` · ${ex.weight}kg`}
-                    </span>
-                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {ex.restSeconds}s
+              <Link
+                href={`/workout/log/${propuestoSplit.id}`}
+                className="flex items-center gap-4 rounded-xl border bg-card p-4 hover:border-gym-amber/30 transition-all hover:shadow-md"
+              >
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gym-amber/10 text-gym-amber font-bold text-xl">
+                  {propuestoSplit.label}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-lg">{propuestoSplit.name}</p>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gym-amber/10 px-2 py-0.5 text-[10px] font-semibold text-gym-amber">
+                      <Sparkles className="h-2.5 w-2.5" /> Propuesto
                     </span>
                   </div>
-                ))}
-                {serializedAssignedRoutine.exercises.length > 5 && (
-                  <p className="text-xs text-muted-foreground pt-2">
-                    +{serializedAssignedRoutine.exercises.length - 5} ejercicios más
+                  <p className="text-sm text-muted-foreground">
+                    {propuestoSplit.muscleGroups.map((g) => MUSCLE_LABELS[g] ?? g).join(" · ")}
                   </p>
-                )}
-              </div>
-              <div className="mt-4">
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Dumbbell className="h-3 w-3" />
+                      {propuestoSplit.exerciseCount} ejercicios
+                    </span>
+                    {propuestoSplit.estimatedDuration && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        ~{propuestoSplit.estimatedDuration} min
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Dumbbell className="h-5 w-5 text-gym-amber shrink-0" />
+              </Link>
+
+              <div className="mt-3">
                 <Link
-                  href={`/workout/log/${serializedAssignedRoutine.id}`}
-                  className="inline-flex items-center gap-1 text-sm font-medium text-gym-green hover:underline"
+                  href="/rutina"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-gym-amber hover:underline"
                 >
                   <Dumbbell className="h-4 w-4" />
-                  Iniciar entrenamiento
+                  Ver Mi Rutina completa
                 </Link>
               </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {!propuestoSplit && (
+          <Card className="border-2 border-dashed border-muted">
+            <CardContent className="py-8 text-center space-y-3">
+              <Dumbbell className="h-10 w-10 text-muted-foreground/30 mx-auto" />
+              <p className="text-sm text-muted-foreground">
+                No tienes una rutina asignada.
+              </p>
+              <Link
+                href="/onboarding"
+                className="inline-flex items-center gap-1 text-sm font-medium text-gym-green hover:underline"
+              >
+                Configurar mi rutina
+              </Link>
             </CardContent>
           </Card>
         )}

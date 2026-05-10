@@ -3,7 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { sounds, startAmbient, stopAmbient, duckAmbient } from "@/lib/sounds"
 import { useSettingsStore } from "@/stores/settings-store"
+import { useWorkoutStore } from "@/stores/workout-store"
 import type { AmbientPhase } from "@/lib/sounds"
+import type { SetLog } from "@/stores/workout-store"
 
 type WorkoutPhase = "prepare" | "warmup" | "active" | "cooldown" | "done"
 
@@ -19,24 +21,77 @@ export function useWorkoutSession({
   onComplete,
 }: WorkoutSessionOptions) {
   const soundEnabled = useSettingsStore((s) => s.soundEnabled)
-  const [phase, setPhase] = useState<WorkoutPhase>("prepare")
-  const [elapsedSeconds, setElapsedSeconds] = useState(0)
-  const [restRemaining, setRestRemaining] = useState(0)
-  const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0)
-  const [completedExercises, setCompletedExercises] = useState(0)
+  const store = useWorkoutStore()
+
+  const [phase, setPhaseState] = useState<WorkoutPhase>(store.phase)
+  const [elapsedSeconds, setElapsedState] = useState(store.elapsedSeconds)
+  const [restRemaining, setRestRemainingState] = useState(store.restRemaining)
+  const [currentExerciseIdx, setCurrentExerciseIdxState] = useState(store.currentExerciseIdx)
+  const [completedExercises, setCompletedExercises] = useState(store.completedExerciseIds.length)
+  const [isResting, setIsResting] = useState(store.isResting)
 
   const elapsedRef = useRef<NodeJS.Timeout | null>(null)
   const restRef = useRef<NodeJS.Timeout | null>(null)
   const ambientRef = useRef<((phase: AmbientPhase) => void) | null>(null)
-  const phaseRef = useRef<WorkoutPhase>(phase)
-  const completedRef = useRef(completedExercises)
   const soundEnabledRef = useRef(soundEnabled)
   const totalRef = useRef(totalExercises)
+  const onCompleteRef = useRef(onComplete)
+  const phaseRef = useRef(phase)
+  const initialized = useRef(false)
+
+  const elapsedForCleanupRef = useRef(elapsedSeconds)
+  const restForCleanupRef = useRef(restRemaining)
+  useEffect(() => { elapsedForCleanupRef.current = elapsedSeconds }, [elapsedSeconds])
+  useEffect(() => { restForCleanupRef.current = restRemaining }, [restRemaining])
 
   useEffect(() => { phaseRef.current = phase }, [phase])
-  useEffect(() => { completedRef.current = completedExercises }, [completedExercises])
   useEffect(() => { soundEnabledRef.current = soundEnabled }, [soundEnabled])
   useEffect(() => { totalRef.current = totalExercises }, [totalExercises])
+  useEffect(() => { onCompleteRef.current = onComplete }, [onComplete])
+
+  useEffect(() => {
+    if (initialized.current) return
+    initialized.current = true
+
+    const s = useWorkoutStore.getState()
+    if (s.phase !== "prepare" && s.phase !== "done" && s.savedAt) {
+      const now = Date.now()
+      const delta = (now - s.savedAt) / 1000
+      const realElapsed = Math.floor(s.elapsedSeconds + delta)
+      setElapsedState(realElapsed)
+      store.setElapsedSeconds(realElapsed)
+
+      if (s.isResting && !s.isRestPaused && s.restUpdatedAt) {
+        const restDelta = (now - s.restUpdatedAt) / 1000
+        const realRest = Math.max(0, Math.floor(s.restRemaining - restDelta))
+        if (realRest <= 0) {
+          store.setResting(false)
+          setIsResting(false)
+          store.setRestRemaining(0)
+          store.setRestUpdatedAt(Date.now())
+        } else {
+          setRestRemainingState(realRest)
+          store.setRestRemaining(realRest)
+          setIsResting(true)
+        }
+      } else if (s.isRestPaused) {
+        setRestRemainingState(s.restPausedRemaining)
+        store.setRestRemaining(s.restPausedRemaining)
+        store.setRestUpdatedAt(Date.now())
+        setIsResting(true)
+      }
+
+      startElapsedTimer()
+      if (soundEnabledRef.current) {
+        ambientRef.current = startAmbient()
+        ambientRef.current(s.phase as AmbientPhase)
+      }
+    }
+
+    return () => {
+      store.setElapsedSeconds(elapsedRef.current ? elapsedSeconds : store.elapsedSeconds)
+    }
+  }, [])
 
   const playSound = useCallback((key: keyof typeof sounds) => {
     if (!soundEnabledRef.current) return
@@ -55,17 +110,25 @@ export function useWorkoutSession({
   const startElapsedTimer = useCallback(() => {
     stopElapsedTimer()
     elapsedRef.current = setInterval(() => {
-      setElapsedSeconds((prev) => prev + 1)
+      setElapsedState((prev) => {
+        const next = prev + 1
+        useWorkoutStore.getState().setElapsedSeconds(next)
+        return next
+      })
     }, 1000)
   }, [stopElapsedTimer])
 
   const startWorkout = useCallback(() => {
     if (phaseRef.current !== "prepare") return
 
-    setPhase("warmup")
-    setElapsedSeconds(0)
-    setCurrentExerciseIdx(0)
+    const s = useWorkoutStore.getState()
+    s.startWorkout(s.splitId!, totalExercises)
+    setPhaseState("warmup")
+    s.setPhase("warmup")
+    setElapsedState(0)
+    setCurrentExerciseIdxState(0)
     setCompletedExercises(0)
+
     startElapsedTimer()
 
     if (soundEnabledRef.current) {
@@ -73,30 +136,37 @@ export function useWorkoutSession({
       ambientRef.current("warmup")
       setTimeout(() => playSound("workoutStart"), 100)
     }
-  }, [playSound, startElapsedTimer])
-
-  const advanceToActive = useCallback(() => {
-    if (phaseRef.current !== "warmup") return
-    setPhase("active")
-    if (soundEnabledRef.current && ambientRef.current) {
-      ambientRef.current("active")
-      playSound("phaseTransition")
-    }
-  }, [playSound])
+  }, [playSound, startElapsedTimer, totalExercises])
 
   const startRest = useCallback(() => {
     stopRestTimer()
-    setRestRemaining(restSeconds)
+    const s = useWorkoutStore.getState()
+    setRestRemainingState(restSeconds)
+    s.setRestRemaining(restSeconds)
+    s.setRestTotalDuration(restSeconds)
+    s.setResting(true)
+    s.setRestPaused(false)
+    s.setRestUpdatedAt(Date.now())
+    setIsResting(true)
 
     if (soundEnabledRef.current) {
       playSound("restStart")
     }
 
     restRef.current = setInterval(() => {
-      setRestRemaining((prev) => {
+      setRestRemainingState((prev) => {
         const next = prev - 1
+        useWorkoutStore.getState().setRestRemaining(next)
         if (next <= 0) {
           stopRestTimer()
+          setIsResting(false)
+          const st = useWorkoutStore.getState()
+          st.setResting(false)
+          st.setRestRemaining(0)
+          st.setRestUpdatedAt(Date.now())
+          if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200])
+          }
           setTimeout(() => {
             if (soundEnabledRef.current) {
               playSound("restEnd")
@@ -114,45 +184,105 @@ export function useWorkoutSession({
 
   const skipRest = useCallback(() => {
     stopRestTimer()
-    setRestRemaining(0)
+    setRestRemainingState(0)
+    const s = useWorkoutStore.getState()
+    s.setRestRemaining(0)
+    s.setResting(false)
+    s.setRestUpdatedAt(Date.now())
+    setIsResting(false)
     playSound("click")
+  }, [stopRestTimer, playSound])
+
+  const pauseRest = useCallback(() => {
+    if (!isResting) return
+    stopRestTimer()
+    const s = useWorkoutStore.getState()
+    s.setRestPaused(true)
+    s.setRestPausedRemaining(restRemaining)
+    s.setRestUpdatedAt(Date.now())
+  }, [isResting, restRemaining, stopRestTimer])
+
+  const resumeRest = useCallback(() => {
+    const s = useWorkoutStore.getState()
+    const sr = s.restPausedRemaining
+    s.setRestPaused(false)
+    s.setRestRemaining(sr)
+    s.setRestUpdatedAt(Date.now())
+    setRestRemainingState(sr)
+    setIsResting(true)
+
+    restRef.current = setInterval(() => {
+      setRestRemainingState((prev) => {
+        const next = prev - 1
+        useWorkoutStore.getState().setRestRemaining(next)
+        if (next <= 0) {
+          stopRestTimer()
+          setIsResting(false)
+          const st = useWorkoutStore.getState()
+          st.setResting(false)
+          st.setRestRemaining(0)
+          st.setRestUpdatedAt(Date.now())
+          if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200])
+          }
+          setTimeout(() => {
+            if (soundEnabledRef.current) {
+              playSound("restEnd")
+            }
+          }, 0)
+          return 0
+        }
+        if (next <= 3 && next > 0 && soundEnabledRef.current) {
+          sounds.restWarning()
+        }
+        return next
+      })
+    }, 1000)
   }, [stopRestTimer, playSound])
 
   const markExerciseComplete = useCallback((exerciseIdx: number) => {
     if (exerciseIdx !== currentExerciseIdx) return
 
-    const newCompleted = completedRef.current + 1
+    const newCompleted = completedExercises + 1
     setCompletedExercises(newCompleted)
 
     if (soundEnabledRef.current) {
       playSound("exerciseComplete")
     }
 
+    if (navigator.vibrate) {
+      navigator.vibrate(100)
+    }
+
     const isLast = exerciseIdx >= totalRef.current - 1
+    const s = useWorkoutStore.getState()
 
     if (isLast) {
       if (phaseRef.current === "warmup" && newCompleted >= Math.ceil(totalRef.current * 0.3)) {
-        setPhase("active")
+        setPhaseState("active")
+        s.setPhase("active")
         if (ambientRef.current) ambientRef.current("active")
       } else {
-        setPhase("cooldown")
+        setPhaseState("cooldown")
+        s.setPhase("cooldown")
         if (ambientRef.current) ambientRef.current("cooldown")
         playSound("phaseTransition")
       }
       return
     }
 
-    // Si estábamos en warmup y ya completamos ~30%, transicionar a active
     if (phaseRef.current === "warmup" && newCompleted >= Math.ceil(totalRef.current * 0.3)) {
-      setPhase("active")
+      setPhaseState("active")
+      s.setPhase("active")
       if (ambientRef.current) ambientRef.current("active")
       playSound("phaseTransition")
     }
 
     const nextIdx = exerciseIdx + 1
-    setCurrentExerciseIdx(nextIdx)
+    setCurrentExerciseIdxState(nextIdx)
+    s.setCurrentExerciseIdx(nextIdx)
     startRest()
-  }, [currentExerciseIdx, playSound, startRest])
+  }, [currentExerciseIdx, completedExercises, playSound, startRest])
 
   const finishWorkout = useCallback(() => {
     stopElapsedTimer()
@@ -162,18 +292,30 @@ export function useWorkoutSession({
       playSound("workoutComplete")
     }
 
+    if (navigator.vibrate) {
+      navigator.vibrate([300, 100, 300, 100, 500])
+    }
+
     stopAmbient()
     ambientRef.current = null
 
-    setPhase("done")
-    onComplete?.()
-  }, [playSound, onComplete, stopElapsedTimer, stopRestTimer])
+    setPhaseState("done")
+    const s = useWorkoutStore.getState()
+    s.setPhase("done")
+    s.setResting(false)
+    setIsResting(false)
+    onCompleteRef.current?.()
+  }, [playSound, stopElapsedTimer, stopRestTimer])
 
   const cleanup = useCallback(() => {
     stopElapsedTimer()
     stopRestTimer()
     stopAmbient()
     ambientRef.current = null
+    const s = useWorkoutStore.getState()
+    s.setElapsedSeconds(elapsedRef.current ? elapsedForCleanupRef.current : 0)
+    s.setRestRemaining(restForCleanupRef.current)
+    s.setRestUpdatedAt(Date.now())
   }, [stopElapsedTimer, stopRestTimer])
 
   useEffect(() => {
@@ -192,13 +334,15 @@ export function useWorkoutSession({
     elapsedFormatted,
     restRemaining,
     restFormatted,
-    isResting: restRemaining > 0,
+    isResting,
+    isRestPaused: store.isRestPaused,
     startWorkout,
-    advanceToActive,
     markExerciseComplete,
     finishWorkout,
     playSound,
     skipRest,
+    pauseRest,
+    resumeRest,
     cleanup,
   }
 }

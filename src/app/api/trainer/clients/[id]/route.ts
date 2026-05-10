@@ -34,14 +34,18 @@ export async function GET(request: Request, { params }: RouteParams) {
       emergencyContact: true,
       emergencyPhone: true,
       bodyMeasurements: { orderBy: { date: "desc" }, take: 10 },
-      routines: {
+      assignedRoutinePlans: {
+        where: { active: true },
         include: {
-          exercises: {
-            include: { exercise: true },
-            orderBy: { order: "asc" },
+          plan: {
+            include: {
+              splits: {
+                include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
+                orderBy: { order: "asc" },
+              },
+            },
           },
         },
-        orderBy: { updatedAt: "desc" },
       },
       workoutLogs: {
         include: { sets: { orderBy: { setNumber: "asc" } } },

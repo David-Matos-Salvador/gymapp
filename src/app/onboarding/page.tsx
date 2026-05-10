@@ -35,40 +35,47 @@ import {
 type Objective = "WEIGHT_LOSS" | "MUSCLE_GAIN" | "GENERAL_FITNESS" | "UNSURE"
 type TrainingHistory = "NONE" | "ONCE" | "TWO_TO_THREE" | "FOUR_PLUS"
 type ExperienceLevelStep = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "ELITE"
-type DesiredFrequency = "ONE" | "TWO" | "THREE_PLUS"
 type UsualSchedule = "BEFORE_8AM" | "8AM_11AM" | "11AM_2PM" | "2PM_5PM" | "5PM_7PM" | "7PM_9PM" | "AFTER_9PM"
 
 interface OnboardingData {
   objective: Objective | null
   trainingHistory: TrainingHistory | null
   experienceLevel: ExperienceLevelStep | null
-  desiredFrequency: DesiredFrequency | null
+  trainingFrequency: number | null
   physicalConditions: string[]
   weight: number | null
   height: number | null
   usualSchedule: UsualSchedule | null
 }
 
-interface GeneratedRoutineData {
+interface GeneratedPlanData {
   id: string
   name: string
   description: string | null
   focus: string
-  level: string
-  splits: string[]
-  exercises: {
+  difficulty: string
+  frequency: number
+  objective: string
+  splits: {
     id: string
+    label: string
     name: string
-    muscleGroup: string
-    equipment: string
-    sets: number
-    reps: number
-    weight: number
-    restSeconds: number
+    muscleGroups: string[]
+    estimatedDuration: number | null
+    exercises: {
+      id: string
+      name: string
+      muscleGroup: string
+      equipment: string
+      sets: number
+      reps: string
+      weight: number
+      restSeconds: number
+    }[]
   }[]
 }
 
-const TOTAL_STEPS = 11
+const TOTAL_STEPS = 9
 
 const STEPS = [
   { num: 1, title: "Objetivo" },
@@ -79,10 +86,22 @@ const STEPS = [
   { num: 6, title: "Peso y altura" },
   { num: 7, title: "Horario" },
   { num: 8, title: "Confirmación" },
-  { num: 9, title: "Plan semanal" },
-  { num: 10, title: "Tu rutina" },
-  { num: 11, title: "Listo" },
+  { num: 9, title: "Tu rutina" },
 ]
+
+type StepBehavior = "auto-advance" | "manual" | "custom-button" | "system-auto" | "final"
+
+const STEP_BEHAVIOR: Record<number, StepBehavior> = {
+  1: "auto-advance",
+  2: "auto-advance",
+  3: "auto-advance",
+  4: "auto-advance",
+  5: "manual",
+  6: "manual",
+  7: "auto-advance",
+  8: "custom-button",
+  9: "custom-button",
+}
 
 const objectiveOptions = [
   {
@@ -125,10 +144,10 @@ const experienceOptions = [
   { value: "ELITE", label: "Élite", icon: Trophy, description: "Entreno de forma autónoma" },
 ]
 
-const frequencyOptions = [
-  { value: "ONE", label: "1x", description: "1 día por semana" },
-  { value: "TWO", label: "2x", description: "2 días por semana" },
-  { value: "THREE_PLUS", label: "3x+", description: "3 o más días por semana" },
+const trainingFrequencyOptions = [
+  { value: 3, label: "3 días por semana", description: "Ideal para principiantes — volumen equilibrado" },
+  { value: 4, label: "4 días por semana", description: "Balance óptimo — 4 días de entrenamiento" },
+  { value: 5, label: "5 días por semana", description: "Máximo rendimiento — 5 días intensivos" },
 ]
 
 const physicalConditionOptions = [
@@ -207,12 +226,6 @@ const experienceLabelMap: Record<string, string> = {
   ELITE: "Élite",
 }
 
-const frequencyLabelMap: Record<string, string> = {
-  ONE: "1x por semana",
-  TWO: "2x por semana",
-  THREE_PLUS: "3x o más",
-}
-
 const scheduleLabelMap: Record<string, string> = {
   BEFORE_8AM: "Madrugada (5am-8am)",
   "8AM_11AM": "Mañana (8am-11am)",
@@ -234,24 +247,24 @@ export default function OnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
   const [editingStep, setEditingStep] = useState<number | null>(null)
-  const [trainingFrequency, setTrainingFrequency] = useState<number>(3)
-  const [generatedRoutines, setGeneratedRoutines] = useState<GeneratedRoutineData[]>([])
-  const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null)
+  const [generatedPlans, setGeneratedPlans] = useState<GeneratedPlanData[]>([])
+  const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationPhase, setGenerationPhase] = useState(0)
+  const lastClickRef = useRef<{ id: string; time: number } | null>(null)
 
   const [data, setData] = useState<OnboardingData>({
     objective: null,
     trainingHistory: null,
     experienceLevel: null,
-    desiredFrequency: null,
+    trainingFrequency: null,
     physicalConditions: [],
     weight: null,
     height: null,
     usualSchedule: null,
   })
 
-  const fetchGeneratedRoutines = useCallback(async (freq: number): Promise<GeneratedRoutineData[] | null> => {
+  const fetchGeneratedPlans = useCallback(async (freq: number): Promise<GeneratedPlanData[] | null> => {
     try {
       const res = await fetch("/api/fitness-coach", {
         method: "POST",
@@ -264,9 +277,9 @@ export default function OnboardingPage() {
       })
       if (res.ok) {
         const result = await res.json()
-        if (result.routines?.length > 0) {
-          setGeneratedRoutines(result.routines)
-          return result.routines
+        if (result.plans?.length > 0) {
+          setGeneratedPlans(result.plans)
+          return result.plans
         }
       }
     } catch {
@@ -298,7 +311,7 @@ export default function OnboardingPage() {
           if (d.onboardingCompleted) {
             router.push("/dashboard")
           } else if (d.trainingFrequency) {
-            setTrainingFrequency(d.trainingFrequency)
+            setData((prev) => ({ ...prev, trainingFrequency: d.trainingFrequency }))
           }
         })
         .catch(() => {})
@@ -350,66 +363,93 @@ export default function OnboardingPage() {
   const handleScheduleSelect = useCallback(
     (value: UsualSchedule) => {
       updateData("usualSchedule", value)
+      play("select")
+      setTimeout(goNext, 200)
     },
-    [updateData]
+    [updateData, play, goNext]
   )
 
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true)
     setError("")
+    setIsGenerating(true)
+    setGenerationPhase(0)
 
-    try {
-      const res = await fetch("/api/onboarding", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
+    const savePromise = (async () => {
+      try {
+        const res = await fetch("/api/onboarding", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        })
 
-      let errorMsg = "Error al guardar"
-      if (!res.ok) {
-        try {
-          const text = await res.text()
-          if (text) {
-            const json = JSON.parse(text)
-            errorMsg = json.error || json.details || "Error al guardar"
-          } else {
+        let errorMsg = "Error al guardar"
+        if (!res.ok) {
+          try {
+            const text = await res.text()
+            if (text) {
+              const json = JSON.parse(text)
+              errorMsg = json.error || json.details || "Error al guardar"
+            } else {
+              errorMsg = `Error del servidor (${res.status})`
+            }
+          } catch {
             errorMsg = `Error del servidor (${res.status})`
           }
-        } catch {
-          errorMsg = `Error del servidor (${res.status})`
+          throw new Error(errorMsg)
         }
-        throw new Error(errorMsg)
+        return res.json()
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Error al guardar los datos")
+        setIsSubmitting(false)
+        setIsGenerating(false)
+        throw err
       }
+    })()
 
-      play("success")
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al guardar los datos")
-      setIsSubmitting(false)
+    const freq = data.trainingFrequency ?? 3
+    const fetchPromise = fetchGeneratedPlans(freq)
+
+    for (let i = 0; i < loadingMessages.length; i++) {
+      setGenerationPhase(i)
+      await new Promise((r) => setTimeout(r, loadingMessages[i].duration))
+    }
+
+    try {
+      await savePromise
+    } catch {
       return
     }
 
-    setError("")
+    const plans = await fetchPromise
+
+    if (plans?.length) {
+      setExpandedPlanId(null)
+    }
+
+    setIsGenerating(false)
+    setIsSubmitting(false)
+    play("success")
+
     setDirection(1)
     setStep(9)
+  }, [data, play, fetchGeneratedPlans])
 
-    setIsSubmitting(false)
-  }, [data, play])
-
-  const assignRoutine = useCallback(
-    async (routineId: string) => {
+  const assignPlan = useCallback(
+    async (planId: string) => {
       setIsSubmitting(true)
       setError("")
 
       await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, trainingFrequency }),
+        body: JSON.stringify(data),
       })
 
       const res = await fetch("/api/onboarding/assign-routine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ routineId }),
+        body: JSON.stringify({ planId }),
       })
       if (!res.ok) {
         setError("Error al asignar la rutina")
@@ -426,7 +466,26 @@ export default function OnboardingPage() {
       router.push("/dashboard")
       router.refresh()
     },
-    [play, router, updateSession, data, trainingFrequency]
+    [play, router, updateSession, data]
+  )
+
+  const handlePlanClick = useCallback(
+    (plan: GeneratedPlanData) => {
+      const now = Date.now()
+      const prev = lastClickRef.current
+
+      if (prev && prev.id === plan.id && now - prev.time < 300) {
+        lastClickRef.current = null
+        assignPlan(plan.id)
+        return
+      }
+
+      lastClickRef.current = { id: plan.id, time: now }
+
+      play("select")
+      setExpandedPlanId((prev) => (prev === plan.id ? null : plan.id))
+    },
+    [assignPlan, play]
   )
 
   const handleWeightChange = (value: string) => {
@@ -464,7 +523,7 @@ export default function OnboardingPage() {
   const canProceedStep1 = data.objective !== null
   const canProceedStep2 = data.trainingHistory !== null
   const canProceedStep3 = data.experienceLevel !== null
-  const canProceedStep4 = data.desiredFrequency !== null
+  const canProceedStep4 = data.trainingFrequency !== null
   const canProceedStep5 = data.physicalConditions.length > 0
   const canProceedStep6 = data.weight !== null && data.height !== null && !weightError && !heightError
   const canProceedStep7 = data.usualSchedule !== null
@@ -479,11 +538,9 @@ export default function OnboardingPage() {
     7: canProceedStep7,
     8: true,
     9: true,
-    10: selectedRoutineId !== null,
-    11: true,
   }
 
-  const showNextButton = ![8, 9, 10, 11].includes(step)
+  const showNextButton = STEP_BEHAVIOR[step] === "manual"
 
   const bmi = data.weight && data.height ? calculateBMI(data.weight, data.height) : null
 
@@ -624,35 +681,40 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Frecuencia deseada</h2>
-              <p className="text-muted-foreground">¿Cuántos días por semana quieres entrenar?</p>
+              <h2 className="text-2xl font-bold tracking-tight">Frecuencia de entrenamiento</h2>
+              <p className="text-muted-foreground">¿Cuántos días por semana puedes entrenar?</p>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              {frequencyOptions.map((opt) => {
-                const isSelected = data.desiredFrequency === opt.value
+            <div className="space-y-3">
+              {trainingFrequencyOptions.map((opt) => {
+                const isSelected = data.trainingFrequency === opt.value
                 return (
                   <motion.button
                     key={opt.value}
-                    whileTap={{ scale: 0.97 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => {
-                      updateData("desiredFrequency", opt.value as DesiredFrequency)
+                      updateData("trainingFrequency", opt.value)
                       play("select")
                       setTimeout(goNext, 200)
                     }}
-                    className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-6 transition-all ${
+                    className={`w-full flex items-center gap-5 rounded-2xl border-2 p-5 text-left transition-all ${
                       isSelected
                         ? "border-primary bg-primary/5 shadow-sm"
                         : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
                     }`}
                   >
-                    <span
-                      className={`flex h-16 w-16 items-center justify-center rounded-2xl text-3xl font-bold transition-all ${
-                        isSelected ? "bg-primary text-primary-foreground shadow-md" : "bg-muted text-muted-foreground"
+                    <div
+                      className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl font-bold transition-all ${
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {opt.label}
-                    </span>
-                    <span className="text-sm text-muted-foreground">{opt.description}</span>
+                      {opt.value}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-lg">{opt.label}</p>
+                      <p className="text-sm text-muted-foreground">{opt.description}</p>
+                    </div>
                   </motion.button>
                 )
               })}
@@ -791,7 +853,6 @@ export default function OnboardingPage() {
                     whileTap={{ scale: 0.98 }}
                     onClick={() => {
                       handleScheduleSelect(opt.value as UsualSchedule)
-                      play("select")
                     }}
                     className={`w-full flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all ${
                       isSelected
@@ -821,68 +882,6 @@ export default function OnboardingPage() {
         )
 
       case 8:
-        return (
-          <div className="flex flex-col gap-5">
-            <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Confirmá tus datos</h2>
-              <p className="text-muted-foreground">Revisá que toda la información sea correcta</p>
-            </div>
-
-            {error && (
-              <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-center text-sm text-destructive">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <SummaryRow label="Objetivo" value={objectiveLabelMap[data.objective!]} onEdit={() => jumpToEditStep(1)} />
-              <SummaryRow label="Historial" value={trainingHistoryLabelMap[data.trainingHistory!]} onEdit={() => jumpToEditStep(2)} />
-              <SummaryRow label="Experiencia" value={experienceLabelMap[data.experienceLevel!]} onEdit={() => jumpToEditStep(3)} />
-              <SummaryRow label="Frecuencia" value={frequencyLabelMap[data.desiredFrequency!]} onEdit={() => jumpToEditStep(4)} />
-              <SummaryRow label="Condiciones" value={data.physicalConditions.join(", ")} onEdit={() => jumpToEditStep(5)} />
-              <SummaryRow label="Peso / Altura" value={`${data.weight} kg / ${data.height} cm`} onEdit={() => jumpToEditStep(6)} />
-              {bmi !== null && (
-                <div className={`flex items-center justify-between ${getBMICategory(bmi).bgColor} rounded-xl px-4 py-3`}>
-                  <span className="text-sm font-medium">IMC</span>
-                  <span className={`text-sm font-bold ${getBMICategory(bmi).color}`}>
-                    {bmi.toFixed(1)} ({getBMICategory(bmi).label})
-                  </span>
-                </div>
-              )}
-              <SummaryRow label="Horario" value={scheduleLabelMap[data.usualSchedule!]} onEdit={() => jumpToEditStep(7)} />
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <Button
-                variant="outline"
-                className="flex-1 h-12 rounded-xl"
-                onClick={goBack}
-              >
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Editar
-              </Button>
-              <Button
-                className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Check className="mr-2 h-4 w-4" />
-                    Confirmar
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        )
-
-      case 9:
         if (isGenerating) {
           return (
             <div className="flex flex-col items-center justify-center gap-8 py-16">
@@ -931,73 +930,8 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Frecuencia de entrenamiento</h2>
-              <p className="text-muted-foreground">¿Cuántos días por semana puedes entrenar?</p>
-            </div>
-            <div className="space-y-3">
-              {[3, 4, 5].map((f) => (
-                <motion.button
-                  key={f}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={async () => {
-                    setTrainingFrequency(f)
-                    setSelectedRoutineId(null)
-                    setGeneratedRoutines([])
-                    play("select")
-                    setIsGenerating(true)
-                    setGenerationPhase(0)
-
-                    const fetchPromise = fetchGeneratedRoutines(f)
-
-                    for (let i = 0; i < loadingMessages.length; i++) {
-                      setGenerationPhase(i)
-                      await new Promise((r) => setTimeout(r, loadingMessages[i].duration))
-                    }
-
-                    const routines = await fetchPromise
-
-                    if (routines?.length) {
-                      setSelectedRoutineId(routines[0].id)
-                    }
-
-                    setIsGenerating(false)
-                    setDirection(1)
-                    setStep(10)
-                  }}
-                  disabled={isGenerating}
-                  className={`w-full flex items-center gap-5 rounded-2xl border-2 p-5 text-left transition-all ${
-                    trainingFrequency === f
-                      ? "border-primary bg-primary/5 shadow-sm"
-                      : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
-                  } ${isGenerating ? "pointer-events-none opacity-50" : ""}`}
-                >
-                  <div
-                    className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl font-bold transition-all ${
-                      trainingFrequency === f
-                        ? "bg-primary text-primary-foreground shadow-md"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {f}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-lg">{f} días por semana</p>
-                    <p className="text-sm text-muted-foreground">
-                      {f === 3 ? "Ideal para principiantes — volumen equilibrado" : f === 4 ? "Balance óptimo — 4 días de entrenamiento" : "Máximo rendimiento — 5 días intensivos"}
-                    </p>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
-          </div>
-        )
-
-      case 10:
-        return (
-          <div className="flex flex-col gap-5">
-            <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Tu rutina personalizada</h2>
-              <p className="text-muted-foreground">Selecciona el plan que mejor se adapte a ti</p>
+              <h2 className="text-2xl font-bold tracking-tight">Confirmá tus datos</h2>
+              <p className="text-muted-foreground">Revisá que toda la información sea correcta</p>
             </div>
 
             {error && (
@@ -1006,72 +940,145 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {generatedRoutines.length > 0 ? (
+            <div className="space-y-2">
+              <SummaryRow label="Objetivo" value={objectiveLabelMap[data.objective!]} onEdit={() => jumpToEditStep(1)} />
+              <SummaryRow label="Historial" value={trainingHistoryLabelMap[data.trainingHistory!]} onEdit={() => jumpToEditStep(2)} />
+              <SummaryRow label="Experiencia" value={experienceLabelMap[data.experienceLevel!]} onEdit={() => jumpToEditStep(3)} />
+              <SummaryRow label="Frecuencia" value={`${data.trainingFrequency} días por semana`} onEdit={() => jumpToEditStep(4)} />
+              <SummaryRow label="Condiciones" value={data.physicalConditions.join(", ")} onEdit={() => jumpToEditStep(5)} />
+              <SummaryRow label="Peso / Altura" value={`${data.weight} kg / ${data.height} cm`} onEdit={() => jumpToEditStep(6)} />
+              {bmi !== null && (
+                <div className={`flex items-center justify-between ${getBMICategory(bmi).bgColor} rounded-xl px-4 py-3`}>
+                  <span className="text-sm font-medium">IMC</span>
+                  <span className={`text-sm font-bold ${getBMICategory(bmi).color}`}>
+                    {bmi.toFixed(1)} ({getBMICategory(bmi).label})
+                  </span>
+                </div>
+              )}
+              <SummaryRow label="Horario" value={scheduleLabelMap[data.usualSchedule!]} onEdit={() => jumpToEditStep(7)} />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="outline"
+                className="flex-1 h-12 rounded-xl"
+                onClick={goBack}
+              >
+                <ChevronLeft className="mr-2 h-4 w-4" />
+                Editar
+              </Button>
+              <Button
+                className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90"
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Confirmar y generar rutina
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )
+
+      case 9:
+        return (
+          <div className="flex flex-col gap-5">
+            <div className="text-center space-y-2 pb-1">
+              <h2 className="text-2xl font-bold tracking-tight">Tu rutina personalizada</h2>
+              <p className="text-muted-foreground">Toc\u00e1 para ver detalles \u00b7 doble toque para elegir</p>
+            </div>
+
+            {error && (
+              <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-center text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            {generatedPlans.length > 0 ? (
               <div className="space-y-3">
-                {generatedRoutines.map((rt, i) => (
-                  <motion.button
-                    key={rt.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    onClick={() => {
-                      play("select")
-                      setSelectedRoutineId(rt.id)
-                    }}
-                    className={`w-full rounded-2xl border-2 p-5 text-left transition-all ${
-                      selectedRoutineId === rt.id
-                        ? "border-primary bg-primary/5 shadow-sm"
-                        : "border-border bg-card hover:border-muted-foreground/20"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2.5">
-                          <h3 className="font-bold text-base">{rt.name}</h3>
-                          {rt.level === "ADVANCED" && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 font-medium">
-                              {rt.level}
+                {generatedPlans.map((plan, i) => {
+                  const isExpanded = expandedPlanId === plan.id
+                  const totalExercises = plan.splits.reduce((sum, s) => sum + s.exercises.length, 0)
+                  const allMuscleGroups = [...new Set(plan.splits.flatMap((s) => s.muscleGroups))]
+                  return (
+                    <motion.button
+                      key={plan.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      onClick={() => handlePlanClick(plan)}
+                      className={`w-full rounded-2xl border-2 p-5 text-left transition-all ${
+                        isExpanded
+                          ? "border-gym-orange bg-gym-orange/5 shadow-sm"
+                          : "border-border bg-card hover:border-muted-foreground/20"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <h3 className="font-bold text-base">{plan.name}</h3>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                              plan.difficulty === "ADVANCED" || plan.difficulty === "ELITE"
+                                ? "bg-violet-100 text-violet-700"
+                                : "bg-gym-green/10 text-gym-green"
+                            }`}>
+                              {plan.difficulty}
                             </span>
-                          )}
-                          {rt.level === "ELITE" && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 font-medium">
-                              {rt.level}
-                            </span>
-                          )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{plan.description}</p>
+                          <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                            <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" />{plan.splits.length} divisiones</span>
+                            <span className="flex items-center gap-1"><Zap className="h-3 w-3" />{plan.focus}</span>
+                            <span>{totalExercises} ejercicios</span>
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{rt.description}</p>
-                        <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-                          <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" />{rt.splits.length} divisiones</span>
-                          <span className="flex items-center gap-1"><Zap className="h-3 w-3" />{rt.focus}</span>
-                        </div>
+                        <ChevronRight className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${isExpanded ? "text-gym-orange rotate-90" : "text-muted-foreground"}`} />
                       </div>
-                      <ChevronRight className={`h-5 w-5 shrink-0 mt-1 transition-colors ${selectedRoutineId === rt.id ? "text-primary" : "text-muted-foreground"}`} />
-                    </div>
-                    {selectedRoutineId === rt.id && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="mt-4 pt-4 border-t">
-                        <p className="text-xs font-semibold text-muted-foreground mb-2">Divisiones semanales:</p>
-                        <div className="flex flex-wrap gap-1.5 mb-3">
-                          {rt.splits.map((split) => (
-                            <span key={split} className="text-[10px] px-2.5 py-1 rounded-full bg-muted font-medium">{split}</span>
-                          ))}
-                        </div>
-                        <p className="text-xs font-semibold text-muted-foreground mb-1">Ejercicios ({rt.exercises.length}):</p>
-                        <div className="space-y-1">
-                          {rt.exercises.slice(0, 6).map((ex) => (
-                            <div key={ex.id} className="flex items-center gap-2 text-xs">
-                              <span className="text-muted-foreground">·</span>
-                              <span className="truncate">{ex.name}</span>
-                              <span className="text-muted-foreground ml-auto">{ex.sets}x{ex.reps}</span>
-                            </div>
-                          ))}
-                          {rt.exercises.length > 6 && (
-                            <p className="text-xs text-muted-foreground pl-4">+{rt.exercises.length - 6} más</p>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </motion.button>
-                ))}
+                      {isExpanded && (
+                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="mt-4 pt-4 border-t">
+                          <p className="text-xs font-semibold text-muted-foreground mb-2 capitalize">Grupos musculares: {allMuscleGroups.join(", ").toLowerCase()}</p>
+                          <div className="space-y-2.5 mb-3">
+                            {plan.splits.map((split) => (
+                              <div key={split.id} className="rounded-lg border bg-muted/30 p-3">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gym-orange/10 text-gym-orange font-bold text-xs">
+                                    {split.label}
+                                  </span>
+                                  <span className="text-xs font-semibold">{split.name}</span>
+                                  {split.estimatedDuration && (
+                                    <span className="text-[10px] text-muted-foreground ml-auto">~{split.estimatedDuration} min</span>
+                                  )}
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mb-1.5">{split.muscleGroups.join(" \u00b7 ")}</p>
+                                <div className="space-y-0.5">
+                                  {split.exercises.slice(0, 4).map((ex) => (
+                                    <div key={ex.id} className="flex items-center gap-2 text-[10px]">
+                                      <span className="text-muted-foreground">\u00b7</span>
+                                      <span className="truncate">{ex.name}</span>
+                                      <span className="text-muted-foreground ml-auto">{ex.sets}\u00d7{ex.reps}</span>
+                                    </div>
+                                  ))}
+                                  {split.exercises.length > 4 && (
+                                    <p className="text-[10px] text-muted-foreground pl-3">+{split.exercises.length - 4} m\u00e1s</p>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <p className="text-xs text-gym-orange font-medium mt-3 text-center">Doble toque para elegir esta rutina</p>
+                        </motion.div>
+                      )}
+                    </motion.button>
+                  )
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center gap-4 py-12">
@@ -1079,90 +1086,6 @@ export default function OnboardingPage() {
                 <p className="text-muted-foreground">Generando rutinas personalizadas...</p>
               </div>
             )}
-
-            {selectedRoutineId && generatedRoutines.length > 0 && (
-              <Button
-                className="w-full h-14 rounded-2xl text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 mt-4"
-                onClick={() => {
-                  play("click")
-                  setDirection(1)
-                  setStep(11)
-                }}
-              >
-                Continuar
-                <ChevronRight className="ml-1 h-5 w-5" />
-              </Button>
-            )}
-          </div>
-        )
-
-      case 11:
-        return (
-          <div className="flex flex-col gap-5">
-            <div className="text-center space-y-2 pb-1">
-              <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shadow-lg shadow-primary/5">
-                <ClipboardCheck className="h-8 w-8 text-primary" />
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight">¡Todo listo!</h2>
-              <p className="text-muted-foreground">Revisá tu plan de entrenamiento final</p>
-            </div>
-
-            {error && (
-              <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-center text-sm text-destructive">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <div className="rounded-2xl border bg-card p-5 space-y-3">
-                <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Frecuencia semanal</p>
-                  <p className="text-lg font-bold mt-0.5">{trainingFrequency} días por semana</p>
-                </div>
-                {selectedRoutineId && (
-                  <div className="border-t pt-3">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rutina asignada</p>
-                    <p className="text-lg font-bold mt-0.5">
-                      {generatedRoutines.find((r) => r.id === selectedRoutineId)?.name ?? "Seleccionada"}
-                    </p>
-                    <p className="text-sm text-muted-foreground mt-0.5">
-                      {generatedRoutines.find((r) => r.id === selectedRoutineId)?.focus}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-2">
-              <Button
-                variant="outline"
-                className="flex-1 h-12 rounded-xl"
-                onClick={() => {
-                  setDirection(-1)
-                  setStep(10)
-                  play("click")
-                }}
-              >
-                <ChevronLeft className="mr-1 h-4 w-4" />
-                Volver
-              </Button>
-              <Button
-                className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  if (selectedRoutineId) {
-                    assignRoutine(selectedRoutineId)
-                  }
-                }}
-                disabled={isSubmitting || !selectedRoutineId}
-              >
-                {isSubmitting ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Flame className="mr-2 h-4 w-4" />
-                )}
-                ¡A entrenar!
-              </Button>
-            </div>
           </div>
         )
 

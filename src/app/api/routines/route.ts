@@ -10,24 +10,28 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    include: {
-      routines: {
-        include: {
-          exercises: {
-            include: { exercise: true },
-            orderBy: { order: "asc" },
-          },
-        },
-        orderBy: { updatedAt: "desc" },
-      },
-    },
   })
 
   if (!user) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
-  return NextResponse.json({ routines: user.routines })
+  if (user.role === "MEMBER") {
+    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  }
+
+  const plans = await prisma.routinePlan.findMany({
+    where: { userId: user.id },
+    include: {
+      splits: {
+        include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
+        orderBy: { order: "asc" },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+  })
+
+  return NextResponse.json({ plans })
 }
 
 export async function POST(request: Request) {
@@ -45,38 +49,44 @@ export async function POST(request: Request) {
   const { name, description, exercises } = body as {
     name: string
     description?: string
-    exercises?: { exerciseId: string; sets: number; reps: number; weight: number; restSeconds: number; order: number }[]
+    exercises?: { exerciseId: string; sets: number; reps: string; weight: number; restSeconds: number; order: number }[]
   }
 
   if (!name) {
     return NextResponse.json({ error: "Nombre requerido" }, { status: 400 })
   }
 
-  const routine = await prisma.routine.create({
+  const plan = await prisma.routinePlan.create({
     data: {
       name,
       description,
       userId: user.id,
-      exercises: exercises
-        ? {
-            create: exercises.map((e) => ({
-              exerciseId: e.exerciseId,
-              sets: e.sets,
-              reps: e.reps,
-              weight: e.weight,
-              restSeconds: e.restSeconds,
-              order: e.order,
-            })),
-          }
-        : undefined,
+      splits: {
+        create: [{
+          label: "A",
+          name,
+          muscleGroups: [],
+          exercises: exercises
+            ? {
+                create: exercises.map((e) => ({
+                  exerciseId: e.exerciseId,
+                  sets: e.sets,
+                  reps: String(e.reps),
+                  weight: e.weight,
+                  restSeconds: e.restSeconds,
+                  order: e.order,
+                })),
+              }
+            : undefined,
+        }],
+      },
     },
     include: {
-      exercises: {
-        include: { exercise: true },
-        orderBy: { order: "asc" },
+      splits: {
+        include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
       },
     },
   })
 
-  return NextResponse.json({ routine }, { status: 201 })
+  return NextResponse.json({ plan }, { status: 201 })
 }

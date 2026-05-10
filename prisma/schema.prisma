@@ -167,7 +167,7 @@ model User {
   onboardingCompleted   Boolean   @default(false)
   onboardingCompletedAt DateTime?
   onboardingData        Json?
-  trainingFrequency     Int?     // 3, 4, or 5 days per week for training routines
+  trainingFrequency     Int?
 
   bio               String?
   specialties       Json?
@@ -177,9 +177,9 @@ model User {
   gym              Gym?              @relation(fields: [gymId], references: [id])
   assignedTrainer  User?             @relation("TrainerClients", fields: [assignedTrainerId], references: [id])
   clients          User[]            @relation("TrainerClients")
-  assignedRoutines Routine[]         @relation("AssignedRoutines")
+  routinePlans            RoutinePlan[]
+  assignedRoutinePlans AssignedRoutinePlan[]
 
-  routines         Routine[]
   workoutLogs      WorkoutLog[]
   bookings         Booking[]
   payments         Payment[]
@@ -330,20 +330,74 @@ model GymEquipment {
   exercise Exercise? @relation(fields: [exerciseId], references: [id])
 }
 
-model Routine {
-  id            String   @id @default(cuid())
-  name          String
-  description   String?
-  userId        String
-  assignedToId  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+// ── New Routine Models ────────────────────────────────
 
-  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  assignedTo      User?             @relation("AssignedRoutines", fields: [assignedToId], references: [id])
-  exercises       RoutineExercise[]
-  workoutLogs     WorkoutLog[]
+model RoutinePlan {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  objective   FitnessGoal?
+  frequency   Int?
+  difficulty  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  splits      RoutineSplit[]
+  assignments AssignedRoutinePlan[]
 }
+
+model RoutineSplit {
+  id                String   @id @default(cuid())
+  planId            String
+  label             String
+  name              String
+  description       String?
+  muscleGroups      String[]
+  estimatedDuration Int?
+  difficulty        String?
+  order             Int      @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  plan       RoutinePlan               @relation(fields: [planId], references: [id], onDelete: Cascade)
+  exercises   RoutineSplitExercise[]
+  workoutLogs WorkoutLog[]
+}
+
+model RoutineSplitExercise {
+  id          String @id @default(cuid())
+  splitId     String
+  exerciseId  String
+  sets        Int    @default(3)
+  reps        String @default("10")
+  weight      Float  @default(0)
+  restSeconds Int    @default(60)
+  order       Int    @default(0)
+  notes       String?
+
+  split    RoutineSplit @relation(fields: [splitId], references: [id], onDelete: Cascade)
+  exercise Exercise     @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+}
+
+model AssignedRoutinePlan {
+  id        String   @id @default(cuid())
+  userId    String
+  planId    String
+  active    Boolean  @default(true)
+  startedAt DateTime @default(now())
+  expiresAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan RoutinePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([planId])
+}
+
+// ── Exercise & Workout Models ─────────────────────────
 
 model Exercise {
   id          String      @id @default(cuid())
@@ -358,36 +412,21 @@ model Exercise {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  routines RoutineExercise[]
-  gymEquipments GymEquipment[]
-}
-
-model RoutineExercise {
-  id          String @id @default(cuid())
-  routineId   String
-  exerciseId  String
-  sets        Int    @default(3)
-  reps        Int    @default(10)
-  weight      Float  @default(0)
-  restSeconds Int    @default(60)
-  order       Int    @default(0)
-  notes       String?
-
-  routine  Routine  @relation(fields: [routineId], references: [id], onDelete: Cascade)
-  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  splitExercises RoutineSplitExercise[]
+  gymEquipments  GymEquipment[]
 }
 
 model WorkoutLog {
   id        String   @id @default(cuid())
   userId    String
-  routineId String?
+  splitId   String?
   date      DateTime @default(now())
   duration  Int?
   notes     String?
   createdAt DateTime @default(now())
 
-  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  routine Routine? @relation(fields: [routineId], references: [id])
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  split RoutineSplit? @relation(fields: [splitId], references: [id])
 
   sets WorkoutSetLog[]
 }

@@ -14,22 +14,22 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const { id } = await params
 
-  const routine = await prisma.routine.findUnique({
+  const plan = await prisma.routinePlan.findUnique({
     where: { id },
     include: {
-      exercises: {
-        include: { exercise: true },
+      splits: {
+        include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
         orderBy: { order: "asc" },
       },
       user: { select: { id: true, name: true, email: true } },
     },
   })
 
-  if (!routine) {
+  if (!plan) {
     return NextResponse.json({ error: "Rutina no encontrada" }, { status: 404 })
   }
 
-  return NextResponse.json({ routine })
+  return NextResponse.json({ plan })
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
@@ -47,18 +47,18 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   const body = await request.json()
   const { name, description } = body
 
-  const routine = await prisma.routine.update({
+  const plan = await prisma.routinePlan.update({
     where: { id },
     data: { name, description },
     include: {
-      exercises: {
-        include: { exercise: true },
+      splits: {
+        include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
         orderBy: { order: "asc" },
       },
     },
   })
 
-  return NextResponse.json({ routine })
+  return NextResponse.json({ plan })
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
@@ -73,7 +73,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   }
 
   const { id } = await params
-  await prisma.routine.delete({ where: { id } })
+  await prisma.routinePlan.delete({ where: { id } })
 
   return NextResponse.json({ success: true })
 }

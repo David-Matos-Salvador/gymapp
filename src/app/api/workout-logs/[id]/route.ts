@@ -20,7 +20,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   const { id } = await params
   const workoutLog = await prisma.workoutLog.findUnique({
     where: { id },
-    include: { sets: { orderBy: { setNumber: "asc" } }, routine: true },
+    include: { sets: { orderBy: { setNumber: "asc" } }, split: true },
   })
 
   if (!workoutLog) {

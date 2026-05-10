@@ -36,7 +36,7 @@ type PlayFn = ReturnType<typeof useSound>["play"]
 const navItems: NavItem[] = [
   { label: "Inicio", href: "/dashboard", icon: LayoutDashboard, roles: ["MEMBER"] },
   { label: "Mi Rutina", href: "/rutina", icon: Dumbbell, roles: ["MEMBER"] },
-  { label: "Mis Rutinas", href: "/routines", icon: Dumbbell, roles: ["MEMBER"] },
+  { label: "Mis Rutinas", href: "/routines", icon: Dumbbell, roles: ["TRAINER", "ADMIN"] },
   { label: "Progreso", href: "/progress", icon: TrendingUp, roles: ["MEMBER"] },
   { label: "Clases", href: "/classes", icon: CalendarDays, roles: ["MEMBER"] },
   { label: "Clientes", href: "/coach/clients", icon: UserRound, roles: ["TRAINER"] },
@@ -143,7 +143,7 @@ export function AppSidebar({ className }: { className?: string }) {
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
         >
           <LogOut className="h-4 w-4" />
-          Cerrar sesi\u00f3n
+          Cerrar sesión
         </button>
       </div>
     </aside>

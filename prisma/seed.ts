@@ -24,7 +24,7 @@ async function main() {
     },
   })
 
-  // ── Users ───────────────────────────────────────────
+  // ── Staff ───────────────────────────────────────────
   const superadmin = await prisma.user.upsert({
     where: { email: "superadmin@gymapp.com" },
     update: {},
@@ -51,43 +51,131 @@ async function main() {
     },
   })
 
-  const member1 = await prisma.user.upsert({
+  // ── Members (each a different scenario) ─────────────
+  //
+  // Scenario 1: Fresh signup — no onboarding, no coach, no plan
+  const laura = await prisma.user.upsert({
+    where: { email: "laura@gymapp.com" },
+    update: {},
+    create: {
+      email: "laura@gymapp.com", name: "Laura Gómez", password: passwordHash, role: "MEMBER",
+      phone: "+5255100112233", sex: "FEMALE", gymId: gym.id,
+      onboardingCompleted: false,
+    },
+  })
+
+  // Scenario 2: Coach assigned before onboarding — has plan, no onboarding
+  const diego = await prisma.user.upsert({
+    where: { email: "diego@gymapp.com" },
+    update: {},
+    create: {
+      email: "diego@gymapp.com", name: "Diego Vargas", password: passwordHash, role: "MEMBER",
+      phone: "+5255100223344", sex: "MALE", gymId: gym.id,
+      assignedTrainerId: trainer.id,
+      onboardingCompleted: false,
+    },
+  })
+
+  // Scenario 3: Onboarding done but no plan chosen yet
+  const valentina = await prisma.user.upsert({
+    where: { email: "valentina@gymapp.com" },
+    update: {},
+    create: {
+      email: "valentina@gymapp.com", name: "Valentina Ríos", password: passwordHash, role: "MEMBER",
+      phone: "+5255100334455", sex: "FEMALE", gymId: gym.id, birthDate: new Date("1999-08-12"),
+      objective: "GENERAL_FITNESS", experienceLevel: "BEGINNER", trainingFrequency: 3,
+      onboardingCompleted: true, onboardingCompletedAt: new Date(),
+      onboardingData: { objective: "GENERAL_FITNESS", experienceLevel: "BEGINNER", trainingFrequency: 3 },
+    },
+  })
+
+  // Scenario 4: Active plan, 0 workouts
+  const mateo = await prisma.user.upsert({
+    where: { email: "mateo@gymapp.com" },
+    update: {},
+    create: {
+      email: "mateo@gymapp.com", name: "Mateo Herrera", password: passwordHash, role: "MEMBER",
+      phone: "+5255100445566", sex: "MALE", gymId: gym.id, birthDate: new Date("1993-11-03"),
+      objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 4,
+      onboardingCompleted: true, onboardingCompletedAt: new Date(),
+      onboardingData: { objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 4 },
+    },
+  })
+
+  // Scenario 5: Expired membership
+  const sofia = await prisma.user.upsert({
+    where: { email: "sofia@gymapp.com" },
+    update: {},
+    create: {
+      email: "sofia@gymapp.com", name: "Sofía Castillo", password: passwordHash, role: "MEMBER",
+      phone: "+5255100556677", sex: "FEMALE", gymId: gym.id, birthDate: new Date("2000-01-25"),
+      objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3,
+      assignedTrainerId: trainer.id,
+      onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 30 * 86400000),
+      onboardingData: { objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3 },
+    },
+  })
+
+  // Scenario 6: Inactive / suspended membership
+  const ricardo = await prisma.user.upsert({
+    where: { email: "ricardo@gymapp.com" },
+    update: {},
+    create: {
+      email: "ricardo@gymapp.com", name: "Ricardo Medina", password: passwordHash, role: "MEMBER",
+      phone: "+5255100667788", sex: "MALE", gymId: gym.id, birthDate: new Date("1985-05-17"),
+      objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 4,
+      assignedTrainerId: trainer.id,
+      onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 60 * 86400000),
+      onboardingData: { objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 4 },
+    },
+  })
+
+  // Scenario 7: Power user — active plan, several workouts (Carlos)
+  const carlos = await prisma.user.upsert({
     where: { email: "carlos@gymapp.com" },
     update: {},
     create: {
       email: "carlos@gymapp.com", name: "Carlos Rodríguez", password: passwordHash, role: "MEMBER",
       phone: "+5255112233445", sex: "MALE", birthDate: new Date("1995-03-22"),
-      objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE",
+      objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 3,
       medicalNotes: "Lesión de rodilla izquierda en 2022. Evitar impacto alto.",
       emergencyContact: "María Rodríguez", emergencyPhone: "+5255111223344",
       assignedTrainerId: trainer.id, gymId: gym.id,
+      onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 14 * 86400000),
+      onboardingData: { objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 3 },
     },
   })
 
-  const member2 = await prisma.user.upsert({
+  // Scenario 8: Regular active user (Ana)
+  const ana = await prisma.user.upsert({
     where: { email: "ana@gymapp.com" },
     update: {},
     create: {
       email: "ana@gymapp.com", name: "Ana López", password: passwordHash, role: "MEMBER",
       phone: "+5255667788990", sex: "FEMALE", birthDate: new Date("1998-11-08"),
-      objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER",
+      objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3,
       emergencyContact: "Sofía López", emergencyPhone: "+5255998877665",
       assignedTrainerId: trainer.id, gymId: gym.id,
+      onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 10 * 86400000),
+      onboardingData: { objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3 },
     },
   })
 
-  const member3 = await prisma.user.upsert({
+  // Scenario 9: Active with advanced plan (Pedro)
+  const pedro = await prisma.user.upsert({
     where: { email: "pedro@gymapp.com" },
     update: {},
     create: {
       email: "pedro@gymapp.com", name: "Pedro Sánchez", password: passwordHash, role: "MEMBER",
       phone: "+5255443322110", sex: "MALE", birthDate: new Date("1988-07-14"),
-      objective: "STRENGTH", experienceLevel: "ADVANCED",
+      objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 3,
       assignedTrainerId: trainer.id, gymId: gym.id,
+      onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 21 * 86400000),
+      onboardingData: { objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 3 },
     },
   })
 
-  console.log("✅ Users created")
+  console.log("✅ Users created (9 members + 3 staff)")
 
   // ── Membership Plans ────────────────────────────────
   const plans = await Promise.all([
@@ -98,19 +186,28 @@ async function main() {
     prisma.membershipPlan.create({ data: { gymId: gym.id, name: "Pase Diario", price: 50, currency: "MXN", durationDays: 1 } }),
   ])
 
-  // ── Memberships ─────────────────────────────────────
-  const startDate = new Date()
-  const endDate30 = new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000)
-  const endDate90 = new Date(startDate.getTime() + 90 * 24 * 60 * 60 * 1000)
-  const expiredDate = new Date(startDate.getTime() - 5 * 24 * 60 * 60 * 1000)
+  // ── Memberships (varied statuses) ───────────────────
+  const now = new Date()
+  const endDate30 = new Date(now.getTime() + 30 * 86400000)
+  const endDate90 = new Date(now.getTime() + 90 * 86400000)
+  const endDate365 = new Date(now.getTime() + 365 * 86400000)
+  const expiredDate = new Date(now.getTime() - 5 * 86400000)
 
-  await prisma.membership.createMany({
-    data: [
-      { userId: member1.id, planId: plans[3].id, status: "ACTIVE", startDate, endDate: new Date(startDate.getTime() + 365 * 24 * 60 * 60 * 1000), paymentConfirmed: true, paymentMethod: "CASH" },
-      { userId: member2.id, planId: plans[1].id, status: "ACTIVE", startDate, endDate: endDate30, paymentConfirmed: true, paymentMethod: "TRANSFER", paymentRef: "TRF-001" },
-      { userId: member3.id, planId: plans[2].id, status: "ACTIVE", startDate, endDate: endDate90, paymentConfirmed: true, paymentMethod: "CASH" },
-    ],
-  })
+  const memberships = [
+    // ACTIVE memberships
+    { userId: carlos.id, planId: plans[3].id, status: "ACTIVE" as const, startDate: now, endDate: endDate365, paymentConfirmed: true, paymentMethod: "CASH" as const },
+    { userId: ana.id, planId: plans[1].id, status: "ACTIVE" as const, startDate: now, endDate: endDate30, paymentConfirmed: true, paymentMethod: "TRANSFER" as const, paymentRef: "TRF-001" },
+    { userId: pedro.id, planId: plans[2].id, status: "ACTIVE" as const, startDate: now, endDate: endDate90, paymentConfirmed: true, paymentMethod: "CASH" as const },
+    { userId: mateo.id, planId: plans[1].id, status: "ACTIVE" as const, startDate: now, endDate: endDate30, paymentConfirmed: true, paymentMethod: "CARD" as const },
+    { userId: diego.id, planId: plans[2].id, status: "ACTIVE" as const, startDate: now, endDate: endDate90, paymentConfirmed: true, paymentMethod: "STRIPE" as const },
+    // EXPIRED membership
+    { userId: sofia.id, planId: plans[1].id, status: "EXPIRED" as const, startDate: new Date(now.getTime() - 35 * 86400000), endDate: expiredDate, paymentConfirmed: true, paymentMethod: "TRANSFER" as const, paymentRef: "TRF-002" },
+    // INACTIVE / SUSPENDED
+    { userId: ricardo.id, planId: plans[2].id, status: "INACTIVE" as const, startDate: new Date(now.getTime() - 60 * 86400000), endDate: new Date(now.getTime() - 30 * 86400000), paymentConfirmed: true, paymentMethod: "CASH" as const },
+    // No membership for laura and valentina (fresh / pending)
+  ]
+
+  await prisma.membership.createMany({ data: memberships })
 
   console.log("✅ Membership plans and memberships created")
 
@@ -144,200 +241,257 @@ async function main() {
   ])
   console.log(`✅ ${exercises.length} exercises created`)
 
-  // ── Platform Routines (SUPER_ADMIN templates) ────────
-  const platformRoutines = [
-    {
+  // ── Platform Plans (SUPER_ADMIN) ────────────────────
+  const plan1 = await prisma.routinePlan.create({
+    data: {
       userId: superadmin.id,
-      name: "Principiante - Cuerpo Completo",
+      name: "Cuerpo Completo Principiante",
       description: "Rutina ideal para empezar. Trabaja todo el cuerpo en cada sesión con ejercicios básicos controlados.",
-      targetObjective: "GENERAL_FITNESS",
-      difficulty: "BEGINNER",
-      exercises: [
-        { exercise: exercises[0], sets: 3, reps: 10, weight: 20, restSeconds: 75, order: 0 },
-        { exercise: exercises[14], sets: 3, reps: 10, weight: 30, restSeconds: 90, order: 1 },
-        { exercise: exercises[5], sets: 3, reps: 10, weight: 15, restSeconds: 75, order: 2 },
-        { exercise: exercises[8], sets: 3, reps: 10, weight: 15, restSeconds: 75, order: 3 },
-        { exercise: exercises[21], sets: 3, reps: 30, weight: 0, restSeconds: 60, order: 4 },
-        { exercise: exercises[22], sets: 3, reps: 10, weight: 0, restSeconds: 60, order: 5 },
-      ],
+      objective: "GENERAL_FITNESS", frequency: 3, difficulty: "BEGINNER",
+      splits: {
+        create: [
+          { label: "A", name: "Full Body A", description: "Enfoque en press y empuje", muscleGroups: ["FULL_BODY"], estimatedDuration: 55, order: 0,
+            exercises: { create: [
+              { exerciseId: exercises[0].id, sets: 3, reps: "10-12", weight: 20, restSeconds: 75, order: 0 },
+              { exerciseId: exercises[14].id, sets: 3, reps: "10-12", weight: 30, restSeconds: 90, order: 1 },
+              { exerciseId: exercises[5].id, sets: 3, reps: "10-12", weight: 15, restSeconds: 75, order: 2 },
+              { exerciseId: exercises[8].id, sets: 3, reps: "10-12", weight: 15, restSeconds: 75, order: 3 },
+              { exerciseId: exercises[21].id, sets: 3, reps: "30", weight: 0, restSeconds: 60, order: 4 },
+            ] },
+          },
+          { label: "B", name: "Full Body B", description: "Enfoque en tirón y piernas", muscleGroups: ["FULL_BODY"], estimatedDuration: 55, order: 1,
+            exercises: { create: [
+              { exerciseId: exercises[7].id, sets: 3, reps: "10-12", weight: 40, restSeconds: 90, order: 0 },
+              { exerciseId: exercises[4].id, sets: 3, reps: "8-10", weight: 0, restSeconds: 90, order: 1 },
+              { exerciseId: exercises[18].id, sets: 3, reps: "10-12", weight: 10, restSeconds: 60, order: 2 },
+              { exerciseId: exercises[19].id, sets: 3, reps: "10-12", weight: 30, restSeconds: 75, order: 3 },
+              { exerciseId: exercises[22].id, sets: 3, reps: "15", weight: 0, restSeconds: 60, order: 4 },
+            ] },
+          },
+          { label: "C", name: "Full Body C", description: "Enfoque en fuerza y core", muscleGroups: ["FULL_BODY"], estimatedDuration: 50, order: 2,
+            exercises: { create: [
+              { exerciseId: exercises[0].id, sets: 3, reps: "8-10", weight: 25, restSeconds: 90, order: 0 },
+              { exerciseId: exercises[14].id, sets: 3, reps: "8-10", weight: 35, restSeconds: 90, order: 1 },
+              { exerciseId: exercises[10].id, sets: 3, reps: "12-15", weight: 10, restSeconds: 60, order: 2 },
+              { exerciseId: exercises[9].id, sets: 3, reps: "12-15", weight: 6, restSeconds: 60, order: 3 },
+              { exerciseId: exercises[22].id, sets: 3, reps: "20", weight: 0, restSeconds: 60, order: 4 },
+            ] },
+          },
+        ],
+      },
     },
-    {
+  })
+
+  const plan2 = await prisma.routinePlan.create({
+    data: {
       userId: superadmin.id,
-      name: "Quema Grasa",
+      name: "Quema Grasa Metabólico",
       description: "Circuito metabólico para maximizar quema calórica. Alta intensidad, poco descanso.",
-      targetObjective: "WEIGHT_LOSS",
-      difficulty: "INTERMEDIATE",
-      exercises: [
-        { exercise: exercises[23], sets: 4, reps: 12, weight: 0, restSeconds: 45, order: 0 },
-        { exercise: exercises[24], sets: 4, reps: 15, weight: 16, restSeconds: 45, order: 1 },
-        { exercise: exercises[14], sets: 3, reps: 15, weight: 40, restSeconds: 60, order: 2 },
-        { exercise: exercises[18], sets: 3, reps: 12, weight: 12, restSeconds: 60, order: 3 },
-        { exercise: exercises[3], sets: 3, reps: 10, weight: 0, restSeconds: 60, order: 4 },
-        { exercise: exercises[5], sets: 3, reps: 12, weight: 25, restSeconds: 60, order: 5 },
-        { exercise: exercises[21], sets: 3, reps: 45, weight: 0, restSeconds: 45, order: 6 },
-      ],
+      objective: "WEIGHT_LOSS", frequency: 3, difficulty: "INTERMEDIATE",
+      splits: {
+        create: [
+          { label: "A", name: "Circuito A", description: "Full body alta intensidad", muscleGroups: ["FULL_BODY", "CARDIO"], estimatedDuration: 45, order: 0,
+            exercises: { create: [
+              { exerciseId: exercises[23].id, sets: 4, reps: "12", weight: 0, restSeconds: 45, order: 0 },
+              { exerciseId: exercises[24].id, sets: 4, reps: "15", weight: 16, restSeconds: 45, order: 1 },
+              { exerciseId: exercises[14].id, sets: 3, reps: "12-15", weight: 40, restSeconds: 60, order: 2 },
+              { exerciseId: exercises[18].id, sets: 3, reps: "12", weight: 12, restSeconds: 60, order: 3 },
+              { exerciseId: exercises[21].id, sets: 3, reps: "45", weight: 0, restSeconds: 45, order: 4 },
+            ] },
+          },
+          { label: "B", name: "Circuito B", description: "Empuje y core", muscleGroups: ["CHEST", "SHOULDERS", "TRICEPS", "ABS"], estimatedDuration: 45, order: 1,
+            exercises: { create: [
+              { exerciseId: exercises[3].id, sets: 4, reps: "10-12", weight: 0, restSeconds: 45, order: 0 },
+              { exerciseId: exercises[0].id, sets: 3, reps: "12-15", weight: 30, restSeconds: 60, order: 1 },
+              { exerciseId: exercises[9].id, sets: 3, reps: "15", weight: 8, restSeconds: 45, order: 2 },
+              { exerciseId: exercises[12].id, sets: 3, reps: "12-15", weight: 15, restSeconds: 45, order: 3 },
+              { exerciseId: exercises[21].id, sets: 3, reps: "60", weight: 0, restSeconds: 45, order: 4 },
+            ] },
+          },
+          { label: "C", name: "Circuito C", description: "Tracción y piernas", muscleGroups: ["BACK", "BICEPS", "LEGS", "GLUTES"], estimatedDuration: 50, order: 2,
+            exercises: { create: [
+              { exerciseId: exercises[5].id, sets: 3, reps: "12-15", weight: 25, restSeconds: 60, order: 0 },
+              { exerciseId: exercises[4].id, sets: 3, reps: "8-10", weight: 0, restSeconds: 60, order: 1 },
+              { exerciseId: exercises[15].id, sets: 3, reps: "15", weight: 80, restSeconds: 60, order: 2 },
+              { exerciseId: exercises[16].id, sets: 3, reps: "15", weight: 35, restSeconds: 45, order: 3 },
+              { exerciseId: exercises[20].id, sets: 4, reps: "15-20", weight: 40, restSeconds: 45, order: 4 },
+            ] },
+          },
+        ],
+      },
     },
-    {
+  })
+
+  const plan3 = await prisma.routinePlan.create({
+    data: {
       userId: superadmin.id,
       name: "Hipertrofia Push-Pull-Legs",
       description: "Split PPL para ganancia muscular. Volumen óptimo con sobrecarga progresiva.",
-      targetObjective: "MUSCLE_GAIN",
-      difficulty: "ADVANCED",
-      exercises: [
-        { exercise: exercises[0], sets: 4, reps: 8, weight: 60, restSeconds: 90, order: 0 },
-        { exercise: exercises[1], sets: 3, reps: 10, weight: 22, restSeconds: 75, order: 1 },
-        { exercise: exercises[14], sets: 4, reps: 8, weight: 80, restSeconds: 120, order: 2 },
-        { exercise: exercises[15], sets: 3, reps: 10, weight: 100, restSeconds: 90, order: 3 },
-        { exercise: exercises[5], sets: 4, reps: 8, weight: 40, restSeconds: 90, order: 4 },
-        { exercise: exercises[4], sets: 3, reps: 8, weight: 0, restSeconds: 90, order: 5 },
-        { exercise: exercises[8], sets: 4, reps: 8, weight: 40, restSeconds: 90, order: 6 },
-        { exercise: exercises[10], sets: 3, reps: 10, weight: 25, restSeconds: 60, order: 7 },
-      ],
+      objective: "MUSCLE_GAIN", frequency: 3, difficulty: "ADVANCED",
+      splits: {
+        create: [
+          { label: "A", name: "Push (Empuje)", description: "Pecho, hombros y tríceps", muscleGroups: ["CHEST", "SHOULDERS", "TRICEPS"], estimatedDuration: 65, order: 0,
+            exercises: { create: [
+              { exerciseId: exercises[0].id, sets: 4, reps: "6-8", weight: 60, restSeconds: 90, order: 0 },
+              { exerciseId: exercises[1].id, sets: 3, reps: "8-10", weight: 22, restSeconds: 75, order: 1 },
+              { exerciseId: exercises[8].id, sets: 4, reps: "6-8", weight: 40, restSeconds: 90, order: 2 },
+              { exerciseId: exercises[9].id, sets: 3, reps: "12-15", weight: 10, restSeconds: 60, order: 3 },
+              { exerciseId: exercises[12].id, sets: 3, reps: "10-12", weight: 20, restSeconds: 60, order: 4 },
+              { exerciseId: exercises[13].id, sets: 3, reps: "12-15", weight: 15, restSeconds: 45, order: 5 },
+            ] },
+          },
+          { label: "B", name: "Pull (Tracción)", description: "Espalda y bíceps", muscleGroups: ["BACK", "BICEPS", "FOREARMS"], estimatedDuration: 55, order: 1,
+            exercises: { create: [
+              { exerciseId: exercises[7].id, sets: 4, reps: "6-8", weight: 80, restSeconds: 120, order: 0 },
+              { exerciseId: exercises[5].id, sets: 4, reps: "8-10", weight: 40, restSeconds: 90, order: 1 },
+              { exerciseId: exercises[6].id, sets: 3, reps: "10-12", weight: 45, restSeconds: 75, order: 2 },
+              { exerciseId: exercises[4].id, sets: 3, reps: "8-10", weight: 0, restSeconds: 90, order: 3 },
+              { exerciseId: exercises[10].id, sets: 3, reps: "10-12", weight: 25, restSeconds: 60, order: 4 },
+            ] },
+          },
+          { label: "C", name: "Legs (Piernas)", description: "Cuádriceps, isquiotibiales, glúteos y gemelos", muscleGroups: ["LEGS", "GLUTES", "CALVES"], estimatedDuration: 60, order: 2,
+            exercises: { create: [
+              { exerciseId: exercises[14].id, sets: 4, reps: "6-8", weight: 80, restSeconds: 120, order: 0 },
+              { exerciseId: exercises[15].id, sets: 3, reps: "10-12", weight: 100, restSeconds: 90, order: 1 },
+              { exerciseId: exercises[17].id, sets: 3, reps: "10-12", weight: 40, restSeconds: 60, order: 2 },
+              { exerciseId: exercises[19].id, sets: 4, reps: "8-10", weight: 60, restSeconds: 75, order: 3 },
+              { exerciseId: exercises[20].id, sets: 4, reps: "12-15", weight: 50, restSeconds: 60, order: 4 },
+            ] },
+          },
+        ],
+      },
     },
-    {
-      userId: superadmin.id,
-      name: "Tonificación y Definición",
-      description: "Enfoque en definición muscular con pesos moderados y altas repeticiones.",
-      targetObjective: "UNSURE",
-      difficulty: "BEGINNER",
-      exercises: [
-        { exercise: exercises[0], sets: 3, reps: 12, weight: 15, restSeconds: 60, order: 0 },
-        { exercise: exercises[14], sets: 3, reps: 12, weight: 20, restSeconds: 75, order: 1 },
-        { exercise: exercises[9], sets: 3, reps: 15, weight: 6, restSeconds: 60, order: 2 },
-        { exercise: exercises[2], sets: 3, reps: 12, weight: 8, restSeconds: 60, order: 3 },
-        { exercise: exercises[19], sets: 3, reps: 12, weight: 30, restSeconds: 60, order: 4 },
-        { exercise: exercises[11], sets: 3, reps: 12, weight: 8, restSeconds: 60, order: 5 },
-        { exercise: exercises[10], sets: 3, reps: 12, weight: 12, restSeconds: 60, order: 6 },
-      ],
-    },
-    {
-      userId: superadmin.id,
-      name: "Fuerza 5x5",
+  })
+
+  console.log("✅ Platform plans created")
+
+  // ── Coach Plans ─────────────────────────────────────
+  const coachPlan1 = await prisma.routinePlan.create({
+    data: {
+      userId: trainer.id,
+      name: "Fuerza 5x5 Modificada",
       description: "Rutina de fuerza básica. Pocos ejercicios, mucho peso, resultados comprobados.",
-      targetObjective: "MUSCLE_GAIN",
-      difficulty: "INTERMEDIATE",
-      exercises: [
-        { exercise: exercises[14], sets: 5, reps: 5, weight: 100, restSeconds: 180, order: 0 },
-        { exercise: exercises[0], sets: 5, reps: 5, weight: 70, restSeconds: 180, order: 1 },
-        { exercise: exercises[7], sets: 5, reps: 5, weight: 100, restSeconds: 180, order: 2 },
-        { exercise: exercises[8], sets: 5, reps: 5, weight: 45, restSeconds: 150, order: 3 },
-        { exercise: exercises[5], sets: 5, reps: 5, weight: 35, restSeconds: 150, order: 4 },
-      ],
-    },
-    {
-      userId: superadmin.id,
-      name: "Cuerpo en Movimiento",
-      description: "Rutina funcional con ejercicios corporales y pesos libres. Ideal para mejorar forma física general.",
-      targetObjective: "GENERAL_FITNESS",
-      difficulty: "BEGINNER",
-      exercises: [
-        { exercise: exercises[18], sets: 3, reps: 10, weight: 10, restSeconds: 60, order: 0 },
-        { exercise: exercises[3], sets: 3, reps: 8, weight: 0, restSeconds: 60, order: 1 },
-        { exercise: exercises[4], sets: 3, reps: 6, weight: 0, restSeconds: 75, order: 2 },
-        { exercise: exercises[9], sets: 3, reps: 12, weight: 8, restSeconds: 60, order: 3 },
-        { exercise: exercises[12], sets: 3, reps: 12, weight: 15, restSeconds: 60, order: 4 },
-        { exercise: exercises[23], sets: 3, reps: 10, weight: 0, restSeconds: 60, order: 5 },
-        { exercise: exercises[21], sets: 3, reps: 30, weight: 0, restSeconds: 45, order: 6 },
-      ],
-    },
-  ]
-
-  for (const r of platformRoutines) {
-    await prisma.routine.create({
-      data: {
-        name: r.name,
-        description: r.description,
-        userId: r.userId,
-        exercises: {
-          create: r.exercises.map((e) => ({
-            exerciseId: e.exercise.id,
-            sets: e.sets,
-            reps: e.reps,
-            weight: e.weight,
-            restSeconds: e.restSeconds,
-            order: e.order,
-          })),
-        },
+      objective: "STRENGTH", frequency: 3, difficulty: "INTERMEDIATE",
+      splits: {
+        create: [
+          { label: "A", name: "Fuerza A", description: "Sentadilla y press", muscleGroups: ["LEGS", "CHEST", "BACK"], estimatedDuration: 70, order: 0,
+            exercises: { create: [
+              { exerciseId: exercises[14].id, sets: 5, reps: "5", weight: 100, restSeconds: 180, order: 0 },
+              { exerciseId: exercises[0].id, sets: 5, reps: "5", weight: 70, restSeconds: 180, order: 1 },
+              { exerciseId: exercises[5].id, sets: 5, reps: "5", weight: 35, restSeconds: 150, order: 2 },
+            ] },
+          },
+          { label: "B", name: "Fuerza B", description: "Peso muerto y press militar", muscleGroups: ["BACK", "SHOULDERS", "LEGS"], estimatedDuration: 70, order: 1,
+            exercises: { create: [
+              { exerciseId: exercises[7].id, sets: 5, reps: "5", weight: 100, restSeconds: 180, order: 0 },
+              { exerciseId: exercises[8].id, sets: 5, reps: "5", weight: 45, restSeconds: 150, order: 1 },
+              { exerciseId: exercises[4].id, sets: 3, reps: "8", weight: 0, restSeconds: 120, order: 2 },
+            ] },
+          },
+          { label: "C", name: "Fuerza C", description: "Accesorios y explosividad", muscleGroups: ["LEGS", "GLUTES", "ABS"], estimatedDuration: 55, order: 2,
+            exercises: { create: [
+              { exerciseId: exercises[19].id, sets: 4, reps: "8", weight: 80, restSeconds: 90, order: 0 },
+              { exerciseId: exercises[10].id, sets: 3, reps: "8", weight: 30, restSeconds: 75, order: 1 },
+              { exerciseId: exercises[22].id, sets: 3, reps: "15", weight: 0, restSeconds: 60, order: 2 },
+              { exerciseId: exercises[20].id, sets: 3, reps: "12", weight: 60, restSeconds: 60, order: 3 },
+            ] },
+          },
+        ],
       },
-    })
-  }
-  console.log(`✅ ${platformRoutines.length} platform routines created`)
+    },
+  })
 
-
-  // ── Routines ────────────────────────────────────────
-  const routines = [
-    {
-      userId: trainer.id, name: "Push (Empuje)", description: "Pecho, hombros y tríceps. Split PPL.",
-      exercises: [
-        { exercise: exercises[0], sets: 4, reps: 8, weight: 80, restSeconds: 90, order: 0 },
-        { exercise: exercises[1], sets: 3, reps: 10, weight: 30, restSeconds: 75, order: 1 },
-        { exercise: exercises[2], sets: 3, reps: 12, weight: 14, restSeconds: 60, order: 2 },
-        { exercise: exercises[8], sets: 4, reps: 8, weight: 50, restSeconds: 90, order: 3 },
-        { exercise: exercises[9], sets: 3, reps: 12, weight: 10, restSeconds: 60, order: 4 },
-        { exercise: exercises[12], sets: 3, reps: 12, weight: 25, restSeconds: 60, order: 5 },
-        { exercise: exercises[13], sets: 3, reps: 15, weight: 18, restSeconds: 45, order: 6 },
-      ],
-    },
-    {
-      userId: trainer.id, name: "Pull (Tracción)", description: "Espalda y bíceps. Split PPL.",
-      exercises: [
-        { exercise: exercises[4], sets: 4, reps: 8, weight: 0, restSeconds: 90, order: 0 },
-        { exercise: exercises[5], sets: 4, reps: 8, weight: 60, restSeconds: 90, order: 1 },
-        { exercise: exercises[6], sets: 3, reps: 10, weight: 50, restSeconds: 75, order: 2 },
-        { exercise: exercises[10], sets: 3, reps: 12, weight: 30, restSeconds: 60, order: 3 },
-        { exercise: exercises[11], sets: 3, reps: 12, weight: 14, restSeconds: 60, order: 4 },
-      ],
-    },
-    {
-      userId: trainer.id, name: "Legs (Piernas)", description: "Cuádriceps, isquiotibiales, glúteos y gemelos.",
-      exercises: [
-        { exercise: exercises[14], sets: 4, reps: 8, weight: 100, restSeconds: 120, order: 0 },
-        { exercise: exercises[15], sets: 3, reps: 10, weight: 140, restSeconds: 90, order: 1 },
-        { exercise: exercises[16], sets: 3, reps: 12, weight: 55, restSeconds: 60, order: 2 },
-        { exercise: exercises[17], sets: 3, reps: 12, weight: 45, restSeconds: 60, order: 3 },
-        { exercise: exercises[19], sets: 4, reps: 10, weight: 80, restSeconds: 75, order: 4 },
-        { exercise: exercises[20], sets: 4, reps: 15, weight: 60, restSeconds: 60, order: 5 },
-      ],
-    },
-    {
-      userId: trainer.id, name: "Full Body", description: "Rutina completa para principiantes.", assignedToId: member2.id,
-      exercises: [
-        { exercise: exercises[0], sets: 3, reps: 10, weight: 30, restSeconds: 75, order: 0 },
-        { exercise: exercises[14], sets: 3, reps: 10, weight: 40, restSeconds: 90, order: 1 },
-        { exercise: exercises[5], sets: 3, reps: 10, weight: 25, restSeconds: 75, order: 2 },
-        { exercise: exercises[8], sets: 3, reps: 10, weight: 20, restSeconds: 75, order: 3 },
-        { exercise: exercises[22], sets: 3, reps: 1, weight: 0, restSeconds: 60, order: 4 },
-      ],
-    },
-    {
-      userId: trainer.id, name: "Fuerza Avanzada", description: "Rutina de fuerza 5x5 modificada.", assignedToId: member3.id,
-      exercises: [
-        { exercise: exercises[14], sets: 5, reps: 5, weight: 120, restSeconds: 180, order: 0 },
-        { exercise: exercises[0], sets: 5, reps: 5, weight: 90, restSeconds: 180, order: 1 },
-        { exercise: exercises[7], sets: 5, reps: 5, weight: 140, restSeconds: 180, order: 2 },
-        { exercise: exercises[8], sets: 5, reps: 5, weight: 55, restSeconds: 150, order: 3 },
-        { exercise: exercises[4], sets: 5, reps: 5, weight: 0, restSeconds: 150, order: 4 },
-      ],
-    },
-  ]
-
-  const createdRoutines = []
-  for (const r of routines) {
-    const routine = await prisma.routine.create({
-      data: {
-        name: r.name, description: r.description, userId: r.userId,
-        assignedToId: (r as { assignedToId?: string }).assignedToId,
-        exercises: {
-          create: r.exercises.map((e) => ({
-            exerciseId: e.exercise.id, sets: e.sets, reps: e.reps, weight: e.weight,
-            restSeconds: e.restSeconds, order: e.order,
-          })),
-        },
+  // Coach plan for weight loss (for Ana and Sofia)
+  const coachPlan2 = await prisma.routinePlan.create({
+    data: {
+      userId: trainer.id,
+      name: "Definición 4x por Semana",
+      description: "Rutina enfocada en pérdida de grasa con alto volumen y descansos cortos.",
+      objective: "WEIGHT_LOSS", frequency: 4, difficulty: "BEGINNER",
+      splits: {
+        create: [
+          { label: "A", name: "Superior Empuje", description: "Pecho, hombros, tríceps", muscleGroups: ["CHEST", "SHOULDERS", "TRICEPS"], estimatedDuration: 50, order: 0,
+            exercises: { create: [
+              { exerciseId: exercises[1].id, sets: 3, reps: "12-15", weight: 12, restSeconds: 60, order: 0 },
+              { exerciseId: exercises[9].id, sets: 3, reps: "15-20", weight: 6, restSeconds: 45, order: 1 },
+              { exerciseId: exercises[12].id, sets: 3, reps: "15", weight: 10, restSeconds: 45, order: 2 },
+              { exerciseId: exercises[21].id, sets: 3, reps: "30", weight: 0, restSeconds: 45, order: 3 },
+            ] },
+          },
+          { label: "B", name: "Inferior + Core", description: "Piernas, glúteos y abdomen", muscleGroups: ["LEGS", "GLUTES", "ABS"], estimatedDuration: 55, order: 1,
+            exercises: { create: [
+              { exerciseId: exercises[14].id, sets: 3, reps: "12-15", weight: 30, restSeconds: 75, order: 0 },
+              { exerciseId: exercises[18].id, sets: 3, reps: "12", weight: 8, restSeconds: 60, order: 1 },
+              { exerciseId: exercises[19].id, sets: 3, reps: "15", weight: 25, restSeconds: 60, order: 2 },
+              { exerciseId: exercises[22].id, sets: 3, reps: "15", weight: 0, restSeconds: 45, order: 3 },
+            ] },
+          },
+          { label: "C", name: "Superior Tracción", description: "Espalda, bíceps, deltoides posterior", muscleGroups: ["BACK", "BICEPS", "SHOULDERS"], estimatedDuration: 50, order: 2,
+            exercises: { create: [
+              { exerciseId: exercises[6].id, sets: 3, reps: "12-15", weight: 35, restSeconds: 60, order: 0 },
+              { exerciseId: exercises[10].id, sets: 3, reps: "12-15", weight: 12, restSeconds: 45, order: 1 },
+              { exerciseId: exercises[4].id, sets: 3, reps: "8-10", weight: 0, restSeconds: 75, order: 2 },
+            ] },
+          },
+          { label: "D", name: "Full Body Cardio", description: "Circuito completo con cardio", muscleGroups: ["FULL_BODY", "CARDIO"], estimatedDuration: 45, order: 3,
+            exercises: { create: [
+              { exerciseId: exercises[23].id, sets: 3, reps: "10-12", weight: 0, restSeconds: 45, order: 0 },
+              { exerciseId: exercises[24].id, sets: 3, reps: "15", weight: 12, restSeconds: 45, order: 1 },
+              { exerciseId: exercises[3].id, sets: 3, reps: "8-10", weight: 0, restSeconds: 60, order: 2 },
+              { exerciseId: exercises[21].id, sets: 3, reps: "60", weight: 0, restSeconds: 45, order: 3 },
+            ] },
+          },
+        ],
       },
-    })
-    createdRoutines.push(routine)
-  }
-  console.log("✅ Routines created")
+    },
+  })
+
+  console.log("✅ Coach plans created")
+
+  // ── Plan Assignments ────────────────────────────────
+  // Fetch splits for later workout logs
+  const pplSplits = await prisma.routineSplit.findMany({ where: { planId: plan3.id }, orderBy: { order: "asc" } })
+  const quemaSplits = await prisma.routineSplit.findMany({ where: { planId: plan2.id }, orderBy: { order: "asc" } })
+  const definicionSplits = await prisma.routineSplit.findMany({ where: { planId: coachPlan2.id }, orderBy: { order: "asc" } })
+
+  // Diego (Scenario 2): plan assigned by coach before onboarding
+  await prisma.assignedRoutinePlan.create({
+    data: { userId: diego.id, planId: coachPlan1.id },
+  })
+
+  // Mateo (Scenario 4): active plan, 0 workouts — his own plan via onboarding
+  await prisma.assignedRoutinePlan.create({
+    data: { userId: mateo.id, planId: plan1.id, startedAt: new Date(Date.now() - 2 * 86400000) },
+  })
+
+  // Sofia (Scenario 5): expired membership, still has an assigned plan
+  await prisma.assignedRoutinePlan.create({
+    data: { userId: sofia.id, planId: plan2.id, startedAt: new Date(Date.now() - 28 * 86400000) },
+  })
+
+  // Ricardo (Scenario 6): inactive membership, has plan
+  await prisma.assignedRoutinePlan.create({
+    data: { userId: ricardo.id, planId: coachPlan1.id, startedAt: new Date(Date.now() - 55 * 86400000) },
+  })
+
+  // Carlos (Scenario 7): power user — PPL plan
+  await prisma.assignedRoutinePlan.create({
+    data: { userId: carlos.id, planId: plan3.id, startedAt: new Date(Date.now() - 14 * 86400000) },
+  })
+
+  // Ana (Scenario 8): regular — weight loss plan
+  await prisma.assignedRoutinePlan.create({
+    data: { userId: ana.id, planId: plan2.id, startedAt: new Date(Date.now() - 10 * 86400000) },
+  })
+
+  // Pedro (Scenario 9): advanced — coach plan
+  await prisma.assignedRoutinePlan.create({
+    data: { userId: pedro.id, planId: coachPlan1.id, startedAt: new Date(Date.now() - 21 * 86400000) },
+  })
+
+  console.log("✅ Plan assignments created")
+
+  // NOTE: laura (fresh) and valentina (onboarding done, no plan) have NO assignment
 
   // ── Classes ─────────────────────────────────────────
   const class1 = await prisma.class.create({
@@ -357,71 +511,113 @@ async function main() {
   console.log("✅ Classes created")
 
   // ── Bookings ────────────────────────────────────────
-  await prisma.booking.create({ data: { userId: member1.id, classId: class1.id, status: "CONFIRMED" } })
-  await prisma.booking.create({ data: { userId: member2.id, classId: class2.id, status: "CONFIRMED" } })
+  await prisma.booking.create({ data: { userId: carlos.id, classId: class1.id, status: "CONFIRMED" } })
+  await prisma.booking.create({ data: { userId: ana.id, classId: class2.id, status: "CONFIRMED" } })
+  await prisma.booking.create({ data: { userId: mateo.id, classId: class1.id, status: "CONFIRMED" } })
   console.log("✅ Bookings created")
 
   // ── Workout Logs ────────────────────────────────────
-  const log1 = await prisma.workoutLog.create({
-    data: {
-      userId: member1.id, routineId: createdRoutines[0].id,
-      date: new Date(Date.now() - 3 * 86400000), duration: 65, notes: "Subí peso en press de banca.",
-    },
-  })
-  const log2 = await prisma.workoutLog.create({
-    data: {
-      userId: member1.id, routineId: createdRoutines[1].id,
-      date: new Date(Date.now() - 2 * 86400000), duration: 55, notes: "Dominadas más fáciles.",
-    },
-  })
-  const log3 = await prisma.workoutLog.create({
-    data: {
-      userId: member1.id, routineId: createdRoutines[2].id,
-      date: new Date(Date.now() - 86400000), duration: 70, notes: "Piernas pesadas. Buena congestión.",
-    },
-  })
+  // Carlos: 3 workouts this week (all splits completed)
+  const carlosLogs = []
+  if (pplSplits.length >= 3) {
+    // Today - Split C (Legs)
+    carlosLogs.push(await prisma.workoutLog.create({
+      data: { userId: carlos.id, splitId: pplSplits[2].id, date: new Date(), duration: 70, notes: "Piernas pesadas. Buena congestión." },
+    }))
+    // Yesterday - Split B (Pull)
+    carlosLogs.push(await prisma.workoutLog.create({
+      data: { userId: carlos.id, splitId: pplSplits[1].id, date: new Date(Date.now() - 1 * 86400000), duration: 55, notes: "Dominadas más fáciles." },
+    }))
+    // Day before - Split A (Push)
+    carlosLogs.push(await prisma.workoutLog.create({
+      data: { userId: carlos.id, splitId: pplSplits[0].id, date: new Date(Date.now() - 2 * 86400000), duration: 65, notes: "Subí peso en press de banca." },
+    }))
+  }
 
-  await prisma.workoutSetLog.createMany({
-    data: [
-      { workoutLogId: log1.id, exerciseId: exercises[0].id, exerciseName: "Press de banca", setNumber: 1, reps: 8, weight: 80 },
-      { workoutLogId: log1.id, exerciseId: exercises[0].id, exerciseName: "Press de banca", setNumber: 2, reps: 8, weight: 82.5 },
-      { workoutLogId: log1.id, exerciseId: exercises[0].id, exerciseName: "Press de banca", setNumber: 3, reps: 7, weight: 85 },
-      { workoutLogId: log1.id, exerciseId: exercises[0].id, exerciseName: "Press de banca", setNumber: 4, reps: 6, weight: 85 },
-      { workoutLogId: log2.id, exerciseId: exercises[4].id, exerciseName: "Dominadas", setNumber: 1, reps: 10, weight: 0 },
-      { workoutLogId: log2.id, exerciseId: exercises[4].id, exerciseName: "Dominadas", setNumber: 2, reps: 9, weight: 0 },
-      { workoutLogId: log2.id, exerciseId: exercises[4].id, exerciseName: "Dominadas", setNumber: 3, reps: 8, weight: 0 },
-      { workoutLogId: log2.id, exerciseId: exercises[4].id, exerciseName: "Dominadas", setNumber: 4, reps: 7, weight: 0 },
-    ],
-  })
+  // Ana: 1 workout this week
+  const anaLo = []
+  if (quemaSplits.length >= 1) {
+    anaLo.push(await prisma.workoutLog.create({
+      data: { userId: ana.id, splitId: quemaSplits[0].id, date: new Date(Date.now() - 1 * 86400000), duration: 48, notes: "Buen circuito, buena energía." },
+    }))
+  }
+
+  // Pedro: 3 workouts spread across 3 weeks
+  if (pplSplits.length >= 3) {
+    await prisma.workoutLog.create({
+      data: { userId: pedro.id, splitId: pplSplits[0].id, date: new Date(Date.now() - 14 * 86400000), duration: 60 },
+    })
+    await prisma.workoutLog.create({
+      data: { userId: pedro.id, splitId: pplSplits[1].id, date: new Date(Date.now() - 7 * 86400000), duration: 55 },
+    })
+  }
+
+  // Sofia (expired): last workout 4 weeks ago
+  if (quemaSplits.length >= 1) {
+    await prisma.workoutLog.create({
+      data: { userId: sofia.id, splitId: quemaSplits[0].id, date: new Date(Date.now() - 28 * 86400000), duration: 50 },
+    })
+  }
+
+  // Ricardo (inactive): last workout 5 weeks ago
+  if (definicionSplits.length >= 1) {
+    await prisma.workoutLog.create({
+      data: { userId: ricardo.id, splitId: definicionSplits[0].id, date: new Date(Date.now() - 35 * 86400000), duration: 45 },
+    })
+  }
+
+  // Set logs for Carlos
+  if (carlosLogs.length >= 1) {
+    const pushLog = carlosLogs.find((l) => l?.splitId === pplSplits[0]?.id)
+    const pullLog = carlosLogs.find((l) => l?.splitId === pplSplits[1]?.id)
+    if (pushLog && pullLog) {
+      await prisma.workoutSetLog.createMany({
+        data: [
+          { workoutLogId: pushLog.id, exerciseId: exercises[0].id, exerciseName: "Press de banca", setNumber: 1, reps: 8, weight: 80 },
+          { workoutLogId: pushLog.id, exerciseId: exercises[0].id, exerciseName: "Press de banca", setNumber: 2, reps: 8, weight: 82.5 },
+          { workoutLogId: pushLog.id, exerciseId: exercises[0].id, exerciseName: "Press de banca", setNumber: 3, reps: 7, weight: 85 },
+          { workoutLogId: pushLog.id, exerciseId: exercises[0].id, exerciseName: "Press de banca", setNumber: 4, reps: 6, weight: 85 },
+          { workoutLogId: pullLog.id, exerciseId: exercises[4].id, exerciseName: "Dominadas", setNumber: 1, reps: 10, weight: 0 },
+          { workoutLogId: pullLog.id, exerciseId: exercises[4].id, exerciseName: "Dominadas", setNumber: 2, reps: 9, weight: 0 },
+          { workoutLogId: pullLog.id, exerciseId: exercises[4].id, exerciseName: "Dominadas", setNumber: 3, reps: 8, weight: 0 },
+          { workoutLogId: pullLog.id, exerciseId: exercises[4].id, exerciseName: "Dominadas", setNumber: 4, reps: 7, weight: 0 },
+        ],
+      })
+    }
+  }
   console.log("✅ Workout logs created")
 
   // ── Check-ins ───────────────────────────────────────
+  // Carlos: 7-day streak
   for (let i = 6; i >= 0; i--) {
-    await prisma.checkIn.create({ data: { userId: member1.id, gymId: gym.id, date: new Date(Date.now() - i * 86400000) } })
+    await prisma.checkIn.create({ data: { userId: carlos.id, gymId: gym.id, date: new Date(Date.now() - i * 86400000) } })
   }
+  // Ana: 5-day streak
   for (let i = 4; i >= 0; i--) {
-    await prisma.checkIn.create({ data: { userId: member2.id, gymId: gym.id, date: new Date(Date.now() - i * 86400000) } })
+    await prisma.checkIn.create({ data: { userId: ana.id, gymId: gym.id, date: new Date(Date.now() - i * 86400000) } })
   }
   console.log("✅ Check-ins created")
 
   // ── Body Measurements ───────────────────────────────
+  // Carlos: 4 measurements over 28 days
   const weeksAgo = [28, 21, 14, 7]
   for (const d of weeksAgo) {
     const baseWeight = 78 + (28 - d) * 0.3
     await prisma.bodyMeasurement.create({
       data: {
-        userId: member1.id, date: new Date(Date.now() - d * 86400000),
+        userId: carlos.id, date: new Date(Date.now() - d * 86400000),
         weight: baseWeight, bodyFat: 18.5 - (28 - d) * 0.15,
         chest: 98, waist: 86 - (28 - d) * 0.2, leftArm: 35 + (28 - d) * 0.1, leftThigh: 56,
       },
     })
   }
 
+  // Ana: 4 measurements
   for (const d of weeksAgo) {
     const baseWeight = 68 - (28 - d) * 0.25
     await prisma.bodyMeasurement.create({
       data: {
-        userId: member2.id, date: new Date(Date.now() - d * 86400000),
+        userId: ana.id, date: new Date(Date.now() - d * 86400000),
         weight: baseWeight, bodyFat: 28 - (28 - d) * 0.2,
         waist: 80 - (28 - d) * 0.3, hips: 98 - (28 - d) * 0.2,
       },
@@ -432,21 +628,34 @@ async function main() {
   // ── Notifications ───────────────────────────────────
   await prisma.notification.createMany({
     data: [
-      { userId: member1.id, title: "¡Bienvenido a Fitness Total!", message: "Gracias por registrarte. Explora tus rutinas y reserva tu primera clase.", type: "INFO" },
-      { userId: member2.id, title: "Bienvenida Ana", message: "Coach Martínez es tu entrenador asignado.", type: "INFO" },
-      { userId: member3.id, title: "Bienvenido Pedro", message: "Tu rutina de fuerza avanzada está lista.", type: "INFO" },
+      { userId: carlos.id, title: "¡Bienvenido a Fitness Total!", message: "Tu rutina Push-Pull-Legs está lista. Empezá hoy.", type: "INFO" },
+      { userId: ana.id, title: "Bienvenida Ana", message: "Coach Martínez te asignó una rutina. ¡Buena suerte!", type: "INFO" },
+      { userId: pedro.id, title: "Bienvenido Pedro", message: "Tu rutina de fuerza avanzada está lista.", type: "INFO" },
+      { userId: laura.id, title: "¡Te damos la bienvenida Laura!", message: "Completá tu perfil para recibir una rutina personalizada.", type: "INFO" },
+      { userId: diego.id, title: "Coach Martínez te asignó", message: "Tu entrenador ya te preparó una rutina. Empezá cuando quieras.", type: "INFO" },
+      { userId: valentina.id, title: "Perfil completado", message: "Elegí una rutina para comenzar tu entrenamiento.", type: "INFO" },
+      { userId: sofia.id, title: "Membresía vencida", message: "Tu membresía expiró. Renová para seguir entrenando.", type: "WARNING" },
+      { userId: ricardo.id, title: "Membresía suspendida", message: "Tu cuenta está temporalmente inactiva. Contactá al administrador.", type: "WARNING" },
     ],
   })
   console.log("✅ Notifications created")
 
   console.log("\n🎉 Seed completed!")
   console.log("\n📋 Login credentials (password: demo123):")
-  console.log('  Super:  superadmin@gymapp.com')
-  console.log("  Admin:   admin@gymapp.com")
-  console.log("  Trainer: trainer@gymapp.com")
-  console.log("  Carlos:  carlos@gymapp.com")
-  console.log("  Ana:     ana@gymapp.com")
-  console.log("  Pedro:   pedro@gymapp.com")
+  console.log("  Staff:")
+  console.log("    Super Admin:  superadmin@gymapp.com")
+  console.log("    Admin:        admin@gymapp.com")
+  console.log("    Trainer:      trainer@gymapp.com")
+  console.log("  Members:")
+  console.log("    🆕 Laura       laura@gymapp.com      — fresh signup, no onboarding")
+  console.log("    🏋️ Diego       diego@gymapp.com      — coach assigned, no onboarding yet")
+  console.log("    📋 Valentina   valentina@gymapp.com  — onboarding done, no plan chosen")
+  console.log("    🌱 Mateo       mateo@gymapp.com      — active plan, 0 workouts")
+  console.log("    ⚠️  Sofia       sofia@gymapp.com      — EXPIRED membership")
+  console.log("    🚫 Ricardo     ricardo@gymapp.com    — INACTIVE membership")
+  console.log("    💪 Carlos      carlos@gymapp.com     — power user, 3 workouts this week")
+  console.log("    🔥 Ana         ana@gymapp.com        — active, 1 workout this week")
+  console.log("    🏆 Pedro       pedro@gymapp.com      — advanced, sporadic workouts")
 }
 
 main().catch((e) => { console.error(e); process.exit(1) }).finally(async () => { await prisma.$disconnect() })
