@@ -331,17 +331,6 @@ export default function OnboardingPage() {
     }
   }, [status, session, router])
 
-  const [data, setData] = useState<OnboardingData>({
-    objective: null,
-    trainingHistory: null,
-    experienceLevel: null,
-    desiredFrequency: null,
-    physicalConditions: [],
-    weight: null,
-    height: null,
-    usualSchedule: null,
-  })
-
   const [weightInput, setWeightInput] = useState("")
   const [heightInput, setHeightInput] = useState("")
   const [weightError, setWeightError] = useState("")

@@ -167,7 +167,7 @@ model User {
   onboardingCompleted   Boolean   @default(false)
   onboardingCompletedAt DateTime?
   onboardingData        Json?
-  trainingFrequency     Int?     // 3, 4, or 5 days per week for premium routines
+  trainingFrequency     Int?     // 3, 4, or 5 days per week for training routines
 
   bio               String?
   specialties       Json?
