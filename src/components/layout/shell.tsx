@@ -20,7 +20,7 @@ import {
   Cpu,
   Globe,
 } from "lucide-react"
-import { useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { ComponentProps } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 
@@ -34,37 +34,24 @@ type NavItem = {
 type PlayFn = ReturnType<typeof useSound>["play"]
 
 const navItems: NavItem[] = [
-<<<<<<< ours
-  { label: "Mi Rutina", href: "/rutina", icon: Dumbbell, roles: ["MEMBER"] },
-  { label: "Clases", href: "/classes", icon: CalendarDays, roles: ["MEMBER"] },
-  { label: "Clientes", href: "/coach/clients", icon: UserRound, roles: ["TRAINER"] },
-  { label: "Coach Panel", href: "/coach", icon: Users, roles: ["TRAINER"] },
-  { label: "Admin Panel", href: "/admin", icon: BarChart3, roles: ["ADMIN"] },
-=======
   { label: "Inicio", href: "/dashboard", icon: LayoutDashboard, roles: ["MEMBER"] },
+  { label: "Mi Rutina", href: "/rutina", icon: Dumbbell, roles: ["MEMBER"] },
   { label: "Mis Rutinas", href: "/routines", icon: Dumbbell, roles: ["MEMBER"] },
   { label: "Progreso", href: "/progress", icon: TrendingUp, roles: ["MEMBER"] },
   { label: "Clases", href: "/classes", icon: CalendarDays, roles: ["MEMBER"] },
+  { label: "Clientes", href: "/coach/clients", icon: UserRound, roles: ["TRAINER"] },
   { label: "Panel de Coach", href: "/coach", icon: Users, roles: ["TRAINER"] },
   { label: "Panel de Admin", href: "/admin", icon: BarChart3, roles: ["ADMIN"] },
->>>>>>> theirs
   { label: "Equipo", href: "/gym-equipment", icon: Cpu, roles: ["ADMIN"] },
   { label: "Plataforma", href: "/super-admin", icon: Globe, roles: ["SUPER_ADMIN"] },
   { label: "Perfil", href: "/profile", icon: UserCog },
 ]
 
 const userRoleChip: Record<string, { label: string; className: string }> = {
-<<<<<<< ours
-  ADMIN: { label: "Admin", className: "text-accent-yellow bg-accent-yellow/10" },
-  TRAINER: { label: "Coach", className: "text-accent-yellow bg-accent-yellow/10" },
-  MEMBER: { label: "Miembro", className: "text-accent-yellow bg-accent-yellow/10" },
-  SUPER_ADMIN: { label: "Super Admin", className: "text-accent-yellow bg-accent-yellow/10" },
-=======
   ADMIN: { label: "Admin", className: "text-gym-orange bg-gym-orange/10" },
   TRAINER: { label: "Coach", className: "text-gym-violet bg-gym-violet/10" },
   MEMBER: { label: "Miembro", className: "text-gym-green bg-gym-green/10" },
   SUPER_ADMIN: { label: "Súper Admin", className: "text-destructive bg-destructive/10" },
->>>>>>> theirs
 }
 
 function SidebarSection({ label, items, pathname, play }: {
@@ -230,16 +217,17 @@ export function AppBottomNav({ className }: { className?: string }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const prevPathnameRef = useRef<string | null>(null)
-  const directionRef = useRef<1 | -1>(1)
 
-  if (prevPathnameRef.current !== null && prevPathnameRef.current !== pathname) {
-    const currDepth = pathname.split("/").filter(Boolean).length
-    const prevDepth = (prevPathnameRef.current ?? "").split("/").filter(Boolean).length
-    directionRef.current = currDepth >= prevDepth ? 1 : -1
-  }
-  prevPathnameRef.current = pathname
+  const [dir, setDir] = useState<1 | -1>(1)
 
-  const dir = directionRef.current
+  useEffect(() => {
+    if (prevPathnameRef.current !== null && prevPathnameRef.current !== pathname) {
+      const currDepth = pathname.split("/").filter(Boolean).length
+      const prevDepth = (prevPathnameRef.current ?? "").split("/").filter(Boolean).length
+      setDir(currDepth >= prevDepth ? 1 : -1)
+    }
+    prevPathnameRef.current = pathname
+  }, [pathname])
 
   const variants = {
     initial: (d: number) => ({ x: d > 0 ? 30 : -30, opacity: 0 }),

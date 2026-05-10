@@ -343,6 +343,7 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
   const phaseIndexRef = useRef(0)
   const phaseTimeRef = useRef(0)
   const lastTimeRef = useRef(0)
+  const tickRef = useRef<() => void>(() => {})
 
   const [exercise, setExercise] = useState<ExerciseData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -395,12 +396,10 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
 
     const animData = exercise?.animationData ?? null
 
-    // -- No animation data → draw static figure once --
     if (!animData) {
       ctx.clearRect(0, 0, CANVAS, CANVAS)
       const highlightPart = muscleGroupToHighlight(exercise?.muscleGroup ?? "FULL_BODY")
       drawStickFigure(ctx, 0, [], highlightPart, true)
-      // Draw a small dot to indicate static mode
       ctx.beginPath()
       ctx.arc(CANVAS - 24, 24, 6, 0, Math.PI * 2)
       ctx.fillStyle = "#cbd5e1"
@@ -410,28 +409,24 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
 
     const now = performance.now()
     if (lastTimeRef.current === 0) lastTimeRef.current = now
-    const delta = Math.min(now - lastTimeRef.current, 50) // cap at 50ms
+    const delta = Math.min(now - lastTimeRef.current, 50)
     lastTimeRef.current = now
 
     phaseTimeRef.current += delta
     const phases = animData.phases
     const currentPhase = phases[phaseIndexRef.current]
 
-    // Transition to next phase when current phase duration is exceeded
     if (phaseTimeRef.current >= currentPhase.duration) {
       phaseTimeRef.current -= currentPhase.duration
       phaseIndexRef.current = (phaseIndexRef.current + 1) % phases.length
     }
 
-    // Compute the current animation angle
     const phase = phases[phaseIndexRef.current]
     let currentAngle: number
 
     if (phase.name === "isometric_hold") {
-      // Hold phase: angle stays constant
       currentAngle = phase.angle
     } else {
-      // Non-hold phase: interpolate from the previous phase's angle
       const prevIndex = (phaseIndexRef.current - 1 + phases.length) % phases.length
       const prevPhase = phases[prevIndex]
       const progress = Math.min(phaseTimeRef.current / phase.duration, 1)
@@ -439,7 +434,6 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
       currentAngle = lerp(prevPhase.angle, phase.angle, eased)
     }
 
-    // Clear and draw
     ctx.clearRect(0, 0, CANVAS, CANVAS)
 
     const highlightPart = muscleGroupToHighlight(exercise?.muscleGroup ?? "FULL_BODY")
@@ -448,8 +442,12 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
     drawStickFigure(ctx, currentAngle, animData.joints, highlightPart, false)
     drawBreathIndicator(ctx, currentPhaseName, animData.breathPattern)
 
-    rafRef.current = requestAnimationFrame(tick)
+    rafRef.current = requestAnimationFrame(tickRef.current!)
   }, [exercise])
+
+  useEffect(() => {
+    tickRef.current = tick
+  }, [tick])
 
   // Start / restart the animation loop whenever the exercise data changes
   useEffect(() => {
@@ -460,7 +458,7 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
     phaseTimeRef.current = 0
     lastTimeRef.current = 0
 
-    rafRef.current = requestAnimationFrame(tick)
+    rafRef.current = requestAnimationFrame(tickRef.current!)
 
     return () => {
       if (rafRef.current) {
@@ -528,7 +526,6 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="mx-auto flex min-h-[250px] max-w-[300px] flex-col items-center gap-2 rounded-xl bg-card p-4 ring-1 ring-foreground/10"
     >
-<<<<<<< ours
       {hasVideo ? (
         <div className="w-full aspect-video rounded-lg overflow-hidden">
           <iframe
@@ -548,15 +545,6 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
           aria-label={`${exercise.name} animation`}
         />
       )}
-=======
-      <canvas
-        ref={canvasRef}
-        width={CANVAS}
-        height={CANVAS}
-        className="w-full max-w-[240px] aspect-square rounded-lg"
-        aria-label={`${exercise.name} animación`}
-      />
->>>>>>> theirs
 
       {/* Breathing legend (only for animated exercises) */}
       {hasAnimation && (
