@@ -5,7 +5,8 @@ import { AppShell } from "@/components/layout/shell"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
-import { Dumbbell } from "lucide-react"
+import { Dumbbell, Play } from "lucide-react"
+import { ExerciseAnimation } from "@/components/exercise-animation"
 import { revalidatePath } from "next/cache"
 
 const muscleGroupLabel: Record<string, string> = {
@@ -80,10 +81,13 @@ export default async function RoutineDetailPage({ params }: PageProps) {
             ) : (
               <div className="space-y-4">
                 {routine.exercises.map((re) => (
-                  <div key={re.id} className="rounded-lg border p-4 space-y-2">
+                  <div key={re.id} className="rounded-lg border p-4 space-y-3">
                     <div className="flex items-center gap-3">
                       <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
                       <span className="font-medium">{re.exercise.name}</span>
+                    </div>
+                    <div className="flex justify-center">
+                      <ExerciseAnimation exerciseId={re.exercise.id} />
                     </div>
                     <div className="flex flex-wrap gap-2 text-xs">
                       <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">

@@ -5,12 +5,15 @@ import { prisma } from "@/lib/prisma"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
+  email: z.string().email("Email invalido"),
   password: z
     .string()
-    .min(8, "Mínimo 8 caracteres")
-    .regex(/[A-Z]/, "Debe contener una mayúscula")
-    .regex(/[0-9]/, "Debe contener un número"),
+    .min(8, "Minimo 8 caracteres")
+    .regex(/[A-Z]/, "Debe contener una mayuscula")
+    .regex(/[0-9]/, "Debe contener un numero"),
+  role: z.enum(["MEMBER", "TRAINER", "ADMIN"]).default("MEMBER"),
+  gymName: z.string().optional(),
+  gymAddress: z.string().optional(),
 })
 
 export async function POST(request: Request) {
@@ -20,12 +23,12 @@ export async function POST(request: Request) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
+        { error: "Datos invalidos", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
       )
     }
 
-    const { name, email, password } = parsed.data
+    const { name, email, password, role, gymName, gymAddress } = parsed.data
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -33,26 +36,46 @@ export async function POST(request: Request) {
 
     if (existingUser) {
       return NextResponse.json(
-        { error: "El email ya está registrado" },
+        { error: "El email ya esta registrado" },
         { status: 409 }
       )
     }
 
     const passwordHash = await bcrypt.hash(password, 10)
 
+    let gymId: string | undefined
+
+    if (role === "ADMIN" && gymName) {
+      const slug = gymName
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "")
+        .slice(0, 50)
+
+      const gym = await prisma.gym.create({
+        data: {
+          name: gymName,
+          slug,
+          address: gymAddress,
+        },
+      })
+      gymId = gym.id
+    }
+
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: passwordHash,
-        role: "MEMBER",
+        role,
+        gymId: gymId ?? undefined,
       },
     })
 
     return NextResponse.json(
       {
         message: "Usuario registrado exitosamente",
-        user: { id: user.id, email: user.email, name: user.name },
+        user: { id: user.id, email: user.email, name: user.name, role: user.role },
       },
       { status: 201 }
     )

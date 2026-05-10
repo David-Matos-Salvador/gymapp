@@ -12,13 +12,17 @@ import {
   CalendarDays,
   UserCog,
   Users,
+  UserRound,
   BarChart3,
   LogOut,
   Sparkles,
   TrendingUp,
   Cpu,
+  Globe,
 } from "lucide-react"
+import { useRef } from "react"
 import type { ComponentProps } from "react"
+import { AnimatePresence, motion } from "framer-motion"
 
 type NavItem = {
   label: string
@@ -30,21 +34,21 @@ type NavItem = {
 type PlayFn = ReturnType<typeof useSound>["play"]
 
 const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, roles: ["MEMBER"] },
-  { label: "Mis Rutinas", href: "/routines", icon: Dumbbell, roles: ["MEMBER"] },
-  { label: "Progreso", href: "/progress", icon: TrendingUp, roles: ["MEMBER"] },
+  { label: "Mi Rutina", href: "/rutina", icon: Dumbbell, roles: ["MEMBER"] },
   { label: "Clases", href: "/classes", icon: CalendarDays, roles: ["MEMBER"] },
+  { label: "Clientes", href: "/coach/clients", icon: UserRound, roles: ["TRAINER"] },
   { label: "Coach Panel", href: "/coach", icon: Users, roles: ["TRAINER"] },
   { label: "Admin Panel", href: "/admin", icon: BarChart3, roles: ["ADMIN"] },
   { label: "Equipo", href: "/gym-equipment", icon: Cpu, roles: ["ADMIN"] },
+  { label: "Plataforma", href: "/super-admin", icon: Globe, roles: ["SUPER_ADMIN"] },
   { label: "Perfil", href: "/profile", icon: UserCog },
 ]
 
 const userRoleChip: Record<string, { label: string; className: string }> = {
-  ADMIN: { label: "Admin", className: "text-gym-orange bg-gym-orange/10" },
-  TRAINER: { label: "Coach", className: "text-gym-violet bg-gym-violet/10" },
-  MEMBER: { label: "Miembro", className: "text-gym-green bg-gym-green/10" },
-  SUPER_ADMIN: { label: "Super Admin", className: "text-destructive bg-destructive/10" },
+  ADMIN: { label: "Admin", className: "text-accent-yellow bg-accent-yellow/10" },
+  TRAINER: { label: "Coach", className: "text-accent-yellow bg-accent-yellow/10" },
+  MEMBER: { label: "Miembro", className: "text-accent-yellow bg-accent-yellow/10" },
+  SUPER_ADMIN: { label: "Super Admin", className: "text-accent-yellow bg-accent-yellow/10" },
 }
 
 function SidebarSection({ label, items, pathname, play }: {
@@ -68,16 +72,16 @@ function SidebarSection({ label, items, pathname, play }: {
             key={item.href}
             href={item.href}
             onClick={() => play("click")}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
-              isActive
-                ? "bg-primary/10 text-primary font-medium"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
+              className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
+                  isActive
+                    ? "bg-accent-yellow/15 text-accent-yellow font-medium"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              )}
           >
             <item.icon className="h-4 w-4" />
             {item.label}
-            {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
+              {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-accent-yellow" />}
           </Link>
         )
       })}
@@ -91,6 +95,7 @@ export function AppSidebar({ className }: { className?: string }) {
   const { play } = useSound()
 
   const visibleRoles = (() => {
+    if (user?.role === "SUPER_ADMIN") return ["MEMBER", "SUPER_ADMIN"]
     if (isAdmin) return ["MEMBER", "TRAINER", "ADMIN"]
     if (isTrainer) return ["MEMBER", "TRAINER"]
     if (isMember) return ["MEMBER"]
@@ -103,7 +108,7 @@ export function AppSidebar({ className }: { className?: string }) {
   })
 
   const userSection = filtered.filter((i) => i.roles?.includes("MEMBER"))
-  const roleSection = filtered.filter((i) => i.roles?.some((r) => r === "TRAINER" || r === "ADMIN"))
+  const roleSection = filtered.filter((i) => i.roles?.some((r) => r === "TRAINER" || r === "ADMIN" || r === "SUPER_ADMIN"))
   const commonSection = filtered.filter((i) => !i.roles)
 
   const roleChip = user?.role ? userRoleChip[user.role] : null
@@ -111,7 +116,7 @@ export function AppSidebar({ className }: { className?: string }) {
   return (
     <aside className={cn("flex flex-col border-r bg-card h-full", className)}>
       <div className="flex h-14 items-center gap-2 border-b px-4">
-        <Sparkles className="h-5 w-5 text-gym-green shrink-0" />
+        <Sparkles className="h-5 w-5 text-accent-yellow shrink-0" />
         <span className="font-semibold text-lg">GymApp</span>
         {roleChip && (
           <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded font-medium ${roleChip.className}`}>
@@ -147,25 +152,34 @@ export function AppBottomNav({ className }: { className?: string }) {
   const { isAdmin, isTrainer } = useAuth()
   const { play } = useSound()
 
-  const alwaysShow = [
-    { label: "Inicio", href: "/dashboard", icon: LayoutDashboard },
-    { label: "Rutinas", href: "/routines", icon: Dumbbell },
-    { label: "Progreso", href: "/progress", icon: TrendingUp },
+  // Primary tabs — compact, mobile-native
+  const primaryTabs = [
+    { label: "Mi Rutina", href: "/rutina", icon: Dumbbell },
     { label: "Clases", href: "/classes", icon: CalendarDays },
     { label: "Perfil", href: "/profile", icon: UserCog },
   ]
 
-  const roleSpecific = [
+  // Secondary tabs for trainers/admins — appended at the end
+  const roleTabs = [
     ...(isTrainer || isAdmin ? [{ label: "Coach", href: "/coach", icon: Users }] : []),
     ...(isAdmin ? [{ label: "Admin", href: "/admin", icon: BarChart3 }] : []),
   ]
 
-  const bottomItems = [...roleSpecific, ...alwaysShow]
+  // Max visible tabs: 5 (3 primary + 2 role). Overflow handled by `justify-around`.
+  const bottomItems = [...primaryTabs, ...roleTabs]
+
+  const visibleItems = roleTabs.length > 0 ? bottomItems : primaryTabs
 
   return (
-    <nav className={cn("fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur md:hidden", className)}>
+    <nav
+      className={cn(
+        "fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur md:hidden",
+        "pb-[env(safe-area-inset-bottom,0px)]",
+        className
+      )}
+    >
       <div className="flex items-center justify-around h-16">
-        {bottomItems.map((item) => {
+        {visibleItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
           return (
             <Link
@@ -173,12 +187,22 @@ export function AppBottomNav({ className }: { className?: string }) {
               href={item.href}
               onClick={() => play("click")}
               className={cn(
-                "flex flex-col items-center gap-1 px-1 py-1 text-xs transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
+                  "relative flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] py-1 text-xs font-medium transition-colors",
+                  isActive
+                    ? "text-accent-yellow"
+                    : "text-muted-foreground hover:text-foreground"
               )}
             >
-              <item.icon className="h-5 w-5" />
-              {item.label}
+              <item.icon
+                className={cn(
+                  "h-5 w-5 transition-transform duration-200",
+                  isActive && "scale-110"
+                )}
+              />
+              <span className="text-[11px] leading-none">{item.label}</span>
+              {isActive && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-accent-yellow" />
+              )}
             </Link>
           )
         })}
@@ -188,11 +212,42 @@ export function AppBottomNav({ className }: { className?: string }) {
 }
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const prevPathnameRef = useRef<string | null>(null)
+  const directionRef = useRef<1 | -1>(1)
+
+  if (prevPathnameRef.current !== null && prevPathnameRef.current !== pathname) {
+    const currDepth = pathname.split("/").filter(Boolean).length
+    const prevDepth = (prevPathnameRef.current ?? "").split("/").filter(Boolean).length
+    directionRef.current = currDepth >= prevDepth ? 1 : -1
+  }
+  prevPathnameRef.current = pathname
+
+  const dir = directionRef.current
+
+  const variants = {
+    initial: (d: number) => ({ x: d > 0 ? 30 : -30, opacity: 0 }),
+    animate: { x: 0, opacity: 1 },
+    exit: (d: number) => ({ x: d > 0 ? -30 : 30, opacity: 0 }),
+  }
+
   return (
     <div className="flex h-screen overflow-hidden">
       <AppSidebar className="hidden md:flex w-56 shrink-0" />
       <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
-        {children}
+        <AnimatePresence mode="wait" initial={false} custom={dir}>
+          <motion.div
+            key={pathname}
+            custom={dir}
+            variants={variants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={{ duration: 0.15, ease: "easeOut" }}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
       <AppBottomNav />
     </div>

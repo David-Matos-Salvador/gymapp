@@ -519,6 +519,8 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
 
   const hasAnimation = !!exercise.animationData
 
+  const hasVideo = !!exercise.videoUrl
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -526,13 +528,25 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="mx-auto flex min-h-[250px] max-w-[300px] flex-col items-center gap-2 rounded-xl bg-card p-4 ring-1 ring-foreground/10"
     >
-      <canvas
-        ref={canvasRef}
-        width={CANVAS}
-        height={CANVAS}
-        className="w-full max-w-[240px] aspect-square rounded-lg"
-        aria-label={`${exercise.name} animation`}
-      />
+      {hasVideo ? (
+        <div className="w-full aspect-video rounded-lg overflow-hidden">
+          <iframe
+            src={exercise.videoUrl!}
+            className="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            title={exercise.name}
+          />
+        </div>
+      ) : (
+        <canvas
+          ref={canvasRef}
+          width={CANVAS}
+          height={CANVAS}
+          className="w-full max-w-[240px] aspect-square rounded-lg"
+          aria-label={`${exercise.name} animation`}
+        />
+      )}
 
       {/* Breathing legend (only for animated exercises) */}
       {hasAnimation && (

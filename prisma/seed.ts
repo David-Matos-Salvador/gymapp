@@ -24,6 +24,14 @@ async function main() {
   })
 
   // ── Users ───────────────────────────────────────────
+  const superadmin = await prisma.user.upsert({
+    where: { email: "superadmin@gymapp.com" },
+    update: {},
+    create: {
+      email: "superadmin@gymapp.com", name: "Super Admin", password: passwordHash, role: "SUPER_ADMIN",
+    },
+  })
+
   const admin = await prisma.user.upsert({
     where: { email: "admin@gymapp.com" },
     update: {},
@@ -134,6 +142,126 @@ async function main() {
     prisma.exercise.create({ data: { name: "Kettlebell swing", description: "Potencia y cardio.", muscleGroup: "FULL_BODY", equipment: "KETTLEBELL", category: "Cardio" } }),
   ])
   console.log(`✅ ${exercises.length} exercises created`)
+
+  // ── Platform Routines (SUPER_ADMIN templates) ────────
+  const platformRoutines = [
+    {
+      userId: superadmin.id,
+      name: "Principiante - Cuerpo Completo",
+      description: "Rutina ideal para empezar. Trabaja todo el cuerpo en cada sesión con ejercicios básicos controlados.",
+      targetObjective: "GENERAL_FITNESS",
+      difficulty: "BEGINNER",
+      exercises: [
+        { exercise: exercises[0], sets: 3, reps: 10, weight: 20, restSeconds: 75, order: 0 },
+        { exercise: exercises[14], sets: 3, reps: 10, weight: 30, restSeconds: 90, order: 1 },
+        { exercise: exercises[5], sets: 3, reps: 10, weight: 15, restSeconds: 75, order: 2 },
+        { exercise: exercises[8], sets: 3, reps: 10, weight: 15, restSeconds: 75, order: 3 },
+        { exercise: exercises[21], sets: 3, reps: 30, weight: 0, restSeconds: 60, order: 4 },
+        { exercise: exercises[22], sets: 3, reps: 10, weight: 0, restSeconds: 60, order: 5 },
+      ],
+    },
+    {
+      userId: superadmin.id,
+      name: "Quema Grasa",
+      description: "Circuito metabólico para maximizar quema calórica. Alta intensidad, poco descanso.",
+      targetObjective: "WEIGHT_LOSS",
+      difficulty: "INTERMEDIATE",
+      exercises: [
+        { exercise: exercises[23], sets: 4, reps: 12, weight: 0, restSeconds: 45, order: 0 },
+        { exercise: exercises[24], sets: 4, reps: 15, weight: 16, restSeconds: 45, order: 1 },
+        { exercise: exercises[14], sets: 3, reps: 15, weight: 40, restSeconds: 60, order: 2 },
+        { exercise: exercises[18], sets: 3, reps: 12, weight: 12, restSeconds: 60, order: 3 },
+        { exercise: exercises[3], sets: 3, reps: 10, weight: 0, restSeconds: 60, order: 4 },
+        { exercise: exercises[5], sets: 3, reps: 12, weight: 25, restSeconds: 60, order: 5 },
+        { exercise: exercises[21], sets: 3, reps: 45, weight: 0, restSeconds: 45, order: 6 },
+      ],
+    },
+    {
+      userId: superadmin.id,
+      name: "Hipertrofia Push-Pull-Legs",
+      description: "Split PPL para ganancia muscular. Volumen óptimo con sobrecarga progresiva.",
+      targetObjective: "MUSCLE_GAIN",
+      difficulty: "ADVANCED",
+      exercises: [
+        { exercise: exercises[0], sets: 4, reps: 8, weight: 60, restSeconds: 90, order: 0 },
+        { exercise: exercises[1], sets: 3, reps: 10, weight: 22, restSeconds: 75, order: 1 },
+        { exercise: exercises[14], sets: 4, reps: 8, weight: 80, restSeconds: 120, order: 2 },
+        { exercise: exercises[15], sets: 3, reps: 10, weight: 100, restSeconds: 90, order: 3 },
+        { exercise: exercises[5], sets: 4, reps: 8, weight: 40, restSeconds: 90, order: 4 },
+        { exercise: exercises[4], sets: 3, reps: 8, weight: 0, restSeconds: 90, order: 5 },
+        { exercise: exercises[8], sets: 4, reps: 8, weight: 40, restSeconds: 90, order: 6 },
+        { exercise: exercises[10], sets: 3, reps: 10, weight: 25, restSeconds: 60, order: 7 },
+      ],
+    },
+    {
+      userId: superadmin.id,
+      name: "Tonificación y Definición",
+      description: "Enfoque en definición muscular con pesos moderados y altas repeticiones.",
+      targetObjective: "UNSURE",
+      difficulty: "BEGINNER",
+      exercises: [
+        { exercise: exercises[0], sets: 3, reps: 12, weight: 15, restSeconds: 60, order: 0 },
+        { exercise: exercises[14], sets: 3, reps: 12, weight: 20, restSeconds: 75, order: 1 },
+        { exercise: exercises[9], sets: 3, reps: 15, weight: 6, restSeconds: 60, order: 2 },
+        { exercise: exercises[2], sets: 3, reps: 12, weight: 8, restSeconds: 60, order: 3 },
+        { exercise: exercises[19], sets: 3, reps: 12, weight: 30, restSeconds: 60, order: 4 },
+        { exercise: exercises[11], sets: 3, reps: 12, weight: 8, restSeconds: 60, order: 5 },
+        { exercise: exercises[10], sets: 3, reps: 12, weight: 12, restSeconds: 60, order: 6 },
+      ],
+    },
+    {
+      userId: superadmin.id,
+      name: "Fuerza 5x5",
+      description: "Rutina de fuerza básica. Pocos ejercicios, mucho peso, resultados comprobados.",
+      targetObjective: "MUSCLE_GAIN",
+      difficulty: "INTERMEDIATE",
+      exercises: [
+        { exercise: exercises[14], sets: 5, reps: 5, weight: 100, restSeconds: 180, order: 0 },
+        { exercise: exercises[0], sets: 5, reps: 5, weight: 70, restSeconds: 180, order: 1 },
+        { exercise: exercises[7], sets: 5, reps: 5, weight: 100, restSeconds: 180, order: 2 },
+        { exercise: exercises[8], sets: 5, reps: 5, weight: 45, restSeconds: 150, order: 3 },
+        { exercise: exercises[5], sets: 5, reps: 5, weight: 35, restSeconds: 150, order: 4 },
+      ],
+    },
+    {
+      userId: superadmin.id,
+      name: "Cuerpo en Movimiento",
+      description: "Rutina funcional con ejercicios corporales y pesos libres. Ideal para mejorar forma física general.",
+      targetObjective: "GENERAL_FITNESS",
+      difficulty: "BEGINNER",
+      exercises: [
+        { exercise: exercises[18], sets: 3, reps: 10, weight: 10, restSeconds: 60, order: 0 },
+        { exercise: exercises[3], sets: 3, reps: 8, weight: 0, restSeconds: 60, order: 1 },
+        { exercise: exercises[4], sets: 3, reps: 6, weight: 0, restSeconds: 75, order: 2 },
+        { exercise: exercises[9], sets: 3, reps: 12, weight: 8, restSeconds: 60, order: 3 },
+        { exercise: exercises[12], sets: 3, reps: 12, weight: 15, restSeconds: 60, order: 4 },
+        { exercise: exercises[23], sets: 3, reps: 10, weight: 0, restSeconds: 60, order: 5 },
+        { exercise: exercises[21], sets: 3, reps: 30, weight: 0, restSeconds: 45, order: 6 },
+      ],
+    },
+  ]
+
+  for (const r of platformRoutines) {
+    await prisma.routine.create({
+      data: {
+        name: r.name,
+        description: r.description,
+        userId: r.userId,
+        exercises: {
+          create: r.exercises.map((e) => ({
+            exerciseId: e.exercise.id,
+            sets: e.sets,
+            reps: e.reps,
+            weight: e.weight,
+            restSeconds: e.restSeconds,
+            order: e.order,
+          })),
+        },
+      },
+    })
+  }
+  console.log(`✅ ${platformRoutines.length} platform routines created`)
+
 
   // ── Routines ────────────────────────────────────────
   const routines = [
@@ -312,6 +440,7 @@ async function main() {
 
   console.log("\n🎉 Seed completed!")
   console.log("\n📋 Login credentials (password: demo123):")
+  console.log('  Super:  superadmin@gymapp.com')
   console.log("  Admin:   admin@gymapp.com")
   console.log("  Trainer: trainer@gymapp.com")
   console.log("  Carlos:  carlos@gymapp.com")

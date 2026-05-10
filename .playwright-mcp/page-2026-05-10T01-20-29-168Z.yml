@@ -1,0 +1,86 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e5]
+        - generic [ref=e8]: GymApp
+        - generic [ref=e9]: Admin
+      - navigation [ref=e10]:
+        - generic [ref=e11]:
+          - paragraph [ref=e12]: Mi entrenamiento
+          - link "Mi Rutina" [ref=e13] [cursor=pointer]:
+            - /url: /rutina
+            - img [ref=e14]
+            - text: Mi Rutina
+          - link "Clases" [ref=e20] [cursor=pointer]:
+            - /url: /classes
+            - img [ref=e21]
+            - text: Clases
+        - generic [ref=e23]:
+          - paragraph [ref=e24]: Gesti\u00f3n
+          - link "Clientes" [ref=e25] [cursor=pointer]:
+            - /url: /coach/clients
+            - img [ref=e26]
+            - text: Clientes
+          - link "Coach Panel" [ref=e29] [cursor=pointer]:
+            - /url: /coach
+            - img [ref=e30]
+            - text: Coach Panel
+          - link "Admin Panel" [ref=e35] [cursor=pointer]:
+            - /url: /admin
+            - img [ref=e36]
+            - text: Admin Panel
+          - link "Equipo" [ref=e38] [cursor=pointer]:
+            - /url: /gym-equipment
+            - img [ref=e39]
+            - text: Equipo
+        - link "Perfil" [ref=e43] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e44]
+          - text: Perfil
+      - button "Cerrar sesi\\u00f3n" [ref=e58]:
+        - img [ref=e59]
+        - text: Cerrar sesi\u00f3n
+    - main [ref=e62]:
+      - generic [ref=e64]:
+        - button "Volver a Perfil" [ref=e65]:
+          - img [ref=e66]
+          - text: Volver a Perfil
+        - generic [ref=e68]:
+          - heading "Configuración" [level=1] [ref=e69]
+          - paragraph [ref=e70]: Personalizá tu experiencia
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - generic [ref=e74]:
+              - img [ref=e75]
+              - text: Apariencia
+            - generic [ref=e81]: Elegí el tema que prefieras
+          - generic [ref=e83]:
+            - button "Claro" [ref=e84]:
+              - img [ref=e85]
+              - text: Claro
+            - button "Oscuro" [ref=e91]:
+              - img [ref=e92]
+              - text: Oscuro
+            - button "Sistema" [ref=e94]:
+              - img [ref=e95]
+              - text: Sistema
+        - generic [ref=e98]:
+          - generic [ref=e99]:
+            - generic [ref=e100]:
+              - img [ref=e101]
+              - text: Sonido
+            - generic [ref=e105]: Activá o desactivá los efectos de sonido
+          - button "Efectos de sonido Activados" [ref=e107]:
+            - generic [ref=e108]:
+              - img [ref=e110]
+              - generic [ref=e114]:
+                - paragraph [ref=e115]: Efectos de sonido
+                - paragraph [ref=e116]: Activados
+        - generic [ref=e122]:
+          - generic [ref=e123]: Versión
+          - generic [ref=e124]: 1.0.0
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e130] [cursor=pointer]:
+    - img [ref=e131]
+  - alert [ref=e134]

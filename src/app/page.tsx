@@ -173,15 +173,16 @@ export default function LandingPage() {
   })
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 150])
   const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
-  const { isAuthenticated, isAdmin, isTrainer } = useAuth()
+  const { isAuthenticated, isAdmin, isTrainer, user } = useAuth()
   const { play } = useSound()
   const router = useRouter()
 
   useEffect(() => {
+    if (user?.role === "SUPER_ADMIN") { router.replace("/super-admin"); return }
     if (isAdmin) { router.replace("/admin"); return }
     if (isTrainer) { router.replace("/coach"); return }
-    if (isAuthenticated) { router.replace("/dashboard"); return }
-  }, [isAuthenticated, isAdmin, isTrainer, router])
+    if (isAuthenticated) { router.replace("/rutina"); return }
+  }, [isAuthenticated, isAdmin, isTrainer, user, router])
 
   return (
     <div className="overflow-x-hidden">

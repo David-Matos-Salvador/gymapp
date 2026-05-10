@@ -164,6 +164,11 @@ model User {
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
 
+  onboardingCompleted   Boolean   @default(false)
+  onboardingCompletedAt DateTime?
+  onboardingData        Json?
+  trainingFrequency     Int?     // 3, 4, or 5 days per week for premium routines
+
   bio               String?
   specialties       Json?
   certifications    Json?

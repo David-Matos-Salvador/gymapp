@@ -9,6 +9,8 @@ interface AuthUser {
   email?: string | null
   image?: string | null
   role?: UserRole
+  onboardingCompleted?: boolean
+  onboardingCompletedAt?: string
 }
 
 export function useAuth() {

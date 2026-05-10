@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Check, X, Plus, ArrowLeft, Save, Clock, FileText, Dumbbell } from "lucide-react"
+import { Check, X, Plus, ArrowLeft, Save, Clock, FileText, Dumbbell, Play } from "lucide-react"
+import { ExerciseAnimation } from "@/components/exercise-animation"
 import { toast } from "sonner"
 
 const MUSCLE_GROUP_LABELS: Record<string, string> = {
@@ -100,7 +101,7 @@ export default function LogWorkoutPage() {
     if (res.ok) {
       play("success")
       toast.success("Entrenamiento registrado")
-      router.push("/dashboard")
+      router.push("/rutina")
       router.refresh()
     } else {
       const err = await res.json()

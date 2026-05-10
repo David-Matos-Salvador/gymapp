@@ -40,4 +40,8 @@ export const sounds = {
   hover: () => playTone(800, 0.02, "sine", 0.02),
   exerciseComplete: () => playChime([523, 587, 659, 784, 880, 1047], 0.06, 0.03, 0.06),
   streak: () => playChime([880, 1047, 1319, 1568, 1760], 0.07, 0.04, 0.08),
+  restStart: () => playTone(440, 0.1, "sine", 0.05),
+  restEnd: () => playChime([523, 659, 784], 0.08, 0.06, 0.07),
+  workoutComplete: () => playChime([523, 659, 784, 1047, 1319, 1568], 0.1, 0.05, 0.09),
+  confetti: () => playChime([784, 988, 1175, 1319, 1568, 1976, 2093], 0.05, 0.02, 0.06),
 }

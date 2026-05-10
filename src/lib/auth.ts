@@ -54,21 +54,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           image: user.image,
           role: user.role,
+          onboardingCompleted: user.onboardingCompleted,
+          onboardingCompletedAt: user.onboardingCompletedAt?.toISOString() ?? null,
         }
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = (user as { role?: string }).role
+        token.onboardingCompleted = (user as { onboardingCompleted?: boolean }).onboardingCompleted
+        token.onboardingCompletedAt = (user as { onboardingCompletedAt?: string | null }).onboardingCompletedAt ?? undefined
+      }
+      if (trigger === "update" && session) {
+        const s = session as { onboardingCompleted?: boolean; onboardingCompletedAt?: string }
+        if (s.onboardingCompleted !== undefined) {
+          token.onboardingCompleted = s.onboardingCompleted
+          token.onboardingCompletedAt = s.onboardingCompletedAt ?? new Date().toISOString()
+        }
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
-        const sessionUser = session.user as { role?: string }
+        const sessionUser = session.user as { role?: string; onboardingCompleted?: boolean; onboardingCompletedAt?: string }
         sessionUser.role = token.role as string
+        sessionUser.onboardingCompleted = token.onboardingCompleted as boolean
+        sessionUser.onboardingCompletedAt = token.onboardingCompletedAt as string | undefined
       }
       return session
     },

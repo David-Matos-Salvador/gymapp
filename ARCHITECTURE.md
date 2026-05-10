@@ -27,7 +27,7 @@
 
 | Rol | Descripción |
 |-----|-------------|
-| `SUPER_ADMIN` | Administrador global de la plataforma |
+| `SUPER_ADMIN` | Administrador global de la plataforma. Ve todos los gimnasios, usuarios, ingresos. Puede crear/desactivar gimnasios. |
 | `ADMIN` | Dueño / administrador de un gimnasio específico |
 | `TRAINER` | Entrenador que gestiona clientes, rutinas, seguimiento |
 | `MEMBER` | Cliente final que entrena y registra su progreso |
@@ -58,7 +58,9 @@ src/
 │   │   └── clients/[id]/page.tsx   # Ficha detallada de cliente
 │   ├── admin/
 │   │   ├── page.tsx                # Dashboard admin con KPIs
-│   │   └── memberships/page.tsx    # Gestión de membresías
+│   │   └── memberships/page.tsx    # Gestion de membresias
+  ├── super-admin/
+  │   └── page.tsx                # Panel de plataforma global
 │   └── api/                        # 20+ endpoints REST
 ├── components/
 │   ├── ui/                         # Componentes shadcn/ui
@@ -163,6 +165,7 @@ src/
 | `/api/check-ins` | GET/POST | Sí | Listar/Check-in diario |
 | `/api/classes` | GET/POST | Parcial | Listar/Crear clases |
 | `/api/bookings` | POST/DELETE | Sí | Reservar/Cancelar clase |
+| `/api/admin/platform` | GET | SUPER_ADMIN | Stats globales de la plataforma |
 | `/api/gyms` | GET/POST | Parcial | Listar/Crear gimnasio |
 | `/api/gym-equipment` | GET/POST | Parcial | Listar/Crear equipo |
 | `/api/gym-equipment/[id]` | PATCH/DELETE | Sí | Modificar/Eliminar equipo |
@@ -283,6 +286,13 @@ El seed (`prisma/seed.ts`) crea datos de prueba realistas para LATAM:
 - **Check-ins** diarios de 7 días para Carlos, 5 para Ana
 
 **Credenciales**: todas las cuentas usan password `demo123`
+
+| Email | Rol | Acceso |
+|-------|-----|--------|
+| `superadmin@gymapp.com` | SUPER_ADMIN | Panel global de plataforma |
+| `admin@gymapp.com` | ADMIN | Panel de su gimnasio |
+| `trainer@gymapp.com` | TRAINER | Panel de coach |
+| `carlos@gymapp.com` | MEMBER | Dashboard de entrenamiento |
 
 ---
 

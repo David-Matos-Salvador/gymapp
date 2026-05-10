@@ -1,0 +1,28 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="96" fill="#0B0B0B"/>
+
+  <!-- Outer Hexagon -->
+  <path
+    d="M256 72L394 152V360L256 440L118 360V152L256 72Z"
+    stroke="white"
+    stroke-width="24"
+    stroke-linejoin="round"
+  />
+
+  <!-- Stylized S -->
+  <path
+    d="M320 170H220L190 200L292 256L220 312H190"
+    stroke="white"
+    stroke-width="28"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <path
+    d="M192 342H292L322 312L220 256L292 200H322"
+    stroke="#00D4FF"
+    stroke-width="28"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

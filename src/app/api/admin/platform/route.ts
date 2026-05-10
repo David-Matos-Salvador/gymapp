@@ -1,0 +1,60 @@
+import { NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+
+export async function GET() {
+  const session = await auth()
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+  if (!user || user.role !== "SUPER_ADMIN") {
+    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  }
+
+  const totalGyms = await prisma.gym.count()
+  const totalUsers = await prisma.user.count()
+  const totalMembers = await prisma.user.count({ where: { role: "MEMBER" } })
+  const totalTrainers = await prisma.user.count({ where: { role: "TRAINER" } })
+  const activeMemberships = await prisma.membership.count({ where: { status: "ACTIVE" } })
+  const totalRevenue = await prisma.payment.aggregate({
+    where: { status: "COMPLETED", type: "MEMBERSHIP" },
+    _sum: { amount: true },
+  })
+  const todayCheckins = await prisma.checkIn.count({
+    where: { date: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
+  })
+
+  const gyms = await prisma.gym.findMany({
+    include: { _count: { select: { users: true } } },
+    orderBy: { createdAt: "desc" },
+  })
+
+  const recentUsers = await prisma.user.findMany({
+    select: { id: true, name: true, email: true, role: true, createdAt: true, gymId: true },
+    orderBy: { createdAt: "desc" },
+    take: 10,
+  })
+
+  return NextResponse.json({
+    stats: {
+      totalGyms,
+      totalUsers,
+      totalMembers,
+      totalTrainers,
+      activeMemberships,
+      totalRevenue: totalRevenue._sum.amount || 0,
+      todayCheckins,
+    },
+    gyms: gyms.map((g) => ({
+      id: g.id,
+      name: g.name,
+      slug: g.slug,
+      active: g.active,
+      userCount: g._count.users,
+      createdAt: g.createdAt.toISOString(),
+    })),
+    recentUsers: recentUsers.map((u) => ({ ...u, createdAt: u.createdAt.toISOString() })),
+  })
+}

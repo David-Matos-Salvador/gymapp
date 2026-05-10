@@ -1,22 +1,30 @@
 import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
 
-export async function proxy(request: Request) {
-  const session = await auth()
+const PUBLIC_PATHS = ["/login", "/register", "/onboarding", "/api", "/_next", "/favicon.ico", "/manifest", "/icons"]
 
+export async function proxy(request: Request) {
   const { pathname } = new URL(request.url)
 
-  if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin") || pathname.startsWith("/coach")) {
-    if (!session) {
-      const loginUrl = new URL("/login", request.url)
-      loginUrl.searchParams.set("callbackUrl", pathname)
-      return NextResponse.redirect(loginUrl)
-    }
+  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next()
+  }
+
+  if (pathname === "/") {
+    return NextResponse.next()
+  }
+
+  const session = await auth()
+
+  if (!session?.user) {
+    const loginUrl = new URL("/login", request.url)
+    loginUrl.searchParams.set("callbackUrl", pathname)
+    return NextResponse.redirect(loginUrl)
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|login|register|$).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|icons|manifest).*)"],
 }
