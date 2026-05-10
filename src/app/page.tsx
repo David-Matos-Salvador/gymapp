@@ -197,7 +197,7 @@ export default function LandingPage() {
             {isAuthenticated ? (
               <Button asChild size="sm">
                 <Link href="/dashboard" onClick={() => play("click")}>
-                  Dashboard
+                  Inicio
                   <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>

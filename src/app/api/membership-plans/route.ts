@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   const gymId = searchParams.get("gymId")
 
   if (!gymId) {
-    return NextResponse.json({ error: "gymId es requerido" }, { status: 400 })
+    return NextResponse.json({ error: "El ID del gimnasio es requerido" }, { status: 400 })
   }
 
   const plans = await prisma.membershipPlan.findMany({

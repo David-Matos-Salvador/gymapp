@@ -34,8 +34,8 @@ interface ClassesViewProps {
 }
 
 const daysOfWeek: Record<string, string> = {
-  MONDAY: "Lunes", TUESDAY: "Martes", WEDNESDAY: "Miércoles",
-  THURSDAY: "Jueves", FRIDAY: "Viernes", SATURDAY: "Sábado", SUNDAY: "Domingo",
+  MONDAY: "lunes", TUESDAY: "martes", WEDNESDAY: "miércoles",
+  THURSDAY: "jueves", FRIDAY: "viernes", SATURDAY: "sábado", SUNDAY: "domingo",
 }
 
 const dayOrder = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]

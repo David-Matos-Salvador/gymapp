@@ -25,8 +25,8 @@ interface RoutinesListProps {
 
 const muscleGroupLabels: Record<string, string> = {
   CHEST: "Pecho", BACK: "Espalda", SHOULDERS: "Hombros", BICEPS: "Bíceps",
-  TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdomen",
-  CALVES: "Gemelos", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
+  TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdominales",
+  CALVES: "Pantorrillas", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
   FULL_BODY: "Cuerpo completo", CARDIO: "Cardio",
 }
 
@@ -83,7 +83,7 @@ export function RoutinesList({ routines, isCoach, recommended }: RoutinesListPro
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-base">{routine.name}</CardTitle>
                       {recommended && (
-                        <span className="text-[10px] bg-gym-violet/10 text-gym-violet px-1.5 py-0.5 rounded-full">+Popular</span>
+                        <span className="text-[10px] bg-gym-violet/10 text-gym-violet px-1.5 py-0.5 rounded-full">Popular</span>
                       )}
                     </div>
                     {routine.description && (

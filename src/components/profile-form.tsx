@@ -60,7 +60,7 @@ export function ProfileForm({ user }: { user: User }) {
   })
 
   const roleLabels: Record<string, string> = {
-    ADMIN: "Administrador", TRAINER: "Coach", MEMBER: "Miembro", SUPER_ADMIN: "Super Admin",
+    ADMIN: "Administrador", TRAINER: "Coach", MEMBER: "Miembro", SUPER_ADMIN: "Súper Admin",
   }
 
   const objectiveLabels: Record<string, string> = {

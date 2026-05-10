@@ -326,10 +326,10 @@ function drawBreathIndicator(
   ctx.textAlign = "center"
   ctx.textBaseline = "top"
   const label = currentPhaseName === "isometric_hold"
-    ? "HOLD"
+    ? "MANTENER"
     : currentPhaseName === breathPattern.inhale
-      ? "IN"
-      : "OUT"
+      ? "INH"
+      : "EXH"
   ctx.fillText(label, cx, cy + r + 6)
 }
 
@@ -528,6 +528,7 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="mx-auto flex min-h-[250px] max-w-[300px] flex-col items-center gap-2 rounded-xl bg-card p-4 ring-1 ring-foreground/10"
     >
+<<<<<<< ours
       {hasVideo ? (
         <div className="w-full aspect-video rounded-lg overflow-hidden">
           <iframe
@@ -547,21 +548,30 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
           aria-label={`${exercise.name} animation`}
         />
       )}
+=======
+      <canvas
+        ref={canvasRef}
+        width={CANVAS}
+        height={CANVAS}
+        className="w-full max-w-[240px] aspect-square rounded-lg"
+        aria-label={`${exercise.name} animación`}
+      />
+>>>>>>> theirs
 
       {/* Breathing legend (only for animated exercises) */}
       {hasAnimation && (
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
-            Inhale
+            Inhalar
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />
-            Exhale
+            Exhalar
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-violet-400" />
-            Hold
+            Mantener
           </span>
         </div>
       )}

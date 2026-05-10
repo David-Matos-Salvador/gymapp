@@ -15,8 +15,8 @@ import { cn } from "@/lib/utils"
 
 const MUSCLE_GROUP_LABELS: Record<string, string> = {
   CHEST: "Pecho", BACK: "Espalda", SHOULDERS: "Hombros", BICEPS: "Bíceps",
-  TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdomen",
-  CALVES: "Gemelos", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
+  TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdominales",
+  CALVES: "Pantorrillas", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
   FULL_BODY: "Cuerpo completo", CARDIO: "Cardio",
 }
 

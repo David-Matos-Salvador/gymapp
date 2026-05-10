@@ -123,7 +123,7 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
   return (
     <div className="container mx-auto px-4 py-6 md:py-8 space-y-8">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Coach Panel</h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Panel de Coach</h1>
         <p className="text-muted-foreground">Gestiona tus clientes, rutinas y clases</p>
       </div>
 
