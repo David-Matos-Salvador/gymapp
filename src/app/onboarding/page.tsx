@@ -68,7 +68,7 @@ interface GeneratedRoutineData {
   }[]
 }
 
-const TOTAL_STEPS = 12
+const TOTAL_STEPS = 11
 
 const STEPS = [
   { num: 1, title: "Objetivo" },
@@ -79,10 +79,9 @@ const STEPS = [
   { num: 6, title: "Peso y altura" },
   { num: 7, title: "Horario" },
   { num: 8, title: "Confirmación" },
-  { num: 9, title: "Preparando" },
-  { num: 10, title: "Plan semanal" },
-  { num: 11, title: "Tu rutina" },
-  { num: 12, title: "Listo" },
+  { num: 9, title: "Plan semanal" },
+  { num: 10, title: "Tu rutina" },
+  { num: 11, title: "Listo" },
 ]
 
 const objectiveOptions = [
@@ -120,10 +119,10 @@ const trainingHistoryOptions = [
 ]
 
 const experienceOptions = [
-  { value: "BEGINNER", label: "Principiante", icon: HelpCircle, description: "Nunca he entrenado antes", color: "from-green-500 to-emerald-500" },
-  { value: "INTERMEDIATE", label: "Intermedio", icon: Dumbbell, description: "Conozco lo básico", color: "from-blue-500 to-cyan-500" },
-  { value: "ADVANCED", label: "Avanzado", icon: Star, description: "Buen dominio de técnica y rutinas", color: "from-violet-500 to-purple-500" },
-  { value: "ELITE", label: "Élite", icon: Trophy, description: "Entreno de forma autónoma", color: "from-amber-500 to-orange-500" },
+  { value: "BEGINNER", label: "Principiante", icon: HelpCircle, description: "Nunca he entrenado antes" },
+  { value: "INTERMEDIATE", label: "Intermedio", icon: Dumbbell, description: "Conozco lo básico" },
+  { value: "ADVANCED", label: "Avanzado", icon: Star, description: "Buen dominio de técnica y rutinas" },
+  { value: "ELITE", label: "Élite", icon: Trophy, description: "Entreno de forma autónoma" },
 ]
 
 const frequencyOptions = [
@@ -233,12 +232,13 @@ export default function OnboardingPage() {
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [loadingPhase, setLoadingPhase] = useState(0)
   const [error, setError] = useState("")
   const [editingStep, setEditingStep] = useState<number | null>(null)
   const [trainingFrequency, setTrainingFrequency] = useState<number>(3)
   const [generatedRoutines, setGeneratedRoutines] = useState<GeneratedRoutineData[]>([])
   const [selectedRoutineId, setSelectedRoutineId] = useState<string | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [generationPhase, setGenerationPhase] = useState(0)
 
   const [data, setData] = useState<OnboardingData>({
     objective: null,
@@ -251,7 +251,7 @@ export default function OnboardingPage() {
     usualSchedule: null,
   })
 
-  const fetchGeneratedRoutines = useCallback(async (freq: number) => {
+  const fetchGeneratedRoutines = useCallback(async (freq: number): Promise<GeneratedRoutineData[] | null> => {
     try {
       const res = await fetch("/api/fitness-coach", {
         method: "POST",
@@ -266,11 +266,13 @@ export default function OnboardingPage() {
         const result = await res.json()
         if (result.routines?.length > 0) {
           setGeneratedRoutines(result.routines)
+          return result.routines
         }
       }
     } catch {
       // silent
     }
+    return null
   }, [data.objective, data.experienceLevel])
 
   useEffect(() => {
@@ -287,14 +289,14 @@ export default function OnboardingPage() {
         const role = s?.user?.role
         if (role === "ADMIN" || role === "SUPER_ADMIN") router.push("/admin")
         else if (role === "TRAINER") router.push("/coach")
-        else router.push("/rutina")
+        else router.push("/dashboard")
         return
       }
       fetch("/api/onboarding")
         .then((r) => r.json())
         .then((d) => {
           if (d.onboardingCompleted) {
-            router.push("/rutina")
+            router.push("/dashboard")
           } else if (d.trainingFrequency) {
             setTrainingFrequency(d.trainingFrequency)
           }
@@ -355,13 +357,6 @@ export default function OnboardingPage() {
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true)
     setError("")
-    setDirection(1)
-    setStep(9)
-
-    for (let i = 0; i < loadingMessages.length; i++) {
-      setLoadingPhase(i)
-      await new Promise((r) => setTimeout(r, loadingMessages[i].duration))
-    }
 
     try {
       const res = await fetch("/api/onboarding", {
@@ -389,24 +384,16 @@ export default function OnboardingPage() {
       play("success")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error al guardar los datos")
-      setStep(8)
       setIsSubmitting(false)
       return
     }
 
-    try {
-      await updateSession({ onboardingCompleted: true, onboardingCompletedAt: new Date().toISOString() })
-    } catch {
-      // silent
-    }
-
     setError("")
-    setLoadingPhase(0)
     setDirection(1)
-    setStep(10)
+    setStep(9)
 
     setIsSubmitting(false)
-  }, [data, play, updateSession])
+  }, [data, play])
 
   const assignRoutine = useCallback(
     async (routineId: string) => {
@@ -436,7 +423,7 @@ export default function OnboardingPage() {
         // silent
       }
       await new Promise((r) => setTimeout(r, 600))
-      router.push("/rutina")
+      router.push("/dashboard")
       router.refresh()
     },
     [play, router, updateSession, data, trainingFrequency]
@@ -491,13 +478,12 @@ export default function OnboardingPage() {
     6: canProceedStep6,
     7: canProceedStep7,
     8: true,
-    9: false,
-    10: true,
-    11: selectedRoutineId !== null,
-    12: true,
+    9: true,
+    10: selectedRoutineId !== null,
+    11: true,
   }
 
-  const showNextButton = ![8, 9, 10, 11, 12].includes(step)
+  const showNextButton = ![8, 9, 10, 11].includes(step)
 
   const bmi = data.weight && data.height ? calculateBMI(data.weight, data.height) : null
 
@@ -526,19 +512,19 @@ export default function OnboardingPage() {
                     }}
                     className={`relative flex flex-col items-center gap-3 rounded-2xl border-2 p-5 text-center transition-all duration-200 ${
                       isSelected
-                        ? `${opt.selectedBorder} ${opt.selectedBg} shadow-sm`
-                        : `${opt.borderColor} bg-card hover:border-muted-foreground/30 hover:shadow-sm`
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
                     }`}
                   >
                     <div
                       className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-all ${
-                        isSelected ? `bg-gradient-to-br ${opt.gradient} text-white shadow-md` : `${opt.iconBg} ${opt.iconColor}`
+                        isSelected ? "bg-primary text-primary-foreground shadow-md" : "bg-primary/10 text-primary"
                       }`}
                     >
                       <opt.icon className="h-7 w-7" />
                     </div>
                     <div>
-                      <p className={`font-semibold text-sm ${isSelected ? "text-foreground" : ""}`}>{opt.label}</p>
+                      <p className="font-semibold text-sm">{opt.label}</p>
                       <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
                     </div>
                   </motion.button>
@@ -612,13 +598,13 @@ export default function OnboardingPage() {
                     }}
                     className={`w-full flex items-center gap-4 rounded-2xl border-2 p-5 text-left transition-all ${
                       isSelected
-                        ? "border-blue-400 bg-blue-50/50 shadow-sm"
-                        : "border-border bg-card hover:border-blue-300 hover:shadow-sm"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
                     }`}
                   >
                     <div
                       className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all ${
-                        isSelected ? "bg-gradient-to-br " + opt.color + " text-white shadow-md" : "bg-muted"
+                        isSelected ? "bg-primary text-primary-foreground shadow-md" : "bg-muted text-muted-foreground"
                       }`}
                     >
                       <opt.icon className="h-6 w-6" />
@@ -655,13 +641,13 @@ export default function OnboardingPage() {
                     }}
                     className={`flex flex-col items-center gap-3 rounded-2xl border-2 p-6 transition-all ${
                       isSelected
-                        ? "border-orange-400 bg-orange-50 shadow-sm"
-                        : "border-border bg-card hover:border-orange-300 hover:shadow-sm"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
                     }`}
                   >
                     <span
                       className={`flex h-16 w-16 items-center justify-center rounded-2xl text-3xl font-bold transition-all ${
-                        isSelected ? "bg-gradient-to-br from-orange-500 to-red-500 text-white shadow-md" : "bg-muted text-muted-foreground"
+                        isSelected ? "bg-primary text-primary-foreground shadow-md" : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {opt.label}
@@ -713,11 +699,9 @@ export default function OnboardingPage() {
                     className={`flex items-center gap-2 rounded-full border-2 px-5 py-2.5 text-sm font-medium transition-all ${
                       isSelected
                         ? isNoPoseo
-                          ? "border-emerald-400 bg-emerald-50 text-emerald-700"
-                          : "border-red-400 bg-red-50 text-red-700"
-                        : isNoPoseo
-                          ? "border-border bg-card text-muted-foreground hover:border-emerald-300"
-                          : "border-border bg-card text-muted-foreground hover:border-red-300"
+                          ? "border-primary bg-primary/5 text-foreground shadow-sm"
+                          : "border-destructive/50 bg-destructive/5 text-destructive"
+                        : "border-border bg-card text-muted-foreground hover:border-primary/30"
                     }`}
                   >
                     {isSelected && <Check className="h-3.5 w-3.5" />}
@@ -726,15 +710,6 @@ export default function OnboardingPage() {
                 )
               })}
             </div>
-            {data.physicalConditions.length > 0 && (
-              <Button
-                className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 mt-2"
-                onClick={goNext}
-              >
-                Continuar
-                <ChevronRight className="ml-1 h-5 w-5" />
-              </Button>
-            )}
           </div>
         )
 
@@ -756,7 +731,7 @@ export default function OnboardingPage() {
                     value={weightInput}
                     onChange={(e) => handleWeightChange(e.target.value)}
                     placeholder="Ej: 75"
-                    className="w-full h-16 rounded-2xl border-2 border-border bg-card px-5 pr-16 text-2xl font-semibold text-center placeholder:text-muted-foreground/40 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
+                    className="w-full h-16 rounded-2xl border-2 border-border bg-card px-5 pr-16 text-2xl font-semibold text-center placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                   <span className="absolute right-5 top-1/2 -translate-y-1/2 text-lg text-muted-foreground font-semibold">
                     kg
@@ -774,7 +749,7 @@ export default function OnboardingPage() {
                     value={heightInput}
                     onChange={(e) => handleHeightChange(e.target.value)}
                     placeholder="Ej: 170"
-                    className="w-full h-16 rounded-2xl border-2 border-border bg-card px-5 pr-16 text-2xl font-semibold text-center placeholder:text-muted-foreground/40 focus:outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 transition-all"
+                    className="w-full h-16 rounded-2xl border-2 border-border bg-card px-5 pr-16 text-2xl font-semibold text-center placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                   <span className="absolute right-5 top-1/2 -translate-y-1/2 text-lg text-muted-foreground font-semibold">
                     cm
@@ -820,16 +795,16 @@ export default function OnboardingPage() {
                     }}
                     className={`w-full flex items-center gap-4 rounded-2xl border-2 p-4 text-left transition-all ${
                       isSelected
-                        ? "border-cyan-400 bg-cyan-50/50 shadow-sm"
-                        : "border-border bg-card hover:border-cyan-300 hover:shadow-sm"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
                     }`}
                   >
                     <div
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
-                        isSelected ? "border-cyan-500 bg-cyan-500" : "border-muted-foreground/30"
+                        isSelected ? "border-primary bg-primary" : "border-muted-foreground/30"
                       }`}
                     >
-                      {isSelected && <Check className="h-4 w-4 text-white" />}
+                      {isSelected && <Check className="h-4 w-4 text-primary-foreground" />}
                     </div>
                     <div className="flex items-center gap-3 flex-1">
                       <span className="text-xl">{opt.icon}</span>
@@ -842,15 +817,6 @@ export default function OnboardingPage() {
                 )
               })}
             </div>
-            {data.usualSchedule && (
-              <Button
-                className="w-full h-12 rounded-xl bg-primary hover:bg-primary/90 mt-2"
-                onClick={goNext}
-              >
-                Continuar
-                <ChevronRight className="ml-1 h-5 w-5" />
-              </Button>
-            )}
           </div>
         )
 
@@ -863,7 +829,7 @@ export default function OnboardingPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-center text-sm text-red-600">
+              <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-center text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -917,51 +883,51 @@ export default function OnboardingPage() {
         )
 
       case 9:
-        return (
-          <div className="flex flex-col items-center justify-center gap-8 py-16">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={loadingPhase}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="flex flex-col items-center gap-6"
-              >
-                <div className="relative">
-                  <div className="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center">
-                    {(() => {
-                      const msg = loadingMessages[loadingPhase]
-                      return <msg.icon className="h-12 w-12 text-primary" />
-                    })()}
+        if (isGenerating) {
+          return (
+            <div className="flex flex-col items-center justify-center gap-8 py-16">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={generationPhase}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="flex flex-col items-center gap-6"
+                >
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center">
+                      {(() => {
+                        const msg = loadingMessages[generationPhase]
+                        return <msg.icon className="h-12 w-12 text-primary" />
+                      })()}
+                    </div>
+                    <motion.div
+                      className="absolute -inset-3 rounded-3xl border-2 border-primary/20"
+                      animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.1, 0.3] }}
+                      transition={{ repeat: Infinity, duration: 2 }}
+                    />
                   </div>
-                  <motion.div
-                    className="absolute -inset-3 rounded-3xl border-2 border-primary/20"
-                    animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.1, 0.3] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                  />
-                </div>
-                <div className="space-y-2 text-center">
-                  <p className="text-lg font-semibold">{loadingMessages[loadingPhase].text}</p>
-                  <div className="flex items-center justify-center gap-1.5 mt-3">
-                    {loadingMessages.map((_, i) => (
-                      <motion.div
-                        key={i}
-                        className={`h-2 rounded-full transition-all ${
-                          i <= loadingPhase ? "w-8 bg-primary" : "w-2 bg-muted"
-                        }`}
-                        layout
-                        transition={{ duration: 0.3 }}
-                      />
-                    ))}
+                  <div className="space-y-2 text-center">
+                    <p className="text-lg font-semibold">{loadingMessages[generationPhase].text}</p>
+                    <div className="flex items-center justify-center gap-1.5 mt-3">
+                      {loadingMessages.map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className={`h-2 rounded-full transition-all ${
+                            i <= generationPhase ? "w-8 bg-primary" : "w-2 bg-muted"
+                          }`}
+                          layout
+                          transition={{ duration: 0.3 }}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        )
-
-      case 10:
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          )
+        }
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -973,22 +939,37 @@ export default function OnboardingPage() {
                 <motion.button
                   key={f}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => {
+                  onClick={async () => {
                     setTrainingFrequency(f)
                     setSelectedRoutineId(null)
                     setGeneratedRoutines([])
                     play("select")
-                    fetchGeneratedRoutines(f)
-                    setTimeout(() => {
-                      setDirection(1)
-                      setStep(11)
-                    }, 400)
+                    setIsGenerating(true)
+                    setGenerationPhase(0)
+
+                    const fetchPromise = fetchGeneratedRoutines(f)
+
+                    for (let i = 0; i < loadingMessages.length; i++) {
+                      setGenerationPhase(i)
+                      await new Promise((r) => setTimeout(r, loadingMessages[i].duration))
+                    }
+
+                    const routines = await fetchPromise
+
+                    if (routines?.length) {
+                      setSelectedRoutineId(routines[0].id)
+                    }
+
+                    setIsGenerating(false)
+                    setDirection(1)
+                    setStep(10)
                   }}
+                  disabled={isGenerating}
                   className={`w-full flex items-center gap-5 rounded-2xl border-2 p-5 text-left transition-all ${
                     trainingFrequency === f
                       ? "border-primary bg-primary/5 shadow-sm"
                       : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
-                  }`}
+                  } ${isGenerating ? "pointer-events-none opacity-50" : ""}`}
                 >
                   <div
                     className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl font-bold transition-all ${
@@ -1011,7 +992,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 11:
+      case 10:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -1020,7 +1001,7 @@ export default function OnboardingPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-center text-sm text-red-600">
+              <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-center text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -1098,10 +1079,24 @@ export default function OnboardingPage() {
                 <p className="text-muted-foreground">Generando rutinas personalizadas...</p>
               </div>
             )}
+
+            {selectedRoutineId && generatedRoutines.length > 0 && (
+              <Button
+                className="w-full h-14 rounded-2xl text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 mt-4"
+                onClick={() => {
+                  play("click")
+                  setDirection(1)
+                  setStep(11)
+                }}
+              >
+                Continuar
+                <ChevronRight className="ml-1 h-5 w-5" />
+              </Button>
+            )}
           </div>
         )
 
-      case 12:
+      case 11:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -1113,7 +1108,7 @@ export default function OnboardingPage() {
             </div>
 
             {error && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-center text-sm text-red-600">
+              <div className="rounded-xl bg-destructive/10 border border-destructive/20 p-3 text-center text-sm text-destructive">
                 {error}
               </div>
             )}
@@ -1144,7 +1139,7 @@ export default function OnboardingPage() {
                 className="flex-1 h-12 rounded-xl"
                 onClick={() => {
                   setDirection(-1)
-                  setStep(11)
+                  setStep(10)
                   play("click")
                 }}
               >
@@ -1191,23 +1186,26 @@ export default function OnboardingPage() {
           <button
             onClick={goBack}
             className={`flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors ${
-              step <= 1 || isSubmitting ? "invisible" : ""
+              step <= 1 || isSubmitting || isGenerating ? "invisible" : ""
             }`}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isGenerating}
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
 
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold text-muted-foreground">
-              {stepInfo.num}/{TOTAL_STEPS}
+              {isGenerating ? "..." : `${stepInfo.num}/${TOTAL_STEPS}`}
             </span>
-            <span className="text-sm text-muted-foreground hidden sm:inline">{stepInfo.title}</span>
+            <span className="text-sm text-muted-foreground hidden sm:inline">
+              {isGenerating ? "Generando..." : stepInfo.title}
+            </span>
           </div>
 
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors"
+            className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
+            disabled={isGenerating}
           >
             <LogOut className="h-4 w-4 text-muted-foreground" />
           </button>
