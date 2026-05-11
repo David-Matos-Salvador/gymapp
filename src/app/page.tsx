@@ -181,7 +181,7 @@ export default function LandingPage() {
     if (user?.role === "SUPER_ADMIN") { router.replace("/super-admin"); return }
     if (isAdmin) { router.replace("/admin"); return }
     if (isTrainer) { router.replace("/coach"); return }
-    if (isAuthenticated) { router.replace("/rutina"); return }
+    if (isAuthenticated) { router.replace("/rutinas"); return }
   }, [isAuthenticated, isAdmin, isTrainer, user, router])
 
   return (

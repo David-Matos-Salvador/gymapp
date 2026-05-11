@@ -27,7 +27,7 @@ type LoginForm = z.infer<typeof loginSchema>
 function LoginFormInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/rutina"
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/rutinas"
   const [error, setError] = useState("")
   const { play } = useSound()
 

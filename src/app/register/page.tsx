@@ -131,7 +131,7 @@ export default function RegisterPage() {
     setSuccessMsg("Cuenta creada. Iniciando sesion...")
 
     const redirectMap: Record<string, string> = {
-      member: "/rutina",
+      member: "/rutinas",
       trainer: "/coach",
       gym_owner: "/admin",
     }

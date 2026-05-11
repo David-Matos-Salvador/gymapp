@@ -35,7 +35,7 @@ type PlayFn = ReturnType<typeof useSound>["play"]
 
 const navItems: NavItem[] = [
   { label: "Inicio", href: "/dashboard", icon: LayoutDashboard, roles: ["MEMBER"] },
-  { label: "Mi Rutina", href: "/rutina", icon: Dumbbell, roles: ["MEMBER"] },
+  { label: "Mi Rutina", href: "/rutinas", icon: Dumbbell, roles: ["MEMBER"] },
   { label: "Mis Rutinas", href: "/routines", icon: Dumbbell, roles: ["TRAINER", "ADMIN"] },
   { label: "Progreso", href: "/progress", icon: TrendingUp, roles: ["MEMBER"] },
   { label: "Clases", href: "/classes", icon: CalendarDays, roles: ["MEMBER"] },
@@ -157,7 +157,7 @@ export function AppBottomNav({ className }: { className?: string }) {
 
   // Primary tabs — compact, mobile-native
   const primaryTabs = [
-    { label: "Mi Rutina", href: "/rutina", icon: Dumbbell },
+    { label: "Mi Rutina", href: "/rutinas", icon: Dumbbell },
     { label: "Clases", href: "/classes", icon: CalendarDays },
     { label: "Perfil", href: "/profile", icon: UserCog },
   ]

@@ -181,7 +181,7 @@ export default async function DashboardPage() {
 
               <div className="mt-3">
                 <Link
-                  href="/rutina"
+                  href="/rutinas"
                   className="inline-flex items-center gap-1 text-sm font-medium text-gym-amber hover:underline"
                 >
                   <Dumbbell className="h-4 w-4" />
