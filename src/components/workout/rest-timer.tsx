@@ -3,10 +3,12 @@
 import { cn } from "@/lib/utils"
 import { Pause, Play, SkipForward } from "lucide-react"
 
+type RestStatus = "running" | "paused"
+
 interface RestTimerProps {
   remaining: number
   total: number
-  isPaused: boolean
+  status: RestStatus
   onPause: () => void
   onResume: () => void
   onSkip: () => void
@@ -18,7 +20,7 @@ const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 export function RestTimer({
   remaining,
   total,
-  isPaused,
+  status,
   onPause,
   onResume,
   onSkip,
@@ -55,11 +57,11 @@ export function RestTimer({
       <div className="flex items-center gap-1">
         <button
           type="button"
-          onClick={isPaused ? onResume : onPause}
+          onClick={status === "paused" ? onResume : onPause}
           className="p-1.5 rounded-lg border border-input bg-background hover:bg-muted transition-colors"
-          aria-label={isPaused ? "Reanudar" : "Pausar"}
+          aria-label={status === "paused" ? "Reanudar" : "Pausar"}
         >
-          {isPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+          {status === "paused" ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
         </button>
         <button
           type="button"

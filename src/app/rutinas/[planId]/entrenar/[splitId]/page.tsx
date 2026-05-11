@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useWorkoutSession } from "@/hooks/use-workout-session"
 import { useWorkoutStore } from "@/stores/workout-store"
@@ -16,6 +16,22 @@ import { ArrowLeft, Save, Dumbbell, Timer, Play, Trophy, ChevronDown } from "luc
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import type { SplitExercise, SplitData } from "@/types/exercise"
+
+const LOADING_SKELETON = (
+  <AppShell>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl">
+      <div className="animate-pulse space-y-3">
+        <div className="h-8 w-48 bg-muted rounded" />
+        <div className="h-4 w-64 bg-muted rounded" />
+        <div className="space-y-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-16 bg-muted rounded-xl" />
+          ))}
+        </div>
+      </div>
+    </div>
+  </AppShell>
+)
 
 export default function LogWorkoutPage() {
   const params = useParams()
@@ -48,18 +64,29 @@ export default function LogWorkoutPage() {
   })
 
   useEffect(() => {
-    fetch(`/api/routine-splits/${splitId}`)
+    const controller = new AbortController()
+    fetch(`/api/routine-splits/${splitId}`, { signal: controller.signal })
       .then((r) => r.json())
       .then((data) => {
         const s = data.split as SplitData
         setSplit(s)
 
         const snapshot = useWorkoutStore.getState()
-        if (snapshot.phase !== "prepare" && snapshot.phase !== "done" && snapshot.splitId === splitId) {
+        const exerciseIdSet = new Set(s.exercises.map((e) => e.exerciseId))
+        const completedMatch = snapshot.completedExerciseIds.every((id) => exerciseIdSet.has(id))
+        const validResume = snapshot.phase !== "prepare" && snapshot.phase !== "done"
+          && snapshot.splitId === splitId
+          && snapshot.totalExercises === s.exercises.length
+          && snapshot.currentExerciseIdx < s.exercises.length
+          && completedMatch
+
+        if (validResume) {
           setExerciseOrder(s.exercises.map((e) => e.exerciseId))
           setLoading(false)
           return
         }
+
+        useWorkoutStore.getState().resetWorkout()
 
         const initialSets: Record<string, import("@/stores/workout-store").SetLog[]> = {}
         s.exercises.forEach((se) => {
@@ -76,18 +103,51 @@ export default function LogWorkoutPage() {
         useWorkoutStore.getState().setSetsData(initialSets)
         setLoading(false)
       })
-      .catch(() => { toast.error("Error al cargar el entrenamiento"); setLoading(false) })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          toast.error("Error al cargar el entrenamiento")
+          setLoading(false)
+        }
+      })
+    return () => controller.abort()
   }, [splitId])
 
   useEffect(() => {
     if (phase === "warmup") finishTriggered.current = false
   }, [phase])
 
+  const handleSubmit = useCallback(async () => {
+    if (saving) return
+    const allSets = Object.values(store.setsData).flat().filter((s) => s.completed)
+    if (allSets.length === 0) { toast.error("Completá al menos una serie"); return }
+    setSaving(true)
+    const body = {
+      splitId,
+      duration: Math.max(1, Math.round(elapsedSeconds / 60)),
+      notes: notes.trim() || undefined,
+      sets: allSets.map((s) => ({
+        exerciseId: s.exerciseId, exerciseName: s.exerciseName,
+        setNumber: s.setNumber, reps: s.reps, weight: s.weight, completed: s.completed,
+      })),
+    }
+    const res = await fetch("/api/workout-logs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    if (res.ok) {
+      finishWorkout()
+      toast.success("Entrenamiento registrado")
+      setSaving(false)
+    } else {
+      const err = await res.json()
+      toast.error(err.error || "Error al guardar")
+      setSaving(false)
+    }
+  }, [store, splitId, elapsedSeconds, notes, finishWorkout, saving])
+
   useEffect(() => {
     if (phase === "done" || phase === "prepare") return
     if (finishTriggered.current) return
     if (completedExercises >= (split?.exercises.length ?? 0) && split) {
       finishTriggered.current = true
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       handleSubmit()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,64 +168,39 @@ export default function LogWorkoutPage() {
     }
   }
 
-  const setsData = store.setsData
+  const completedIds = store.completedExerciseIds
+  const completedIdSet = useMemo(() => new Set(completedIds), [completedIds])
 
-  function handleCompleteExercise(exerciseId: string) {
-    const exerciseIdx = split?.exercises.findIndex((e) => e.exerciseId === exerciseId) ?? -1
-    if (exerciseIdx < 0) return
+  const exerciseMap = useMemo(() => {
+    if (!split) return new Map<string, { se: SplitExercise; origIdx: number }>()
+    const map = new Map<string, { se: SplitExercise; origIdx: number }>()
+    split.exercises.forEach((se, i) => map.set(se.exerciseId, { se, origIdx: i }))
+    return map
+  }, [split])
 
-    store.addCompletedExercise(exerciseId)
-
-    if (exerciseIdx === currentExerciseIdx) {
-      setTimeout(() => markExerciseComplete(exerciseIdx), 200)
-    }
-  }
-
-  function handleToggleComplete(exerciseId: string) {
-    const current = store.setsData[exerciseId] ?? []
-    const allAreCompleted = current.length > 0 && current.every((s) => s.completed)
-
-    if (!allAreCompleted) {
-      const updated = current.map((s) => ({ ...s, completed: true }))
-      store.setSetsData({ ...store.setsData, [exerciseId]: updated })
-      store.addCompletedExercise(exerciseId)
-
-      const exerciseIdx = split?.exercises.findIndex((e) => e.exerciseId === exerciseId) ?? -1
-      if (exerciseIdx >= 0 && exerciseIdx === currentExerciseIdx) {
-        setTimeout(() => markExerciseComplete(exerciseIdx), 200)
+  const { activeExercises, doneExercises } = useMemo(() => {
+    const active: SplitExercise[] = []
+    const done: SplitExercise[] = []
+    for (const id of exerciseOrder) {
+      const entry = exerciseMap.get(id)
+      if (!entry) continue
+      if (completedIdSet.has(id)) {
+        done.push(entry.se)
+      } else {
+        active.push(entry.se)
       }
-    } else {
-      const updated = current.map((s) => ({ ...s, completed: false }))
-      store.setSetsData({ ...store.setsData, [exerciseId]: updated })
-      store.setCompletedExerciseIds(
-        store.completedExerciseIds.filter((id) => id !== exerciseId)
-      )
     }
-  }
+    return { activeExercises: active, doneExercises: done }
+  }, [exerciseOrder, exerciseMap, completedIdSet])
 
-  async function handleSubmit() {
-    const allSets = Object.values(store.setsData).flat().filter((s) => s.completed)
-    if (allSets.length === 0) { toast.error("Completá al menos una serie"); return }
-    setSaving(true)
-    const body = {
-      splitId,
-      duration: Math.max(1, Math.round(elapsedSeconds / 60)),
-      notes: notes.trim() || undefined,
-      sets: allSets.map((s) => ({
-        exerciseId: s.exerciseId, exerciseName: s.exerciseName,
-        setNumber: s.setNumber, reps: s.reps, weight: s.weight, completed: s.completed,
-      })),
+  const handleCompleteExercise = useCallback((exerciseId: string) => {
+    const entry = exerciseMap.get(exerciseId)
+    if (!entry) return
+    store.addCompletedExercise(exerciseId)
+    if (entry.origIdx === currentExerciseIdx) {
+      setTimeout(() => markExerciseComplete(entry.origIdx), 200)
     }
-    const res = await fetch("/api/workout-logs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
-    if (res.ok) {
-      finishWorkout()
-      toast.success("Entrenamiento registrado")
-    } else {
-      const err = await res.json()
-      toast.error(err.error || "Error al guardar")
-      setSaving(false)
-    }
-  }
+  }, [exerciseMap, currentExerciseIdx, store, markExerciseComplete])
 
   const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
     dragIdx.current = idx
@@ -193,25 +228,14 @@ export default function LogWorkoutPage() {
 
   const isActive = phase !== "prepare" && phase !== "done"
   const totalExercises = split?.exercises.length ?? 0
-  const completedIds = store.completedExerciseIds
+  const setsData = store.setsData
 
-  if (loading) {
-    return (
-      <AppShell>
-        <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl">
-          <div className="animate-pulse space-y-3">
-            <div className="h-8 w-48 bg-muted rounded" />
-            <div className="h-4 w-64 bg-muted rounded" />
-            <div className="space-y-2">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-16 bg-muted rounded-xl" />
-              ))}
-            </div>
-          </div>
-        </div>
-      </AppShell>
-    )
-  }
+  const breadcrumbItems = useMemo(() => [
+    { label: split?.plan?.name ?? "Rutina", href: `/rutinas/${planId}` },
+    { label: "Entrenar" },
+  ], [split, planId])
+
+  if (loading) return LOADING_SKELETON
 
   if (!split) {
     return (
@@ -225,15 +249,6 @@ export default function LogWorkoutPage() {
   }
 
   const planName = split.plan?.name ?? "Rutina"
-  const exercises = split.exercises
-  const getExercise = (id: string) => exercises.find((e) => e.exerciseId === id)
-  const activeExercises = exerciseOrder
-    .map((id) => getExercise(id))
-    .filter((se): se is SplitExercise => !!se && !completedIds.includes(se.exerciseId))
-  const doneExercises = exerciseOrder
-    .map((id) => getExercise(id))
-    .filter((se): se is SplitExercise => !!se && completedIds.includes(se.exerciseId))
-
   const phaseColor = PHASE_COLORS[phase]
 
   return (
@@ -252,14 +267,8 @@ export default function LogWorkoutPage() {
         }}
       />
 
-      <div className="container mx-auto px-4 py-6 md:py-8 max-w-2xl space-y-5">
-        <Breadcrumb
-          items={[
-            { label: planName, href: `/rutinas/${planId}` },
-            { label: "Entrenar" },
-          ]}
-          className="px-0 pb-1"
-        />
+      <div className={cn("container mx-auto px-4 py-6 md:py-8 max-w-2xl space-y-5", showCelebration && "hidden")}>
+        <Breadcrumb items={breadcrumbItems} className="px-0 pb-1" />
 
         <button onClick={() => { router.push(`/rutinas/${planId}`) }} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" /> Volver
@@ -305,13 +314,13 @@ export default function LogWorkoutPage() {
           </div>
         )}
 
-        {phase !== "done" && (
+        {isActive && (
           <div className="space-y-2">
             {isResting && (
               <RestTimer
                 remaining={restRemaining}
                 total={store.restTotalDuration}
-                isPaused={isRestPaused}
+                status={isRestPaused ? "paused" : "running"}
                 onPause={pauseRest}
                 onResume={resumeRest}
                 onSkip={skipRest}
@@ -320,11 +329,9 @@ export default function LogWorkoutPage() {
 
             {activeExercises.map((se, idx) => {
               const exerciseSets = setsData[se.exerciseId] ?? []
-              const completedCount = exerciseSets.filter((s) => s.completed).length
-              const allCompleted = exerciseSets.length > 0 && completedCount === exerciseSets.length
-              const origIdx = exercises.findIndex((e) => e.exerciseId === se.exerciseId)
-              const isCurrent = origIdx === currentExerciseIdx
-              const wasCompleted = origIdx < currentExerciseIdx
+              const allCompleted = exerciseSets.length > 0 && exerciseSets.every((s) => s.completed)
+              const entry = exerciseMap.get(se.exerciseId)
+              const appearance = entry?.origIdx === currentExerciseIdx ? "current" as const : "pending" as const
 
               return (
                 <div
@@ -337,13 +344,8 @@ export default function LogWorkoutPage() {
                   <ExerciseCard
                     se={se}
                     setsData={exerciseSets}
-                    isCurrent={isCurrent}
-                    isActive={isActive}
-                    isCompleted={wasCompleted}
-                    allCompleted={allCompleted}
-                    isInCompletedSection={false}
+                    appearance={appearance}
                     onCompleteExercise={() => handleCompleteExercise(se.exerciseId)}
-                    onToggleComplete={() => handleToggleComplete(se.exerciseId)}
                     dragHandleProps={{}}
                     onSetUpdate={(setIdx, updates) => {
                       store.updateSet(se.exerciseId, setIdx, updates)
@@ -376,12 +378,7 @@ export default function LogWorkoutPage() {
                     key={se.exerciseId}
                     se={se}
                     setsData={setsData[se.exerciseId] ?? []}
-                    isCurrent={false}
-                    isActive={isActive}
-                    isCompleted={true}
-                    allCompleted={true}
-                    isInCompletedSection={true}
-                    onToggleComplete={() => handleToggleComplete(se.exerciseId)}
+                    appearance="completed"
                     onSetUpdate={(setIdx, updates) => {
                       store.updateSet(se.exerciseId, setIdx, updates)
                     }}

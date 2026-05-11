@@ -3,22 +3,6 @@
 import { cn } from "@/lib/utils"
 import { Dumbbell, CheckCircle, Sparkles, Lock } from "lucide-react"
 
-interface SplitCardProps {
-  id: string
-  label: string
-  name: string
-  description: string | null
-  muscleGroups: string[]
-  exerciseCount: number
-  estimatedDuration: number | null
-  isProposed: boolean
-  isCompleted: boolean
-  isInProgress: boolean
-  isLocked: boolean
-  completedExerciseCount: number
-  onClick: () => void
-}
-
 const MUSCLE_LABELS: Record<string, string> = {
   CHEST: "Pecho", BACK: "Espalda", SHOULDERS: "Hombros", BICEPS: "Bíceps",
   TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdominales",
@@ -26,21 +10,39 @@ const MUSCLE_LABELS: Record<string, string> = {
   FULL_BODY: "Cuerpo completo", CARDIO: "Cardio",
 }
 
-export function SplitCard({
-  label,
-  name,
-  muscleGroups,
-  exerciseCount,
-  estimatedDuration,
-  isProposed,
-  isCompleted,
-  isInProgress,
-  isLocked,
-  completedExerciseCount,
-  onClick,
-}: SplitCardProps) {
+type SplitVariant =
+  | { variant: "proposed" }
+  | { variant: "completed" }
+  | { variant: "in-progress"; completedExerciseCount: number }
+  | { variant: "locked" }
+  | { variant: "default" }
+
+type SplitCardProps = {
+  id: string
+  label: string
+  name: string
+  description: string | null
+  muscleGroups: string[]
+  exerciseCount: number
+  estimatedDuration: number | null
+  onClick: () => void
+} & SplitVariant
+
+export function SplitCard(props: SplitCardProps) {
+  const {
+    label, name, muscleGroups, exerciseCount, estimatedDuration, onClick,
+  } = props
+
+  const variant = props.variant
+  const isLocked = variant === "locked"
   const totalExercises = exerciseCount
-  const progressPct = totalExercises > 0 ? Math.round((completedExerciseCount / totalExercises) * 100) : 0
+  const completedCount = variant === "in-progress" ? props.completedExerciseCount : 0
+  const progressPct = totalExercises > 0 ? Math.round((completedCount / totalExercises) * 100) : 0
+
+  const isProposed = variant === "proposed"
+  const isCompleted = variant === "completed"
+  const isInProgress = variant === "in-progress"
+  const isDefault = variant === "default"
 
   return (
     <button
@@ -51,22 +53,22 @@ export function SplitCard({
         "w-full text-left rounded-xl border bg-card p-4 transition-all",
         isLocked && "opacity-50 cursor-not-allowed",
         !isLocked && "hover:shadow-md",
-        isProposed && !isCompleted && "border-gym-amber/40 bg-gym-amber/[0.03] ring-1 ring-gym-amber/20",
+        isProposed && "border-gym-amber/40 bg-gym-amber/[0.03] ring-1 ring-gym-amber/20",
         isCompleted && "border-accent-yellow/30 bg-accent-yellow/[0.03]",
         isInProgress && "border-blue-400/40 bg-blue-400/[0.03] ring-1 ring-blue-400/20",
         isLocked && "border-muted bg-muted/10",
-        !isProposed && !isCompleted && !isInProgress && !isLocked && "hover:border-accent-yellow/20"
+        isDefault && "hover:border-accent-yellow/20"
       )}
     >
       <div className="flex items-center gap-3">
         <span
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold",
-            isProposed && !isCompleted && "bg-gym-amber/10 text-gym-amber",
+            isProposed && "bg-gym-amber/10 text-gym-amber",
             isCompleted && "bg-accent-yellow/10 text-accent-yellow",
             isInProgress && "bg-blue-400/10 text-blue-400",
             isLocked && "bg-muted text-muted-foreground",
-            !isProposed && !isCompleted && !isInProgress && !isLocked && "bg-accent-yellow/10 text-accent-yellow"
+            isDefault && "bg-accent-yellow/10 text-accent-yellow"
           )}
         >
           {isCompleted ? <CheckCircle className="h-5 w-5" /> : isLocked ? <Lock className="h-4 w-4" /> : label}
@@ -75,7 +77,7 @@ export function SplitCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <p className="font-medium truncate">{name}</p>
-            {isProposed && !isCompleted && (
+            {isProposed && (
               <span className="inline-flex items-center gap-1 rounded-full bg-gym-amber/10 px-2 py-0.5 text-[10px] font-semibold text-gym-amber">
                 <Sparkles className="h-2.5 w-2.5" /> Propuesto
               </span>

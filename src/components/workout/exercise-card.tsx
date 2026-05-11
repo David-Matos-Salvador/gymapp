@@ -22,16 +22,13 @@ const MUSCLE_GROUP_LABELS: Record<string, string> = {
   CARDIO: "Cardio",
 }
 
+type ExerciseAppearance = "current" | "pending" | "completed"
+
 interface ExerciseCardProps {
   se: SplitExercise
   setsData: SetLog[]
-  isCurrent: boolean
-  isActive: boolean
-  isCompleted: boolean
-  allCompleted: boolean
-  isInCompletedSection: boolean
+  appearance: ExerciseAppearance
   onCompleteExercise?: () => void
-  onToggleComplete: () => void
   onSetUpdate?: (setIdx: number, updates: Partial<SetLog>) => void
   onSetComplete?: (setIdx: number) => void
   onWeightChange?: (weight: number) => void
@@ -135,13 +132,8 @@ function WeightEditor({
 export function ExerciseCard({
   se,
   setsData,
-  isCurrent,
-  isActive,
-  isCompleted,
-  allCompleted,
-  isInCompletedSection,
+  appearance,
   onCompleteExercise,
-  onToggleComplete,
   onSetComplete,
   onWeightChange,
   dragHandleProps,
@@ -150,7 +142,8 @@ export function ExerciseCard({
   const [localWeight, setLocalWeight] = useState(setsData[0]?.weight ?? se.weight)
   const imageSrc = se.exercise.imageUrl || "/without-img.png"
   const completedCount = setsData.filter((s) => s.completed).length
-  const isFullView = isCurrent && isActive && !isInCompletedSection
+  const isCurrent = appearance === "current"
+  const isCompleted = appearance === "completed"
 
   const handleToggleSet = useCallback(
     (setIdx: number) => {
@@ -189,15 +182,14 @@ export function ExerciseCard({
     <div
       className={cn(
         "flex flex-col rounded-xl border bg-card p-3 transition-all duration-300 select-none gap-3",
-        isFullView && "ring-2 ring-accent-yellow/40 border-accent-yellow/30 shadow-accent-yellow/5 shadow-md",
+        isCurrent && "ring-2 ring-accent-yellow/40 border-accent-yellow/30 shadow-accent-yellow/5 shadow-md",
         isDragging && "opacity-50 scale-95 shadow-lg",
-        isInCompletedSection && "opacity-70",
-        !isActive && !isInCompletedSection && "opacity-50",
+        isCompleted && "opacity-70",
       )}
     >
       {/* ── Header row ─────────────────────────── */}
       <div className="flex items-center gap-2">
-        {isInCompletedSection ? (
+        {isCompleted ? (
           <CheckCircle className="h-4 w-4 text-accent-yellow shrink-0" />
         ) : (
           <div {...dragHandleProps} className="flex items-center cursor-grab active:cursor-grabbing touch-none shrink-0">
@@ -215,7 +207,7 @@ export function ExerciseCard({
           <div className="flex-1 min-w-0">
             <p className={cn(
               "text-sm font-medium truncate",
-              isInCompletedSection && "line-through decoration-muted-foreground/40",
+              isCompleted && "line-through decoration-muted-foreground/40",
             )}>
               {se.exercise.name}
             </p>
@@ -246,9 +238,9 @@ export function ExerciseCard({
             type="button"
             className={cn(
               "p-1 rounded-md transition-colors shrink-0",
-              isFullView
+              isCurrent
                 ? "text-accent-yellow/50 hover:text-accent-yellow/80"
-                : isInCompletedSection
+                : isCompleted
                   ? "text-muted-foreground/20"
                   : "text-muted-foreground/30",
             )}
@@ -260,7 +252,7 @@ export function ExerciseCard({
       </div>
 
       {/* ── Full view: current active exercise ──── */}
-      {isFullView && (
+      {isCurrent && (
         <>
           <div className="flex items-center justify-between">
             <WeightEditor
@@ -279,14 +271,14 @@ export function ExerciseCard({
       )}
 
       {/* ── Pending state: future exercise ──────── */}
-      {!isCurrent && !isInCompletedSection && isActive && (
+      {appearance === "pending" && (
         <p className="text-[10px] text-muted-foreground/60 italic">
           ⏳ Pendiente
         </p>
       )}
 
       {/* ── Completed section: summary ──────────── */}
-      {isInCompletedSection && (
+      {isCompleted && (
         <p className="text-[10px] text-muted-foreground">
           {completedCount}/{se.sets} series · {localWeight ?? se.weight}kg
         </p>

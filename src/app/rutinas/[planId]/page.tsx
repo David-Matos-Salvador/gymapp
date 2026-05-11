@@ -7,6 +7,7 @@ import {
   getWeeklyProgress,
   getWeeklyStreak,
   getWorkoutsThisWeek,
+  getUser,
 } from "@/lib/weekly-progress"
 import { RutinaClient } from "../rutina-client"
 
@@ -18,28 +19,40 @@ export default async function RutinaDetailPage({ params }: PageProps) {
   const session = await auth()
   if (!session?.user?.email) redirect("/login")
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-  })
-
+  const user = await getUser(session.user.email)
   if (!user) redirect("/login")
   if (user.role !== "MEMBER") {
     if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") redirect("/admin")
     if (user.role === "TRAINER") redirect("/coach")
   }
-
   if (!user.onboardingCompleted) redirect("/onboarding")
 
   const { planId } = await params
 
   const assignment = await prisma.assignedRoutinePlan.findFirst({
     where: { userId: user.id, planId, active: true },
-    include: {
+    select: {
+      expiresAt: true,
       plan: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          frequency: true,
           splits: {
-            include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
             orderBy: { order: "asc" },
+            select: {
+              id: true,
+              label: true,
+              name: true,
+              description: true,
+              muscleGroups: true,
+              estimatedDuration: true,
+              exercises: {
+                orderBy: { order: "asc" },
+                select: { exerciseId: true },
+              },
+            },
           },
         },
       },
@@ -81,6 +94,7 @@ export default async function RutinaDetailPage({ params }: PageProps) {
   }))
 
   const isExpiringSoon = assignment.expiresAt
+    // eslint-disable-next-line react-hooks/purity
     ? new Date(assignment.expiresAt).getTime() - Date.now() < 7 * 86400000
     : false
 

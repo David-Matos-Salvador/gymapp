@@ -1,5 +1,6 @@
 "use client"
 
+import { useMemo } from "react"
 import { cn } from "@/lib/utils"
 
 const DAY_LABELS = ["L", "M", "M", "J", "V", "S", "D"]
@@ -9,29 +10,33 @@ interface WeeklyCalendarProps {
 }
 
 export function WeeklyCalendar({ workoutDates }: WeeklyCalendarProps) {
-  const today = new Date()
-  const dayOfWeek = today.getDay()
-  const monday = new Date(today)
-  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7))
-  monday.setHours(0, 0, 0, 0)
+  const { days, workoutDaySet, todayKey } = useMemo(() => {
+    const today = new Date()
+    const dayOfWeek = today.getDay()
+    const monday = new Date(today)
+    monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7))
+    monday.setHours(0, 0, 0, 0)
 
-  const days = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(monday)
-    date.setDate(monday.getDate() + i)
-    return date
-  })
-
-  const workoutDaySet = new Set(
-    workoutDates.map((d) => {
-      const dd = new Date(d)
-      dd.setHours(0, 0, 0, 0)
-      return dd.toISOString()
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(monday)
+      date.setDate(monday.getDate() + i)
+      return date
     })
-  )
 
-  const todayIso = new Date(today)
-  todayIso.setHours(0, 0, 0, 0)
-  const todayKey = todayIso.toISOString()
+    const workoutDaySet = new Set(
+      workoutDates.map((d) => {
+        const dd = new Date(d)
+        dd.setHours(0, 0, 0, 0)
+        return dd.toISOString()
+      })
+    )
+
+    const todayIso = new Date(today)
+    todayIso.setHours(0, 0, 0, 0)
+    const todayKey = todayIso.toISOString()
+
+    return { days, workoutDaySet, todayKey }
+  }, [workoutDates])
 
   return (
     <div className="flex items-center justify-between gap-1">

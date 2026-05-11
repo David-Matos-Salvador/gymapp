@@ -1,14 +1,41 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { TrendingUp, Plus } from "lucide-react"
 import Link from "next/link"
-import { useAuth } from "@/hooks/use-auth"
+
+const LineChart = dynamic(() => import("recharts").then((m) => m.LineChart), { ssr: false })
+const Line = dynamic(() => import("recharts").then((m) => m.Line), { ssr: false })
+const XAxis = dynamic(() => import("recharts").then((m) => m.XAxis), { ssr: false })
+const YAxis = dynamic(() => import("recharts").then((m) => m.YAxis), { ssr: false })
+const Tooltip = dynamic(() => import("recharts").then((m) => m.Tooltip), { ssr: false })
+const ResponsiveContainer = dynamic(() => import("recharts").then((m) => m.ResponsiveContainer), { ssr: false })
+
+const TOOLTIP_STYLE = {
+  fontSize: "12px",
+  borderRadius: "8px",
+  border: "1px solid var(--border)",
+}
+
+const LOADING_SKELETON = (
+  <Card className="rounded-xl">
+    <CardHeader className="pb-2">
+      <Skeleton className="h-5 w-24" />
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <Skeleton className="h-[180px] w-full rounded-lg" />
+      <div className="grid grid-cols-2 gap-3">
+        <Skeleton className="h-16 rounded-lg" />
+        <Skeleton className="h-16 rounded-lg" />
+      </div>
+    </CardContent>
+  </Card>
+)
 
 interface MeasurementPoint {
   date: string
@@ -16,15 +43,16 @@ interface MeasurementPoint {
 }
 
 export function MiniProgressSection() {
-  const { user } = useAuth()
   const [measurements, setMeasurements] = useState<MeasurementPoint[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
 
   useEffect(() => {
+    const controller = new AbortController()
     async function fetchData() {
       try {
-        const res = await fetch("/api/body-measurements?limit=30")
+        const res = await fetch("/api/body-measurements?limit=30", {
+          signal: controller.signal,
+        })
         if (!res.ok) throw new Error("Error al cargar")
         const json = await res.json()
         const points: MeasurementPoint[] = (json.data ?? [])
@@ -35,30 +63,20 @@ export function MiniProgressSection() {
           .reverse()
         setMeasurements(points.filter((p) => p.weight !== null))
       } catch {
-        setError("No se pudieron cargar las mediciones")
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       } finally {
-        setLoading(false)
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
       }
     }
     fetchData()
+    return () => controller.abort()
   }, [])
 
-  if (loading) {
-    return (
-      <Card className="rounded-xl">
-        <CardHeader className="pb-2">
-          <Skeleton className="h-5 w-24" />
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-[180px] w-full rounded-lg" />
-          <div className="grid grid-cols-2 gap-3">
-            <Skeleton className="h-16 rounded-lg" />
-            <Skeleton className="h-16 rounded-lg" />
-          </div>
-        </CardContent>
-      </Card>
-    )
-  }
+  if (loading) return LOADING_SKELETON
 
   const lastWeight = measurements.length > 0 ? measurements[measurements.length - 1]?.weight ?? null : null
   const firstWeight = measurements.length > 0 ? measurements[0]?.weight ?? null : null
@@ -95,13 +113,7 @@ export function MiniProgressSection() {
                       tick={{ fontSize: 10 }}
                       width={40}
                     />
-                    <Tooltip
-                      contentStyle={{
-                        fontSize: "12px",
-                        borderRadius: "8px",
-                        border: "1px solid var(--border)",
-                      }}
-                    />
+                    <Tooltip contentStyle={TOOLTIP_STYLE} />
                     <Line
                       type="monotone"
                       dataKey="weight"

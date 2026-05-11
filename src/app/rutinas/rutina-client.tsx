@@ -55,8 +55,6 @@ export function RutinaClient({
   const router = useRouter()
   const inProgressState = useWorkoutStore()
 
-  const completedSplitIds = new Set<string>()
-
   const dates = workoutDates.map((d) => new Date(d))
 
   const [daysRemaining, setDaysRemaining] = useState<number | null>(null)
@@ -68,6 +66,7 @@ export function RutinaClient({
       const days = Math.ceil(diff / 86400000)
       return days > 0 ? days : 0
     }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setDaysRemaining(compute())
     const interval = setInterval(() => setDaysRemaining(compute()), 60000)
     return () => clearInterval(interval)
@@ -75,14 +74,15 @@ export function RutinaClient({
 
   const handleSplitClick = (splitId: string) => {
     const state = useWorkoutStore.getState()
-    const hasActiveWorkout = state.splitId && state.phase !== "prepare" && state.phase !== "done"
+    const hasActive = state.splitId && state.phase !== "prepare" && state.phase !== "done"
+    const belongsToPlan = hasActive && splits.some((s) => s.id === state.splitId)
 
-    if (hasActiveWorkout && state.splitId === splitId) {
+    if (belongsToPlan && state.splitId === splitId) {
       router.push(`/rutinas/${planId}/entrenar/${splitId}`)
       return
     }
 
-    if (hasActiveWorkout && state.splitId !== splitId) {
+    if (belongsToPlan && state.splitId !== splitId) {
       return
     }
 
@@ -96,14 +96,27 @@ export function RutinaClient({
       : null
 
   const hasActiveWorkout =
-    inProgressState.splitId && inProgressState.phase !== "prepare" && inProgressState.phase !== "done"
+    inProgressSplitId !== null &&
+    splits.some((s) => s.id === inProgressSplitId)
 
   const sortedSplits = useMemo(() => {
     if (!propuestoSplitId) return splits
-    const proposed = splits.find((s) => s.id === propuestoSplitId)
-    const rest = splits.filter((s) => s.id !== propuestoSplitId)
+    let proposed: (typeof splits)[number] | undefined
+    const rest: typeof splits = []
+    for (const s of splits) {
+      if (s.id === propuestoSplitId) { proposed = s } else { rest.push(s) }
+    }
     return proposed ? [proposed, ...rest] : splits
   }, [splits, propuestoSplitId])
+
+  const breadcrumbItems = useMemo(() => [{ label: planName }], [planName])
+
+  function getSplitVariant(splitId: string) {
+    if (inProgressSplitId === splitId) return { variant: "in-progress" as const, completedExerciseCount: inProgressState.completedExerciseIds.length }
+    if (hasActiveWorkout && inProgressState.splitId !== splitId) return { variant: "locked" as const }
+    if (propuestoSplitId === splitId) return { variant: "proposed" as const }
+    return { variant: "default" as const }
+  }
 
   return (
     <motion.div
@@ -111,7 +124,7 @@ export function RutinaClient({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Breadcrumb items={[{ label: planName }]} className="px-0" />
+      <Breadcrumb items={breadcrumbItems} className="px-0" />
 
       <div className="flex flex-col gap-0.5">
         <h1 className="text-[1.75rem] font-bold tracking-tight">
@@ -193,16 +206,8 @@ export function RutinaClient({
               muscleGroups={split.muscleGroups}
               exerciseCount={split.exerciseCount}
               estimatedDuration={split.estimatedDuration}
-              isProposed={propuestoSplitId === split.id}
-              isCompleted={completedSplitIds.has(split.id)}
-              isInProgress={inProgressSplitId === split.id}
-              isLocked={!!hasActiveWorkout && inProgressState.splitId !== split.id}
-              completedExerciseCount={
-                inProgressState.splitId === split.id
-                  ? inProgressState.completedExerciseIds.length
-                  : 0
-              }
               onClick={() => handleSplitClick(split.id)}
+              {...getSplitVariant(split.id)}
             />
           </motion.div>
         ))}

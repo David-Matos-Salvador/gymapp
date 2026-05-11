@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { prisma } from "@/lib/prisma"
 
 function getWeekBounds(date: Date) {
@@ -21,28 +22,29 @@ function getWeekStart(date: Date) {
   return d
 }
 
-export async function getNextPropuestoSplit(userId: string, planId: string) {
-  const splits = await prisma.routineSplit.findMany({
-    where: { planId },
-    orderBy: { order: "asc" },
-    select: { id: true, order: true },
-  })
+export const getNextPropuestoSplit = cache(async (userId: string, planId: string) => {
+  const [splits, lastLog] = await Promise.all([
+    prisma.routineSplit.findMany({
+      where: { planId },
+      orderBy: { order: "asc" },
+      select: { id: true, order: true },
+    }),
+    prisma.workoutLog.findFirst({
+      where: { userId, split: { planId } },
+      orderBy: { createdAt: "desc" },
+      include: { split: { select: { order: true } } },
+    }),
+  ])
 
   if (splits.length === 0) return null
-
-  const lastLog = await prisma.workoutLog.findFirst({
-    where: { userId, split: { planId } },
-    orderBy: { createdAt: "desc" },
-    include: { split: { select: { order: true } } },
-  })
 
   const lastSplit = lastLog?.split ?? null
   const lastIndex = lastSplit ? splits.findIndex((s) => s.order === lastSplit.order) : -1
   const nextIndex = lastIndex === -1 ? 0 : (lastIndex + 1) % splits.length
   return splits[nextIndex].id
-}
+})
 
-export async function getWeeklyProgress(userId: string, frequency: number) {
+export const getWeeklyProgress = cache(async (userId: string, frequency: number) => {
   const now = new Date()
   const { monday } = getWeekBounds(now)
 
@@ -54,11 +56,17 @@ export async function getWeeklyProgress(userId: string, frequency: number) {
   })
 
   return { completed: count, target: frequency, percent: Math.round((count / frequency) * 100) }
-}
+})
 
-export async function getWeeklyStreak(userId: string, frequency: number) {
+export const getWeeklyStreak = cache(async (userId: string, frequency: number) => {
+  const fiftyTwoWeeksAgo = new Date()
+  fiftyTwoWeeksAgo.setDate(fiftyTwoWeeksAgo.getDate() - 364)
+
   const logs = await prisma.workoutLog.findMany({
-    where: { userId },
+    where: {
+      userId,
+      date: { gte: fiftyTwoWeeksAgo },
+    },
     select: { date: true },
     orderBy: { date: "desc" },
   })
@@ -99,9 +107,9 @@ export async function getWeeklyStreak(userId: string, frequency: number) {
   }
 
   return { streak, bestStreak }
-}
+})
 
-export async function getWorkoutsThisWeek(userId: string): Promise<Date[]> {
+export const getWorkoutsThisWeek = cache(async (userId: string): Promise<Date[]> => {
   const now = new Date()
   const { monday } = getWeekBounds(now)
 
@@ -111,9 +119,16 @@ export async function getWorkoutsThisWeek(userId: string): Promise<Date[]> {
   })
 
   return logs.map((l) => l.date)
-}
+})
 
-export async function getBestStreak(userId: string, frequency: number) {
+export const getUser = cache(async (email: string) => {
+  return prisma.user.findUnique({
+    where: { email },
+    select: { id: true, role: true, name: true, onboardingCompleted: true },
+  })
+})
+
+export const getBestStreak = cache(async (userId: string, frequency: number) => {
   const { bestStreak } = await getWeeklyStreak(userId, frequency)
   return bestStreak
-}
+})
