@@ -38,8 +38,10 @@ interface WorkoutStore {
   setElapsedSeconds: (s: number) => void
   setCurrentExerciseIdx: (idx: number) => void
   addCompletedExercise: (id: string) => void
+  setCompletedExerciseIds: (ids: string[]) => void
   setSetsData: (data: Record<string, SetLog[]>) => void
   updateSet: (exerciseId: string, setIdx: number, updates: Partial<SetLog>) => void
+  updateAllSetWeights: (exerciseId: string, weight: number) => void
   setNotes: (notes: string) => void
 
   setResting: (resting: boolean) => void
@@ -84,6 +86,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
             ? s.completedExerciseIds
             : [...s.completedExerciseIds, id],
         })),
+      setCompletedExerciseIds: (ids) => set({ completedExerciseIds: ids }),
       setSetsData: (data) => set({ setsData: data }),
       updateSet: (exerciseId, setIdx, updates) =>
         set((s) => ({
@@ -92,6 +95,16 @@ export const useWorkoutStore = create<WorkoutStore>()(
             [exerciseId]: (s.setsData[exerciseId] ?? []).map((set, i) =>
               i === setIdx ? { ...set, ...updates } : set
             ),
+          },
+        })),
+      updateAllSetWeights: (exerciseId, weight) =>
+        set((s) => ({
+          setsData: {
+            ...s.setsData,
+            [exerciseId]: (s.setsData[exerciseId] ?? []).map((set) => ({
+              ...set,
+              weight,
+            })),
           },
         })),
       setNotes: (notes) => set({ notes }),
@@ -110,7 +123,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
       setRestUpdatedAt: (ts) => set({ restUpdatedAt: ts }),
 
       startWorkout: (splitId, totalExercises) =>
-        set({
+        set((s) => ({
           splitId,
           totalExercises,
           phase: "warmup",
@@ -118,12 +131,12 @@ export const useWorkoutStore = create<WorkoutStore>()(
           savedAt: Date.now(),
           currentExerciseIdx: 0,
           completedExerciseIds: [],
-          setsData: {},
+          setsData: Object.keys(s.setsData).length > 0 ? s.setsData : {},
           notes: "",
           isResting: false,
           restRemaining: 0,
           restUpdatedAt: null,
-        }),
+        })),
 
       resetWorkout: () =>
         set({

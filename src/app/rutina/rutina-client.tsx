@@ -1,6 +1,7 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
 import { Dumbbell, Clock, AlertTriangle } from "lucide-react"
 import { WeeklyCalendar } from "@/components/rutina/weekly-calendar"
@@ -55,15 +56,34 @@ export function RutinaClient({
 
   const dates = workoutDates.map((d) => new Date(d))
 
-  const getDaysRemaining = () => {
-    if (!expiresAt) return null
-    const diff = new Date(expiresAt).getTime() - Date.now()
-    const days = Math.ceil(diff / 86400000)
-    return days > 0 ? days : 0
-  }
+  const [daysRemaining, setDaysRemaining] = useState<number | null>(null)
 
-  const daysRemaining = getDaysRemaining()
+  useEffect(() => {
+    if (!expiresAt) return
+    const compute = () => {
+      const diff = new Date(expiresAt).getTime() - Date.now()
+      const days = Math.ceil(diff / 86400000)
+      return days > 0 ? days : 0
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDaysRemaining(compute())
+    const interval = setInterval(() => setDaysRemaining(compute()), 60000)
+    return () => clearInterval(interval)
+  }, [expiresAt])
   const handleSplitClick = (splitId: string) => {
+    const state = useWorkoutStore.getState()
+    const hasActiveWorkout = state.splitId && state.phase !== "prepare" && state.phase !== "done"
+
+    if (hasActiveWorkout && state.splitId === splitId) {
+      router.push(`/workout/log/${splitId}`)
+      return
+    }
+
+    if (hasActiveWorkout && state.splitId !== splitId) {
+      return
+    }
+
+    useWorkoutStore.getState().resetWorkout()
     router.push(`/workout/log/${splitId}`)
   }
 
@@ -71,6 +91,16 @@ export function RutinaClient({
     inProgressState.splitId && inProgressState.phase !== "prepare" && inProgressState.phase !== "done"
       ? inProgressState.splitId
       : null
+
+  const hasActiveWorkout =
+    inProgressState.splitId && inProgressState.phase !== "prepare" && inProgressState.phase !== "done"
+
+  const sortedSplits = useMemo(() => {
+    if (!propuestoSplitId) return splits
+    const proposed = splits.find((s) => s.id === propuestoSplitId)
+    const rest = splits.filter((s) => s.id !== propuestoSplitId)
+    return proposed ? [proposed, ...rest] : splits
+  }, [splits, propuestoSplitId])
 
   return (
     <motion.div
@@ -120,7 +150,7 @@ export function RutinaClient({
 
       {weeklyStreak > 0 && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="inline-flex items-center gap-1 rounded-full bg-gym-orange/10 px-2.5 py-1 text-xs font-semibold text-gym-orange">
+          <span className="inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2.5 py-1 text-xs font-semibold text-accent-yellow">
             🔥 {weeklyStreak} semana{weeklyStreak !== 1 ? "s" : ""} seguida{weeklyStreak !== 1 ? "s" : ""}
           </span>
           {bestStreak > weeklyStreak && (
@@ -133,17 +163,17 @@ export function RutinaClient({
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Dumbbell className="h-5 w-5 text-gym-orange" />
+          <Dumbbell className="h-5 w-5 text-accent-yellow" />
           Mis entrenamientos
         </h2>
 
-        {splits.length === 0 && (
+        {sortedSplits.length === 0 && (
           <p className="text-sm text-muted-foreground text-center py-4">
             No hay entrenamientos en esta rutina.
           </p>
         )}
 
-        {splits.map((split, i) => (
+        {sortedSplits.map((split, i) => (
           <motion.div
             key={split.id}
             initial={{ opacity: 0, y: 8 }}
@@ -161,7 +191,12 @@ export function RutinaClient({
               isProposed={propuestoSplitId === split.id}
               isCompleted={completedSplitIds.has(split.id)}
               isInProgress={inProgressSplitId === split.id}
-              completedExerciseCount={0}
+              isLocked={!!hasActiveWorkout && inProgressState.splitId !== split.id}
+              completedExerciseCount={
+                inProgressState.splitId === split.id
+                  ? inProgressState.completedExerciseIds.length
+                  : 0
+              }
               onClick={() => handleSplitClick(split.id)}
             />
           </motion.div>

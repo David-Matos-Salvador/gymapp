@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useSound } from "@/hooks/use-sound"
 import { useWorkoutSession } from "@/hooks/use-workout-session"
@@ -8,24 +8,20 @@ import { useWorkoutStore } from "@/stores/workout-store"
 import { AppShell } from "@/components/layout/shell"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { RestTimer } from "@/components/workout/rest-timer"
 import { CelebrationOverlay } from "@/components/workout/celebration-overlay"
 import { ExerciseCard } from "@/components/workout/exercise-card"
-import { Check, ArrowLeft, Save, Dumbbell, Timer, Play, Trophy, ChevronDown } from "lucide-react"
+import { ArrowLeft, Save, Dumbbell, Timer, Play, Trophy, ChevronDown, Pause, SkipForward } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import type { SplitExercise, SplitData } from "@/types/exercise"
 
 const PHASE_LABELS: Record<string, string> = {
   prepare: "Preparado",
   warmup: "Calentamiento",
-  active: "En acci\u00f3n",
+  active: "En acción",
   cooldown: "Enfriamiento",
   done: "Completado",
 }
-
-interface Exercise { id: string; name: string; muscleGroup: string; equipment: string; imageUrl?: string | null }
-interface SplitExercise { id: string; exerciseId: string; sets: number; reps: string; weight: number; restSeconds: number; order: number; exercise: Exercise }
-interface SplitData { id: string; name: string; description: string | null; exercises: SplitExercise[]; plan: { id: string; name: string } | null }
 
 export default function LogWorkoutPage() {
   const params = useParams()
@@ -33,36 +29,22 @@ export default function LogWorkoutPage() {
   const { play } = useSound()
   const splitId = params.splitId as string
   const store = useWorkoutStore()
-
   const [split, setSplit] = useState<SplitData | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [notes, setNotes] = useState("")
   const [showCelebration, setShowCelebration] = useState(false)
   const [celebrationData, setCelebrationData] = useState({
-    weeklyCompleted: 0,
-    weeklyTarget: 0,
-    weeklyStreak: 0,
-    bestStreak: 0,
+    weeklyCompleted: 0, weeklyTarget: 0, weeklyStreak: 0, bestStreak: 0,
   })
+  const [exerciseOrder, setExerciseOrder] = useState<string[]>([])
+  const dragIdx = useRef<number | null>(null)
+  const finishTriggered = useRef(false)
 
   const {
-    phase,
-    currentExerciseIdx,
-    completedExercises,
-    elapsedSeconds,
-    elapsedFormatted,
-    restRemaining,
-    isResting,
-    isRestPaused,
-    startWorkout,
-    markExerciseComplete,
-    finishWorkout,
-    playSound,
-    skipRest,
-    pauseRest,
-    resumeRest,
-    cleanup,
+    phase, currentExerciseIdx, completedExercises, elapsedSeconds, elapsedFormatted,
+    restRemaining, isResting, isRestPaused,
+    startWorkout, markExerciseComplete, finishWorkout, playSound, skipRest, pauseRest, resumeRest, cleanup,
   } = useWorkoutSession({
     totalExercises: split?.exercises.length ?? 0,
     restSeconds: 60,
@@ -81,29 +63,44 @@ export default function LogWorkoutPage() {
 
         const snapshot = useWorkoutStore.getState()
         if (snapshot.phase !== "prepare" && snapshot.phase !== "done" && snapshot.splitId === splitId) {
+          setExerciseOrder(s.exercises.map((e) => e.exerciseId))
           setLoading(false)
           return
         }
 
         const initialSets: Record<string, import("@/stores/workout-store").SetLog[]> = {}
         s.exercises.forEach((se) => {
-          const numericReps = parseInt(se.reps, 10) || 10
           initialSets[se.exerciseId] = Array.from({ length: se.sets }, (_, i) => ({
             exerciseId: se.exerciseId, exerciseName: se.exercise.name,
-            setNumber: i + 1, reps: numericReps, weight: se.weight, completed: true,
+            setNumber: i + 1, reps: 0, weight: 0, completed: false,
           }))
         })
-        store.setSplitId(s.id)
-        store.setTotalExercises(s.exercises.length)
-        store.setSetsData(initialSets)
+        setExerciseOrder(s.exercises.map((e) => e.exerciseId))
+        useWorkoutStore.getState().setSplitId(s.id)
+        useWorkoutStore.getState().setTotalExercises(s.exercises.length)
+        useWorkoutStore.getState().setSetsData(initialSets)
         setLoading(false)
       })
       .catch(() => { toast.error("Error al cargar el entrenamiento"); setLoading(false) })
-  }, [splitId, store])
+  }, [splitId])
 
   useEffect(() => {
     return () => cleanup()
   }, [cleanup])
+
+  useEffect(() => {
+    if (phase === "warmup") finishTriggered.current = false
+  }, [phase])
+
+  useEffect(() => {
+    if (phase === "done" || phase === "prepare") return
+    if (finishTriggered.current) return
+    if (completedExercises >= (split?.exercises.length ?? 0) && split) {
+      finishTriggered.current = true
+      handleSubmit()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [completedExercises, split])
 
   async function fetchCelebrationData() {
     try {
@@ -116,69 +113,40 @@ export default function LogWorkoutPage() {
         bestStreak: data.bestStreak ?? 0,
       })
     } catch {
-      setCelebrationData({
-        weeklyCompleted: completedExercises,
-        weeklyTarget: 3,
-        weeklyStreak: 0,
-        bestStreak: 0,
-      })
+      setCelebrationData({ weeklyCompleted: completedExercises, weeklyTarget: 3, weeklyStreak: 0, bestStreak: 0 })
     }
   }
 
   const setsData = store.setsData
 
-  function handleUpdateSet(exerciseId: string, setIdx: number, field: string, value: number | boolean) {
-    store.updateSet(exerciseId, setIdx, { [field]: value })
-  }
+  function handleToggleComplete(exerciseId: string) {
+    const current = store.setsData[exerciseId] ?? []
+    const allAreCompleted = current.length > 0 && current.every((s) => s.completed)
 
-  function handleToggleSet(exerciseId: string, setIdx: number, currentlyCompleted: boolean) {
-    const wasPlaying = phase !== "prepare" && phase !== "done"
+    if (!allAreCompleted) {
+      const updated = current.map((s) => ({ ...s, completed: true }))
+      store.setSetsData({ ...store.setsData, [exerciseId]: updated })
+      store.addCompletedExercise(exerciseId)
 
-    store.updateSet(exerciseId, setIdx, { completed: !currentlyCompleted })
+      play("select")
 
-    if (wasPlaying) {
-      playSound(!currentlyCompleted ? "setComplete" : "toggle")
-
-      const sets = store.setsData[exerciseId] ?? []
-      const allCompleted = sets.every((s) => s.completed)
-      if (allCompleted) {
-        const exerciseIdx = split?.exercises.findIndex((e) => e.exerciseId === exerciseId) ?? -1
-        if (exerciseIdx >= 0) {
-          store.addCompletedExercise(exerciseId)
-          if (exerciseIdx === currentExerciseIdx) {
-            setTimeout(() => markExerciseComplete(exerciseIdx), 200)
-          }
-        }
+      const exerciseIdx = split?.exercises.findIndex((e) => e.exerciseId === exerciseId) ?? -1
+      if (exerciseIdx >= 0 && exerciseIdx === currentExerciseIdx) {
+        setTimeout(() => markExerciseComplete(exerciseIdx), 200)
       }
+    } else {
+      const updated = current.map((s) => ({ ...s, completed: false }))
+      store.setSetsData({ ...store.setsData, [exerciseId]: updated })
+      store.setCompletedExerciseIds(
+        store.completedExerciseIds.filter((id) => id !== exerciseId)
+      )
+      play("delete")
     }
-  }
-
-  function handleAddSet(exerciseId: string, exercise: Exercise) {
-    play("select")
-    const current = store.setsData[exerciseId] ?? []
-    const entry: import("@/stores/workout-store").SetLog = {
-      exerciseId, exerciseName: exercise.name,
-      setNumber: current.length + 1,
-      reps: current.length > 0 ? current[current.length - 1].reps : 10,
-      weight: current.length > 0 ? current[current.length - 1].weight : 0,
-      completed: true,
-    }
-    store.setSetsData({
-      ...store.setsData,
-      [exerciseId]: [...current, entry],
-    })
-  }
-
-  function handleRemoveSet(exerciseId: string, setIdx: number) {
-    play("delete")
-    const current = store.setsData[exerciseId] ?? []
-    const updated = current.filter((_, i) => i !== setIdx).map((s, i) => ({ ...s, setNumber: i + 1 }))
-    store.setSetsData({ ...store.setsData, [exerciseId]: updated })
   }
 
   async function handleSubmit() {
-    const allSets = Object.values(store.setsData).flat().filter((s) => s.reps > 0)
-    if (allSets.length === 0) { toast.error("Completa al menos una serie con repeticiones"); return }
+    const allSets = Object.values(store.setsData).flat().filter((s) => s.completed)
+    if (allSets.length === 0) { toast.error("Completá al menos una serie"); return }
     setSaving(true)
     const body = {
       splitId,
@@ -202,7 +170,30 @@ export default function LogWorkoutPage() {
     }
   }
 
-  const progress = split ? Math.round((completedExercises / split.exercises.length) * 100) : 0
+  const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
+    dragIdx.current = idx
+    e.dataTransfer.effectAllowed = "move"
+    e.dataTransfer.setData("text/plain", String(idx))
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent, dropIdx: number) => {
+    e.preventDefault()
+    const fromIdx = dragIdx.current
+    if (fromIdx === null || fromIdx === dropIdx) return
+    setExerciseOrder((prev) => {
+      const updated = [...prev]
+      const [moved] = updated.splice(fromIdx, 1)
+      updated.splice(dropIdx, 0, moved)
+      return updated
+    })
+    dragIdx.current = null
+  }, [])
+
   const isActive = phase !== "prepare" && phase !== "done"
   const totalExercises = split?.exercises.length ?? 0
   const completedIds = store.completedExerciseIds
@@ -211,10 +202,14 @@ export default function LogWorkoutPage() {
     return (
       <AppShell>
         <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl">
-          <div className="animate-pulse space-y-4">
+          <div className="animate-pulse space-y-3">
             <div className="h-8 w-48 bg-muted rounded" />
             <div className="h-4 w-64 bg-muted rounded" />
-            <div className="h-48 bg-muted rounded-xl" />
+            <div className="space-y-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="h-16 bg-muted rounded-xl" />
+              ))}
+            </div>
           </div>
         </div>
       </AppShell>
@@ -233,8 +228,13 @@ export default function LogWorkoutPage() {
   }
 
   const exercises = split.exercises
-  const activeExercises = exercises.filter((e) => !completedIds.includes(e.exerciseId))
-  const doneExercises = exercises.filter((e) => completedIds.includes(e.exerciseId))
+  const getExercise = (id: string) => exercises.find((e) => e.exerciseId === id)
+  const activeExercises = exerciseOrder
+    .map((id) => getExercise(id))
+    .filter((se): se is SplitExercise => !!se && !completedIds.includes(se.exerciseId))
+  const doneExercises = exerciseOrder
+    .map((id) => getExercise(id))
+    .filter((se): se is SplitExercise => !!se && completedIds.includes(se.exerciseId))
 
   return (
     <AppShell>
@@ -252,7 +252,7 @@ export default function LogWorkoutPage() {
         }}
       />
 
-      <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl space-y-6">
+      <div className="container mx-auto px-4 py-6 md:py-8 max-w-2xl space-y-5">
         <button onClick={() => { play("click"); cleanup(); router.back() }} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" /> Volver
         </button>
@@ -260,7 +260,7 @@ export default function LogWorkoutPage() {
         <div>
           <div className="flex items-center justify-between flex-wrap gap-2">
             <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Dumbbell className="h-6 w-6 text-gym-green" /> {split.name}
+              <Dumbbell className="h-6 w-6 text-accent-yellow" /> {split.name}
             </h1>
             {isActive && (
               <span className={cn(
@@ -278,83 +278,112 @@ export default function LogWorkoutPage() {
             )}
           </div>
           {split.description && <p className="text-muted-foreground mt-1">{split.description}</p>}
-          <p className="text-xs text-muted-foreground mt-1">{split.plan?.name}</p>
+          <p className="text-xs text-muted-foreground mt-0.5">{split.plan?.name}</p>
         </div>
 
         {isActive && (
-          <div className="flex items-center justify-between gap-4 p-3 rounded-xl bg-muted/50 border">
-            <div className="flex items-center gap-2 text-sm">
-              <Timer className="h-4 w-4 text-muted-foreground" />
-              <span className="font-mono text-lg font-semibold">{elapsedFormatted}</span>
-            </div>
-            <div className="flex-1 mx-4">
-              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className={cn(
-                    "h-full rounded-full transition-all duration-700 ease-out",
-                    phase === "warmup" && "bg-amber-500",
-                    phase === "active" && "bg-gym-green",
-                    phase === "cooldown" && "bg-blue-500",
-                  )}
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-muted-foreground text-right mt-1">
-                {completedExercises}/{totalExercises} ejercicios
-              </p>
-            </div>
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Timer className="h-3.5 w-3.5" />
+            <span className="font-mono tabular-nums font-medium">{elapsedFormatted}</span>
           </div>
         )}
 
-        <RestTimer
-          remaining={restRemaining}
-          total={60}
-          isPaused={isRestPaused}
-          isVisible={isResting}
-          onPause={pauseRest}
-          onResume={resumeRest}
-          onSkip={skipRest}
-        />
-
         {phase === "prepare" && (
-          <Card className="bg-gym-green/5 border-gym-green/30">
-            <CardContent className="py-6 text-center space-y-3">
-              <Play className="h-10 w-10 text-gym-green mx-auto" />
-              <p className="text-sm text-muted-foreground">
-                {totalExercises} ejercicios · ~{Math.round(totalExercises * 2.5)} min estimados
-              </p>
-              <Button size="lg" className="gap-2" onClick={startWorkout}>
-                <Play className="h-4 w-4" /> Iniciar entrenamiento
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center gap-3 py-6 px-4 rounded-xl bg-accent-yellow/5 border border-accent-yellow/30">
+            <p className="text-sm text-muted-foreground">
+              {totalExercises} ejercicios · ~{Math.round(totalExercises * 2.5)} min estimados
+            </p>
+            <Button onClick={startWorkout} className="gap-2">
+              <Play className="h-4 w-4" /> Iniciar entrenamiento
+            </Button>
+          </div>
         )}
 
         {phase !== "done" && (
-          <>
-            {activeExercises.map((se) => {
+          <div className="space-y-2">
+            {isResting && (
+              <div className="flex items-center gap-3 p-3 rounded-xl border border-accent-yellow/20 bg-accent-yellow/5 animate-in fade-in slide-in-from-top-2">
+                <svg width="36" height="36" viewBox="0 0 120 120" className="-rotate-90 shrink-0">
+                  <circle cx="60" cy="60" r="54" fill="none" strokeWidth="6" stroke="currentColor" className="text-muted/20" />
+                  <circle
+                    cx="60" cy="60" r="54" fill="none" strokeWidth="6"
+                    stroke="currentColor" strokeLinecap="round"
+                    className={restRemaining <= 5 ? "text-red-500" : restRemaining <= 10 ? "text-amber-500" : "text-accent-yellow"}
+                    style={{
+                      strokeDasharray: 2 * Math.PI * 54,
+                      strokeDashoffset: (2 * Math.PI * 54) * (1 - restRemaining / 60),
+                    }}
+                  />
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <span className={cn(
+                    "font-mono text-lg font-bold tabular-nums",
+                    restRemaining <= 5 && "animate-pulse",
+                  )}>
+                    {String(Math.floor(restRemaining / 60)).padStart(2, "0")}:{String(restRemaining % 60).padStart(2, "0")}
+                  </span>
+                  <p className="text-xs text-muted-foreground">descanso</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={isRestPaused ? resumeRest : pauseRest}
+                    className="p-1.5 rounded-lg border border-input bg-background hover:bg-muted transition-colors"
+                    aria-label={isRestPaused ? "Reanudar" : "Pausar"}
+                  >
+                    {isRestPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={skipRest}
+                    className="flex items-center gap-1 px-2 py-1.5 text-xs rounded-lg border border-input bg-background hover:bg-muted transition-colors"
+                  >
+                    <SkipForward className="h-3 w-3" />
+                    Saltar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeExercises.map((se, idx) => {
               const exerciseSets = setsData[se.exerciseId] ?? []
               const completedCount = exerciseSets.filter((s) => s.completed).length
               const allCompleted = exerciseSets.length > 0 && completedCount === exerciseSets.length
-              const idx = exercises.findIndex((e) => e.exerciseId === se.exerciseId)
-              const isCurrent = idx === currentExerciseIdx
-              const wasCompleted = idx < currentExerciseIdx
+              const origIdx = exercises.findIndex((e) => e.exerciseId === se.exerciseId)
+              const isCurrent = origIdx === currentExerciseIdx
+              const wasCompleted = origIdx < currentExerciseIdx
 
               return (
-                <ExerciseCard
+                <div
                   key={se.exerciseId}
-                  se={se}
-                  setsData={exerciseSets}
-                  isCurrent={isCurrent}
-                  isActive={isActive}
-                  isCompleted={wasCompleted}
-                  allCompleted={allCompleted}
-                  isInCompletedSection={false}
-                  onToggleSet={(setIdx, currentlyCompleted) => handleToggleSet(se.exerciseId, setIdx, currentlyCompleted)}
-                  onUpdateSet={(setIdx, field, value) => handleUpdateSet(se.exerciseId, setIdx, field, value)}
-                  onAddSet={() => handleAddSet(se.exerciseId, se.exercise)}
-                  onRemoveSet={(setIdx) => handleRemoveSet(se.exerciseId, setIdx)}
-                />
+                  draggable={!allCompleted}
+                  onDragStart={(e) => handleDragStart(e, idx)}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, idx)}
+                >
+                  <ExerciseCard
+                    se={se}
+                    setsData={exerciseSets}
+                    isCurrent={isCurrent}
+                    isActive={isActive}
+                    isCompleted={wasCompleted}
+                    allCompleted={allCompleted}
+                    isInCompletedSection={false}
+                    onToggleComplete={() => handleToggleComplete(se.exerciseId)}
+                    dragHandleProps={{}}
+                    onSetUpdate={(setIdx, updates) => {
+                      store.updateSet(se.exerciseId, setIdx, updates)
+                    }}
+                    onSetComplete={(setIdx) => {
+                      const updated = [...exerciseSets]
+                      updated[setIdx] = { ...updated[setIdx], completed: true }
+                      store.setSetsData({ ...store.setsData, [se.exerciseId]: updated })
+                    }}
+                    onWeightChange={(weight) => {
+                      store.updateAllSetWeights(se.exerciseId, weight)
+                    }}
+                  />
+                </div>
               )
             })}
 
@@ -378,27 +407,32 @@ export default function LogWorkoutPage() {
                     isCompleted={true}
                     allCompleted={true}
                     isInCompletedSection={true}
-                    onToggleSet={() => {}}
-                    onUpdateSet={() => {}}
-                    onAddSet={() => {}}
-                    onRemoveSet={() => {}}
+                    onToggleComplete={() => handleToggleComplete(se.exerciseId)}
+                    onSetUpdate={(setIdx, updates) => {
+                      store.updateSet(se.exerciseId, setIdx, updates)
+                    }}
+                    onSetComplete={(setIdx) => {
+                      const sets = [ ...(store.setsData[se.exerciseId] ?? []) ]
+                      sets[setIdx] = { ...sets[setIdx], completed: true }
+                      store.setSetsData({ ...store.setsData, [se.exerciseId]: sets })
+                    }}
                   />
                 ))}
               </>
             )}
-          </>
+          </div>
         )}
 
         {phase === "done" && !showCelebration && (
-          <Card className="bg-gym-green/5 border-gym-green/30 text-center">
+          <Card className="bg-accent-yellow/5 border-accent-yellow/30 text-center">
             <CardContent className="py-8 space-y-3">
-              <Trophy className="h-12 w-12 text-gym-green mx-auto" />
+              <Trophy className="h-12 w-12 text-accent-yellow mx-auto" />
               <h2 className="text-xl font-bold">Entrenamiento completado</h2>
               <p className="text-sm text-muted-foreground">
-                Duraci\u00f3n: {elapsedFormatted} \u00b7 {completedExercises} ejercicios completados
+                Duración: {elapsedFormatted} · {completedExercises} ejercicios completados
               </p>
               <div className="flex justify-center gap-1 py-2">
-                {["\uD83C\uDF89", "\uD83D\uDCAA", "\uD83D\uDD25", "\u26A1"].map((emoji, i) => (
+                {["🎉", "💪", "🔥", "⚡"].map((emoji, i) => (
                   <span key={i} className="text-2xl animate-bounce" style={{ animationDelay: `${i * 0.15}s` }}>
                     {emoji}
                   </span>
@@ -410,9 +444,10 @@ export default function LogWorkoutPage() {
 
         {isActive && (
           <Card>
-            <CardContent className="py-4 space-y-2">
+            <CardContent className="py-4">
               <textarea
-                id="notes" rows={2} placeholder="Notas sobre el entrenamiento..."
+                rows={2}
+                placeholder="Notas sobre el entrenamiento..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30 resize-none"
@@ -422,7 +457,7 @@ export default function LogWorkoutPage() {
         )}
 
         {isActive && (
-          <div className="flex gap-3 justify-end pb-4">
+          <div className="flex gap-3 justify-end pb-20">
             <Button variant="outline" onClick={() => { play("click"); cleanup(); router.back() }}>Cancelar</Button>
             <Button onClick={handleSubmit} disabled={saving} className="gap-2">
               <Save className="h-4 w-4" /> {saving ? "Guardando..." : "Finalizar entrenamiento"}
@@ -431,13 +466,13 @@ export default function LogWorkoutPage() {
         )}
 
         {phase === "prepare" && (
-          <div className="flex gap-3 justify-end pb-4">
+          <div className="flex gap-3 justify-end pb-20">
             <Button variant="outline" onClick={() => { play("click"); router.back() }}>Volver</Button>
           </div>
         )}
 
         {phase === "done" && !showCelebration && (
-          <div className="flex gap-3 justify-end pb-4">
+          <div className="flex gap-3 justify-end pb-20">
             <Button variant="outline" onClick={() => { store.resetWorkout(); router.push("/rutina"); router.refresh() }}>
               Ir al inicio
             </Button>

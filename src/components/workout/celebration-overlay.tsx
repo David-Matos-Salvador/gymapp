@@ -130,13 +130,13 @@ export function CelebrationOverlay({
             transition={{ delay: 0.6 }}
           >
             <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-2xl font-bold tabular-nums text-gym-green">
+              <p className="text-2xl font-bold tabular-nums text-accent-yellow">
                 {weeklyCompleted}/{weeklyTarget}
               </p>
               <p className="text-[10px] text-muted-foreground">días esta semana</p>
             </div>
             <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-2xl font-bold tabular-nums text-gym-orange">
+              <p className="text-2xl font-bold tabular-nums text-accent-yellow">
                 {weeklyStreak}
               </p>
               <p className="text-[10px] text-muted-foreground">semanas seguidas</p>
@@ -157,7 +157,7 @@ export function CelebrationOverlay({
           <motion.button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center justify-center rounded-full bg-gym-green px-6 py-2.5 text-sm font-semibold text-white hover:bg-gym-green/90 transition-colors"
+            className="inline-flex items-center justify-center rounded-full bg-accent-yellow px-6 py-2.5 text-sm font-semibold text-white hover:bg-accent-yellow/90 transition-colors"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}

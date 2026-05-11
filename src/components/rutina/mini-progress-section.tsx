@@ -73,12 +73,12 @@ export function MiniProgressSection() {
       <Card className="rounded-xl">
         <CardHeader className="pb-2 flex-row items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-gym-green" />
+            <TrendingUp className="h-5 w-5 text-accent-yellow" />
             Progreso
           </CardTitle>
           <Link
             href="/rutina/progreso"
-            className="text-xs font-medium text-gym-green hover:underline"
+            className="text-xs font-medium text-accent-yellow hover:underline"
           >
             Ver todo →
           </Link>
@@ -130,9 +130,9 @@ export function MiniProgressSection() {
                   <p
                     className={`text-lg font-bold tabular-nums ${
                       weightChange !== null && weightChange < 0
-                        ? "text-gym-green"
+                        ? "text-accent-yellow"
                         : weightChange !== null && weightChange > 0
-                          ? "text-gym-orange"
+                          ? "text-accent-yellow"
                           : "text-muted-foreground"
                     }`}
                   >

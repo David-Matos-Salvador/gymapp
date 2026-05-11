@@ -69,6 +69,14 @@
 
 ---
 
+## Página de detalle de ejercicio
+
+- **Descripción**: Al tocar un ejercicio en el workout log, expandir en nueva pestaña/ruta con: video/GIF del ejercicio, editor de pesos y reps, anotaciones, historial de sets anteriores.
+- **Prioridad**: Media
+- **Notas**: Componente `ExerciseCard` actual soporta un botón "editar" (colapsable). Reemplazar por link a `/exercise/[id]` con página dedicada. Modelo `Exercise` ya tiene `videoUrl`, `animationData`, `imageUrl`.
+
+---
+
 ## Racha diaria
 
 - **Descripción**: Mostrar días consecutivos entrenando (streak diario).

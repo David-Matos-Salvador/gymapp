@@ -48,9 +48,9 @@ const navItems: NavItem[] = [
 ]
 
 const userRoleChip: Record<string, { label: string; className: string }> = {
-  ADMIN: { label: "Admin", className: "text-gym-orange bg-gym-orange/10" },
+  ADMIN: { label: "Admin", className: "text-accent-yellow bg-accent-yellow/10" },
   TRAINER: { label: "Coach", className: "text-gym-violet bg-gym-violet/10" },
-  MEMBER: { label: "Miembro", className: "text-gym-green bg-gym-green/10" },
+  MEMBER: { label: "Miembro", className: "text-accent-yellow bg-accent-yellow/10" },
   SUPER_ADMIN: { label: "Súper Admin", className: "text-destructive bg-destructive/10" },
 }
 

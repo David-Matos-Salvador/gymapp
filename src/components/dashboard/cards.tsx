@@ -47,11 +47,11 @@ export function DashboardCards({ totalWorkouts, weeklyStreak, classesCount, book
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0 }}
         >
-          <Card className="cursor-pointer hover:shadow-md transition-all border-t-2 border-t-gym-orange">
+          <Card className="cursor-pointer hover:shadow-md transition-all border-t-2 border-t-accent-yellow">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Racha semanal</CardTitle>
-                <Flame className="h-4 w-4 text-gym-orange" />
+                <Flame className="h-4 w-4 text-accent-yellow" />
               </div>
             </CardHeader>
             <CardContent>
@@ -66,11 +66,11 @@ export function DashboardCards({ totalWorkouts, weeklyStreak, classesCount, book
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
         >
-          <Card className="cursor-pointer hover:shadow-md transition-all border-t-2 border-t-gym-green">
+          <Card className="cursor-pointer hover:shadow-md transition-all border-t-2 border-t-accent-yellow">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Entrenamientos</CardTitle>
-                <Dumbbell className="h-4 w-4 text-gym-green" />
+                <Dumbbell className="h-4 w-4 text-accent-yellow" />
               </div>
             </CardHeader>
             <CardContent>
@@ -135,7 +135,7 @@ export function DashboardCards({ totalWorkouts, weeklyStreak, classesCount, book
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs font-medium text-gym-green">Confirmada</p>
+                    <p className="text-xs font-medium text-accent-yellow">Confirmada</p>
                   </div>
                 </div>
               </motion.div>

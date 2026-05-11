@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e5]
+        - generic [ref=e8]: GymApp
+      - navigation [ref=e9]:
+        - link "Perfil" [ref=e11] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e12]
+          - text: Perfil
+      - button "Cerrar sesión" [ref=e25]:
+        - img [ref=e26]
+        - text: Cerrar sesión
+    - main [ref=e29]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e41] [cursor=pointer]:
+    - img [ref=e42]
+  - alert [ref=e45]

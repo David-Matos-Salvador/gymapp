@@ -17,7 +17,7 @@ export function WeeklyProgress({ completed, target }: WeeklyProgressProps) {
         <span className="text-xs font-medium text-muted-foreground">Progreso semanal</span>
         <span className={cn(
           "text-sm font-bold tabular-nums",
-          isComplete ? "text-gym-green" : "text-foreground"
+          isComplete ? "text-accent-yellow" : "text-foreground"
         )}>
           {completed} de {target} día{target !== 1 ? "s" : ""}
         </span>
@@ -26,7 +26,7 @@ export function WeeklyProgress({ completed, target }: WeeklyProgressProps) {
         <div
           className={cn(
             "h-full rounded-full transition-all duration-700 ease-out",
-            isComplete ? "bg-gym-green" : "bg-gym-orange"
+            isComplete ? "bg-accent-yellow" : "bg-accent-yellow"
           )}
           style={{ width: `${pct}%` }}
         />

@@ -114,9 +114,9 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
   }
 
   const statCards = [
-    { label: "Clientes", value: stats.totalClients, icon: Users, color: "border-t-gym-green", iconColor: "text-gym-green", bg: "bg-gym-green/10" },
+    { label: "Clientes", value: stats.totalClients, icon: Users, color: "border-t-accent-yellow", iconColor: "text-accent-yellow", bg: "bg-accent-yellow/10" },
     { label: "Membresias activas", value: stats.activeMemberships, icon: BadgeCheck, color: "border-t-gym-violet", iconColor: "text-gym-violet", bg: "bg-gym-violet/10" },
-    { label: "Clases proximas", value: stats.upcomingClasses, icon: CalendarDays, color: "border-t-gym-orange", iconColor: "text-gym-orange", bg: "bg-gym-orange/10" },
+    { label: "Clases proximas", value: stats.upcomingClasses, icon: CalendarDays, color: "border-t-accent-yellow", iconColor: "text-accent-yellow", bg: "bg-accent-yellow/10" },
     { label: "Rutinas", value: stats.totalRoutines, icon: Dumbbell, color: "border-t-primary", iconColor: "text-primary", bg: "bg-primary/10" },
   ]
 
@@ -151,7 +151,7 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <Avatar className="h-16 w-16">
                 <AvatarImage src={coach.image ?? undefined} alt={coach.name} />
-                <AvatarFallback className="bg-gym-green/10 text-gym-green font-medium">
+                <AvatarFallback className="bg-accent-yellow/10 text-accent-yellow font-medium">
                   {coach.name[0]?.toUpperCase() ?? "C"}
                 </AvatarFallback>
               </Avatar>
@@ -255,7 +255,7 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-gym-green" /><CardTitle>Asignar cliente</CardTitle>
+              <UserPlus className="h-5 w-5 text-accent-yellow" /><CardTitle>Asignar cliente</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -267,11 +267,11 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
               </Button>
             </div>
             {searchError && <p className="text-sm text-destructive">{searchError}</p>}
-            {assignSuccess && <p className="text-sm text-gym-green font-medium">{assignSuccess}</p>}
+            {assignSuccess && <p className="text-sm text-accent-yellow font-medium">{assignSuccess}</p>}
             {searchResult && (
               <div className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gym-green/10"><Users className="h-4 w-4 text-gym-green" /></div>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10"><Users className="h-4 w-4 text-accent-yellow" /></div>
                   <div>
                     <p className="text-sm font-medium">{searchResult.name || "Sin nombre"}</p>
                     <p className="text-xs text-muted-foreground">{searchResult.email}</p>
@@ -296,11 +296,11 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
               ) : clients.map((client, i) => (
                 <motion.div key={client.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.04 }}>
                   <Link href={`/coach/clients/${client.id}`} className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group" onClick={() => play("select")}>
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gym-green/10"><Users className="h-5 w-5 text-gym-green" /></div>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/10"><Users className="h-5 w-5 text-accent-yellow" /></div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium truncate">{client.name || "Sin nombre"}</p>
-                        {client.hasActiveMembership && <span className="inline-flex items-center rounded-full bg-gym-green/10 px-1.5 py-0.5 text-xs font-medium text-gym-green">Activo</span>}
+                        {client.hasActiveMembership && <span className="inline-flex items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-accent-yellow">Activo</span>}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
                         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Mail className="h-3 w-3" />{client.email}</span>
@@ -333,7 +333,7 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
                   <div className="space-y-2">
                     {routines.map((r) => (
                       <Link key={r.id} href={`/routines/${r.id}`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group" onClick={() => play("select")}>
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gym-green/10"><Dumbbell className="h-4 w-4 text-gym-green" /></div>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10"><Dumbbell className="h-4 w-4 text-accent-yellow" /></div>
                         <div><p className="text-sm font-medium">{r.name}</p><p className="text-xs text-muted-foreground">{r.exerciseCount} ejercicios</p></div>
                       </Link>
                     ))}

@@ -201,7 +201,7 @@ export default async function DashboardPage() {
               </p>
               <Link
                 href="/onboarding"
-                className="inline-flex items-center gap-1 text-sm font-medium text-gym-green hover:underline"
+                className="inline-flex items-center gap-1 text-sm font-medium text-accent-yellow hover:underline"
               >
                 Configurar mi rutina
               </Link>

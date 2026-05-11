@@ -47,24 +47,24 @@ const features = [
     title: "Rutinas inteligentes",
     description:
       "Planes de entrenamiento personalizados que se adaptan al progreso de cada cliente.",
-    color: "text-gym-green",
-    bg: "bg-gym-green/10",
+    color: "text-accent-yellow",
+    bg: "bg-accent-yellow/10",
   },
   {
     icon: TrendingUp,
     title: "Seguimiento corporal",
     description:
       "Registra peso, medidas y porcentaje de grasa. Visualiza la evolución con gráficas.",
-    color: "text-gym-orange",
-    bg: "bg-gym-orange/10",
+    color: "text-accent-yellow",
+    bg: "bg-accent-yellow/10",
   },
   {
     icon: QrCode,
     title: "Control de acceso QR",
     description:
       "Check-in sin contacto. Controla quién entra y sale de tu gimnasio en tiempo real.",
-    color: "text-gym-green",
-    bg: "bg-gym-green/10",
+    color: "text-accent-yellow",
+    bg: "bg-accent-yellow/10",
   },
   {
     icon: CreditCard,
@@ -79,8 +79,8 @@ const features = [
     title: "Multi-sucursal",
     description:
       "Administra múltiples ubicaciones desde una sola plataforma unificada.",
-    color: "text-gym-orange",
-    bg: "bg-gym-orange/10",
+    color: "text-accent-yellow",
+    bg: "bg-accent-yellow/10",
   },
 ]
 
@@ -91,8 +91,8 @@ const steps = [
     title: "Registra tu gimnasio",
     description:
       "Crea tu cuenta en segundos y configura el perfil de tu gimnasio con tu información básica.",
-    color: "text-gym-green",
-    bg: "bg-gym-green/10",
+    color: "text-accent-yellow",
+    bg: "bg-accent-yellow/10",
   },
   {
     icon: Users,
@@ -100,8 +100,8 @@ const steps = [
     title: "Agrega entrenadores y clientes",
     description:
       "Invita a tu equipo y comienza a digitalizar expedientes, rutinas y membresías sin complicaciones.",
-    color: "text-gym-orange",
-    bg: "bg-gym-orange/10",
+    color: "text-accent-yellow",
+    bg: "bg-accent-yellow/10",
   },
   {
     icon: Zap,
@@ -190,7 +190,7 @@ export default function LandingPage() {
       <header className="fixed top-0 left-0 right-0 z-50 border-b bg-background/80 backdrop-blur">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold text-lg">
-            <Sparkles className="h-5 w-5 text-gym-green" />
+            <Sparkles className="h-5 w-5 text-accent-yellow" />
             GymApp
           </Link>
           <div className="flex items-center gap-3">
@@ -224,9 +224,9 @@ export default function LandingPage() {
           style={{ y: heroY, opacity: heroOpacity }}
           className="absolute inset-0 pointer-events-none"
         >
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-gym-green/20 blur-[120px]" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-accent-yellow/20 blur-[120px]" />
           <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-gym-violet/15 blur-[100px]" />
-          <div className="absolute top-1/2 right-1/3 w-64 h-64 rounded-full bg-gym-orange/15 blur-[80px]" />
+          <div className="absolute top-1/2 right-1/3 w-64 h-64 rounded-full bg-accent-yellow/15 blur-[80px]" />
         </motion.div>
 
         <div className="container mx-auto px-4 text-center relative z-10">
@@ -236,7 +236,7 @@ export default function LandingPage() {
             transition={{ duration: 0.8 }}
           >
             <span className="inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm mb-6">
-              <Flame className="h-4 w-4 text-gym-orange" />
+              <Flame className="h-4 w-4 text-accent-yellow" />
               <span className="text-muted-foreground">Entrena con propósito</span>
             </span>
           </motion.div>
@@ -249,7 +249,7 @@ export default function LandingPage() {
           >
             Transforma tu
             <br />
-            <span className="text-gym-green">entrenamiento</span>
+            <span className="text-accent-yellow">entrenamiento</span>
           </motion.h1>
 
           <motion.p
@@ -306,7 +306,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <motion.div {...fadeIn} className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              <span className="text-gym-green">Características</span> de la plataforma
+              <span className="text-accent-yellow">Características</span> de la plataforma
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Todo lo que necesitas para gestionar tu gimnasio de forma profesional, desde el check-in hasta el seguimiento corporal.
@@ -340,7 +340,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <motion.div {...fadeIn} className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              ¿Cómo <span className="text-gym-orange">funciona</span>?
+              ¿Cómo <span className="text-accent-yellow">funciona</span>?
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Digitaliza tu gimnasio en tres simples pasos. Sin instalaciones complicadas ni hardware especializado.
@@ -422,7 +422,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4">
           <motion.div {...fadeIn} className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Planes para <span className="text-gym-green">gimnasios</span>
+              Planes para <span className="text-accent-yellow">gimnasios</span>
             </h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
               Elige el plan que mejor se adapte al tamaño de tu gimnasio. Escala cuando estés listo.
@@ -462,7 +462,7 @@ export default function LandingPage() {
                 <ul className="space-y-3 mb-8 flex-1">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2 text-sm">
-                      <Check className="h-4 w-4 text-gym-green mt-0.5 shrink-0" />
+                      <Check className="h-4 w-4 text-accent-yellow mt-0.5 shrink-0" />
                       {feature}
                     </li>
                   ))}
@@ -498,7 +498,7 @@ export default function LandingPage() {
             <div className="relative rounded-2xl border bg-card p-8 md:p-12 max-w-2xl w-full text-center overflow-hidden">
               <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-gym-violet/10 blur-[60px]" />
               <div className="relative z-10">
-                <Trophy className="h-12 w-12 text-gym-orange mx-auto mb-4" />
+                <Trophy className="h-12 w-12 text-accent-yellow mx-auto mb-4" />
                 <p className="text-3xl font-bold mb-2">Empieza gratis</p>
                 <p className="text-muted-foreground mb-8">Sin tarjeta de crédito. Acceso completo por 7 días.</p>
                 <Button
@@ -522,7 +522,7 @@ export default function LandingPage() {
       <footer className="border-t py-10">
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Sparkles className="h-4 w-4 text-gym-green" />
+            <Sparkles className="h-4 w-4 text-accent-yellow" />
             GymApp &copy; {new Date().getFullYear()}
           </div>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">

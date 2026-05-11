@@ -1017,7 +1017,7 @@ export default function OnboardingPage() {
                       onClick={() => handlePlanClick(plan)}
                       className={`w-full rounded-2xl border-2 p-5 text-left transition-all ${
                         isExpanded
-                          ? "border-gym-orange bg-gym-orange/5 shadow-sm"
+                          ? "border-accent-yellow bg-accent-yellow/5 shadow-sm"
                           : "border-border bg-card hover:border-muted-foreground/20"
                       }`}
                     >
@@ -1028,7 +1028,7 @@ export default function OnboardingPage() {
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                               plan.difficulty === "ADVANCED" || plan.difficulty === "ELITE"
                                 ? "bg-violet-100 text-violet-700"
-                                : "bg-gym-green/10 text-gym-green"
+                                : "bg-accent-yellow/10 text-accent-yellow"
                             }`}>
                               {plan.difficulty}
                             </span>
@@ -1040,7 +1040,7 @@ export default function OnboardingPage() {
                             <span>{totalExercises} ejercicios</span>
                           </div>
                         </div>
-                        <ChevronRight className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${isExpanded ? "text-gym-orange rotate-90" : "text-muted-foreground"}`} />
+                        <ChevronRight className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${isExpanded ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`} />
                       </div>
                       {isExpanded && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="mt-4 pt-4 border-t">
@@ -1049,7 +1049,7 @@ export default function OnboardingPage() {
                             {plan.splits.map((split) => (
                               <div key={split.id} className="rounded-lg border bg-muted/30 p-3">
                                 <div className="flex items-center gap-2 mb-1.5">
-                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gym-orange/10 text-gym-orange font-bold text-xs">
+                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
                                     {split.label}
                                   </span>
                                   <span className="text-xs font-semibold">{split.name}</span>
@@ -1073,7 +1073,7 @@ export default function OnboardingPage() {
                               </div>
                             ))}
                           </div>
-                          <p className="text-xs text-gym-orange font-medium mt-3 text-center">Doble toque para elegir esta rutina</p>
+                          <p className="text-xs text-accent-yellow font-medium mt-3 text-center">Doble toque para elegir esta rutina</p>
                         </motion.div>
                       )}
                     </motion.button>

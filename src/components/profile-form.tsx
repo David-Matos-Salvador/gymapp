@@ -104,7 +104,7 @@ export function ProfileForm({ user }: { user: User }) {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gym-green/10 text-gym-green text-xl font-bold">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow text-xl font-bold">
             {(user.name ?? user.email)[0].toUpperCase()}
           </div>
           <div>
@@ -154,7 +154,7 @@ export function ProfileForm({ user }: { user: User }) {
           )}
           {user.medicalNotes && (
             <div className="flex items-center gap-2 text-sm col-span-full">
-              <AlertTriangle className="h-4 w-4 text-gym-orange/70" />
+              <AlertTriangle className="h-4 w-4 text-accent-yellow/70" />
               <span className="text-muted-foreground">Notas médicas:</span>
               <span className="font-medium text-xs">{user.medicalNotes}</span>
             </div>

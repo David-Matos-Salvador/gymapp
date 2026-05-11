@@ -38,6 +38,7 @@ export function useWorkoutSession({
   const onCompleteRef = useRef(onComplete)
   const phaseRef = useRef(phase)
   const initialized = useRef(false)
+  const cleanedUp = useRef(false)
 
   const elapsedForCleanupRef = useRef(elapsedSeconds)
   const restForCleanupRef = useRef(restRemaining)
@@ -55,6 +56,7 @@ export function useWorkoutSession({
 
     const s = useWorkoutStore.getState()
     if (s.phase !== "prepare" && s.phase !== "done" && s.savedAt) {
+      cleanedUp.current = false
       const now = Date.now()
       const delta = (now - s.savedAt) / 1000
       const realElapsed = Math.floor(s.elapsedSeconds + delta)
@@ -112,7 +114,7 @@ export function useWorkoutSession({
     elapsedRef.current = setInterval(() => {
       setElapsedState((prev) => {
         const next = prev + 1
-        useWorkoutStore.getState().setElapsedSeconds(next)
+        queueMicrotask(() => useWorkoutStore.getState().setElapsedSeconds(next))
         return next
       })
     }, 1000)
@@ -128,6 +130,7 @@ export function useWorkoutSession({
     setElapsedState(0)
     setCurrentExerciseIdxState(0)
     setCompletedExercises(0)
+    cleanedUp.current = false
 
     startElapsedTimer()
 
@@ -156,7 +159,7 @@ export function useWorkoutSession({
     restRef.current = setInterval(() => {
       setRestRemainingState((prev) => {
         const next = prev - 1
-        useWorkoutStore.getState().setRestRemaining(next)
+        queueMicrotask(() => useWorkoutStore.getState().setRestRemaining(next))
         if (next <= 0) {
           stopRestTimer()
           setIsResting(false)
@@ -214,7 +217,7 @@ export function useWorkoutSession({
     restRef.current = setInterval(() => {
       setRestRemainingState((prev) => {
         const next = prev - 1
-        useWorkoutStore.getState().setRestRemaining(next)
+        queueMicrotask(() => useWorkoutStore.getState().setRestRemaining(next))
         if (next <= 0) {
           stopRestTimer()
           setIsResting(false)
@@ -308,12 +311,14 @@ export function useWorkoutSession({
   }, [playSound, stopElapsedTimer, stopRestTimer])
 
   const cleanup = useCallback(() => {
+    if (cleanedUp.current) return
+    cleanedUp.current = true
     stopElapsedTimer()
     stopRestTimer()
     stopAmbient()
     ambientRef.current = null
     const s = useWorkoutStore.getState()
-    s.setElapsedSeconds(elapsedRef.current ? elapsedForCleanupRef.current : 0)
+    s.setElapsedSeconds(elapsedForCleanupRef.current)
     s.setRestRemaining(restForCleanupRef.current)
     s.setRestUpdatedAt(Date.now())
   }, [stopElapsedTimer, stopRestTimer])

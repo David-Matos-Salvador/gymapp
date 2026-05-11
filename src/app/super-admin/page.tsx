@@ -126,9 +126,9 @@ export default function SuperAdminPage() {
 
   const statCards = [
     { label: "Gimnasios", value: stats.totalGyms, icon: Store, color: "blue", iconColor: "text-blue-500" },
-    { label: "Usuarios totales", value: stats.totalUsers, icon: Users, color: "green", iconColor: "text-gym-green" },
+    { label: "Usuarios totales", value: stats.totalUsers, icon: Users, color: "green", iconColor: "text-accent-yellow" },
     { label: "Membresias activas", value: stats.activeMemberships, icon: CreditCard, color: "violet", iconColor: "text-gym-violet" },
-    { label: "Check-ins hoy", value: stats.todayCheckins, icon: Activity, color: "orange", iconColor: "text-gym-orange" },
+    { label: "Check-ins hoy", value: stats.todayCheckins, icon: Activity, color: "orange", iconColor: "text-accent-yellow" },
     { label: "Entrenadores", value: stats.totalTrainers, icon: Dumbbell, color: "primary", iconColor: "text-primary" },
     { label: "Ingresos totales", value: `$${stats.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "emerald", iconColor: "text-emerald-500" },
   ]
@@ -145,8 +145,8 @@ export default function SuperAdminPage() {
             <p className="text-muted-foreground">Super Admin - Gestion global de GymApp</p>
           </div>
           <div className="flex items-center gap-2">
-            <ShieldCheck className="h-4 w-4 text-gym-green" />
-            <span className="text-sm font-medium text-gym-green">Super Admin</span>
+            <ShieldCheck className="h-4 w-4 text-accent-yellow" />
+            <span className="text-sm font-medium text-accent-yellow">Super Admin</span>
           </div>
         </div>
 
@@ -189,7 +189,7 @@ export default function SuperAdminPage() {
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium">{gym.name}</p>
                         {gym.active ? (
-                          <Badge variant="default" className="text-[10px] bg-gym-green/10 text-gym-green hover:bg-gym-green/10">Activo</Badge>
+                          <Badge variant="default" className="text-[10px] bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/10">Activo</Badge>
                         ) : (
                           <Badge variant="secondary" className="text-[10px]">Inactivo</Badge>
                         )}
@@ -206,7 +206,7 @@ export default function SuperAdminPage() {
             <Card className="h-full">
               <CardHeader>
                 <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="h-5 w-5 text-gym-green" /> Usuarios recientes
+                  <Users className="h-5 w-5 text-accent-yellow" /> Usuarios recientes
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">

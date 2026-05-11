@@ -55,7 +55,7 @@ export default async function RoutineDetailPage({ params }: PageProps) {
           <Card key={split.id}>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gym-orange/10 text-gym-orange font-bold text-sm">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow font-bold text-sm">
                   {split.label}
                 </span>
                 {split.name}

@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Dumbbell, CheckCircle, Sparkles, Circle } from "lucide-react"
+import { Dumbbell, CheckCircle, Sparkles, Lock } from "lucide-react"
 
 interface SplitCardProps {
   id: string
@@ -14,6 +14,7 @@ interface SplitCardProps {
   isProposed: boolean
   isCompleted: boolean
   isInProgress: boolean
+  isLocked: boolean
   completedExerciseCount: number
   onClick: () => void
 }
@@ -34,6 +35,7 @@ export function SplitCard({
   isProposed,
   isCompleted,
   isInProgress,
+  isLocked,
   completedExerciseCount,
   onClick,
 }: SplitCardProps) {
@@ -43,13 +45,17 @@ export function SplitCard({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={isLocked ? undefined : onClick}
+      disabled={isLocked}
       className={cn(
-        "w-full text-left rounded-xl border bg-card p-4 transition-all hover:shadow-md",
+        "w-full text-left rounded-xl border bg-card p-4 transition-all",
+        isLocked && "opacity-50 cursor-not-allowed",
+        !isLocked && "hover:shadow-md",
         isProposed && !isCompleted && "border-gym-amber/40 bg-gym-amber/[0.03] ring-1 ring-gym-amber/20",
-        isCompleted && "border-gym-green/30 bg-gym-green/[0.03]",
+        isCompleted && "border-accent-yellow/30 bg-accent-yellow/[0.03]",
         isInProgress && "border-blue-400/40 bg-blue-400/[0.03] ring-1 ring-blue-400/20",
-        !isProposed && !isCompleted && !isInProgress && "hover:border-gym-orange/20"
+        isLocked && "border-muted bg-muted/10",
+        !isProposed && !isCompleted && !isInProgress && !isLocked && "hover:border-accent-yellow/20"
       )}
     >
       <div className="flex items-center gap-3">
@@ -57,12 +63,13 @@ export function SplitCard({
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold",
             isProposed && !isCompleted && "bg-gym-amber/10 text-gym-amber",
-            isCompleted && "bg-gym-green/10 text-gym-green",
+            isCompleted && "bg-accent-yellow/10 text-accent-yellow",
             isInProgress && "bg-blue-400/10 text-blue-400",
-            !isProposed && !isCompleted && !isInProgress && "bg-gym-orange/10 text-gym-orange"
+            isLocked && "bg-muted text-muted-foreground",
+            !isProposed && !isCompleted && !isInProgress && !isLocked && "bg-accent-yellow/10 text-accent-yellow"
           )}
         >
-          {isCompleted ? <CheckCircle className="h-5 w-5" /> : label}
+          {isCompleted ? <CheckCircle className="h-5 w-5" /> : isLocked ? <Lock className="h-4 w-4" /> : label}
         </span>
 
         <div className="flex-1 min-w-0">
@@ -83,8 +90,13 @@ export function SplitCard({
               </span>
             )}
             {isCompleted && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-gym-green/10 px-2 py-0.5 text-[10px] font-semibold text-gym-green">
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-semibold text-accent-yellow">
                 <CheckCircle className="h-2.5 w-2.5" /> Completado
+              </span>
+            )}
+            {isLocked && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                <Lock className="h-2.5 w-2.5" /> Bloqueado
               </span>
             )}
           </div>
@@ -107,7 +119,7 @@ export function SplitCard({
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500 ease-out",
-            isCompleted ? "bg-gym-green" : isInProgress ? "bg-blue-400" : "bg-gym-orange/40"
+            isCompleted ? "bg-accent-yellow" : isInProgress ? "bg-blue-400" : isLocked ? "bg-muted-foreground/30" : "bg-accent-yellow/40"
           )}
           style={{ width: `${progressPct}%` }}
         />

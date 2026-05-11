@@ -134,15 +134,15 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
 
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="md:col-span-1">
-            <CardHeader><CardTitle className="flex items-center gap-2"><User className="h-5 w-5 text-gym-green" /> Perfil</CardTitle></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2"><User className="h-5 w-5 text-accent-yellow" /> Perfil</CardTitle></CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gym-green/10 text-gym-green text-xl font-bold">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow text-xl font-bold">
                 {(client.name ?? client.email)[0].toUpperCase()}
               </div>
               <div><p className="font-semibold text-lg">{client.name || "Sin nombre"}</p><p className="text-sm text-muted-foreground">{client.email}</p></div>
               <div className="flex flex-wrap gap-2">
                 {isMembershipActive ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-gym-green bg-gym-green/10 rounded-full px-2 py-0.5"><CheckCircle className="h-3 w-3" /> Activo</span>
+                  <span className="inline-flex items-center gap-1 text-xs text-accent-yellow bg-accent-yellow/10 rounded-full px-2 py-0.5"><CheckCircle className="h-3 w-3" /> Activo</span>
                 ) : <span className="inline-flex items-center gap-1 text-xs text-destructive bg-destructive/10 rounded-full px-2 py-0.5">Sin membresía activa</span>}
                 {currentMembership?.plan && <span className="text-xs text-muted-foreground">{currentMembership.plan.name}</span>}
               </div>
@@ -153,8 +153,8 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
                 {client.experienceLevel && <div className="flex items-center gap-2"><Award className="h-3 w-3 text-muted-foreground" /><span>{experienceLabels[client.experienceLevel] || client.experienceLevel}</span></div>}
               </div>
               {client.medicalNotes && (
-                <div className="rounded-lg bg-gym-orange/10 p-3 mt-2">
-                  <div className="flex items-center gap-1.5 text-xs"><AlertTriangle className="h-3 w-3 text-gym-orange" /><span className="font-medium text-gym-orange">Notas médicas</span></div>
+                <div className="rounded-lg bg-accent-yellow/10 p-3 mt-2">
+                  <div className="flex items-center gap-1.5 text-xs"><AlertTriangle className="h-3 w-3 text-accent-yellow" /><span className="font-medium text-accent-yellow">Notas médicas</span></div>
                   <p className="text-xs mt-1">{client.medicalNotes}</p>
                 </div>
               )}
@@ -164,7 +164,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
           <div className="md:col-span-2 space-y-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-gym-green" /> Últimas mediciones</CardTitle>
+                <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-accent-yellow" /> Últimas mediciones</CardTitle>
                 <Button size="sm" onClick={() => { play("click"); setMeasureOpen(true) }}>
                   <Plus className="mr-1 h-4 w-4" /> Nueva medición
                 </Button>
@@ -199,7 +199,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="flex items-center gap-2"><Dumbbell className="h-5 w-5 text-gym-green" /> Rutinas</CardTitle>
+                <CardTitle className="flex items-center gap-2"><Dumbbell className="h-5 w-5 text-accent-yellow" /> Rutinas</CardTitle>
                 <Button size="sm" onClick={() => { play("click"); setRoutineOpen(true); fetchRoutines() }}>
                   <Plus className="mr-1 h-4 w-4" /> Asignar rutina
                 </Button>
@@ -211,7 +211,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
                   <div className="space-y-2">
                     {activePlan.splits.map((s) => (
                       <Link key={s.id} href={`/routines/${activePlan.id}`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gym-green/10 text-gym-green font-bold text-sm">{s.label}</div>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-yellow/10 text-accent-yellow font-bold text-sm">{s.label}</div>
                         <div><p className="text-sm font-medium">{s.name}</p><p className="text-xs text-muted-foreground">{s.exercises.length} ejercicios · {s.muscleGroups.join(", ")}</p></div>
                       </Link>
                     ))}

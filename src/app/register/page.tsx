@@ -49,8 +49,8 @@ const modeOptions = [
     title: "Soy usuario",
     description: "Quiero entrenar, seguir mi progreso y tener mis rutinas",
     icon: User,
-    color: "border-gym-green text-gym-green",
-    bg: "bg-gym-green/5 hover:bg-gym-green/10",
+    color: "border-accent-yellow text-accent-yellow",
+    bg: "bg-accent-yellow/5 hover:bg-accent-yellow/10",
   },
   {
     key: "trainer" as const,
@@ -65,8 +65,8 @@ const modeOptions = [
     title: "Soy dueno de un gym",
     description: "Quiero digitalizar mi gimnasio, membresias y empleados",
     icon: Building2,
-    color: "border-gym-orange text-gym-orange",
-    bg: "bg-gym-orange/5 hover:bg-gym-orange/10",
+    color: "border-accent-yellow text-accent-yellow",
+    bg: "bg-accent-yellow/5 hover:bg-accent-yellow/10",
   },
 ]
 
@@ -203,7 +203,7 @@ export default function RegisterPage() {
         </CardHeader>
         <CardContent>
           {successMsg && (
-            <p className="text-sm text-gym-green text-center mb-4 font-medium">{successMsg}</p>
+            <p className="text-sm text-accent-yellow text-center mb-4 font-medium">{successMsg}</p>
           )}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">

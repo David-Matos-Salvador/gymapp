@@ -53,9 +53,9 @@ const statCards = [
     label: "Membresías activas",
     value: (s: AdminStats) => s.totalActiveMemberships,
     icon: BadgeCheck,
-    color: "border-t-gym-green",
-    iconColor: "text-gym-green",
-    bg: "bg-gym-green/10",
+    color: "border-t-accent-yellow",
+    iconColor: "text-accent-yellow",
+    bg: "bg-accent-yellow/10",
     suffix: "",
   },
   {
@@ -71,9 +71,9 @@ const statCards = [
     label: "Nuevos miembros",
     value: (s: AdminStats) => s.newMembersThisMonth,
     icon: UserPlus,
-    color: "border-t-gym-orange",
-    iconColor: "text-gym-orange",
-    bg: "bg-gym-orange/10",
+    color: "border-t-accent-yellow",
+    iconColor: "text-accent-yellow",
+    bg: "bg-accent-yellow/10",
     suffix: "este mes",
   },
   {
@@ -148,7 +148,7 @@ export function AdminDashboard({
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5 text-gym-orange" />
+              <Clock className="h-5 w-5 text-accent-yellow" />
               <CardTitle>Membresías próximas a vencer</CardTitle>
             </div>
           </CardHeader>
@@ -164,8 +164,8 @@ export function AdminDashboard({
                     key={m.id}
                     className="flex items-center gap-3 rounded-lg border p-3"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gym-orange/10">
-                      <Users className="h-4 w-4 text-gym-orange" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
+                      <Users className="h-4 w-4 text-accent-yellow" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{m.userName}</p>
@@ -175,7 +175,7 @@ export function AdminDashboard({
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground">Vence</p>
-                      <p className="text-sm font-medium text-gym-orange">
+                      <p className="text-sm font-medium text-accent-yellow">
                         {formatDate(m.endDate)}
                       </p>
                     </div>
@@ -195,7 +195,7 @@ export function AdminDashboard({
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <CalendarCheck className="h-5 w-5 text-gym-green" />
+              <CalendarCheck className="h-5 w-5 text-accent-yellow" />
               <CardTitle>Últimos check-ins</CardTitle>
             </div>
           </CardHeader>
@@ -211,8 +211,8 @@ export function AdminDashboard({
                     key={c.id}
                     className="flex items-center gap-3 rounded-lg border p-3"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gym-green/10">
-                      <CalendarCheck className="h-4 w-4 text-gym-green" />
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
+                      <CalendarCheck className="h-4 w-4 text-accent-yellow" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{c.userName}</p>

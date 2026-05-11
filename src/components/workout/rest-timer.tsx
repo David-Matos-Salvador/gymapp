@@ -52,7 +52,7 @@ export function RestTimer({
             stroke="currentColor"
             className={cn(
               "transition-[stroke-dashoffset] duration-1000 ease-linear",
-              remaining <= 5 ? "text-red-500" : remaining <= 10 ? "text-amber-500" : "text-gym-green"
+              remaining <= 5 ? "text-red-500" : remaining <= 10 ? "text-amber-500" : "text-accent-yellow"
             )}
             strokeLinecap="round"
             style={{

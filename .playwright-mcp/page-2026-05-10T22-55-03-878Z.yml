@@ -1,0 +1,168 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - complementary [ref=e3]:
+      - generic [ref=e4]:
+        - img [ref=e5]
+        - generic [ref=e8]: GymApp
+        - generic [ref=e46]: Miembro
+      - navigation [ref=e9]:
+        - generic [ref=e47]:
+          - paragraph [ref=e48]: Mi entrenamiento
+          - link "Inicio" [ref=e49] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e50]
+            - text: Inicio
+          - link "Mi Rutina" [ref=e55] [cursor=pointer]:
+            - /url: /rutina
+            - img [ref=e56]
+            - text: Mi Rutina
+          - link "Progreso" [ref=e62] [cursor=pointer]:
+            - /url: /progress
+            - img [ref=e63]
+            - text: Progreso
+          - link "Clases" [ref=e66] [cursor=pointer]:
+            - /url: /classes
+            - img [ref=e67]
+            - text: Clases
+        - link "Perfil" [ref=e11] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e12]
+          - text: Perfil
+      - button "Cerrar sesión" [ref=e25]:
+        - img [ref=e26]
+        - text: Cerrar sesión
+    - main [ref=e29]:
+      - generic [ref=e69]:
+        - button "Volver" [ref=e70]:
+          - img [ref=e71]
+          - text: Volver
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - heading "Push (Empuje)" [level=1] [ref=e75]:
+              - img [ref=e76]
+              - text: Push (Empuje)
+            - generic [ref=e176]: Calentamiento
+          - paragraph [ref=e82]: Pecho, hombros y tríceps
+          - paragraph [ref=e83]: Hipertrofia Push-Pull-Legs
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - img [ref=e182]
+            - generic [ref=e185]: 00:02
+          - paragraph [ref=e188]: 0/6 ejercicios
+        - generic [ref=e90]:
+          - generic [ref=e91]:
+            - img "Press de banca" [ref=e92]
+            - generic [ref=e189]: Actual
+          - generic [ref=e94]:
+            - generic [ref=e96]:
+              - heading "Press de banca" [level=3] [ref=e97]
+              - generic [ref=e98]:
+                - generic [ref=e99]: Pecho
+                - generic [ref=e100]: 4 series · 6-8 reps
+                - generic [ref=e101]: · 60kg
+            - generic [ref=e102]:
+              - button "Marcar completado" [ref=e190]:
+                - img
+                - text: Marcar completado
+              - button "0/0 series · editar" [ref=e191]:
+                - img
+                - text: 0/0 series · editar
+        - generic [ref=e104]:
+          - img "Press inclinado con mancuernas" [ref=e106]
+          - generic [ref=e108]:
+            - generic [ref=e110]:
+              - heading "Press inclinado con mancuernas" [level=3] [ref=e111]
+              - generic [ref=e112]:
+                - generic [ref=e113]: Pecho
+                - generic [ref=e114]: 3 series · 8-10 reps
+                - generic [ref=e115]: · 22kg
+            - generic [ref=e116]:
+              - button "Marcar completado" [ref=e192]:
+                - img
+                - text: Marcar completado
+              - button "0/0 series · editar" [ref=e193]:
+                - img
+                - text: 0/0 series · editar
+        - generic [ref=e118]:
+          - img "Press militar" [ref=e120]
+          - generic [ref=e122]:
+            - generic [ref=e124]:
+              - heading "Press militar" [level=3] [ref=e125]
+              - generic [ref=e126]:
+                - generic [ref=e127]: Hombros
+                - generic [ref=e128]: 4 series · 6-8 reps
+                - generic [ref=e129]: · 40kg
+            - generic [ref=e130]:
+              - button "Marcar completado" [ref=e194]:
+                - img
+                - text: Marcar completado
+              - button "0/0 series · editar" [ref=e195]:
+                - img
+                - text: 0/0 series · editar
+        - generic [ref=e132]:
+          - img "Elevaciones laterales" [ref=e134]
+          - generic [ref=e136]:
+            - generic [ref=e138]:
+              - heading "Elevaciones laterales" [level=3] [ref=e139]
+              - generic [ref=e140]:
+                - generic [ref=e141]: Hombros
+                - generic [ref=e142]: 3 series · 12-15 reps
+                - generic [ref=e143]: · 10kg
+            - generic [ref=e144]:
+              - button "Marcar completado" [ref=e196]:
+                - img
+                - text: Marcar completado
+              - button "0/0 series · editar" [ref=e197]:
+                - img
+                - text: 0/0 series · editar
+        - generic [ref=e146]:
+          - img "Press francés" [ref=e148]
+          - generic [ref=e150]:
+            - generic [ref=e152]:
+              - heading "Press francés" [level=3] [ref=e153]
+              - generic [ref=e154]:
+                - generic [ref=e155]: Tríceps
+                - generic [ref=e156]: 3 series · 10-12 reps
+                - generic [ref=e157]: · 20kg
+            - generic [ref=e158]:
+              - button "Marcar completado" [ref=e198]:
+                - img
+                - text: Marcar completado
+              - button "0/0 series · editar" [ref=e199]:
+                - img
+                - text: 0/0 series · editar
+        - generic [ref=e160]:
+          - img "Extensión en polea" [ref=e162]
+          - generic [ref=e164]:
+            - generic [ref=e166]:
+              - heading "Extensión en polea" [level=3] [ref=e167]
+              - generic [ref=e168]:
+                - generic [ref=e169]: Tríceps
+                - generic [ref=e170]: 3 series · 12-15 reps
+                - generic [ref=e171]: · 15kg
+            - generic [ref=e172]:
+              - button "Marcar completado" [ref=e200]:
+                - img
+                - text: Marcar completado
+              - button "0/0 series · editar" [ref=e201]:
+                - img
+                - text: 0/0 series · editar
+        - textbox "Notas sobre el entrenamiento..." [ref=e204]
+        - generic [ref=e205]:
+          - button "Cancelar" [ref=e206]
+          - button "Finalizar entrenamiento" [ref=e207]:
+            - img
+            - text: Finalizar entrenamiento
+  - region "Notifications alt+T"
+  - generic [ref=e40] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e41]:
+      - img [ref=e42]
+    - generic [ref=e208]:
+      - button "Open issues overlay" [ref=e209]:
+        - generic [ref=e210]:
+          - generic [ref=e211]: "0"
+          - generic [ref=e212]: "1"
+        - generic [ref=e213]: Issue
+      - button "Collapse issues badge" [ref=e214]:
+        - img [ref=e215]
+  - alert [ref=e45]

@@ -18,32 +18,64 @@ Eres el **UX/UI Designer** del equipo de Gym-App. Defines la experiencia de usua
 ### Paleta de colores
 
 ```css
-/* Modo oscuro por defecto (gym vibe) */
---background: 220 13% 9%;      /* #14161a - casi negro */
---foreground: 0 0% 93%;        /* #ededed - texto claro */
+/* Modo oscuro por defecto (gym vibe — design system: Restrained, gold-only) */
 
---primary: 142 71% 45%;        /* #22c55e - verde neón gym */
---primary-foreground: 0 0% 0%; /* negro sobre verde */
+/* ── Único color de marca ─────────────────────── */
+--accent-yellow: #FFD700;     /* gold — primario, CTA, branding, acentos */
+/*   Clases Tailwind: text-accent-yellow, bg-accent-yellow, border-accent-yellow, etc. */
+/*
+ *   Estrategia (según ui-ux-pro-max):
+ *   - Restrained: un solo acento ≤10% de las superficies
+ *   - Para estados funcionales se usa opacidad del mismo gold:
+ *       bg-accent-yellow/5   → fondos muy sutiles
+ *       bg-accent-yellow/10  → fondos de badge, estados activos
+ *       bg-accent-yellow/20  → fondos de énfasis medio
+ *       border-accent-yellow/30 → bordes
+ *       ring-accent-yellow/40   → focus rings
+ *       text-accent-yellow      → iconos y texto destacado
+ */
 
---secondary: 24 95% 53%;       /* #f97316 - naranja energía */
---secondary-foreground: 0 0% 100%;
+/* ── Base ─────────────────────────────────────── */
+--background: #1F2937;     /* slate-800 tint */
+--foreground: #F8FAFC;     /* slate-50 — texto claro */
 
---accent: 262 83% 58%;         /* #7c3aed - violeta acento */
---destructive: 0 84% 60%;      /* rojo para alertas */
+/* ── Primary (gold) ───────────────────────────── */
+--primary: #FFD700;        /* accent-yellow — color de marca único */
+--primary-foreground: #000000;
 
---muted: 220 13% 18%;          /* fondos secundarios */
---muted-foreground: 220 13% 60%;
+/* ── Secondary (neutro tintado) ────────────────── */
+--secondary: #37414F;      /* slate-700 — acentos neutros */
+--secondary-foreground: #F8FAFC;
 
---card: 220 13% 13%;           /* #1c1e23 - cards */
---card-foreground: 0 0% 93%;
+/* ── Accent (mismo gold, por compatibilidad) ───── */
+--accent: #FFD700;
+--accent-foreground: #000000;
 
---border: 220 13% 20%;         /* bordes sutiles */
---ring: 142 71% 45%;           /* focus ring verde */
+/* ── Surfaces ─────────────────────────────────── */
+--card: #1A2232;           /* ligeramente más claro que el fondo */
+--card-foreground: #F8FAFC;
+--muted: #37414F;          /* slate-700 — fondos secundarios */
+--muted-foreground: #94A3B8; /* slate-400 — texto secundario */
+
+/* ── Feedback ─────────────────────────────────── */
+--destructive: #EF4444;    /* red-500 — solo para errores */
+--destructive-foreground: #F8FAFC;
+
+/* ── Decorative ───────────────────────────────── */
+--border: #374151;         /* slate-700 — bordes sutiles */
+--ring: #FFD700;           /* focus ring dorado */
 ```
+
+#### Estrategia de color (ui-ux-pro-max)
+- **Estrategia**: Restrained — un solo color de marca (gold `#FFD700`) usado con opacidad para crear jerarquía sin ruido
+- **Tokens**: Solo `--accent-yellow`. Los colores `gym-orange` y `gym-green` fueron eliminados y reemplazados por variantes de opacidad de gold en todo el código
+- **Semántica por opacidad**: la diferenciación visual se logra con intensidad del mismo tono, no con colores distintos
+- **Pasa el AI Slop Test** porque no cae en "gym → green+orange template"
 
 ### Modo claro (alternativo)
 - Preferencia del sistema + toggle manual
 - Fondo blanco roto, texto oscuro, cards con shadow
+- El gold mantiene su identidad en ambas variantes
 
 ### Tipografía
 - **Display**: Inter var (sans-serif), bold, tracking-tight

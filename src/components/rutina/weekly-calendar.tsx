@@ -51,8 +51,8 @@ export function WeeklyCalendar({ workoutDates }: WeeklyCalendarProps) {
             <span
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors",
-                isToday && "bg-gym-orange text-white shadow-sm shadow-gym-orange/30",
-                !isToday && hasWorkout && "bg-gym-green/15 text-gym-green",
+                isToday && "bg-accent-yellow text-white shadow-sm shadow-accent-yellow/30",
+                !isToday && hasWorkout && "bg-accent-yellow/15 text-accent-yellow",
                 !isToday && !hasWorkout && "text-muted-foreground"
               )}
             >
@@ -62,7 +62,7 @@ export function WeeklyCalendar({ workoutDates }: WeeklyCalendarProps) {
               <span
                 className={cn(
                   "h-1 w-1 rounded-full",
-                  isToday ? "bg-gym-orange" : "bg-gym-green"
+                  isToday ? "bg-accent-yellow" : "bg-accent-yellow"
                 )}
               />
             )}
