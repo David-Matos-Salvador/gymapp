@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
 import { useAuth } from "@/hooks/use-auth"
 import { useSound } from "@/hooks/use-sound"
 import { cn } from "@/lib/utils"
@@ -12,40 +11,12 @@ import {
   CalendarDays,
   UserCog,
   Users,
-  UserRound,
   BarChart3,
-  LogOut,
   Sparkles,
   TrendingUp,
-  Cpu,
-  Globe,
 } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
-import type { ComponentProps } from "react"
+import { useRef, useState, useEffect } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-
-type NavItem = {
-  label: string
-  href: string
-  icon: React.ComponentType<ComponentProps<"svg">>
-  roles?: string[]
-}
-
-type PlayFn = ReturnType<typeof useSound>["play"]
-
-const navItems: NavItem[] = [
-  { label: "Inicio", href: "/dashboard", icon: LayoutDashboard, roles: ["MEMBER"] },
-  { label: "Mi Rutina", href: "/rutinas", icon: Dumbbell, roles: ["MEMBER"] },
-  { label: "Mis Rutinas", href: "/routines", icon: Dumbbell, roles: ["TRAINER", "ADMIN"] },
-  { label: "Progreso", href: "/progress", icon: TrendingUp, roles: ["MEMBER"] },
-  { label: "Clases", href: "/classes", icon: CalendarDays, roles: ["MEMBER"] },
-  { label: "Clientes", href: "/coach/clients", icon: UserRound, roles: ["TRAINER"] },
-  { label: "Panel de Coach", href: "/coach", icon: Users, roles: ["TRAINER"] },
-  { label: "Panel de Admin", href: "/admin", icon: BarChart3, roles: ["ADMIN"] },
-  { label: "Equipo", href: "/gym-equipment", icon: Cpu, roles: ["ADMIN"] },
-  { label: "Plataforma", href: "/super-admin", icon: Globe, roles: ["SUPER_ADMIN"] },
-  { label: "Perfil", href: "/profile", icon: UserCog },
-]
 
 const userRoleChip: Record<string, { label: string; className: string }> = {
   ADMIN: { label: "Admin", className: "text-accent-yellow bg-accent-yellow/10" },
@@ -54,129 +25,31 @@ const userRoleChip: Record<string, { label: string; className: string }> = {
   SUPER_ADMIN: { label: "Súper Admin", className: "text-destructive bg-destructive/10" },
 }
 
-function SidebarSection({ label, items, pathname, play }: {
-  label?: string
-  items: NavItem[]
-  pathname: string
-  play: PlayFn
-}) {
-  if (items.length === 0) return null
-  return (
-    <div className="space-y-0.5">
-      {label && (
-        <p className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-          {label}
-        </p>
-      )}
-      {items.map((item) => {
-        const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            onClick={() => play("click")}
-              className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
-                  isActive
-                    ? "bg-accent-yellow/15 text-accent-yellow font-medium"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-          >
-            <item.icon className="h-4 w-4" />
-            {item.label}
-              {isActive && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-accent-yellow" />}
-          </Link>
-        )
-      })}
-    </div>
-  )
-}
-
-export function AppSidebar({ className }: { className?: string }) {
-  const pathname = usePathname()
-  const { user, isAdmin, isTrainer, isMember } = useAuth()
-  const { play } = useSound()
-
-  const visibleRoles = (() => {
-    if (user?.role === "SUPER_ADMIN") return ["MEMBER", "SUPER_ADMIN"]
-    if (isAdmin) return ["MEMBER", "TRAINER", "ADMIN"]
-    if (isTrainer) return ["MEMBER", "TRAINER"]
-    if (isMember) return ["MEMBER"]
-    return []
-  })()
-
-  const filtered = navItems.filter((item) => {
-    if (!item.roles) return true
-    return item.roles.some((r) => visibleRoles.includes(r))
-  })
-
-  const userSection = filtered.filter((i) => i.roles?.includes("MEMBER"))
-  const roleSection = filtered.filter((i) => i.roles?.some((r) => r === "TRAINER" || r === "ADMIN" || r === "SUPER_ADMIN"))
-  const commonSection = filtered.filter((i) => !i.roles)
-
-  const roleChip = user?.role ? userRoleChip[user.role] : null
-
-  return (
-    <aside className={cn("flex flex-col border-r bg-card h-full", className)}>
-      <div className="flex h-14 items-center gap-2 border-b px-4">
-        <Sparkles className="h-5 w-5 text-accent-yellow shrink-0" />
-        <span className="font-semibold text-lg">GymApp</span>
-        {roleChip && (
-          <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded font-medium ${roleChip.className}`}>
-            {roleChip.label}
-          </span>
-        )}
-      </div>
-
-      <nav className="flex flex-col gap-0.5 p-2 flex-1 overflow-y-auto">
-        <SidebarSection label="Mi entrenamiento" items={userSection} pathname={pathname} play={play} />
-        {roleSection.length > 0 && <SidebarSection label="Gesti\u00f3n" items={roleSection} pathname={pathname} play={play} />}
-        <SidebarSection items={commonSection} pathname={pathname} play={play} />
-      </nav>
-
-      <div className="border-t p-2">
-        <button
-          onClick={() => {
-            play("click")
-            signOut({ callbackUrl: "/login" })
-          }}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
-        >
-          <LogOut className="h-4 w-4" />
-          Cerrar sesión
-        </button>
-      </div>
-    </aside>
-  )
-}
-
 export function AppBottomNav({ className }: { className?: string }) {
   const pathname = usePathname()
   const { isAdmin, isTrainer } = useAuth()
   const { play } = useSound()
 
-  // Primary tabs — compact, mobile-native
   const primaryTabs = [
+    { label: "Inicio", href: "/dashboard", icon: LayoutDashboard },
     { label: "Mi Rutina", href: "/rutinas", icon: Dumbbell },
+    { label: "Progreso", href: "/progress", icon: TrendingUp },
     { label: "Clases", href: "/classes", icon: CalendarDays },
     { label: "Perfil", href: "/profile", icon: UserCog },
   ]
 
-  // Secondary tabs for trainers/admins — appended at the end
   const roleTabs = [
     ...(isTrainer || isAdmin ? [{ label: "Coach", href: "/coach", icon: Users }] : []),
     ...(isAdmin ? [{ label: "Admin", href: "/admin", icon: BarChart3 }] : []),
   ]
 
-  // Max visible tabs: 5 (3 primary + 2 role). Overflow handled by `justify-around`.
   const bottomItems = [...primaryTabs, ...roleTabs]
-
   const visibleItems = roleTabs.length > 0 ? bottomItems : primaryTabs
 
   return (
     <nav
       className={cn(
-        "fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur md:hidden",
+        "fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 backdrop-blur",
         "pb-[env(safe-area-inset-bottom,0px)]",
         className
       )}
@@ -217,6 +90,7 @@ export function AppBottomNav({ className }: { className?: string }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const prevPathnameRef = useRef<string | null>(null)
+  const { user } = useAuth()
 
   const [dir, setDir] = useState<1 | -1>(1)
 
@@ -235,10 +109,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     exit: (d: number) => ({ x: d > 0 ? -30 : 30, opacity: 0 }),
   }
 
+  const roleChip = user?.role ? userRoleChip[user.role] : null
+
   return (
-    <div className="flex h-screen overflow-hidden">
-      <AppSidebar className="hidden md:flex w-56 shrink-0" />
-      <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+    <div className="flex flex-col h-screen overflow-hidden">
+      <header className="flex h-12 items-center gap-2 border-b bg-card px-4 shrink-0">
+        <Sparkles className="h-4 w-4 text-accent-yellow shrink-0" />
+        <span className="font-semibold">GymApp</span>
+        {roleChip && (
+          <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded font-medium ${roleChip.className}`}>
+            {roleChip.label}
+          </span>
+        )}
+      </header>
+
+      <main className="flex-1 overflow-y-auto pb-20">
         <AnimatePresence mode="wait" initial={false} custom={dir}>
           <motion.div
             key={pathname}
@@ -253,6 +138,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </motion.div>
         </AnimatePresence>
       </main>
+
       <AppBottomNav />
     </div>
   )

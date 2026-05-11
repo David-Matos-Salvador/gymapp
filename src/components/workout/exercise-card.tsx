@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useCallback, useEffect } from "react"
-import { Check, GripVertical, ChevronRight, ChevronDown, ChevronUp, Play, Clock, Minus, Plus } from "lucide-react"
+import { Check, GripVertical, ChevronRight, Clock, Minus, Plus, CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import type { SetLog, SplitExercise } from "@/types/exercise"
 import { ExerciseDetailSheet } from "./exercise-detail-sheet"
 
@@ -31,6 +30,7 @@ interface ExerciseCardProps {
   isCompleted: boolean
   allCompleted: boolean
   isInCompletedSection: boolean
+  onCompleteExercise?: () => void
   onToggleComplete: () => void
   onSetUpdate?: (setIdx: number, updates: Partial<SetLog>) => void
   onSetComplete?: (setIdx: number) => void
@@ -39,46 +39,8 @@ interface ExerciseCardProps {
   isDragging?: boolean
 }
 
-/* ── Dots indicator ─────────────────────────────── */
-function DotsIndicator({
-  setsData,
-  totalSets,
-  allCompleted,
-}: {
-  setsData: SetLog[]
-  totalSets: number
-  allCompleted: boolean
-}) {
-  return (
-    <div className="flex items-center gap-1.5">
-      {Array.from({ length: totalSets }, (_, i) => {
-        const set = setsData[i]
-        const isFilled = set?.completed ?? false
-        const isCurrent = !isFilled && setsData.slice(0, i).every((s) => s.completed) && !allCompleted
-
-        return (
-          <div
-            key={i}
-            className={cn(
-              "flex h-2.5 w-2.5 items-center justify-center rounded-full border transition-all duration-300",
-              isFilled
-                ? "bg-accent-yellow border-accent-yellow"
-                : isCurrent
-                  ? "bg-accent-yellow/40 border-accent-yellow animate-pulse"
-                  : "border-muted-foreground/30 bg-transparent",
-            )}
-          >
-            {isFilled && <Check className="h-2 w-2 text-white" />}
-          </div>
-        )
-      })}
-      <span className="text-[10px] text-muted-foreground ml-1">{setsData[0]?.reps ?? 0} reps</span>
-    </div>
-  )
-}
-
-/* ── Set stepper (interactive) ──────────────────── */
-function SetStepper({
+/* ── Set Tiles (visual grid) ────────────────────── */
+function SetTiles({
   setsData,
   totalSets,
   onSetToggle,
@@ -88,7 +50,7 @@ function SetStepper({
   onSetToggle: (setIdx: number) => void
 }) {
   return (
-    <div className="w-full space-y-1.5">
+    <div className="flex gap-2">
       {Array.from({ length: totalSets }, (_, i) => {
         const set = setsData[i]
         const isFilled = set?.completed ?? false
@@ -101,27 +63,31 @@ function SetStepper({
             type="button"
             onClick={() => onSetToggle(i)}
             className={cn(
-              "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs transition-all cursor-pointer hover:brightness-110",
+              "flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl border text-xs font-mono tabular-nums transition-all cursor-pointer min-w-[56px]",
               isFilled
-                ? "bg-accent-yellow/10 text-accent-yellow"
+                ? "bg-accent-yellow/15 border-accent-yellow/40 text-accent-yellow"
                 : isCurrent
-                  ? "bg-accent-yellow/5 border border-accent-yellow/30 text-accent-yellow"
-                  : "text-muted-foreground/60 hover:bg-muted/30",
+                  ? "bg-accent-yellow/5 border-accent-yellow/40 text-accent-yellow ring-1 ring-accent-yellow/30"
+                  : "border-muted-foreground/20 text-muted-foreground/60 hover:border-muted-foreground/40",
             )}
           >
-            <span className="w-4 font-mono font-medium tabular-nums">{i + 1}</span>
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-[9px] tabular-nums text-muted-foreground/70">
-              {setsData[0]?.reps ?? 0}r × {setsData[0]?.weight ?? 0}kg
+            <span className={cn(
+              "text-[10px] font-bold",
+              isFilled ? "text-accent-yellow" : "text-muted-foreground",
+            )}>
+              {i + 1}
             </span>
             {isFilled ? (
-              <Check className="h-3 w-3 shrink-0" />
+              <Check className="h-4 w-4" />
             ) : (
               <div className={cn(
-                "h-4 w-4 rounded border border-muted-foreground/30 shrink-0",
-                isCurrent && "border-accent-yellow/50",
+                "h-4 w-4 rounded border",
+                isCurrent ? "border-accent-yellow/60" : "border-muted-foreground/30",
               )} />
             )}
+            <span className="text-[9px] text-muted-foreground tabular-nums">
+              {set?.reps ?? 0}r
+            </span>
           </button>
         )
       })}
@@ -129,18 +95,38 @@ function SetStepper({
   )
 }
 
-/* ── Rest mini-bar ───────────────────────────────── */
-function RestIndicator({ restSeconds }: { restSeconds: number }) {
+/* ── Weight editor ──────────────────────────────── */
+function WeightEditor({
+  weight,
+  onIncrement,
+  onDecrement,
+}: {
+  weight: number
+  onIncrement: () => void
+  onDecrement: () => void
+}) {
   return (
-    <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-      <Clock className="h-3 w-3" />
-      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-        <div
-          className="h-full rounded-full bg-amber-500/60 transition-all duration-500"
-          style={{ width: `${Math.min((restSeconds / 90) * 100, 100)}%` }}
-        />
-      </div>
-      <span className="tabular-nums w-8 text-right">{restSeconds}s</span>
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
+        onClick={onDecrement}
+        className="p-1.5 rounded-lg border border-input bg-background hover:bg-muted transition-colors"
+        aria-label="Reducir peso"
+      >
+        <Minus className="h-3 w-3 text-muted-foreground" />
+      </button>
+      <span className="font-mono text-lg tabular-nums font-bold min-w-[3ch] text-center">
+        {weight ?? 0}
+      </span>
+      <span className="text-[10px] text-muted-foreground mr-1">kg</span>
+      <button
+        type="button"
+        onClick={onIncrement}
+        className="p-1.5 rounded-lg border border-input bg-background hover:bg-muted transition-colors"
+        aria-label="Aumentar peso"
+      >
+        <Plus className="h-3 w-3 text-muted-foreground" />
+      </button>
     </div>
   )
 }
@@ -154,17 +140,17 @@ export function ExerciseCard({
   isCompleted,
   allCompleted,
   isInCompletedSection,
+  onCompleteExercise,
   onToggleComplete,
   onSetComplete,
   onWeightChange,
   dragHandleProps,
   isDragging,
 }: ExerciseCardProps) {
-  const [expanded, setExpanded] = useState(false)
   const [localWeight, setLocalWeight] = useState(setsData[0]?.weight ?? se.weight)
   const imageSrc = se.exercise.imageUrl || "/without-img.png"
-
   const completedCount = setsData.filter((s) => s.completed).length
+  const isFullView = isCurrent && isActive && !isInCompletedSection
 
   const handleToggleSet = useCallback(
     (setIdx: number) => {
@@ -172,18 +158,6 @@ export function ExerciseCard({
     },
     [onSetComplete],
   )
-
-  const handleExpand = useCallback(() => {
-    if (!isInCompletedSection && isActive) {
-      setExpanded((prev) => !prev)
-    }
-  }, [isInCompletedSection, isActive])
-
-  const handleStart = useCallback(() => {
-    if (!isInCompletedSection && isActive) {
-      setExpanded(true)
-    }
-  }, [isInCompletedSection, isActive])
 
   const applyWeight = useCallback(
     (newWeight: number) => {
@@ -205,46 +179,43 @@ export function ExerciseCard({
     applyWeight(next)
   }, [localWeight, applyWeight])
 
-  /* Auto-complete exercise when all sets are done */
   useEffect(() => {
-    if (!allCompleted && setsData.length > 0 && setsData.every((s) => s.completed)) {
-      onToggleComplete()
+    if (setsData.length > 0 && setsData.every((s) => s.completed)) {
+      onCompleteExercise?.()
     }
-  }, [setsData, allCompleted, onToggleComplete])
+  }, [setsData, onCompleteExercise])
 
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border bg-card p-3 transition-all duration-300 select-none",
-        isCurrent && isActive && !isInCompletedSection && "ring-2 ring-accent-yellow/40 border-accent-yellow/30 shadow-accent-yellow/5 shadow-md",
+        "flex flex-col rounded-xl border bg-card p-3 transition-all duration-300 select-none gap-3",
+        isFullView && "ring-2 ring-accent-yellow/40 border-accent-yellow/30 shadow-accent-yellow/5 shadow-md",
         isDragging && "opacity-50 scale-95 shadow-lg",
-        !isInCompletedSection && !isCompleted && "border-border",
+        isInCompletedSection && "opacity-70",
+        !isActive && !isInCompletedSection && "opacity-50",
       )}
     >
       {/* ── Header row ─────────────────────────── */}
       <div className="flex items-center gap-2">
-        {/* Drag handle — no longer pointer-events-none on completed */}
-        <div {...dragHandleProps} className="flex items-center cursor-grab active:cursor-grabbing touch-none shrink-0">
-          <GripVertical className="h-4 w-4 text-muted-foreground/50" />
-        </div>
+        {isInCompletedSection ? (
+          <CheckCircle className="h-4 w-4 text-accent-yellow shrink-0" />
+        ) : (
+          <div {...dragHandleProps} className="flex items-center cursor-grab active:cursor-grabbing touch-none shrink-0">
+            <GripVertical className="h-4 w-4 text-muted-foreground/50" />
+          </div>
+        )}
 
-        {/* Tappable area to expand */}
-        <button
-          type="button"
-          onClick={handleExpand}
-          disabled={isInCompletedSection || !isActive}
-          className="flex items-center gap-3 flex-1 min-w-0 text-left cursor-pointer disabled:cursor-default"
-        >
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <img
             src={imageSrc}
             alt={se.exercise.name}
-            className="h-11 w-11 rounded-lg object-cover bg-muted shrink-0"
+            className="h-10 w-10 rounded-lg object-cover bg-muted shrink-0"
           />
 
           <div className="flex-1 min-w-0">
             <p className={cn(
               "text-sm font-medium truncate",
-              isInCompletedSection && "line-through decoration-muted-foreground/30",
+              isInCompletedSection && "line-through decoration-muted-foreground/40",
             )}>
               {se.exercise.name}
             </p>
@@ -253,131 +224,72 @@ export function ExerciseCard({
               <span className="text-[10px] text-muted-foreground">
                 {MUSCLE_GROUP_LABELS[se.exercise.muscleGroup] ?? se.exercise.muscleGroup}
               </span>
-              <span className="text-[9px] text-muted-foreground/50">·</span>
-
-              <DotsIndicator setsData={setsData} totalSets={se.sets} allCompleted={allCompleted} />
-
+              <span className="text-[9px] text-muted-foreground/40">·</span>
+              <span className="text-[10px] text-muted-foreground">
+                {se.sets} {se.sets === 1 ? "serie" : "series"} · {se.reps} reps
+              </span>
               {se.restSeconds > 0 && (
                 <>
                   <span className="text-[9px] text-muted-foreground/40">·</span>
                   <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                    <Clock className="h-2.5 w-2.5" />
                     {se.restSeconds}s
                   </span>
                 </>
               )}
             </div>
           </div>
-        </button>
+        </div>
 
-        {/* Right-side controls */}
-        <div className="flex items-center gap-0.5 shrink-0">
-          {!isInCompletedSection && isActive && (
-            <span className={cn(
-              "text-[9px] px-1.5 py-0.5 rounded transition-opacity duration-200",
-              expanded ? "opacity-0" : "opacity-100 text-muted-foreground",
-            )}>
-              series
-            </span>
-          )}
-
+        <ExerciseDetailSheet exercise={se.exercise}>
           <button
             type="button"
-            onClick={handleExpand}
-            disabled={isInCompletedSection || !isActive}
             className={cn(
-              "p-1 rounded-md transition-colors",
-              isInCompletedSection || !isActive
-                ? "text-muted-foreground/20"
-                : expanded
-                  ? "bg-accent-yellow/10 text-accent-yellow"
-                  : isCurrent
-                    ? "text-accent-yellow/50 hover:text-accent-yellow/70"
-                    : "text-muted-foreground/30 hover:text-muted-foreground/50",
+              "p-1 rounded-md transition-colors shrink-0",
+              isFullView
+                ? "text-accent-yellow/50 hover:text-accent-yellow/80"
+                : isInCompletedSection
+                  ? "text-muted-foreground/20"
+                  : "text-muted-foreground/30",
             )}
-            aria-label={expanded ? "Colapsar series" : "Ver series"}
+            aria-label="Detalle del ejercicio"
           >
-            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            <ChevronRight className="h-4 w-4" />
           </button>
-
-          <ExerciseDetailSheet exercise={se.exercise}>
-            <button
-              type="button"
-              className={cn(
-                "p-1 rounded-md transition-colors",
-                isCurrent && isActive
-                  ? "text-accent-yellow/40 hover:text-accent-yellow/70"
-                  : isInCompletedSection
-                    ? "text-muted-foreground/20"
-                    : "text-muted-foreground/30",
-              )}
-              aria-label="Detalle del ejercicio"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </ExerciseDetailSheet>
-        </div>
+        </ExerciseDetailSheet>
       </div>
 
-      {/* ── Expanded: Weight + Set Stepper ─────────── */}
-      {expanded && !isInCompletedSection && (
-        <div className="mt-3 pt-3 border-t border-border/50 space-y-3 animate-in slide-in-from-top-1 fade-in">
-          {/* Weight editor + Play */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-              <button
-                type="button"
-                onClick={decrementWeight}
-                className="p-1 rounded hover:bg-muted transition-colors"
-                aria-label="Reducir peso"
-              >
-                <Minus className="h-3 w-3 text-muted-foreground" />
-              </button>
-              <span className="font-mono text-sm tabular-nums font-medium min-w-[3ch] text-center">
-                {localWeight ?? 0}
-              </span>
-              <span className="text-[9px] text-muted-foreground">kg</span>
-              <button
-                type="button"
-                onClick={incrementWeight}
-                className="p-1 rounded hover:bg-muted transition-colors"
-                aria-label="Aumentar peso"
-              >
-                <Plus className="h-3 w-3 text-muted-foreground" />
-              </button>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1 text-accent-yellow hover:text-accent-yellow/80 hover:bg-accent-yellow/10 ml-auto"
-              onClick={handleStart}
-            >
-              <Play className="h-3.5 w-3.5" />
-              Iniciar
-            </Button>
+      {/* ── Full view: current active exercise ──── */}
+      {isFullView && (
+        <>
+          <div className="flex items-center justify-between">
+            <WeightEditor
+              weight={localWeight ?? 0}
+              onIncrement={incrementWeight}
+              onDecrement={decrementWeight}
+            />
           </div>
 
-          <RestIndicator restSeconds={se.restSeconds} />
-
-          <SetStepper
+          <SetTiles
             setsData={setsData}
             totalSets={se.sets}
             onSetToggle={(setIdx) => handleToggleSet(setIdx)}
           />
-        </div>
+        </>
       )}
 
-      {/* ── Completed card footer ───────── */}
+      {/* ── Pending state: future exercise ──────── */}
+      {!isCurrent && !isInCompletedSection && isActive && (
+        <p className="text-[10px] text-muted-foreground/60 italic">
+          ⏳ Pendiente
+        </p>
+      )}
+
+      {/* ── Completed section: summary ──────────── */}
       {isInCompletedSection && (
-        <div className="mt-2 pt-2 border-t border-border/30">
-          <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-            <span>
-              {completedCount}/{se.sets} series · {localWeight ?? se.weight}kg
-            </span>
-            <RestIndicator restSeconds={se.restSeconds} />
-          </div>
-        </div>
+        <p className="text-[10px] text-muted-foreground">
+          {completedCount}/{se.sets} series · {localWeight ?? se.weight}kg
+        </p>
       )}
     </div>
   )

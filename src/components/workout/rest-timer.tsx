@@ -1,6 +1,5 @@
 "use client"
 
-import { useRef, useEffect } from "react"
 import { cn } from "@/lib/utils"
 import { Pause, Play, SkipForward } from "lucide-react"
 
@@ -8,85 +7,64 @@ interface RestTimerProps {
   remaining: number
   total: number
   isPaused: boolean
-  isVisible: boolean
   onPause: () => void
   onResume: () => void
   onSkip: () => void
 }
 
+const RADIUS = 54
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS
+
 export function RestTimer({
   remaining,
   total,
   isPaused,
-  isVisible,
   onPause,
   onResume,
   onSkip,
 }: RestTimerProps) {
-  const circleRef = useRef<SVGCircleElement>(null)
-  const radius = 54
-  const circumference = 2 * Math.PI * radius
   const progress = total > 0 ? remaining / total : 0
-  const offset = circumference * (1 - progress)
+  const offset = CIRCUMFERENCE * (1 - progress)
 
   const formatted = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`
 
-  if (!isVisible) return null
+  const strokeColor =
+    remaining <= 5 ? "text-red-500" : remaining <= 10 ? "text-amber-500" : "text-accent-yellow"
 
   return (
-    <div className="flex flex-col items-center gap-2 py-2 animate-in fade-in slide-in-from-top-4">
-      <div className="relative inline-flex items-center justify-center">
-        <svg width="140" height="140" viewBox="0 0 120 120" className="-rotate-90">
-          <circle
-            cx="60" cy="60" r={radius}
-            fill="none"
-            strokeWidth="6"
-            stroke="currentColor"
-            className="text-muted/20"
-          />
-          <circle
-            ref={circleRef}
-            cx="60" cy="60" r={radius}
-            fill="none"
-            strokeWidth="6"
-            stroke="currentColor"
-            className={cn(
-              "transition-[stroke-dashoffset] duration-1000 ease-linear",
-              remaining <= 5 ? "text-red-500" : remaining <= 10 ? "text-amber-500" : "text-accent-yellow"
-            )}
-            strokeLinecap="round"
-            style={{
-              strokeDasharray: circumference,
-              strokeDashoffset: offset,
-            }}
-          />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span
-            className={cn(
-              "font-mono text-3xl font-bold tabular-nums tracking-tight",
-              remaining <= 5 && "animate-pulse"
-            )}
-          >
-            {formatted}
-          </span>
-          <span className="text-xs text-muted-foreground">descanso</span>
-        </div>
+    <div className="flex items-center gap-3 p-3 rounded-xl border border-accent-yellow/20 bg-accent-yellow/5 animate-in fade-in slide-in-from-top-2">
+      <svg width="36" height="36" viewBox="0 0 120 120" className="-rotate-90 shrink-0">
+        <circle cx="60" cy="60" r={RADIUS} fill="none" strokeWidth="6" stroke="currentColor" className="text-muted/20" />
+        <circle
+          cx="60" cy="60" r={RADIUS}
+          fill="none" strokeWidth="6"
+          stroke="currentColor" strokeLinecap="round"
+          className={cn("transition-[stroke-dashoffset] duration-1000 ease-linear", strokeColor)}
+          style={{
+            strokeDasharray: CIRCUMFERENCE,
+            strokeDashoffset: offset,
+          }}
+        />
+      </svg>
+      <div className="flex-1 min-w-0">
+        <span className={cn("font-mono text-lg font-bold tabular-nums", remaining <= 5 && "animate-pulse")}>
+          {formatted}
+        </span>
+        <p className="text-xs text-muted-foreground">descanso</p>
       </div>
-
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={isPaused ? onResume : onPause}
-          className="inline-flex items-center justify-center rounded-full border border-input bg-background p-2 text-sm hover:bg-muted transition-colors"
+          className="p-1.5 rounded-lg border border-input bg-background hover:bg-muted transition-colors"
           aria-label={isPaused ? "Reanudar" : "Pausar"}
         >
-          {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+          {isPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
         </button>
         <button
           type="button"
           onClick={onSkip}
-          className="inline-flex items-center gap-1 rounded-full border border-input bg-background px-3 py-1.5 text-xs hover:bg-muted transition-colors"
+          className="flex items-center gap-1 px-2 py-1.5 text-xs rounded-lg border border-input bg-background hover:bg-muted transition-colors"
         >
           <SkipForward className="h-3 w-3" />
           Saltar
