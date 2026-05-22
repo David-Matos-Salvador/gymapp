@@ -150,6 +150,7 @@ model User {
   emailVerified    DateTime?
   image            String?
   password         String?
+  stripeCustomerId String?
   role             UserRole         @default(MEMBER)
   phone            String?
   sex              UserSex?

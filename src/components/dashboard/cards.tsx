@@ -125,8 +125,8 @@ export function DashboardCards({ totalWorkouts, weeklyStreak, classesCount, book
                 transition={{ delay: 0.2 + i * 0.05 }}
               >
                 <div className="flex items-center gap-3 rounded-lg border p-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gym-violet/10">
-                    <CalendarDays className="h-5 w-5 text-gym-violet" />
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/10">
+                    <CalendarDays className="h-5 w-5 text-accent-yellow" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{booking.classItem.name}</p>

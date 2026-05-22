@@ -2,7 +2,7 @@
 
 import { useMemo } from "react"
 import { motion } from "framer-motion"
-import { Avatar, AvatarFallback, AvatarBadge } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage, AvatarBadge } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Shield, Trophy } from "lucide-react"
 
@@ -72,6 +72,7 @@ export function ProfileHeader({ user }: { user: User }) {
     >
       {/* Avatar */}
       <Avatar size="lg" className="size-20 ring-2 ring-accent-yellow/30 ring-offset-2 ring-offset-background">
+        {user.image && <AvatarImage src={user.image} alt={initials} />}
         <AvatarFallback className="bg-accent-yellow text-black text-2xl font-bold">
           {initials}
         </AvatarFallback>

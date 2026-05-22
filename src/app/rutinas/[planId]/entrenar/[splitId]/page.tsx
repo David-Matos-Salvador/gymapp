@@ -51,12 +51,20 @@ export default function LogWorkoutPage() {
   const dragIdx = useRef<number | null>(null)
   const finishTriggered = useRef(false)
 
+  const storeCurrentExerciseIdx = useWorkoutStore((s) => s.currentExerciseIdx)
+
+  const currentRestSeconds = useMemo(() => {
+    if (!split || split.exercises.length === 0) return undefined
+    return split.exercises[Math.min(storeCurrentExerciseIdx, split.exercises.length - 1)]?.restSeconds
+  }, [split, storeCurrentExerciseIdx])
+
   const {
     phase, currentExerciseIdx, completedExercises, elapsedSeconds, elapsedFormatted,
     restRemaining, isResting, isRestPaused,
     startWorkout, markExerciseComplete, finishWorkout, skipRest, pauseRest, resumeRest,
   } = useWorkoutSession({
     totalExercises: split?.exercises.length ?? 0,
+    restSeconds: currentRestSeconds,
     onComplete: () => {
       fetchCelebrationData()
       setShowCelebration(true)
@@ -94,7 +102,7 @@ export default function LogWorkoutPage() {
           const defaultWeight = se.weight
           initialSets[se.exerciseId] = Array.from({ length: se.sets }, (_, i) => ({
             exerciseId: se.exerciseId, exerciseName: se.exercise.name,
-            setNumber: i + 1, reps: defaultReps, weight: defaultWeight, completed: false,
+            setNumber: i + 1, reps: defaultReps, weight: defaultWeight, restSeconds: se.restSeconds, completed: false,
           }))
         })
         setExerciseOrder(s.exercises.map((e) => e.exerciseId))
@@ -127,7 +135,7 @@ export default function LogWorkoutPage() {
       notes: notes.trim() || undefined,
       sets: allSets.map((s) => ({
         exerciseId: s.exerciseId, exerciseName: s.exerciseName,
-        setNumber: s.setNumber, reps: s.reps, weight: s.weight, completed: s.completed,
+        setNumber: s.setNumber, reps: s.reps, weight: s.weight, restSeconds: s.restSeconds, completed: s.completed,
       })),
     }
     const res = await fetch("/api/workout-logs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
@@ -193,12 +201,16 @@ export default function LogWorkoutPage() {
     return { activeExercises: active, doneExercises: done }
   }, [exerciseOrder, exerciseMap, completedIdSet])
 
-  const handleCompleteExercise = useCallback((exerciseId: string) => {
+  const handleContinueExercise = useCallback((exerciseId: string) => {
     const entry = exerciseMap.get(exerciseId)
     if (!entry) return
     store.addCompletedExercise(exerciseId)
     if (entry.origIdx === currentExerciseIdx) {
-      setTimeout(() => markExerciseComplete(entry.origIdx), 200)
+      setTimeout(() => {
+        const { phase: p } = useWorkoutStore.getState()
+        if (p === "done") return
+        markExerciseComplete(entry.origIdx)
+      }, 50)
     }
   }, [exerciseMap, currentExerciseIdx, store, markExerciseComplete])
 
@@ -341,16 +353,40 @@ export default function LogWorkoutPage() {
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, idx)}
                 >
-                  <ExerciseCard
+                    <ExerciseCard
                     se={se}
                     setsData={exerciseSets}
                     appearance={appearance}
-                    onCompleteExercise={() => handleCompleteExercise(se.exerciseId)}
-                    dragHandleProps={{}}
-                    onSetUpdate={(setIdx, updates) => {
-                      store.updateSet(se.exerciseId, setIdx, updates)
+                    onContinue={() => handleContinueExercise(se.exerciseId)}
+                    onSetsCountChange={(newCount: number) => {
+                      const state = useWorkoutStore.getState()
+                      const currentSets = state.setsData[se.exerciseId] ?? []
+                      if (newCount > currentSets.length) {
+                        const newSet: import("@/stores/workout-store").SetLog = {
+                          exerciseId: se.exerciseId,
+                          exerciseName: se.exercise.name,
+                          setNumber: newCount,
+                          reps: parseInt(se.reps) || 0,
+                          weight: se.weight,
+                          restSeconds: se.restSeconds,
+                          completed: false,
+                        }
+                        useWorkoutStore.getState().setSetsData({
+                          ...useWorkoutStore.getState().setsData,
+                          [se.exerciseId]: [...currentSets, newSet],
+                        })
+                      } else if (newCount < currentSets.length) {
+                        const lastIdx = currentSets.length - 1
+                        if (currentSets[lastIdx]?.completed) return
+                        useWorkoutStore.getState().setSetsData({
+                          ...useWorkoutStore.getState().setsData,
+                          [se.exerciseId]: currentSets.slice(0, newCount),
+                        })
+                      }
                     }}
+                    dragHandleProps={{}}
                     onSetComplete={(setIdx) => {
+                      if (isResting) skipRest()
                       const updated = [...exerciseSets]
                       updated[setIdx] = { ...updated[setIdx], completed: true }
                       store.setSetsData({ ...store.setsData, [se.exerciseId]: updated })
@@ -379,9 +415,6 @@ export default function LogWorkoutPage() {
                     se={se}
                     setsData={setsData[se.exerciseId] ?? []}
                     appearance="completed"
-                    onSetUpdate={(setIdx, updates) => {
-                      store.updateSet(se.exerciseId, setIdx, updates)
-                    }}
                     onSetComplete={(setIdx) => {
                       const sets = [ ...(store.setsData[se.exerciseId] ?? []) ]
                       sets[setIdx] = { ...sets[setIdx], completed: true }

@@ -17,7 +17,7 @@ const PUBLIC_PATHS = ["/login", "/register"]
 const ROLE_ROUTES: Record<string, string[]> = {
   "/admin": ["ADMIN", "SUPER_ADMIN"],
   "/super-admin": ["SUPER_ADMIN"],
-  "/coach": ["TRAINER"],
+  "/coach": ["TRAINER", "ADMIN"],
 }
 
 export async function proxy(request: NextRequest) {

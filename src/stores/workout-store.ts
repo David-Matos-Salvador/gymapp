@@ -10,6 +10,7 @@ export interface SetLog {
   setNumber: number
   reps: number
   weight: number
+  restSeconds: number
   completed: boolean
 }
 

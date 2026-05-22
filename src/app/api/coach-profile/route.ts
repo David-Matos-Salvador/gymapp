@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
-  if (user.role !== "TRAINER") {
+  if (user.role !== "TRAINER" && user.role !== "ADMIN") {
     return NextResponse.json({ error: "Solo entrenadores pueden actualizar su perfil profesional" }, { status: 403 })
   }
 

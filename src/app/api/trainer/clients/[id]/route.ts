@@ -13,7 +13,7 @@ export async function GET(request: Request, { params }: RouteParams) {
   }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || user.role !== "TRAINER") {
+  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
@@ -75,7 +75,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || user.role !== "TRAINER") {
+  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 

@@ -127,7 +127,7 @@ export default function SuperAdminPage() {
   const statCards = [
     { label: "Gimnasios", value: stats.totalGyms, icon: Store, color: "blue", iconColor: "text-blue-500" },
     { label: "Usuarios totales", value: stats.totalUsers, icon: Users, color: "green", iconColor: "text-accent-yellow" },
-    { label: "Membresias activas", value: stats.activeMemberships, icon: CreditCard, color: "violet", iconColor: "text-gym-violet" },
+    { label: "Membresias activas", value: stats.activeMemberships, icon: CreditCard, color: "violet", iconColor: "text-accent-yellow" },
     { label: "Check-ins hoy", value: stats.todayCheckins, icon: Activity, color: "orange", iconColor: "text-accent-yellow" },
     { label: "Entrenadores", value: stats.totalTrainers, icon: Dumbbell, color: "primary", iconColor: "text-primary" },
     { label: "Ingresos totales", value: `$${stats.totalRevenue.toLocaleString()}`, icon: TrendingUp, color: "emerald", iconColor: "text-emerald-500" },

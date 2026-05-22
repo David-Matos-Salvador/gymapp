@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
 import { useSound } from "@/hooks/use-sound"
@@ -22,6 +22,8 @@ import {
   Heart,
   CheckCircle2,
   XCircle,
+  Loader2,
+  Camera,
 } from "lucide-react"
 
 interface User {
@@ -134,6 +136,9 @@ export function ProfileForm({ user }: { user: User }) {
   const [saving, setSaving] = useState(false)
   const [nameTouched, setNameTouched] = useState(false)
   const [phoneTouched, setPhoneTouched] = useState(false)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.image ?? null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const age = useMemo(() => calculateAge(user.birthDate), [user.birthDate])
   const birthDateFormatted = useMemo(() => formatBirthDate(user.birthDate), [user.birthDate])
@@ -165,6 +170,49 @@ export function ProfileForm({ user }: { user: User }) {
       })
     }
     setSaving(false)
+  }
+
+  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+    if (!allowed.includes(file.type)) {
+      toast.error("Formato no permitido. Usa JPEG, PNG, WebP o GIF")
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Archivo muy grande. M\u00e1ximo 5MB")
+      return
+    }
+
+    setAvatarUploading(true)
+    setAvatarPreview(URL.createObjectURL(file))
+
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("type", "profile")
+
+    try {
+      const res = await fetch("/api/upload", { method: "POST", body: formData })
+      const data = await res.json()
+      if (res.ok) {
+        play("success")
+        toast.success("Foto de perfil actualizada")
+        setAvatarPreview(data.url)
+        router.refresh()
+      } else {
+        toast.error(data.error || "Error al subir la imagen")
+        setAvatarPreview(user.image ?? null)
+      }
+    } catch {
+      toast.error("Error de conexi\u00f3n")
+      setAvatarPreview(user.image ?? null)
+    }
+
+    setAvatarUploading(false)
+    if (avatarInputRef.current) avatarInputRef.current.value = ""
   }
 
   return (
@@ -271,6 +319,47 @@ export function ProfileForm({ user }: { user: User }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-4">
+          <div className="flex items-center gap-4">
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            <button
+              type="button"
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={avatarUploading}
+              className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-muted ring-2 ring-accent-yellow/30 ring-offset-2 ring-offset-background overflow-hidden group cursor-pointer hover:ring-accent-yellow/60 transition-all"
+            >
+              {avatarPreview ? (
+                <img
+                  src={avatarPreview}
+                  alt="Avatar"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl font-bold text-accent-yellow">
+                  {(user.name ?? user.email).charAt(0).toUpperCase()}
+                </span>
+              )}
+              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                {avatarUploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-white" />
+                ) : (
+                  <Camera className="h-5 w-5 text-white" />
+                )}
+              </div>
+            </button>
+            <div>
+              <p className="text-sm font-medium">Foto de perfil</p>
+              <p className="text-xs text-muted-foreground">
+                JPEG, PNG, WebP o GIF (m\u00e1x. 5MB)
+              </p>
+            </div>
+          </div>
+          <Separator />
           <div className="space-y-2">
             <Label htmlFor="profileName" className="text-sm">
               Nombre completo

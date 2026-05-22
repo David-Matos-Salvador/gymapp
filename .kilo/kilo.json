@@ -36,6 +36,16 @@
       "name": "DevOps Engineer",
       "description": "Docker, docker-compose, CI/CD con GitHub Actions, deploy y backups",
       "file": ".kilo/agent/devops-engineer.md"
+    },
+    "task-generator": {
+      "name": "Task Generator",
+      "description": "Audita el codebase y genera un BACKLOG.md estructurado con todo lo pendiente",
+      "file": ".kilo/agent/task-generator.md"
+    },
+    "orchestrator": {
+      "name": "Orchestrator",
+      "description": "Distribuye tareas del backlog a subagentes en worktrees aislados, gestiona QA y cierra tareas",
+      "file": ".kilo/agent/orchestrator.md"
     }
   }
 }

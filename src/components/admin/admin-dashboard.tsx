@@ -62,9 +62,9 @@ const statCards = [
     label: "Ingresos del mes",
     value: (s: AdminStats) => formatCurrency(s.monthlyIncome),
     icon: Banknote,
-    color: "border-t-gym-violet",
-    iconColor: "text-gym-violet",
-    bg: "bg-gym-violet/10",
+    color: "border-t-accent-yellow",
+    iconColor: "text-accent-yellow",
+    bg: "bg-accent-yellow/10",
     suffix: "",
   },
   {

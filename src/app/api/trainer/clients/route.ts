@@ -10,7 +10,7 @@ export async function GET() {
   }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || user.role !== "TRAINER") {
+  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
   }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || user.role !== "TRAINER") {
+  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 

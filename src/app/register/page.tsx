@@ -57,8 +57,8 @@ const modeOptions = [
     title: "Soy entrenador",
     description: "Quiero gestionar clientes, crear rutinas y dar seguimiento",
     icon: Dumbbell,
-    color: "border-gym-violet text-gym-violet",
-    bg: "bg-gym-violet/5 hover:bg-gym-violet/10",
+    color: "border-accent-yellow text-accent-yellow",
+    bg: "bg-accent-yellow/5 hover:bg-accent-yellow/10",
   },
   {
     key: "gym_owner" as const,

@@ -1,3 +1,11 @@
+/*
+ * Prisma client singleton with @prisma/adapter-pg driver adapter.
+ *
+ * adapter-pg connects Prisma directly to PostgreSQL via the `pg` driver,
+ * bypassing Prisma's built-in connection pool. This is required for Next.js
+ * edge/serverless environments where traditional TCP connection pools
+ * don't work well. It also enables Prisma Accelerate-compatible deployments.
+ */
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 

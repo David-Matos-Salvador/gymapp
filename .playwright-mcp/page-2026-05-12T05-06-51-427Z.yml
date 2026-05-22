@@ -1,0 +1,182 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - img [ref=e4]
+      - generic [ref=e7]: GymApp
+      - generic [ref=e8]: Miembro
+    - main [ref=e9]:
+      - generic [ref=e11]:
+        - navigation "Breadcrumb" [ref=e12]:
+          - list [ref=e13]:
+            - listitem [ref=e14]:
+              - link [ref=e15] [cursor=pointer]:
+                - /url: /dashboard
+                - img [ref=e16]
+            - listitem [ref=e19]:
+              - img [ref=e20]
+              - link "Quema Grasa Metabólico" [ref=e22] [cursor=pointer]:
+                - /url: /rutinas/cmp1jq2vb001xmjw2cisxmgwa
+            - listitem [ref=e23]:
+              - img [ref=e24]
+              - generic [ref=e26]: Entrenar
+        - button "Volver" [ref=e27]:
+          - img [ref=e28]
+          - text: Volver
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - heading "Circuito B" [level=1] [ref=e32]:
+              - img [ref=e33]
+              - text: Circuito B
+            - generic [ref=e39]: Calentamiento
+          - paragraph [ref=e43]: Empuje y core
+          - paragraph [ref=e44]: Quema Grasa Metabólico
+        - generic [ref=e45]:
+          - img [ref=e46]
+          - generic [ref=e49]: 13:01
+        - generic [ref=e50]:
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - img [ref=e55]
+              - generic [ref=e62]:
+                - img "Fondos en paralelas" [ref=e63]
+                - generic [ref=e64]:
+                  - paragraph [ref=e65]: Fondos en paralelas
+                  - generic [ref=e66]:
+                    - generic [ref=e67]: Pecho
+                    - generic [ref=e68]: ·
+                    - generic [ref=e69]: 4 series · 10-12 reps
+                    - generic [ref=e70]: ·
+                    - generic [ref=e71]:
+                      - img [ref=e72]
+                      - text: 45s
+              - button "Detalle del ejercicio" [ref=e75]:
+                - img [ref=e76]
+            - generic [ref=e78]:
+              - generic [ref=e79]:
+                - generic [ref=e80]:
+                  - button "Reducir peso" [ref=e81]:
+                    - img [ref=e82]
+                  - generic [ref=e83]: "0"
+                  - generic [ref=e84]: kg
+                  - button "Aumentar peso" [ref=e85]:
+                    - img [ref=e86]
+                - generic [ref=e87]: 2/4
+              - generic [ref=e88]:
+                - button "1 10r" [ref=e89] [cursor=pointer]:
+                  - generic [ref=e90]: "1"
+                  - img [ref=e91]
+                  - generic [ref=e93]: 10r
+                - button "2 10r" [ref=e94] [cursor=pointer]:
+                  - generic [ref=e95]: "2"
+                  - img [ref=e96]
+                  - generic [ref=e98]: 10r
+                - button "3 10r" [ref=e99] [cursor=pointer]:
+                  - generic [ref=e100]: "3"
+                  - generic [ref=e102]: 10r
+                - button "4 10r" [ref=e103] [cursor=pointer]:
+                  - generic [ref=e104]: "4"
+                  - generic [ref=e106]: 10r
+          - generic [ref=e108]:
+            - generic [ref=e109]:
+              - img [ref=e111]
+              - generic [ref=e118]:
+                - img "Press de banca" [ref=e119]
+                - generic [ref=e120]:
+                  - paragraph [ref=e121]: Press de banca
+                  - generic [ref=e122]:
+                    - generic [ref=e123]: Pecho
+                    - generic [ref=e124]: ·
+                    - generic [ref=e125]: 3 series · 12-15 reps
+                    - generic [ref=e126]: ·
+                    - generic [ref=e127]:
+                      - img [ref=e128]
+                      - text: 60s
+              - button "Detalle del ejercicio" [ref=e131]:
+                - img [ref=e132]
+            - paragraph [ref=e134]: ⏳ Pendiente
+          - generic [ref=e136]:
+            - generic [ref=e137]:
+              - img [ref=e139]
+              - generic [ref=e146]:
+                - img "Elevaciones laterales" [ref=e147]
+                - generic [ref=e148]:
+                  - paragraph [ref=e149]: Elevaciones laterales
+                  - generic [ref=e150]:
+                    - generic [ref=e151]: Hombros
+                    - generic [ref=e152]: ·
+                    - generic [ref=e153]: 3 series · 15 reps
+                    - generic [ref=e154]: ·
+                    - generic [ref=e155]:
+                      - img [ref=e156]
+                      - text: 45s
+              - button "Detalle del ejercicio" [ref=e159]:
+                - img [ref=e160]
+            - paragraph [ref=e162]: ⏳ Pendiente
+          - generic [ref=e164]:
+            - generic [ref=e165]:
+              - img [ref=e167]
+              - generic [ref=e174]:
+                - img "Press francés" [ref=e175]
+                - generic [ref=e176]:
+                  - paragraph [ref=e177]: Press francés
+                  - generic [ref=e178]:
+                    - generic [ref=e179]: Tríceps
+                    - generic [ref=e180]: ·
+                    - generic [ref=e181]: 3 series · 12-15 reps
+                    - generic [ref=e182]: ·
+                    - generic [ref=e183]:
+                      - img [ref=e184]
+                      - text: 45s
+              - button "Detalle del ejercicio" [ref=e187]:
+                - img [ref=e188]
+            - paragraph [ref=e190]: ⏳ Pendiente
+          - generic [ref=e192]:
+            - generic [ref=e193]:
+              - img [ref=e195]
+              - generic [ref=e202]:
+                - img "Plancha" [ref=e203]
+                - generic [ref=e204]:
+                  - paragraph [ref=e205]: Plancha
+                  - generic [ref=e206]:
+                    - generic [ref=e207]: Abdominales
+                    - generic [ref=e208]: ·
+                    - generic [ref=e209]: 3 series · 60s reps
+                    - generic [ref=e210]: ·
+                    - generic [ref=e211]:
+                      - img [ref=e212]
+                      - text: 45s
+              - button "Detalle del ejercicio" [ref=e215]:
+                - img [ref=e216]
+            - paragraph [ref=e218]: ⏳ Pendiente
+        - textbox "Notas sobre el entrenamiento..." [ref=e221]
+        - generic [ref=e222]:
+          - button "Cancelar" [ref=e223]
+          - button "Finalizar entrenamiento" [ref=e224]:
+            - img
+            - text: Finalizar entrenamiento
+    - navigation [ref=e225]:
+      - generic [ref=e226]:
+        - link "Inicio" [ref=e227] [cursor=pointer]:
+          - /url: /dashboard
+          - img [ref=e228]
+          - generic [ref=e233]: Inicio
+        - link "Mi Rutina" [ref=e234] [cursor=pointer]:
+          - /url: /rutinas
+          - img [ref=e235]
+          - generic [ref=e241]: Mi Rutina
+        - link "Progreso" [ref=e243] [cursor=pointer]:
+          - /url: /progress
+          - img [ref=e244]
+          - generic [ref=e247]: Progreso
+        - link "Clases" [ref=e248] [cursor=pointer]:
+          - /url: /classes
+          - img [ref=e249]
+          - generic [ref=e251]: Clases
+        - link "Perfil" [ref=e252] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e253]
+          - generic [ref=e265]: Perfil
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e271] [cursor=pointer]:
+    - img [ref=e272]
+  - alert [ref=e275]

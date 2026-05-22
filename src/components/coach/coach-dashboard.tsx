@@ -115,7 +115,7 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
 
   const statCards = [
     { label: "Clientes", value: stats.totalClients, icon: Users, color: "border-t-accent-yellow", iconColor: "text-accent-yellow", bg: "bg-accent-yellow/10" },
-    { label: "Membresias activas", value: stats.activeMemberships, icon: BadgeCheck, color: "border-t-gym-violet", iconColor: "text-gym-violet", bg: "bg-gym-violet/10" },
+    { label: "Membresias activas", value: stats.activeMemberships, icon: BadgeCheck, color: "border-t-accent-yellow", iconColor: "text-accent-yellow", bg: "bg-accent-yellow/10" },
     { label: "Clases proximas", value: stats.upcomingClasses, icon: CalendarDays, color: "border-t-accent-yellow", iconColor: "text-accent-yellow", bg: "bg-accent-yellow/10" },
     { label: "Rutinas", value: stats.totalRoutines, icon: Dumbbell, color: "border-t-primary", iconColor: "text-primary", bg: "bg-primary/10" },
   ]
@@ -353,7 +353,7 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
                   <div className="space-y-2">
                     {classes.map((c) => (
                       <div key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gym-violet/10"><CalendarDays className="h-4 w-4 text-gym-violet" /></div>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10"><CalendarDays className="h-4 w-4 text-accent-yellow" /></div>
                         <div><p className="text-sm font-medium">{c.name}</p><p className="text-xs text-muted-foreground">{dayLabels[c.dayOfWeek] || c.dayOfWeek} . {c.duration}min . {c.bookingsCount}/{c.capacity}</p></div>
                       </div>
                     ))}

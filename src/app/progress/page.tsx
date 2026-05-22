@@ -1,5 +1,7 @@
 "use client"
 
+// TODO: Convert to Server Component - requires splitting into server data fetching + client interactive UI (charts, dialog, form)
+
 import { useState, useEffect, useMemo } from "react"
 import { AppShell } from "@/components/layout/shell"
 import { Button } from "@/components/ui/button"

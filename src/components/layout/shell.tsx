@@ -15,12 +15,15 @@ import {
   Sparkles,
   TrendingUp,
 } from "lucide-react"
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
+import { NotificationBell, NotificationList } from "@/components/notifications"
+import type { MockNotification } from "@/components/notifications"
+import { toast } from "sonner"
 
 const userRoleChip: Record<string, { label: string; className: string }> = {
   ADMIN: { label: "Admin", className: "text-accent-yellow bg-accent-yellow/10" },
-  TRAINER: { label: "Coach", className: "text-gym-violet bg-gym-violet/10" },
+  TRAINER: { label: "Coach", className: "text-accent-yellow bg-accent-yellow/10" },
   MEMBER: { label: "Miembro", className: "text-accent-yellow bg-accent-yellow/10" },
   SUPER_ADMIN: { label: "Súper Admin", className: "text-destructive bg-destructive/10" },
 }
@@ -93,6 +96,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { user } = useAuth()
 
   const [dir, setDir] = useState<1 | -1>(1)
+  const [unreadCount, setUnreadCount] = useState(0)
+  const [notifications, setNotifications] = useState<MockNotification[]>([])
 
   useEffect(() => {
     if (prevPathnameRef.current !== null && prevPathnameRef.current !== pathname) {
@@ -102,6 +107,46 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
     prevPathnameRef.current = pathname
   }, [pathname])
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const res = await fetch("/api/notifications")
+      if (!res.ok) return
+      const data = await res.json()
+      const list = (data.notifications ?? []) as MockNotification[]
+      setNotifications(list)
+      setUnreadCount(list.filter((n) => !n.read).length)
+    } catch {
+      // silent
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchUnreadCount()
+  }, [fetchUnreadCount])
+
+  const handleMarkRead = useCallback(async (id: string) => {
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    )
+    setUnreadCount((prev) => Math.max(0, prev - 1))
+    try {
+      await fetch(`/api/notifications/${id}`, { method: "PATCH" })
+    } catch {
+      toast.error("Error al marcar como leída")
+    }
+  }, [])
+
+  const handleMarkAllRead = useCallback(async () => {
+    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id)
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+    setUnreadCount(0)
+    try {
+      await Promise.all(unreadIds.map((id) => fetch(`/api/notifications/${id}`, { method: "PATCH" })))
+    } catch {
+      toast.error("Error al marcar todas como leídas")
+    }
+  }, [notifications])
 
   const variants = {
     initial: (d: number) => ({ x: d > 0 ? 30 : -30, opacity: 0 }),
@@ -116,11 +161,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="flex h-12 items-center gap-2 border-b bg-card px-4 shrink-0">
         <Sparkles className="h-4 w-4 text-accent-yellow shrink-0" />
         <span className="font-semibold">GymApp</span>
-        {roleChip && (
-          <span className={`ml-auto text-[10px] px-1.5 py-0.5 rounded font-medium ${roleChip.className}`}>
-            {roleChip.label}
-          </span>
-        )}
+        <div className="ml-auto flex items-center gap-1">
+          <NotificationBell
+            unreadCount={unreadCount}
+          >
+            <NotificationList
+              notifications={notifications}
+              onMarkRead={handleMarkRead}
+              onMarkAllRead={handleMarkAllRead}
+            />
+          </NotificationBell>
+          {roleChip && (
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${roleChip.className}`}>
+              {roleChip.label}
+            </span>
+          )}
+        </div>
       </header>
 
       <main className="flex-1 overflow-y-auto pb-20">

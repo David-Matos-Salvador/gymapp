@@ -19,7 +19,7 @@ export default async function CoachClientsListPage() {
   const session = await auth()
   if (!session?.user?.email) redirect("/login")
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || user.role !== "TRAINER") redirect("/coach")
+  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) redirect("/coach")
 
   const clients = await prisma.user.findMany({
     where: { assignedTrainerId: user.id },

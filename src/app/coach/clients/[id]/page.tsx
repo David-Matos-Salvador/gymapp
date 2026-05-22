@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -44,10 +44,13 @@ interface ClientData {
   memberShips: { status: string; endDate: string; plan: { name: string } | null }[]
 }
 
-export default function CoachClientDetail({ clientData }: { clientData: ClientData }) {
+export default function CoachClientDetail() {
+  const params = useParams()
   const router = useRouter()
+  const id = params.id as string
   const { play } = useSound()
-  const [client, setClient] = useState(clientData)
+  const [client, setClient] = useState<ClientData | null>(null)
+  const [loading, setLoading] = useState(true)
   const [measureOpen, setMeasureOpen] = useState(false)
   const [routineOpen, setRoutineOpen] = useState(false)
   const [measureForm, setMeasureForm] = useState({ weight: "", bodyFat: "", height: "", notes: "" })
@@ -55,11 +58,31 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
   const [availableRoutines, setAvailableRoutines] = useState<{ id: string; name: string }[]>([])
   const [routineLoading, setRoutineLoading] = useState(false)
 
-  const age = client.birthDate ? new Date().getFullYear() - new Date(client.birthDate).getFullYear() : null
-  const currentMembership = client.memberShips[0]
+  useEffect(() => {
+    async function fetchClient() {
+      try {
+        const res = await fetch(`/api/trainer/clients/${id}`)
+        const data = await res.json()
+        if (data.client) {
+          setClient(data.client)
+        } else {
+          toast.error("Cliente no encontrado")
+          router.push("/coach/clients")
+        }
+      } catch {
+        toast.error("Error al cargar cliente")
+        router.push("/coach/clients")
+      }
+      setLoading(false)
+    }
+    fetchClient()
+  }, [id, router])
+
+  const age = client?.birthDate ? new Date().getFullYear() - new Date(client.birthDate).getFullYear() : null
+  const currentMembership = client?.memberShips[0]
   const isMembershipActive = currentMembership?.status === "ACTIVE" && new Date(currentMembership.endDate) > new Date()
 
-  const activeAssignment = client.assignedRoutinePlans[0]
+  const activeAssignment = client?.assignedRoutinePlans[0]
   const activePlan = activeAssignment?.plan
 
   async function handleAddMeasurement() {
@@ -68,7 +91,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
       return
     }
     setMeasureSaving(true)
-    const body: Record<string, unknown> = { userId: client.id, date: new Date().toISOString() }
+    const body: Record<string, unknown> = { userId: client!.id, date: new Date().toISOString() }
     if (measureForm.weight) body.weight = parseFloat(measureForm.weight)
     if (measureForm.bodyFat) body.bodyFat = parseFloat(measureForm.bodyFat)
     if (measureForm.height) body.height = parseFloat(measureForm.height)
@@ -112,7 +135,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
       const res = await fetch("/api/routines/assign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, assignToUserId: client.id }),
+        body: JSON.stringify({ planId, assignToUserId: client!.id }),
       })
       if (res.ok) {
         play("success")
@@ -123,6 +146,33 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
         toast.error("Error al asignar rutina")
       }
     } catch { toast.error("Error de conexion") }
+  }
+
+  if (loading) {
+    return (
+      <AppShell>
+        <div className="container mx-auto px-4 py-6 md:py-8 max-w-4xl space-y-6">
+          <div className="flex items-center justify-center py-20">
+            <p className="text-sm text-muted-foreground">Cargando cliente...</p>
+          </div>
+        </div>
+      </AppShell>
+    )
+  }
+
+  if (!client) {
+    return (
+      <AppShell>
+        <div className="container mx-auto px-4 py-6 md:py-8 max-w-4xl space-y-6">
+          <Link href="/coach/clients" className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+            <ArrowLeft className="h-3 w-3" /> Volver a clientes
+          </Link>
+          <div className="flex items-center justify-center py-20">
+            <p className="text-sm text-muted-foreground">Cliente no encontrado</p>
+          </div>
+        </div>
+      </AppShell>
+    )
   }
 
   return (
@@ -221,7 +271,7 @@ export default function CoachClientDetail({ clientData }: { clientData: ClientDa
             </Card>
 
             <Card>
-              <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-gym-violet" /> Últimos entrenamientos</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-accent-yellow" /> Últimos entrenamientos</CardTitle></CardHeader>
               <CardContent>
                 {client.workoutLogs.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">Sin entrenamientos registrados</p>
