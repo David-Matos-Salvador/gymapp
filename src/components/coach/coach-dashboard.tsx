@@ -7,21 +7,13 @@ import Link from "next/link"
 import { Card , CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Users , UserCheck, CalendarDays , Dumbbell, Plus, ArrowRight , Search, UserPlus , Mail, Phone, Target , Award, BadgeCheck, Loader2, Pencil, Briefcase, Info } from "lucide-react"
+import { Users , CalendarDays , Dumbbell, Plus, ArrowRight , Search, UserPlus , Mail, Phone, Target , Award, BadgeCheck, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { UploadButton } from "@/components/upload-button"
 
 interface ClientData { id: string; name: string | null; email: string; phone: string | null; objective: string | null; experienceLevel: string | null; hasActiveMembership: boolean; membershipPlan: string | null }
 interface RoutineData { id: string; name: string; exerciseCount: number }
 interface ClassData { id: string; name: string; dayOfWeek: string; duration: number; capacity: number; bookingsCount: number; schedule: string }
 interface Stats { totalClients: number; activeMemberships: number; upcomingClasses: number; totalRoutines: number }
-interface CoachProfile { image: string | null; name: string; bio: string | null; specialties: string[] | null; yearsExperience: number | null }
-
 const objectiveLabels: Record<string, string> = {
   WEIGHT_LOSS: "Perdida de peso", MUSCLE_GAIN: "Ganancia muscular", TONING: "Tonificacion",
   STRENGTH: "Fuerza", ENDURANCE: "Resistencia", GENERAL_FITNESS: "Fitness general",
@@ -30,62 +22,17 @@ const objectiveLabels: Record<string, string> = {
 const experienceLabels: Record<string, string> = { BEGINNER: "Principiante", INTERMEDIATE: "Intermedio", ADVANCED: "Avanzado", ELITE: "Elite" }
 const dayLabels: Record<string, string> = { MONDAY: "lunes", TUESDAY: "martes", WEDNESDAY: "miercoles", THURSDAY: "jueves", FRIDAY: "viernes", SATURDAY: "sabado", SUNDAY: "domingo" }
 
-export function CoachDashboard({ clients: initialClients, routines, classes, stats, coach: initialCoach }: {
-  clients: ClientData[]; routines: RoutineData[]; classes: ClassData[]; stats: Stats; coach: CoachProfile
+export function CoachDashboard({ clients: initialClients, routines, classes, stats }: {
+  clients: ClientData[]; routines: RoutineData[]; classes: ClassData[]; stats: Stats
 }) {
   const { play } = useSound()
   const [clients, setClients] = useState(initialClients)
-  const [coach, setCoach] = useState(initialCoach)
   const [searchEmail, setSearchEmail] = useState("")
   const [searchResult, setSearchResult] = useState<{ id: string; name: string | null; email: string } | null>(null)
   const [searchError, setSearchError] = useState("")
   const [searchLoading, setSearchLoading] = useState(false)
   const [assignLoading, setAssignLoading] = useState(false)
   const [assignSuccess, setAssignSuccess] = useState("")
-
-  const [profileOpen, setProfileOpen] = useState(false)
-  const [profileSaving, setProfileSaving] = useState(false)
-  const [profileForm, setProfileForm] = useState({
-    bio: initialCoach.bio ?? "",
-    specialties: initialCoach.specialties?.join(", ") ?? "",
-    yearsExperience: initialCoach.yearsExperience?.toString() ?? "",
-  })
-
-  async function handleSaveProfile() {
-    setProfileSaving(true)
-    const specialties = profileForm.specialties
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-    const body = {
-      bio: profileForm.bio.trim() || undefined,
-      specialties: specialties.length > 0 ? specialties : undefined,
-      yearsExperience: profileForm.yearsExperience ? parseInt(profileForm.yearsExperience, 10) : undefined,
-    }
-    try {
-      const res = await fetch("/api/coach-profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      if (res.ok) {
-        play("success")
-        toast.success("Perfil actualizado")
-        setCoach((prev) => ({
-          ...prev,
-          bio: body.bio ?? null,
-          specialties: body.specialties ?? null,
-          yearsExperience: body.yearsExperience ?? null,
-        }))
-        setProfileOpen(false)
-      } else {
-        toast.error("Error al guardar perfil")
-      }
-    } catch {
-      toast.error("Error de conexion")
-    }
-    setProfileSaving(false)
-  }
 
   async function handleSearch() {
     if (!searchEmail.trim()) return
@@ -126,114 +73,6 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Panel de Coach</h1>
         <p className="text-muted-foreground">Gestiona tus clientes, rutinas y clases</p>
       </div>
-
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.02 }}>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-base">Mi perfil</CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                play("click")
-                setProfileForm({
-                  bio: coach.bio ?? "",
-                  specialties: coach.specialties?.join(", ") ?? "",
-                  yearsExperience: coach.yearsExperience?.toString() ?? "",
-                })
-                setProfileOpen(true)
-              }}
-            >
-              <Pencil className="mr-1 h-4 w-4" /> Editar perfil
-            </Button>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col sm:flex-row items-start gap-4">
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={coach.image ?? undefined} alt={coach.name} />
-                <AvatarFallback className="bg-accent-yellow/10 text-accent-yellow font-medium">
-                  {coach.name[0]?.toUpperCase() ?? "C"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 space-y-2">
-                <div>
-                  <h3 className="text-lg font-semibold">{coach.name}</h3>
-                  {coach.yearsExperience != null && (
-                    <p className="text-sm text-muted-foreground flex items-center gap-1">
-                      <Briefcase className="h-3.5 w-3.5" /> {coach.yearsExperience} {coach.yearsExperience === 1 ? "ano" : "anos"} de experiencia
-                    </p>
-                  )}
-                </div>
-                {coach.bio && (
-                  <p className="text-sm text-muted-foreground flex items-start gap-1">
-                    <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    {coach.bio}
-                  </p>
-                )}
-                {coach.specialties && coach.specialties.length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {coach.specialties.map((s) => (
-                      <Badge key={s} variant="secondary" className="text-xs">
-                        {s}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Editar perfil de coach</DialogTitle>
-            <DialogDescription>
-              Completa tu perfil para que los clientes te conozcan mejor.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="coachBio">Biografia</Label>
-              <Textarea
-                id="coachBio"
-                rows={3}
-                placeholder="Describe tu experiencia como entrenador..."
-                value={profileForm.bio}
-                onChange={(e) => setProfileForm((p) => ({ ...p, bio: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="coachSpecialties">Especialidades</Label>
-              <Input
-                id="coachSpecialties"
-                placeholder="Hipertrofia, Crossfit, Yoga, etc. (separa con comas)"
-                value={profileForm.specialties}
-                onChange={(e) => setProfileForm((p) => ({ ...p, specialties: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="coachYears">Anos de experiencia</Label>
-              <Input
-                id="coachYears"
-                type="number"
-                min={0}
-                max={50}
-                placeholder="5"
-                value={profileForm.yearsExperience}
-                onChange={(e) => setProfileForm((p) => ({ ...p, yearsExperience: e.target.value }))}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setProfileOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSaveProfile} disabled={profileSaving}>
-              {profileSaving ? "Guardando..." : "Guardar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map((card, i) => (

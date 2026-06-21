@@ -14,6 +14,21 @@ const exerciseUpdateSchema = z.object({
   animationData: z.any().nullable().optional(),
 })
 
+async function checkExerciseOwnership(exerciseId: string, user: { id: string; role: string }) {
+  const exercise = await prisma.exercise.findUnique({
+    where: { id: exerciseId },
+    select: { userId: true },
+  })
+
+  if (!exercise) return { exists: false, canEdit: false }
+
+  const isCreator = exercise.userId === user.id
+  const isSuperAdmin = user.role === "SUPER_ADMIN"
+  const canEdit = isCreator || isSuperAdmin
+
+  return { exists: true, canEdit }
+}
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -34,6 +49,7 @@ export async function GET(
           }
         },
         gymEquipments: true,
+        creator: { select: { id: true, name: true, role: true } },
       },
     })
 
@@ -59,11 +75,21 @@ export async function PATCH(
     }
 
     const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-    if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "No tienes permisos para modificar ejercicios" }, { status: 403 })
+    if (!user) {
+      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
     }
 
     const { id } = await params
+    const { exists, canEdit } = await checkExerciseOwnership(id, user)
+
+    if (!exists) {
+      return NextResponse.json({ error: "Ejercicio no encontrado" }, { status: 404 })
+    }
+
+    if (!canEdit) {
+      return NextResponse.json({ error: "No tienes permisos para modificar este ejercicio" }, { status: 403 })
+    }
+
     const body = await request.json()
     
     const parsed = exerciseUpdateSchema.safeParse(body)
@@ -74,11 +100,6 @@ export async function PATCH(
       )
     }
 
-    const existing = await prisma.exercise.findUnique({ where: { id } })
-    if (!existing) {
-      return NextResponse.json({ error: "Ejercicio no encontrado" }, { status: 404 })
-    }
-
     const updated = await prisma.exercise.update({
       where: { id },
       data: parsed.data,
@@ -87,6 +108,41 @@ export async function PATCH(
     return NextResponse.json(updated)
   } catch (error) {
     console.error("PATCH /api/exercises/[id]:", error)
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    if (!user) {
+      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+    }
+
+    const { id } = await params
+    const { exists, canEdit } = await checkExerciseOwnership(id, user)
+
+    if (!exists) {
+      return NextResponse.json({ error: "Ejercicio no encontrado" }, { status: 404 })
+    }
+
+    if (!canEdit) {
+      return NextResponse.json({ error: "No tienes permisos para eliminar este ejercicio" }, { status: 403 })
+    }
+
+    await prisma.exercise.delete({ where: { id } })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("DELETE /api/exercises/[id]:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }

@@ -30,24 +30,24 @@ const userRoleChip: Record<string, { label: string; className: string }> = {
 
 export function AppBottomNav({ className }: { className?: string }) {
   const pathname = usePathname()
-  const { isAdmin, isTrainer } = useAuth()
+  const { isAdmin, isTrainer, isSuperAdmin, isMember } = useAuth()
   const { play } = useSound()
 
   const primaryTabs = [
-    { label: "Inicio", href: "/dashboard", icon: LayoutDashboard },
-    { label: "Mi Rutina", href: "/rutinas", icon: Dumbbell },
+    ...(isSuperAdmin ? [{ label: "Inicio", href: "/dashboard", icon: LayoutDashboard }] : []),
+    ...(isMember ? [{ label: "Mi Rutina", href: "/rutinas", icon: Dumbbell }] : []),
     { label: "Progreso", href: "/progress", icon: TrendingUp },
     { label: "Clases", href: "/classes", icon: CalendarDays },
-    { label: "Perfil", href: "/profile", icon: UserCog },
   ]
+
+  const profileTab = { label: "Perfil", href: "/profile", icon: UserCog }
 
   const roleTabs = [
     ...(isTrainer || isAdmin ? [{ label: "Coach", href: "/coach", icon: Users }] : []),
-    ...(isAdmin ? [{ label: "Admin", href: "/admin", icon: BarChart3 }] : []),
+    ...(isAdmin || isSuperAdmin ? [{ label: "Admin", href: "/admin", icon: BarChart3 }] : []),
   ]
 
-  const bottomItems = [...primaryTabs, ...roleTabs]
-  const visibleItems = roleTabs.length > 0 ? bottomItems : primaryTabs
+  const visibleItems = [...primaryTabs, ...roleTabs, profileTab]
 
   return (
     <nav

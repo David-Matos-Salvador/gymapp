@@ -83,6 +83,8 @@ export async function POST(request: Request) {
         objective: objective === "UNSURE" ? null : (objective as never),
         experienceLevel: experienceLevel as never,
         trainingFrequency: trainingFrequency as number,
+        height: typeof height === "number" ? height : null,
+        weight: typeof weight === "number" ? weight : null,
       },
     })
 

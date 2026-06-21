@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { Dumbbell } from "lucide-react"
 import { revalidatePath } from "next/cache"
+import { RoutineEditButton } from "@/components/routines/routine-edit-button"
 
 interface PageProps { params: Promise<{ id: string }> }
 
@@ -48,7 +49,10 @@ export default async function RoutineDetailPage({ params }: PageProps) {
         <Link href="/routines" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
           ← Volver a rutinas
         </Link>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{plan.name}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{plan.name}</h1>
+          {canDelete && <RoutineEditButton plan={plan} />}
+        </div>
         {plan.description && <p className="text-muted-foreground">{plan.description}</p>}
 
         {plan.splits.map((split) => (

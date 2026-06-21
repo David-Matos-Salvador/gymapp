@@ -235,6 +235,7 @@ export async function POST(request: Request) {
                             name: ex.name,
                             muscleGroup: ex.equipment === "BODYWEIGHT" ? "FULL_BODY" as MuscleGroup : split.muscleGroups[0] as MuscleGroup,
                             equipment: ex.equipment as Equipment,
+                            userId: superadmin?.id,
                           },
                         })
                       }

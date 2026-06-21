@@ -1,8 +1,28 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { z } from "zod"
 
 interface RouteParams { params: Promise<{ id: string }> }
+
+const updateSplitSchema = z.object({
+  label: z.string().min(1).optional(),
+  name: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
+  muscleGroups: z.array(z.string()).optional(),
+  estimatedDuration: z.number().int().nullable().optional(),
+  difficulty: z.string().nullable().optional(),
+  order: z.number().int().optional(),
+})
+
+async function canEditSplit(splitId: string, user: { id: string; role: string }) {
+  const split = await prisma.routineSplit.findUnique({
+    where: { id: splitId },
+    select: { plan: { select: { userId: true } } },
+  })
+  if (!split) return false
+  return split.plan.userId === user.id || user.role === "SUPER_ADMIN"
+}
 
 export async function GET(request: Request, { params }: RouteParams) {
   const session = await auth()
@@ -25,4 +45,73 @@ export async function GET(request: Request, { params }: RouteParams) {
   }
 
   return NextResponse.json({ split })
+}
+
+export async function PATCH(request: Request, { params }: RouteParams) {
+  try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    if (!user) {
+      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+    }
+
+    const { id } = await params
+
+    if (!(await canEditSplit(id, user))) {
+      return NextResponse.json({ error: "No tienes permisos para modificar este split" }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const parsed = updateSplitSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
+        { status: 400 }
+      )
+    }
+
+    const updated = await prisma.routineSplit.update({
+      where: { id },
+      data: parsed.data,
+      include: {
+        exercises: { include: { exercise: true }, orderBy: { order: "asc" } },
+      },
+    })
+
+    return NextResponse.json({ split: updated })
+  } catch (error) {
+    console.error("PATCH /api/routine-splits/[id]:", error)
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: Request, { params }: RouteParams) {
+  try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    if (!user) {
+      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+    }
+
+    const { id } = await params
+
+    if (!(await canEditSplit(id, user))) {
+      return NextResponse.json({ error: "No tienes permisos para eliminar este split" }, { status: 403 })
+    }
+
+    await prisma.routineSplit.delete({ where: { id } })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error("DELETE /api/routine-splits/[id]:", error)
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+  }
 }

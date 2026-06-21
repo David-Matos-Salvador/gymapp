@@ -55,13 +55,6 @@ export default async function CoachPage() {
           capacity: c.capacity, bookingsCount: c.bookings.length, schedule: c.schedule.toISOString(),
         }))}
         stats={{ totalClients: clients.length, activeMemberships, upcomingClasses, totalRoutines: plans.length }}
-        coach={{
-          image: user.image,
-          name: user.name ?? "Coach",
-          bio: user.bio ?? null,
-          specialties: user.specialties as string[] | null,
-          yearsExperience: user.yearsExperience ?? null,
-        }}
       />
     </AppShell>
   )

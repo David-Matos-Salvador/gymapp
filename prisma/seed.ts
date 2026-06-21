@@ -84,8 +84,9 @@ async function main() {
       email: "valentina@gymapp.com", name: "Valentina Ríos", password: passwordHash, role: "MEMBER",
       phone: "+5255100334455", sex: "FEMALE", gymId: gym.id, birthDate: new Date("1999-08-12"),
       objective: "GENERAL_FITNESS", experienceLevel: "BEGINNER", trainingFrequency: 3,
+      height: 165, weight: 63,
       onboardingCompleted: true, onboardingCompletedAt: new Date(),
-      onboardingData: { objective: "GENERAL_FITNESS", experienceLevel: "BEGINNER", trainingFrequency: 3 },
+      onboardingData: { objective: "GENERAL_FITNESS", experienceLevel: "BEGINNER", trainingFrequency: 3, height: 165, weight: 63 },
     },
   })
 
@@ -97,8 +98,9 @@ async function main() {
       email: "mateo@gymapp.com", name: "Mateo Herrera", password: passwordHash, role: "MEMBER",
       phone: "+5255100445566", sex: "MALE", gymId: gym.id, birthDate: new Date("1993-11-03"),
       objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 4,
+      height: 178, weight: 78,
       onboardingCompleted: true, onboardingCompletedAt: new Date(),
-      onboardingData: { objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 4 },
+      onboardingData: { objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 4, height: 178, weight: 78 },
     },
   })
 
@@ -110,9 +112,10 @@ async function main() {
       email: "sofia@gymapp.com", name: "Sofía Castillo", password: passwordHash, role: "MEMBER",
       phone: "+5255100556677", sex: "FEMALE", gymId: gym.id, birthDate: new Date("2000-01-25"),
       objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3,
+      height: 160, weight: 85,
       assignedTrainerId: trainer.id,
       onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 30 * 86400000),
-      onboardingData: { objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3 },
+      onboardingData: { objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3, height: 160, weight: 85 },
     },
   })
 
@@ -124,9 +127,10 @@ async function main() {
       email: "ricardo@gymapp.com", name: "Ricardo Medina", password: passwordHash, role: "MEMBER",
       phone: "+5255100667788", sex: "MALE", gymId: gym.id, birthDate: new Date("1985-05-17"),
       objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 4,
+      height: 182, weight: 92,
       assignedTrainerId: trainer.id,
       onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 60 * 86400000),
-      onboardingData: { objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 4 },
+      onboardingData: { objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 4, height: 182, weight: 92 },
     },
   })
 
@@ -138,11 +142,12 @@ async function main() {
       email: "carlos@gymapp.com", name: "Carlos Rodríguez", password: passwordHash, role: "MEMBER",
       phone: "+5255112233445", sex: "MALE", birthDate: new Date("1995-03-22"),
       objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 3,
+      height: 175, weight: 82,
       medicalNotes: "Lesión de rodilla izquierda en 2022. Evitar impacto alto.",
       emergencyContact: "María Rodríguez", emergencyPhone: "+5255111223344",
       assignedTrainerId: trainer.id, gymId: gym.id,
       onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 14 * 86400000),
-      onboardingData: { objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 3 },
+      onboardingData: { objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 3, height: 175, weight: 82 },
     },
   })
 
@@ -154,10 +159,11 @@ async function main() {
       email: "ana@gymapp.com", name: "Ana López", password: passwordHash, role: "MEMBER",
       phone: "+5255667788990", sex: "FEMALE", birthDate: new Date("1998-11-08"),
       objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3,
+      height: 168, weight: 72,
       emergencyContact: "Sofía López", emergencyPhone: "+5255998877665",
       assignedTrainerId: trainer.id, gymId: gym.id,
       onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 10 * 86400000),
-      onboardingData: { objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3 },
+      onboardingData: { objective: "WEIGHT_LOSS", experienceLevel: "BEGINNER", trainingFrequency: 3, height: 168, weight: 72 },
     },
   })
 
@@ -169,9 +175,10 @@ async function main() {
       email: "pedro@gymapp.com", name: "Pedro Sánchez", password: passwordHash, role: "MEMBER",
       phone: "+5255443322110", sex: "MALE", birthDate: new Date("1988-07-14"),
       objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 3,
+      height: 185, weight: 95,
       assignedTrainerId: trainer.id, gymId: gym.id,
       onboardingCompleted: true, onboardingCompletedAt: new Date(Date.now() - 21 * 86400000),
-      onboardingData: { objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 3 },
+      onboardingData: { objective: "STRENGTH", experienceLevel: "ADVANCED", trainingFrequency: 3, height: 185, weight: 95 },
     },
   })
 
@@ -606,8 +613,14 @@ async function main() {
     await prisma.bodyMeasurement.create({
       data: {
         userId: carlos.id, date: new Date(Date.now() - d * 86400000),
-        weight: baseWeight, bodyFat: 18.5 - (28 - d) * 0.15,
-        chest: 98, waist: 86 - (28 - d) * 0.2, leftArm: 35 + (28 - d) * 0.1, leftThigh: 56,
+        weight: baseWeight, height: 175, bodyFat: 18.5 - (28 - d) * 0.15,
+        muscleMass: 59 + (28 - d) * 0.2,
+        neck: 38, shoulders: 118, chest: 98, waist: 86 - (28 - d) * 0.2,
+        hips: 95,
+        leftArm: 35 + (28 - d) * 0.1, rightArm: 35.5 + (28 - d) * 0.1,
+        leftForearm: 29, rightForearm: 29.5,
+        leftThigh: 56, rightThigh: 56.5,
+        leftCalf: 37, rightCalf: 37.5,
       },
     })
   }
@@ -618,8 +631,14 @@ async function main() {
     await prisma.bodyMeasurement.create({
       data: {
         userId: ana.id, date: new Date(Date.now() - d * 86400000),
-        weight: baseWeight, bodyFat: 28 - (28 - d) * 0.2,
+        weight: baseWeight, height: 168, bodyFat: 28 - (28 - d) * 0.2,
+        muscleMass: 44 + (28 - d) * 0.15,
+        neck: 32, shoulders: 96, chest: 88,
         waist: 80 - (28 - d) * 0.3, hips: 98 - (28 - d) * 0.2,
+        leftArm: 27 + (28 - d) * 0.05, rightArm: 27.5 + (28 - d) * 0.05,
+        leftForearm: 23, rightForearm: 23,
+        leftThigh: 52, rightThigh: 52.5,
+        leftCalf: 34, rightCalf: 34,
       },
     })
   }

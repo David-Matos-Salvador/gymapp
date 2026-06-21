@@ -1,7 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import {
   BadgeCheck,
   Banknote,
@@ -9,6 +11,9 @@ import {
   CalendarCheck,
   Clock,
   Users,
+  Dumbbell,
+  ListTodo,
+  ArrowRight,
 } from "lucide-react"
 
 interface AdminStats {
@@ -103,6 +108,22 @@ export function AdminDashboard({
           Panel de Administración
         </h1>
         <p className="text-muted-foreground">Gestión general del gimnasio</p>
+        <div className="flex flex-wrap gap-2 mt-3">
+          <Link href="/admin/gym-management">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Dumbbell className="size-4" />
+              Gestión de Ejercicios y Rutinas
+              <ArrowRight className="size-3" />
+            </Button>
+          </Link>
+          <Link href="/admin/memberships">
+            <Button variant="outline" size="sm" className="gap-2">
+              <BadgeCheck className="size-4" />
+              Membresías
+              <ArrowRight className="size-3" />
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

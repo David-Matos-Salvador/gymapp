@@ -16,12 +16,21 @@ import { useSound } from "@/hooks/use-sound"
 
 interface BodyMeasurement {
   id: string; date: string; weight: number | null; height: number | null;
-  bodyFat: number | null; bmi: number | null; neck: number | null;
-  shoulders: number | null; chest: number | null; waist: number | null;
-  hips: number | null; leftArm: number | null; leftThigh: number | null; leftCalf: number | null;
+  bodyFat: number | null; muscleMass: number | null; bmi: number | null;
+  neck: number | null; shoulders: number | null; chest: number | null; waist: number | null;
+  hips: number | null;
+  leftArm: number | null; rightArm: number | null;
+  leftForearm: number | null; rightForearm: number | null;
+  leftThigh: number | null; rightThigh: number | null;
+  leftCalf: number | null; rightCalf: number | null;
 }
 
-const emptyForm = { weight: "", height: "", bodyFat: "", neck: "", shoulders: "", chest: "", waist: "", hips: "", arms: "", thighs: "", calves: "" }
+const emptyForm = {
+  weight: "", height: "", bodyFat: "", muscleMass: "",
+  neck: "", shoulders: "", chest: "", waist: "", hips: "",
+  leftArm: "", rightArm: "", leftForearm: "", rightForearm: "",
+  leftThigh: "", rightThigh: "", leftCalf: "", rightCalf: "",
+}
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("es", { year: "numeric", month: "short", day: "numeric" })
@@ -53,21 +62,21 @@ export default function ProgressPage() {
     const weight = parseFloat(form.weight) || undefined
     const height = parseFloat(form.height) || undefined
     const bodyFat = parseFloat(form.bodyFat) || undefined
+    const muscleMass = parseFloat(form.muscleMass) || undefined
     const bmiVal = bmi ? parseFloat(bmi) : undefined
-    if (!weight && !height && !bodyFat) { toast.error("Agrega al menos un valor"); return }
+    if (!weight && !height && !bodyFat && !muscleMass) { toast.error("Agrega al menos un valor"); return }
     setSaving(true)
+    const p = (k: string) => parseFloat(form[k as keyof typeof form]) || undefined
     const res = await fetch("/api/body-measurements", {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        weight, height, bodyFat, bmi: bmiVal,
-        neck: parseFloat(form.neck) || undefined,
-        shoulders: parseFloat(form.shoulders) || undefined,
-        chest: parseFloat(form.chest) || undefined,
-        waist: parseFloat(form.waist) || undefined,
-        hips: parseFloat(form.hips) || undefined,
-        leftArm: parseFloat(form.arms) || undefined,
-        leftThigh: parseFloat(form.thighs) || undefined,
-        leftCalf: parseFloat(form.calves) || undefined,
+        weight, height, bodyFat, muscleMass, bmi: bmiVal,
+        neck: p("neck"), shoulders: p("shoulders"), chest: p("chest"),
+        waist: p("waist"), hips: p("hips"),
+        leftArm: p("leftArm"), rightArm: p("rightArm"),
+        leftForearm: p("leftForearm"), rightForearm: p("rightForearm"),
+        leftThigh: p("leftThigh"), rightThigh: p("rightThigh"),
+        leftCalf: p("leftCalf"), rightCalf: p("rightCalf"),
       }),
     })
     if (res.ok) {
@@ -88,22 +97,33 @@ export default function ProgressPage() {
 
   const tableColumns = [
     { key: "weight", label: "Peso (kg)" }, { key: "height", label: "Altura (cm)" },
-    { key: "bodyFat", label: "% Grasa" }, { key: "bmi", label: "IMC" },
+    { key: "bodyFat", label: "% Grasa" }, { key: "muscleMass", label: "Masa musc. (kg)" }, { key: "bmi", label: "IMC" },
+    { key: "neck", label: "Cuello" }, { key: "shoulders", label: "Hombros" },
     { key: "chest", label: "Pecho" }, { key: "waist", label: "Cintura" }, { key: "hips", label: "Cadera" },
+    { key: "leftArm", label: "Bíceps izq." }, { key: "rightArm", label: "Bíceps der." },
+    { key: "leftForearm", label: "Anteb. izq." }, { key: "rightForearm", label: "Anteb. der." },
+    { key: "leftThigh", label: "Muslo izq." }, { key: "rightThigh", label: "Muslo der." },
+    { key: "leftCalf", label: "Pant. izq." }, { key: "rightCalf", label: "Pant. der." },
   ] as const
 
   const measurementFields = [
     { key: "weight", label: "Peso (kg)", step: "0.1" },
     { key: "height", label: "Altura (cm)", step: "0.1" },
     { key: "bodyFat", label: "% Grasa corporal", step: "0.1" },
+    { key: "muscleMass", label: "Masa muscular (kg)", step: "0.1" },
     { key: "neck", label: "Cuello (cm)", step: "0.1" },
     { key: "shoulders", label: "Hombros (cm)", step: "0.1" },
     { key: "chest", label: "Pecho (cm)", step: "0.1" },
     { key: "waist", label: "Cintura (cm)", step: "0.1" },
     { key: "hips", label: "Cadera (cm)", step: "0.1" },
-    { key: "arms", label: "Brazos (cm)", step: "0.1" },
-    { key: "thighs", label: "Muslos (cm)", step: "0.1" },
-    { key: "calves", label: "Pantorrillas (cm)", step: "0.1" },
+    { key: "leftArm", label: "Bíceps izq. (cm)", step: "0.1" },
+    { key: "rightArm", label: "Bíceps der. (cm)", step: "0.1" },
+    { key: "leftForearm", label: "Antebrazo izq. (cm)", step: "0.1" },
+    { key: "rightForearm", label: "Antebrazo der. (cm)", step: "0.1" },
+    { key: "leftThigh", label: "Muslo izq. (cm)", step: "0.1" },
+    { key: "rightThigh", label: "Muslo der. (cm)", step: "0.1" },
+    { key: "leftCalf", label: "Pantorrilla izq. (cm)", step: "0.1" },
+    { key: "rightCalf", label: "Pantorrilla der. (cm)", step: "0.1" },
   ]
 
   return (

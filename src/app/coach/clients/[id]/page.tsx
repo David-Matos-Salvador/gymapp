@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AppShell } from "@/components/layout/shell"
 import { useSound } from "@/hooks/use-sound"
-import { User, Mail, Phone, Calendar, Target, Award, AlertTriangle, Dumbbell, TrendingUp, CheckCircle, Plus, ArrowLeft } from "lucide-react"
+import { User, Mail, Phone, Calendar, Target, Award, AlertTriangle, Dumbbell, TrendingUp, CheckCircle, Plus, ArrowLeft, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
 
@@ -23,7 +23,14 @@ const experienceLabels: Record<string, string> = {
 }
 
 interface BodyMeasurement {
-  id: string; date: string; weight: number | null; bodyFat: number | null; bmi: number | null
+  id: string; date: string; weight: number | null; height: number | null;
+  bodyFat: number | null; muscleMass: number | null; bmi: number | null;
+  neck: number | null; shoulders: number | null; chest: number | null; waist: number | null; hips: number | null;
+  leftArm: number | null; rightArm: number | null;
+  leftForearm: number | null; rightForearm: number | null;
+  leftThigh: number | null; rightThigh: number | null;
+  leftCalf: number | null; rightCalf: number | null;
+  notes: string | null;
 }
 interface PlanAssignment {
   id: string
@@ -53,7 +60,13 @@ export default function CoachClientDetail() {
   const [loading, setLoading] = useState(true)
   const [measureOpen, setMeasureOpen] = useState(false)
   const [routineOpen, setRoutineOpen] = useState(false)
-  const [measureForm, setMeasureForm] = useState({ weight: "", bodyFat: "", height: "", notes: "" })
+  const [measureForm, setMeasureForm] = useState({
+    weight: "", height: "", bodyFat: "", muscleMass: "",
+    neck: "", shoulders: "", chest: "", waist: "", hips: "",
+    leftArm: "", rightArm: "", leftForearm: "", rightForearm: "",
+    leftThigh: "", rightThigh: "", leftCalf: "", rightCalf: "",
+    notes: "",
+  })
   const [measureSaving, setMeasureSaving] = useState(false)
   const [availableRoutines, setAvailableRoutines] = useState<{ id: string; name: string }[]>([])
   const [routineLoading, setRoutineLoading] = useState(false)
@@ -91,14 +104,18 @@ export default function CoachClientDetail() {
       return
     }
     setMeasureSaving(true)
+    const p = (k: string) => measureForm[k as keyof typeof measureForm].trim() ? parseFloat(measureForm[k as keyof typeof measureForm]) : undefined
+    const weight = p("weight") as number | undefined
+    const height = p("height") as number | undefined
     const body: Record<string, unknown> = { userId: client!.id, date: new Date().toISOString() }
-    if (measureForm.weight) body.weight = parseFloat(measureForm.weight)
-    if (measureForm.bodyFat) body.bodyFat = parseFloat(measureForm.bodyFat)
-    if (measureForm.height) body.height = parseFloat(measureForm.height)
-    if (measureForm.notes) body.notes = measureForm.notes
-    if (body.weight && body.height) {
-      body.bmi = parseFloat(((body.weight as number) / Math.pow((body.height as number) / 100, 2)).toFixed(1))
-    }
+    if (weight != null) body.weight = weight
+    if (height != null) body.height = height
+    if (p("bodyFat")) body.bodyFat = p("bodyFat")
+    if (p("muscleMass")) body.muscleMass = p("muscleMass")
+    if (weight != null && height != null) body.bmi = parseFloat((weight / Math.pow(height / 100, 2)).toFixed(1))
+    const circumferenceFields = ["neck", "shoulders", "chest", "waist", "hips", "leftArm", "rightArm", "leftForearm", "rightForearm", "leftThigh", "rightThigh", "leftCalf", "rightCalf"]
+    circumferenceFields.forEach((k) => { const v = p(k); if (v != null) body[k] = v })
+    if (measureForm.notes.trim()) body.notes = measureForm.notes
 
     try {
       const res = await fetch("/api/body-measurements", {
@@ -110,7 +127,7 @@ export default function CoachClientDetail() {
         play("success")
         toast.success("Medición registrada")
         setMeasureOpen(false)
-        setMeasureForm({ weight: "", bodyFat: "", height: "", notes: "" })
+        setMeasureForm({ weight: "", height: "", bodyFat: "", muscleMass: "", neck: "", shoulders: "", chest: "", waist: "", hips: "", leftArm: "", rightArm: "", leftForearm: "", rightForearm: "", leftThigh: "", rightThigh: "", leftCalf: "", rightCalf: "", notes: "" })
         router.refresh()
       } else {
         toast.error("Error al guardar medición")
@@ -228,16 +245,26 @@ export default function CoachClientDetail() {
                       <thead><tr className="border-b">
                         <th className="text-left py-2 px-1 font-medium text-muted-foreground text-xs">Fecha</th>
                         <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">Peso</th>
+                        <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">Altura</th>
                         <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">% Grasa</th>
+                        <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">Masa musc.</th>
                         <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">IMC</th>
+                        <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">Pe.</th>
+                        <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">Ci.</th>
+                        <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">Ca.</th>
                       </tr></thead>
                       <tbody>
                         {client.bodyMeasurements.map((m) => (
                           <tr key={m.id} className="border-b last:border-0">
                             <td className="py-1.5 px-1 text-xs">{new Date(m.date).toLocaleDateString("es")}</td>
-                            <td className="py-1.5 px-1 text-right text-xs">{m.weight ?? "-"} kg</td>
-                            <td className="py-1.5 px-1 text-right text-xs">{m.bodyFat ?? "-"}%</td>
+                            <td className="py-1.5 px-1 text-right text-xs">{m.weight ?? "-"}</td>
+                            <td className="py-1.5 px-1 text-right text-xs">{m.height ?? "-"}</td>
+                            <td className="py-1.5 px-1 text-right text-xs">{m.bodyFat ?? "-"}</td>
+                            <td className="py-1.5 px-1 text-right text-xs">{m.muscleMass ?? "-"}</td>
                             <td className="py-1.5 px-1 text-right text-xs">{m.bmi ?? "-"}</td>
+                            <td className="py-1.5 px-1 text-right text-xs">{m.chest ?? "-"}</td>
+                            <td className="py-1.5 px-1 text-right text-xs">{m.waist ?? "-"}</td>
+                            <td className="py-1.5 px-1 text-right text-xs">{m.hips ?? "-"}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -250,9 +277,15 @@ export default function CoachClientDetail() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2"><Dumbbell className="h-5 w-5 text-accent-yellow" /> Rutinas</CardTitle>
-                <Button size="sm" onClick={() => { play("click"); setRoutineOpen(true); fetchRoutines() }}>
-                  <Plus className="mr-1 h-4 w-4" /> Asignar rutina
-                </Button>
+                {activePlan ? (
+                  <Button size="sm" variant="outline" onClick={() => { play("click"); setRoutineOpen(true); fetchRoutines() }}>
+                    <RefreshCw className="mr-1 h-4 w-4" /> Cambiar rutina
+                  </Button>
+                ) : (
+                  <Button size="sm" onClick={() => { play("click"); setRoutineOpen(true); fetchRoutines() }}>
+                    <Plus className="mr-1 h-4 w-4" /> Asignar rutina
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
                 {!activePlan ? (
@@ -300,15 +333,27 @@ export default function CoachClientDetail() {
         </div>
 
         <Dialog open={measureOpen} onOpenChange={setMeasureOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader><DialogTitle>Nueva medición para {client.name}</DialogTitle><DialogDescription>Registra peso, % grasa y altura.</DialogDescription></DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2"><Label htmlFor="mWeight">Peso (kg)</Label><Input id="mWeight" type="number" step="0.1" value={measureForm.weight} onChange={(e) => setMeasureForm((p) => ({ ...p, weight: e.target.value }))} /></div>
-                <div className="space-y-2"><Label htmlFor="mBodyFat">% Grasa</Label><Input id="mBodyFat" type="number" step="0.1" value={measureForm.bodyFat} onChange={(e) => setMeasureForm((p) => ({ ...p, bodyFat: e.target.value }))} /></div>
-                <div className="space-y-2"><Label htmlFor="mHeight">Altura (cm)</Label><Input id="mHeight" type="number" step="0.1" value={measureForm.height} onChange={(e) => setMeasureForm((p) => ({ ...p, height: e.target.value }))} /></div>
-              </div>
-              <div className="space-y-2"><Label htmlFor="mNotes">Notas</Label><Input id="mNotes" value={measureForm.notes} onChange={(e) => setMeasureForm((p) => ({ ...p, notes: e.target.value }))} /></div>
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader><DialogTitle>Nueva medición para {client.name}</DialogTitle><DialogDescription>Registra las medidas corporales del cliente.</DialogDescription></DialogHeader>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5"><Label htmlFor="mWeight">Peso (kg)</Label><Input id="mWeight" type="number" step="0.1" value={measureForm.weight} onChange={(e) => setMeasureForm((p) => ({ ...p, weight: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mHeight">Altura (cm)</Label><Input id="mHeight" type="number" step="0.1" value={measureForm.height} onChange={(e) => setMeasureForm((p) => ({ ...p, height: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mBodyFat">% Grasa</Label><Input id="mBodyFat" type="number" step="0.1" value={measureForm.bodyFat} onChange={(e) => setMeasureForm((p) => ({ ...p, bodyFat: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mMuscleMass">Masa muscular (kg)</Label><Input id="mMuscleMass" type="number" step="0.1" value={measureForm.muscleMass} onChange={(e) => setMeasureForm((p) => ({ ...p, muscleMass: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mNeck">Cuello (cm)</Label><Input id="mNeck" type="number" step="0.1" value={measureForm.neck} onChange={(e) => setMeasureForm((p) => ({ ...p, neck: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mShoulders">Hombros (cm)</Label><Input id="mShoulders" type="number" step="0.1" value={measureForm.shoulders} onChange={(e) => setMeasureForm((p) => ({ ...p, shoulders: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mChest">Pecho (cm)</Label><Input id="mChest" type="number" step="0.1" value={measureForm.chest} onChange={(e) => setMeasureForm((p) => ({ ...p, chest: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mWaist">Cintura (cm)</Label><Input id="mWaist" type="number" step="0.1" value={measureForm.waist} onChange={(e) => setMeasureForm((p) => ({ ...p, waist: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mHips">Cadera (cm)</Label><Input id="mHips" type="number" step="0.1" value={measureForm.hips} onChange={(e) => setMeasureForm((p) => ({ ...p, hips: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mLeftArm">Bíceps izq. (cm)</Label><Input id="mLeftArm" type="number" step="0.1" value={measureForm.leftArm} onChange={(e) => setMeasureForm((p) => ({ ...p, leftArm: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mRightArm">Bíceps der. (cm)</Label><Input id="mRightArm" type="number" step="0.1" value={measureForm.rightArm} onChange={(e) => setMeasureForm((p) => ({ ...p, rightArm: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mLeftForearm">Antebrazo izq. (cm)</Label><Input id="mLeftForearm" type="number" step="0.1" value={measureForm.leftForearm} onChange={(e) => setMeasureForm((p) => ({ ...p, leftForearm: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mRightForearm">Antebrazo der. (cm)</Label><Input id="mRightForearm" type="number" step="0.1" value={measureForm.rightForearm} onChange={(e) => setMeasureForm((p) => ({ ...p, rightForearm: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mLeftThigh">Muslo izq. (cm)</Label><Input id="mLeftThigh" type="number" step="0.1" value={measureForm.leftThigh} onChange={(e) => setMeasureForm((p) => ({ ...p, leftThigh: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mRightThigh">Muslo der. (cm)</Label><Input id="mRightThigh" type="number" step="0.1" value={measureForm.rightThigh} onChange={(e) => setMeasureForm((p) => ({ ...p, rightThigh: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mLeftCalf">Pantorrilla izq. (cm)</Label><Input id="mLeftCalf" type="number" step="0.1" value={measureForm.leftCalf} onChange={(e) => setMeasureForm((p) => ({ ...p, leftCalf: e.target.value }))} /></div>
+              <div className="space-y-1.5"><Label htmlFor="mRightCalf">Pantorrilla der. (cm)</Label><Input id="mRightCalf" type="number" step="0.1" value={measureForm.rightCalf} onChange={(e) => setMeasureForm((p) => ({ ...p, rightCalf: e.target.value }))} /></div>
+              <div className="space-y-1.5 col-span-2"><Label htmlFor="mNotes">Notas</Label><Input id="mNotes" value={measureForm.notes} onChange={(e) => setMeasureForm((p) => ({ ...p, notes: e.target.value }))} /></div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setMeasureOpen(false)}>Cancelar</Button>
@@ -319,7 +364,10 @@ export default function CoachClientDetail() {
 
         <Dialog open={routineOpen} onOpenChange={setRoutineOpen}>
           <DialogContent className="sm:max-w-md">
-            <DialogHeader><DialogTitle>Asignar rutina a {client.name}</DialogTitle><DialogDescription>Selecciona una de tus rutinas para asignar.</DialogDescription></DialogHeader>
+            <DialogHeader>
+              <DialogTitle>{activePlan ? "Cambiar" : "Asignar"} rutina {activePlan ? "de" : "a"} {client.name}</DialogTitle>
+              <DialogDescription>Selecciona una de tus rutinas para {activePlan ? "reasignar" : "asignar"}.</DialogDescription>
+            </DialogHeader>
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {routineLoading ? <p className="text-sm text-muted-foreground text-center py-4">Cargando...</p> : availableRoutines.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">No tienes rutinas disponibles para asignar</p>
