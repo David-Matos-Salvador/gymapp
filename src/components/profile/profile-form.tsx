@@ -283,8 +283,8 @@ export function ProfileForm({ user }: { user: User }) {
             <input
               ref={avatarInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
-              className="hidden"
+              accept="image/*"
+              className="sr-only"
               onChange={handleAvatarUpload}
             />
             <button

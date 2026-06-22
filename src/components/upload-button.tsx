@@ -63,9 +63,9 @@ export function UploadButton({
     <div className={className}>
       <input
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
+        accept="image/*"
         id={`upload-${folder}`}
-        className="hidden"
+        className="sr-only"
         onChange={handleFile}
       />
       <Button

@@ -116,13 +116,19 @@ export default function RequestsPage() {
       formData.append("planId", selectedPlan)
       formData.append("method", "YAPE")
       const res = await fetch("/api/payments", { method: "POST", body: formData })
-      const data = await res.json()
-      if (!res.ok) { toast.error(data.error || "Error al procesar pago"); return }
+      const data = await res.json().catch(() => ({ error: "Error al procesar pago" }))
+      if (!res.ok) {
+        toast.error(data.error || "Error al procesar pago")
+        return
+      }
       toast.success("Comprobante subido. Espera la confirmación de tu entrenador.")
       setShowPayment(false)
       setSelectedPlan("")
       setReceiptFile(null)
-    } catch { toast.error("Error de conexion") }
+    } catch (err) {
+      console.error("Upload error:", err)
+      toast.error("Error de conexion")
+    }
     finally { setUploading(false) }
   }, [selectedPlan, receiptFile])
 
@@ -199,8 +205,8 @@ export default function RequestsPage() {
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      className="hidden"
+                      accept="image/*"
+                      className="sr-only"
                       onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
                     />
                     {receiptFile && <span className="text-sm text-muted-foreground">{receiptFile.name}</span>}

@@ -6,7 +6,8 @@ import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 
 const UPLOAD_DIR = join(process.cwd(), "public", "uploads", "receipts")
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif", "image/jpg"]
+const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"]
 const MAX_SIZE = 5 * 1024 * 1024
 
 export async function POST(request: Request) {
@@ -32,7 +33,10 @@ export async function POST(request: Request) {
     if (!planId) {
       return NextResponse.json({ error: "Plan requerido" }, { status: 400 })
     }
-    if (!ALLOWED_TYPES.includes(file.type)) {
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+    const mimeValid = file.type === "" || ALLOWED_TYPES.includes(file.type)
+    const extValid = ALLOWED_EXTENSIONS.includes(ext)
+    if (!mimeValid && !extValid) {
       return NextResponse.json({ error: "Formato no permitido. Usa JPEG, PNG, WebP o GIF" }, { status: 400 })
     }
     if (file.size > MAX_SIZE) {
@@ -48,48 +52,59 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Método de pago no válido" }, { status: 400 })
     }
 
-    await mkdir(UPLOAD_DIR, { recursive: true })
+    let receiptUrl: string
+    try {
+      await mkdir(UPLOAD_DIR, { recursive: true })
 
-    const ext = file.name.split(".").pop() || "jpg"
-    const filename = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "." + ext
-    const filePath = join(UPLOAD_DIR, filename)
+      const filename = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "." + ext
+      const filePath = join(UPLOAD_DIR, filename)
 
-    const bytes = await file.arrayBuffer()
-    await writeFile(filePath, Buffer.from(bytes))
+      const bytes = await file.arrayBuffer()
+      await writeFile(filePath, Buffer.from(bytes))
 
-    const receiptUrl = "/uploads/receipts/" + filename
+      receiptUrl = "/uploads/receipts/" + filename
+    } catch (err) {
+      console.error("File write error:", err)
+      return NextResponse.json({ error: "Error al guardar el comprobante" }, { status: 500 })
+    }
+
     const now = new Date()
     const endDate = new Date(now.getTime() + plan.durationDays * 86400000)
 
-    const [membership, payment] = await prisma.$transaction([
-      prisma.membership.create({
-        data: {
-          userId: user.id,
-          planId: plan.id,
-          status: "ACTIVE",
-          startDate: now,
-          endDate,
-          paymentConfirmed: false,
-          paymentMethod: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
-          paymentRef: null,
-        },
-        include: { plan: true },
-      }),
-      prisma.payment.create({
-        data: {
-          userId: user.id,
-          amount: plan.price,
-          currency: plan.currency,
-          status: "PENDING",
-          method: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
-          type: "MEMBERSHIP",
-          receiptUrl,
-          reference: null,
-        },
-      }),
-    ])
+    try {
+      const [membership, payment] = await prisma.$transaction([
+        prisma.membership.create({
+          data: {
+            userId: user.id,
+            planId: plan.id,
+            status: "ACTIVE",
+            startDate: now,
+            endDate,
+            paymentConfirmed: false,
+            paymentMethod: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
+            paymentRef: null,
+          },
+          include: { plan: true },
+        }),
+        prisma.payment.create({
+          data: {
+            userId: user.id,
+            amount: plan.price,
+            currency: plan.currency,
+            status: "PENDING",
+            method: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
+            type: "MEMBERSHIP",
+            receiptUrl,
+            reference: null,
+          },
+        }),
+      ])
 
-    return NextResponse.json({ membership, payment }, { status: 201 })
+      return NextResponse.json({ membership, payment }, { status: 201 })
+    } catch (err) {
+      console.error("Payment DB error:", err)
+      return NextResponse.json({ error: "Error al registrar el pago" }, { status: 500 })
+    }
   } catch (error) {
     console.error("Payment upload error:", error)
     return NextResponse.json({ error: "Error al procesar el pago" }, { status: 500 })

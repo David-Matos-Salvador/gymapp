@@ -91,8 +91,8 @@ export function ProgressPhotoUpload({ onUpload }: ProgressPhotoUploadProps) {
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        className="hidden"
+        accept="image/*"
+        className="sr-only"
         onChange={handleFileSelect}
       />
 

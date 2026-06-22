@@ -1,0 +1,49 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - img [ref=e4]
+      - generic [ref=e7]: GymApp
+      - generic [ref=e8]:
+        - button "Notificaciones" [ref=e9]:
+          - img [ref=e10]
+        - generic [ref=e13]: Miembro
+    - main [ref=e14]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - heading "Solicitudes de entrenador" [level=1] [ref=e18]
+          - paragraph [ref=e19]: Gestiona las solicitudes de entrenadores que quieren ser tu coach
+        - generic [ref=e21]:
+          - img [ref=e23]
+          - paragraph [ref=e28]: No tienes solicitudes pendientes
+          - paragraph [ref=e29]: Cuando un entrenador te envíe una solicitud, aparecerá aquí.
+        - generic [ref=e30]:
+          - heading "Historial" [level=2] [ref=e31]
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - img [ref=e36]
+              - generic [ref=e41]:
+                - paragraph [ref=e42]: Coach Andrea
+                - paragraph [ref=e43]: trainer2@gymapp.com
+            - generic [ref=e44]: Aceptado
+    - navigation [ref=e45]:
+      - generic [ref=e46]:
+        - link "Mi Rutina" [ref=e47] [cursor=pointer]:
+          - /url: /rutinas
+          - img [ref=e48]
+          - generic [ref=e54]: Mi Rutina
+        - link "Progreso" [ref=e55] [cursor=pointer]:
+          - /url: /progress
+          - img [ref=e56]
+          - generic [ref=e59]: Progreso
+        - link "Clases" [ref=e60] [cursor=pointer]:
+          - /url: /classes
+          - img [ref=e61]
+          - generic [ref=e63]: Clases
+        - link "Perfil" [ref=e64] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e65]
+          - generic [ref=e77]: Perfil
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e83] [cursor=pointer]:
+    - img [ref=e84]
+  - alert [ref=e87]

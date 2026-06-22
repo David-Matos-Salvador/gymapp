@@ -1,0 +1,54 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e258]:
+    - banner [ref=e259]:
+      - img [ref=e260]
+      - generic [ref=e263]: GymApp
+      - generic [ref=e264]:
+        - button "Notificaciones" [ref=e265]:
+          - img [ref=e266]
+        - generic [ref=e269]: Miembro
+    - main [ref=e270]:
+      - generic [ref=e272]:
+        - button "Volver a Perfil" [ref=e273]:
+          - img [ref=e274]
+          - text: Volver a Perfil
+        - generic [ref=e276]:
+          - heading "Pagos" [level=1] [ref=e277]
+          - paragraph [ref=e278]: Historial de tus pagos
+        - generic [ref=e281]:
+          - generic [ref=e282]:
+            - generic [ref=e283]:
+              - img [ref=e285]
+              - generic [ref=e287]:
+                - paragraph [ref=e288]: Membresía
+                - paragraph [ref=e289]: 22 jun 2026, 12:31 p.m.
+            - generic [ref=e290]:
+              - img [ref=e291]
+              - text: Pendiente
+          - generic [ref=e294]:
+            - generic [ref=e295]:
+              - img [ref=e296]
+              - generic [ref=e298]: Yape
+            - generic [ref=e299]: $500.00
+    - navigation [ref=e300]:
+      - generic [ref=e301]:
+        - link "Mi Rutina" [ref=e302] [cursor=pointer]:
+          - /url: /rutinas
+          - img [ref=e303]
+          - generic [ref=e309]: Mi Rutina
+        - link "Progreso" [ref=e310] [cursor=pointer]:
+          - /url: /progress
+          - img [ref=e311]
+          - generic [ref=e314]: Progreso
+        - link "Clases" [ref=e315] [cursor=pointer]:
+          - /url: /classes
+          - img [ref=e316]
+          - generic [ref=e318]: Clases
+        - link "Perfil" [ref=e319] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e320]
+          - generic [ref=e332]: Perfil
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e253] [cursor=pointer]:
+    - img [ref=e254]
+  - alert [ref=e257]

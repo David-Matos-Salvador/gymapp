@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Loader2, CreditCard, Banknote, ArrowLeftRight, CheckCircle2 } from "lucide-react"
+import { Loader2, CreditCard, Banknote, ArrowLeftRight, CheckCircle2, Upload } from "lucide-react"
 
 interface MembershipPlan {
   name: string
@@ -41,30 +41,47 @@ export function PaymentForm({
   const [reference, setReference] = useState(currentPaymentRef ?? "")
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [receiptFile, setReceiptFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitting(true)
 
     try {
-      const body: Record<string, unknown> = {
-        paymentConfirmed: true,
-        paymentMethod: method,
-      }
+      if (receiptFile) {
+        const formData = new FormData()
+        formData.append("file", receiptFile)
+        formData.append("method", method)
+        formData.append("membershipId", membershipId)
+        if (method === "TRANSFER" && reference.trim()) {
+          formData.append("reference", reference.trim())
+        }
 
-      if (method === "TRANSFER" && reference.trim()) {
-        body.paymentRef = reference.trim()
-      }
-
-      const res = await fetch(`/api/memberships/${membershipId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-
-      if (!res.ok) {
+        const res = await fetch("/api/payments/receipt", {
+          method: "POST",
+          body: formData,
+        })
         const data = await res.json()
-        throw new Error(data.error ?? "Error al confirmar el pago")
+        if (!res.ok) throw new Error(data.error ?? "Error al subir comprobante")
+      } else {
+        const body: Record<string, unknown> = {
+          paymentConfirmed: true,
+          paymentMethod: method,
+        }
+        if (method === "TRANSFER" && reference.trim()) {
+          body.paymentRef = reference.trim()
+        }
+
+        const res = await fetch(`/api/memberships/${membershipId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        })
+        if (!res.ok) {
+          const data = await res.json()
+          throw new Error(data.error ?? "Error al confirmar el pago")
+        }
       }
 
       setSuccess(true)
@@ -143,6 +160,23 @@ export function PaymentForm({
               />
             </div>
           )}
+
+          <div className="space-y-1.5">
+            <Label>Comprobante de pago (opcional)</Label>
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+                <Upload className="h-4 w-4 mr-2" /> Subir comprobante
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+              />
+              {receiptFile && <span className="text-xs text-muted-foreground truncate max-w-[160px]">{receiptFile.name}</span>}
+            </div>
+          </div>
 
           <Button type="submit" disabled={submitting} className="w-full">
             {submitting ? (
