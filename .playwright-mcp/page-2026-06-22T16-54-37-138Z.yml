@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - img [ref=e4]
+      - generic [ref=e7]: GymApp
+      - button "Notificaciones" [ref=e9]:
+        - img [ref=e10]
+    - main [ref=e13]:
+      - img [ref=e16]
+    - navigation [ref=e18]:
+      - generic [ref=e19]:
+        - link "Progreso" [ref=e20] [cursor=pointer]:
+          - /url: /progress
+          - img [ref=e21]
+          - generic [ref=e24]: Progreso
+        - link "Clases" [ref=e25] [cursor=pointer]:
+          - /url: /classes
+          - img [ref=e26]
+          - generic [ref=e28]: Clases
+        - link "Perfil" [ref=e29] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=e30]
+          - generic [ref=e42]: Perfil
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e48] [cursor=pointer]:
+    - generic [ref=e51]:
+      - text: Compiling
+      - generic [ref=e52]:
+        - generic [ref=e53]: .
+        - generic [ref=e54]: .
+        - generic [ref=e55]: .
+  - alert [ref=e56]

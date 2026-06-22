@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useSound } from "@/hooks/use-sound"
 import { cn } from "@/lib/utils"
@@ -14,6 +14,7 @@ import {
   BarChart3,
   Sparkles,
   TrendingUp,
+  CreditCard,
 } from "lucide-react"
 import { useRef, useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -44,6 +45,7 @@ export function AppBottomNav({ className }: { className?: string }) {
 
   const roleTabs = [
     ...(isTrainer || isAdmin ? [{ label: "Coach", href: "/coach", icon: Users }] : []),
+    ...(isTrainer || isAdmin || isSuperAdmin ? [{ label: "Pagos", href: "/coach/payments", icon: CreditCard }] : []),
     ...(isAdmin || isSuperAdmin ? [{ label: "Admin", href: "/admin", icon: BarChart3 }] : []),
   ]
 
@@ -92,6 +94,7 @@ export function AppBottomNav({ className }: { className?: string }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const router = useRouter()
   const prevPathnameRef = useRef<string | null>(null)
   const { user } = useAuth()
 
@@ -148,6 +151,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [notifications])
 
+  const handleNavigate = useCallback((notification: MockNotification) => {
+    if (notification.type === "TRAINER_REQUEST") {
+      router.push("/requests")
+    } else if (notification.type === "PAYMENT") {
+      router.push("/coach/payments")
+    }
+  }, [router])
+
   const variants = {
     initial: (d: number) => ({ x: d > 0 ? 30 : -30, opacity: 0 }),
     animate: { x: 0, opacity: 1 },
@@ -169,6 +180,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               notifications={notifications}
               onMarkRead={handleMarkRead}
               onMarkAllRead={handleMarkAllRead}
+              onNavigate={handleNavigate}
             />
           </NotificationBell>
           {roleChip && (

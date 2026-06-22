@@ -16,12 +16,13 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const gymId = searchParams.get("gymId")
 
-  if (!gymId) {
-    return NextResponse.json({ error: "El ID del gimnasio es requerido" }, { status: 400 })
+  const where: Record<string, unknown> = { active: true }
+  if (gymId) {
+    where.gymId = gymId
   }
 
   const plans = await prisma.membershipPlan.findMany({
-    where: { gymId, active: true },
+    where,
     orderBy: { price: "asc" },
   })
 

@@ -14,20 +14,26 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url)
-  const email = searchParams.get("email")
+  const q = searchParams.get("q") || searchParams.get("email")
 
-  if (!email) {
-    return NextResponse.json({ error: "Email requerido" }, { status: 400 })
+  if (!q) {
+    return NextResponse.json({ error: "Término de búsqueda requerido" }, { status: 400 })
   }
 
-  const member = await prisma.user.findUnique({
-    where: { email, role: "MEMBER" },
-    select: { id: true, name: true, email: true },
+  const members = await prisma.user.findMany({
+    where: {
+      role: "MEMBER",
+      email: { contains: q, mode: "insensitive" },
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      assignedTrainerId: true,
+    },
+    take: 10,
+    orderBy: { email: "asc" },
   })
 
-  if (!member) {
-    return NextResponse.json({ error: "Miembro no encontrado" }, { status: 404 })
-  }
-
-  return NextResponse.json({ member })
+  return NextResponse.json({ members })
 }

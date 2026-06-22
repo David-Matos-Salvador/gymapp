@@ -36,6 +36,8 @@ export async function GET() {
   return NextResponse.json({ clients })
 }
 
+const sendRequestSchema = z.object({ clientId: z.string().min(1) })
+
 export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user?.email) {
@@ -48,28 +50,39 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json()
-  const { clientId } = z.object({ clientId: z.string().min(1) }).parse(body)
+  const { clientId } = sendRequestSchema.parse(body)
 
   const client = await prisma.user.findUnique({ where: { id: clientId } })
   if (!client) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
+  if (client.role !== "MEMBER") {
+    return NextResponse.json({ error: "Solo se puede enviar solicitud a miembros" }, { status: 400 })
+  }
   if (client.assignedTrainerId) {
     return NextResponse.json({ error: "El usuario ya tiene un entrenador asignado" }, { status: 409 })
   }
 
-  const updated = await prisma.user.update({
-    where: { id: clientId },
-    data: { assignedTrainerId: user.id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      objective: true,
-      experienceLevel: true,
+  const existing = await prisma.trainerRequest.findFirst({
+    where: { trainerId: user.id, clientId, status: "PENDING" },
+  })
+  if (existing) {
+    return NextResponse.json({ error: "Ya existe una solicitud pendiente para este usuario" }, { status: 409 })
+  }
+
+  const trainerRequest = await prisma.trainerRequest.create({
+    data: { trainerId: user.id, clientId },
+  })
+
+  await prisma.notification.create({
+    data: {
+      userId: clientId,
+      title: "Solicitud de entrenador",
+      message: `${user.name || "Un entrenador"} quiere ser tu coach. Revisa y acepta la solicitud.`,
+      type: "TRAINER_REQUEST",
+      metadata: { requestId: trainerRequest.id, trainerId: user.id, trainerName: user.name },
     },
   })
 
-  return NextResponse.json({ client: updated })
+  return NextResponse.json({ request: trainerRequest }, { status: 201 })
 }

@@ -104,6 +104,7 @@ enum PaymentMethod {
   TRANSFER
   CARD
   STRIPE
+  YAPE
   OTHER
 }
 
@@ -123,6 +124,13 @@ enum NotificationType {
   CHECK_IN
   GOAL
   SYSTEM
+  TRAINER_REQUEST
+}
+
+enum TrainerRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
 
 model Gym {
@@ -193,6 +201,10 @@ model User {
   bodyMeasurements BodyMeasurement[]
   progressPhotos   ProgressPhoto[]
   classes          Class[]           @relation("TrainerClasses")
+
+  trainerRequestsSent     TrainerRequest[] @relation("TrainerRequestSender")
+  trainerRequestsReceived TrainerRequest[] @relation("TrainerRequestReceiver")
+  paymentConfirmations    Payment[]        @relation("PaymentConfirmer")
 
   accounts Account[]
   sessions Session[]
@@ -497,10 +509,14 @@ model Payment {
   type                  PaymentType   @default(MEMBERSHIP)
   reference             String?
   notes                 String?
+  receiptUrl            String?
+  confirmedById         String?
+  confirmedAt           DateTime?
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  confirmedBy User? @relation("PaymentConfirmer", fields: [confirmedById], references: [id])
 }
 
 model Notification {
@@ -510,7 +526,25 @@ model Notification {
   message   String
   type      NotificationType @default(INFO)
   read      Boolean          @default(false)
+  metadata  Json?
   createdAt DateTime         @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TrainerRequest {
+  id         String               @id @default(cuid())
+  trainerId  String
+  clientId   String
+  status     TrainerRequestStatus @default(PENDING)
+  createdAt  DateTime             @default(now())
+  acceptedAt DateTime?
+  rejectedAt DateTime?
+
+  trainer User @relation("TrainerRequestSender", fields: [trainerId], references: [id], onDelete: Cascade)
+  client  User @relation("TrainerRequestReceiver", fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([trainerId])
+  @@index([clientId])
+  @@index([status])
 }

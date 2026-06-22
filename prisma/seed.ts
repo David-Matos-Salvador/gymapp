@@ -51,6 +51,21 @@ async function main() {
     },
   })
 
+  // Trainer 2: sin clientes — el usuario los agregará manualmente
+  const trainer2 = await prisma.user.upsert({
+    where: { email: "trainer2@gymapp.com" },
+    update: {},
+    create: {
+      email: "trainer2@gymapp.com", name: "Coach Andrea", password: passwordHash, role: "TRAINER",
+      phone: "+5255988776644", sex: "FEMALE", gymId: gym.id, birthDate: new Date("1992-03-22"),
+      bio: "Especialista en rehabilitación y entrenamiento funcional",
+      specialties: ["REHABILITATION", "FUNCTIONAL", "STRENGTH"],
+      certifications: ["NSCA-CSCS", "CrossFit Level 2"],
+      yearsExperience: 8,
+      onboardingCompleted: true,
+    },
+  })
+
   // ── Members (each a different scenario) ─────────────
   //
   // Scenario 1: Fresh signup — no onboarding, no coach, no plan
@@ -182,7 +197,21 @@ async function main() {
     },
   })
 
-  console.log("✅ Users created (9 members + 3 staff)")
+  // Scenario 10: Onboarding done, no coach — ideal para trainer2
+  const roberto = await prisma.user.upsert({
+    where: { email: "roberto@gymapp.com" },
+    update: {},
+    create: {
+      email: "roberto@gymapp.com", name: "Roberto Navarro", password: passwordHash, role: "MEMBER",
+      phone: "+5255999887766", sex: "MALE", birthDate: new Date("1996-01-30"),
+      objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 4,
+      height: 172, weight: 70, gymId: gym.id,
+      onboardingCompleted: true, onboardingCompletedAt: new Date(),
+      onboardingData: { objective: "MUSCLE_GAIN", experienceLevel: "INTERMEDIATE", trainingFrequency: 4, height: 172, weight: 70 },
+    },
+  })
+
+  console.log("✅ Users created (10 members + 3 staff)")
 
   // ── Membership Plans ────────────────────────────────
   const plans = await Promise.all([
@@ -659,22 +688,64 @@ async function main() {
   })
   console.log("✅ Notifications created")
 
+  // ── Trainer Requests (demo) ─────────────────────────
+  // Trainer 2 (Coach Andrea) sends a request to valentina (onboarding done, no coach)
+  await prisma.trainerRequest.create({
+    data: {
+      trainerId: trainer2.id,
+      clientId: valentina.id,
+      status: "PENDING",
+    },
+  })
+
+  await prisma.notification.create({
+    data: {
+      userId: valentina.id,
+      title: "Solicitud de entrenador",
+      message: "Coach Andrea quiere ser tu coach. Revisa y acepta la solicitud.",
+      type: "TRAINER_REQUEST",
+      metadata: { trainerId: trainer2.id, trainerName: "Coach Andrea" },
+    },
+  })
+  console.log("✅ Trainer requests created")
+
+  // ── Payment example (pending Yape payment) ──────────
+  await prisma.payment.create({
+    data: {
+      userId: mateo.id,
+      amount: 500,
+      currency: "MXN",
+      status: "PENDING",
+      method: "YAPE",
+      type: "MEMBERSHIP",
+      receiptUrl: null,
+    },
+  })
+  console.log("✅ Payment examples created")
+
   console.log("\n🎉 Seed completed!")
   console.log("\n📋 Login credentials (password: demo123):")
   console.log("  Staff:")
   console.log("    Super Admin:  superadmin@gymapp.com")
   console.log("    Admin:        admin@gymapp.com")
-  console.log("    Trainer:      trainer@gymapp.com")
+  console.log("    Trainer:      trainer@gymapp.com    — Coach Martínez, 6 clientes asignados")
+  console.log("    Trainer 2:    trainer2@gymapp.com   — Coach Andrea, 0 clientes, 1 solicitud pendiente (Valentina)")
   console.log("  Members:")
-  console.log("    🆕 Laura       laura@gymapp.com      — fresh signup, no onboarding")
-  console.log("    🏋️ Diego       diego@gymapp.com      — coach assigned, no onboarding yet")
-  console.log("    📋 Valentina   valentina@gymapp.com  — onboarding done, no plan chosen")
-  console.log("    🌱 Mateo       mateo@gymapp.com      — active plan, 0 workouts")
-  console.log("    ⚠️  Sofia       sofia@gymapp.com      — EXPIRED membership")
-  console.log("    🚫 Ricardo     ricardo@gymapp.com    — INACTIVE membership")
-  console.log("    💪 Carlos      carlos@gymapp.com     — power user, 3 workouts this week")
-  console.log("    🔥 Ana         ana@gymapp.com        — active, 1 workout this week")
-  console.log("    🏆 Pedro       pedro@gymapp.com      — advanced, sporadic workouts")
+  console.log("    🆕 Laura       laura@gymapp.com      — sin onboarding, sin coach, sin plan")
+  console.log("    🏋️ Diego       diego@gymapp.com      — coach asignado, sin onboarding aún")
+  console.log("    📋 Valentina   valentina@gymapp.com  — onboarding done, tiene solicitud pendiente de Coach Andrea")
+  console.log("    🌱 Mateo       mateo@gymapp.com      — plan activo, 0 workouts, pago Yape pendiente")
+  console.log("    ⚠️  Sofia       sofia@gymapp.com      — membresía EXPIRADA")
+  console.log("    🚫 Ricardo     ricardo@gymapp.com    — membresía INACTIVA")
+  console.log("    💪 Carlos      carlos@gymapp.com     — power user, 3 workouts esta semana")
+  console.log("    🔥 Ana         ana@gymapp.com        — activa, 1 workout esta semana")
+  console.log("    🏆 Pedro       pedro@gymapp.com      — avanzado, workouts esporádicos")
+  console.log("    🧑 Roberto     roberto@gymapp.com    — onboarding done, SIN coach (ideal para asignar con trainer2)")
+  console.log("\n🔄 Flujo trainer→cliente:")
+  console.log("  1. Login como trainer2, busca 'roberto' en /coach, envía solicitud")
+  console.log("  2. Login como roberto, ve a /requests, acepta la solicitud")
+  console.log("  3. Roberto elige plan, sube comprobante Yape")
+  console.log("  4. Login como trainer2, ve a /coach/payments, confirma el pago")
 }
 
 main().catch((e) => { console.error(e); process.exit(1) }).finally(async () => { await prisma.$disconnect() })

@@ -7,81 +7,92 @@ interface RouteParams {
   params: Promise<{ id: string }>
 }
 
-const updatePaymentSchema = z.object({
-  status: z.enum(["PENDING", "COMPLETED", "FAILED", "REFUNDED"]).optional(),
-  method: z.enum(["CASH", "TRANSFER", "CARD", "STRIPE", "OTHER"]).optional(),
-  type: z.enum(["MEMBERSHIP", "CLASS_BOOKING", "OTHER"]).optional(),
-  reference: z.string().optional(),
+const updateSchema = z.object({
+  action: z.enum(["CONFIRM", "REJECT"]),
   notes: z.string().optional(),
 })
 
-export async function GET(request: Request, { params }: RouteParams) {
-  try {
-    const session = await auth()
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-    }
+export async function PUT(request: Request, { params }: RouteParams) {
+  const session = await auth()
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
 
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-    if (!user) {
-      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
-    }
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  }
 
-    const { id } = await params
-    const payment = await prisma.payment.findUnique({
-      where: { id },
-      include: { user: { select: { id: true, name: true, email: true } } },
+  const { id } = await params
+  const body = await request.json()
+  const { action, notes } = updateSchema.parse(body)
+
+  const payment = await prisma.payment.findUnique({
+    where: { id },
+    include: { user: true },
+  })
+  if (!payment) {
+    return NextResponse.json({ error: "Pago no encontrado" }, { status: 404 })
+  }
+  if (payment.status !== "PENDING") {
+    return NextResponse.json({ error: "Este pago ya fue procesado" }, { status: 409 })
+  }
+
+  if (action === "CONFIRM") {
+    const [updatedPayment] = await prisma.$transaction([
+      prisma.payment.update({
+        where: { id },
+        data: {
+          status: "COMPLETED",
+          confirmedById: user.id,
+          confirmedAt: new Date(),
+          notes: notes || null,
+        },
+      }),
+      prisma.membership.updateMany({
+        where: { userId: payment.userId, paymentConfirmed: false, status: "ACTIVE" },
+        data: { paymentConfirmed: true },
+      }),
+    ])
+
+    await prisma.notification.create({
+      data: {
+        userId: payment.userId,
+        title: "Pago confirmado",
+        message: "Tu comprobante de pago fue verificado. ¡Tu membresía está activa!",
+        type: "PAYMENT",
+        metadata: { paymentId: id },
+      },
     })
 
-    if (!payment) {
-      return NextResponse.json({ error: "Pago no encontrado" }, { status: 404 })
-    }
-
-    if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && payment.userId !== user.id) {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
-    }
-
-    return NextResponse.json({ payment })
-  } catch {
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+    return NextResponse.json({ payment: updatedPayment })
   }
-}
 
-export async function PATCH(request: Request, { params }: RouteParams) {
-  try {
-    const session = await auth()
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-    if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
-    }
-
-    const { id } = await params
-    const existing = await prisma.payment.findUnique({ where: { id } })
-    if (!existing) {
-      return NextResponse.json({ error: "Pago no encontrado" }, { status: 404 })
-    }
-
-    const body = await request.json()
-    const parsed = updatePaymentSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
-        { status: 400 }
-      )
-    }
-
-    const payment = await prisma.payment.update({
+  const [updatedPayment] = await prisma.$transaction([
+    prisma.payment.update({
       where: { id },
-      data: parsed.data,
-      include: { user: { select: { id: true, name: true, email: true } } },
-    })
+      data: {
+        status: "FAILED",
+        confirmedById: user.id,
+        confirmedAt: new Date(),
+        notes: notes || "Pago rechazado",
+      },
+    }),
+    prisma.membership.updateMany({
+      where: { userId: payment.userId, paymentConfirmed: false, status: "ACTIVE" },
+      data: { status: "SUSPENDED" },
+    }),
+  ])
 
-    return NextResponse.json({ payment })
-  } catch {
-    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
-  }
+  await prisma.notification.create({
+    data: {
+      userId: payment.userId,
+      title: "Pago rechazado",
+      message: notes || "Tu comprobante de pago fue rechazado. Contacta a tu entrenador.",
+      type: "PAYMENT",
+      metadata: { paymentId: id },
+    },
+  })
+
+  return NextResponse.json({ payment: updatedPayment })
 }

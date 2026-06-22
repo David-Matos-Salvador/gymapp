@@ -10,6 +10,10 @@ import {
   Dumbbell,
   Info,
   CheckCheck,
+  UserPlus,
+  CalendarCheck,
+  Target,
+  Settings,
 } from "lucide-react"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
@@ -18,9 +22,10 @@ export interface MockNotification {
   id: string
   title: string
   message: string
-  type: "INFO" | "WARNING" | "REMINDER" | "PAYMENT" | "MEMBERSHIP" | "CLASS"
+  type: "INFO" | "WARNING" | "REMINDER" | "PAYMENT" | "MEMBERSHIP" | "CLASS" | "CHECK_IN" | "GOAL" | "SYSTEM" | "TRAINER_REQUEST"
   read: boolean
   createdAt: string
+  metadata?: { requestId?: string; trainerId?: string; paymentId?: string }
 }
 
 const typeIcon: Record<MockNotification["type"], typeof Info> = {
@@ -30,6 +35,10 @@ const typeIcon: Record<MockNotification["type"], typeof Info> = {
   PAYMENT: CreditCard,
   MEMBERSHIP: IdCard,
   CLASS: Dumbbell,
+  CHECK_IN: CalendarCheck,
+  GOAL: Target,
+  SYSTEM: Settings,
+  TRAINER_REQUEST: UserPlus,
 }
 
 const typeColor: Record<MockNotification["type"], string> = {
@@ -39,6 +48,10 @@ const typeColor: Record<MockNotification["type"], string> = {
   PAYMENT: "text-emerald-500 bg-emerald-500/10",
   MEMBERSHIP: "text-accent-yellow bg-accent-yellow/10",
   CLASS: "text-rose-500 bg-rose-500/10",
+  CHECK_IN: "text-cyan-500 bg-cyan-500/10",
+  GOAL: "text-orange-500 bg-orange-500/10",
+  SYSTEM: "text-gray-500 bg-gray-500/10",
+  TRAINER_REQUEST: "text-indigo-500 bg-indigo-500/10",
 }
 
 function relativeTime(iso: string): string {
@@ -62,16 +75,25 @@ interface NotificationListProps {
   notifications: MockNotification[]
   onMarkRead: (id: string) => void
   onMarkAllRead: () => void
+  onNavigate?: (notification: MockNotification) => void
 }
 
 export function NotificationList({
   notifications,
   onMarkRead,
   onMarkAllRead,
+  onNavigate,
 }: NotificationListProps) {
   const sorted = [...notifications].sort(
     (a, b) => Number(b.read) - Number(a.read),
   )
+
+  function handleClick(notification: MockNotification) {
+    onMarkRead(notification.id)
+    if (notification.type === "TRAINER_REQUEST" || notification.type === "PAYMENT") {
+      onNavigate?.(notification)
+    }
+  }
   const unreadCount = notifications.filter((n) => !n.read).length
 
   if (sorted.length === 0) {
@@ -122,7 +144,7 @@ export function NotificationList({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, x: 40 }}
                 transition={{ duration: 0.2, delay: index * 0.03 }}
-                onClick={() => onMarkRead(notification.id)}
+                onClick={() => handleClick(notification)}
                 className={cn(
                   "flex w-full items-start gap-3 px-5 py-3.5 text-left transition-colors hover:bg-muted/60",
                   !notification.read && "bg-accent-yellow/5",
