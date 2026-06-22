@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Avatar, AvatarFallback, AvatarImage, AvatarBadge } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Shield, Trophy } from "lucide-react"
+import { ROLE_LABELS, ROLE_VARIANTS, EXPERIENCE_LABELS } from "@/constants/user"
 
 interface User {
   id: string
@@ -21,20 +22,6 @@ interface User {
   phone: string | null
   image: string | null
   createdAt: string
-}
-
-const roleLabels: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
-  ADMIN: { label: "Administrador", variant: "default" },
-  TRAINER: { label: "Coach", variant: "secondary" },
-  MEMBER: { label: "Miembro", variant: "outline" },
-  SUPER_ADMIN: { label: "Super Admin", variant: "default" },
-}
-
-const experienceLabels: Record<string, string> = {
-  BEGINNER: "Principiante",
-  INTERMEDIATE: "Intermedio",
-  ADVANCED: "Avanzado",
-  ELITE: "Élite",
 }
 
 function calculateProfileCompletion(user: User): number {
@@ -62,7 +49,7 @@ export function ProfileHeader({ user }: { user: User }) {
     month: "long",
   })
 
-  const roleConfig = roleLabels[user.role] ?? { label: user.role, variant: "default" as const }
+  const roleConfig = { label: ROLE_LABELS[user.role] ?? user.role, variant: ROLE_VARIANTS[user.role] ?? "default" as const }
 
   return (
     <motion.div
@@ -101,7 +88,7 @@ export function ProfileHeader({ user }: { user: User }) {
         {user.experienceLevel && (
           <span className="inline-flex items-center gap-1.5">
             <Shield className="h-4 w-4" />
-            {experienceLabels[user.experienceLevel] ?? user.experienceLevel}
+            {EXPERIENCE_LABELS[user.experienceLevel] ?? user.experienceLevel}
           </span>
         )}
       </div>

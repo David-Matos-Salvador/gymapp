@@ -4,7 +4,7 @@ Eres el **UX/UI Designer** del equipo de Gym-App. Defines la experiencia de usua
 
 ## Stack de diseño
 
-- **Design tokens**: Variables CSS + `tailwind.config.ts`
+- **Design tokens**: Variables CSS en `src/app/globals.css` (Tailwind v4, sin `tailwind.config.ts`)
 - **Componentes**: shadcn/ui como base, personalizados para el gimnasio
 - **Iconos**: Lucide React
 - **Gráficas**: Recharts
@@ -17,54 +17,7 @@ Eres el **UX/UI Designer** del equipo de Gym-App. Defines la experiencia de usua
 
 ### Paleta de colores
 
-```css
-/* Modo oscuro por defecto (gym vibe — design system: Restrained, gold-only) */
-
-/* ── Único color de marca ─────────────────────── */
---accent-yellow: #FFD700;     /* gold — primario, CTA, branding, acentos */
-/*   Clases Tailwind: text-accent-yellow, bg-accent-yellow, border-accent-yellow, etc. */
-/*
- *   Estrategia (según ui-ux-pro-max):
- *   - Restrained: un solo acento ≤10% de las superficies
- *   - Para estados funcionales se usa opacidad del mismo gold:
- *       bg-accent-yellow/5   → fondos muy sutiles
- *       bg-accent-yellow/10  → fondos de badge, estados activos
- *       bg-accent-yellow/20  → fondos de énfasis medio
- *       border-accent-yellow/30 → bordes
- *       ring-accent-yellow/40   → focus rings
- *       text-accent-yellow      → iconos y texto destacado
- */
-
-/* ── Base ─────────────────────────────────────── */
---background: #1F2937;     /* slate-800 tint */
---foreground: #F8FAFC;     /* slate-50 — texto claro */
-
-/* ── Primary (gold) ───────────────────────────── */
---primary: #FFD700;        /* accent-yellow — color de marca único */
---primary-foreground: #000000;
-
-/* ── Secondary (neutro tintado) ────────────────── */
---secondary: #37414F;      /* slate-700 — acentos neutros */
---secondary-foreground: #F8FAFC;
-
-/* ── Accent (mismo gold, por compatibilidad) ───── */
---accent: #FFD700;
---accent-foreground: #000000;
-
-/* ── Surfaces ─────────────────────────────────── */
---card: #1A2232;           /* ligeramente más claro que el fondo */
---card-foreground: #F8FAFC;
---muted: #37414F;          /* slate-700 — fondos secundarios */
---muted-foreground: #94A3B8; /* slate-400 — texto secundario */
-
-/* ── Feedback ─────────────────────────────────── */
---destructive: #EF4444;    /* red-500 — solo para errores */
---destructive-foreground: #F8FAFC;
-
-/* ── Decorative ───────────────────────────────── */
---border: #374151;         /* slate-700 — bordes sutiles */
---ring: #FFD700;           /* focus ring dorado */
-```
+La paleta oficial está definida en `src/app/globals.css`. Usar siempre ese archivo como referencia. Resumen de la estrategia:
 
 #### Estrategia de color (ui-ux-pro-max)
 - **Estrategia**: Restrained — un solo color de marca (gold `#FFD700`) usado con opacidad para crear jerarquía sin ruido

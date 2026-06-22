@@ -2,13 +2,7 @@
 
 import { cn } from "@/lib/utils"
 import { Dumbbell, CheckCircle, Sparkles, Lock } from "lucide-react"
-
-const MUSCLE_LABELS: Record<string, string> = {
-  CHEST: "Pecho", BACK: "Espalda", SHOULDERS: "Hombros", BICEPS: "Bíceps",
-  TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdominales",
-  CALVES: "Pantorrillas", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
-  FULL_BODY: "Cuerpo completo", CARDIO: "Cardio",
-}
+import { MUSCLE_LABELS } from "@/constants/user"
 
 type SplitVariant =
   | { variant: "proposed" }

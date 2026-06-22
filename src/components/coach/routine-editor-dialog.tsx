@@ -29,6 +29,7 @@ import {
   ChevronRight,
   Dumbbell,
 } from "lucide-react"
+import { MUSCLE_LABELS, OBJECTIVES, FREQUENCIES, DIFFICULTIES } from "@/constants/user"
 
 interface Exercise {
   id: string
@@ -57,7 +58,7 @@ interface Split {
   exercises: SplitExercise[]
 }
 
-interface Plan {
+export interface Plan {
   id: string
   name: string
   description: string | null
@@ -67,56 +68,19 @@ interface Plan {
   splits: Split[]
 }
 
-const MUSCLE_LABELS: Record<string, string> = {
-  CHEST: "Pecho", BACK: "Espalda", SHOULDERS: "Hombros", BICEPS: "Bíceps",
-  TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdominales",
-  CALVES: "Pantorrillas", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
-  FULL_BODY: "Cuerpo completo", CARDIO: "Cardio",
-}
-
-const OBJECTIVES = [
-  { value: "WEIGHT_LOSS", label: "Pérdida de peso" },
-  { value: "MUSCLE_GAIN", label: "Ganancia muscular" },
-  { value: "GENERAL_FITNESS", label: "Acondicionamiento general" },
-  { value: "TONING", label: "Tonificación" },
-  { value: "STRENGTH", label: "Fuerza" },
-  { value: "ENDURANCE", label: "Resistencia" },
-  { value: "REHABILITATION", label: "Rehabilitación" },
-  { value: "COMPETITION", label: "Competición" },
-]
-
-const FREQUENCIES = [
-  { value: "1", label: "1 día" },
-  { value: "2", label: "2 días" },
-  { value: "3", label: "3 días" },
-  { value: "4", label: "4 días" },
-  { value: "5", label: "5 días" },
-  { value: "6", label: "6 días" },
-  { value: "7", label: "7 días" },
-]
-
-const DIFFICULTIES = [
-  { value: "BEGINNER", label: "Principiante" },
-  { value: "INTERMEDIATE", label: "Intermedio" },
-  { value: "ADVANCED", label: "Avanzado" },
-  { value: "ELITE", label: "Élite" },
-]
-
-interface RoutineEditorDialogProps {
+interface RoutineEditorContentProps {
   plan: Plan
-  open: boolean
-  onOpenChange: (open: boolean) => void
   onPlanUpdated: () => void
   onUnassign?: () => void
+  onClose?: () => void
 }
 
-export function RoutineEditorDialog({
+export function RoutineEditorContent({
   plan,
-  open,
-  onOpenChange,
   onPlanUpdated,
   onUnassign,
-}: RoutineEditorDialogProps) {
+  onClose,
+}: RoutineEditorContentProps) {
   const [planForm, setPlanForm] = useState({
     name: plan.name,
     description: plan.description ?? "",
@@ -145,6 +109,7 @@ export function RoutineEditorDialog({
   const [exercises, setExercises] = useState<Exercise[]>([])
 
   const [expandedSplits, setExpandedSplits] = useState<Set<string>>(() => new Set(plan.splits.map((s) => s.id)))
+  const [localSplits, setLocalSplits] = useState<Split[]>(() => plan.splits.map((s) => ({ ...s, exercises: s.exercises.map((e) => ({ ...e })) })))
 
   const [unassignConfirm, setUnassignConfirm] = useState(false)
 
@@ -240,6 +205,8 @@ export function RoutineEditorDialog({
           body: JSON.stringify(body),
         })
         if (!res.ok) throw new Error()
+        const data = await res.json()
+        setLocalSplits((prev) => prev.map((s) => (s.id === editingSplitId ? { ...s, ...data.split } : s)))
         toast.success("Día actualizado")
       } else {
         const res = await fetch("/api/routine-splits", {
@@ -248,6 +215,8 @@ export function RoutineEditorDialog({
           body: JSON.stringify(body),
         })
         if (!res.ok) throw new Error()
+        const data = await res.json()
+        setLocalSplits((prev) => [...prev, { ...data.split, exercises: [] }])
         toast.success("Día creado")
       }
       setSplitDialogOpen(false)
@@ -263,6 +232,7 @@ export function RoutineEditorDialog({
     try {
       const res = await fetch(`/api/routine-splits/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error()
+      setLocalSplits((prev) => prev.filter((s) => s.id !== id))
       toast.success("Día eliminado")
       onPlanUpdated()
     } catch {
@@ -297,6 +267,14 @@ export function RoutineEditorDialog({
         }),
       })
       if (!res.ok) throw new Error()
+      const data = await res.json()
+      setLocalSplits((prev) =>
+        prev.map((s) =>
+          s.id === addExerciseSplitId
+            ? { ...s, exercises: [...s.exercises, { ...data.splitExercise, exercise: exercises.find((e) => e.id === selectedExerciseId) ?? data.splitExercise.exercise }] }
+            : s
+        )
+      )
       toast.success("Ejercicio agregado")
       setAddExerciseOpen(false)
       onPlanUpdated()
@@ -309,6 +287,9 @@ export function RoutineEditorDialog({
     try {
       const res = await fetch(`/api/split-exercises/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error()
+      setLocalSplits((prev) =>
+        prev.map((s) => ({ ...s, exercises: s.exercises.filter((e) => e.id !== id) }))
+      )
       toast.success("Ejercicio eliminado")
       onPlanUpdated()
     } catch {
@@ -318,173 +299,165 @@ export function RoutineEditorDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Dumbbell className="h-5 w-5 text-accent-yellow" />
-              Editar rutina
-            </DialogTitle>
-            <DialogDescription>Modifica el plan de entrenamiento y sus días.</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Plan details */}
-            <div className="space-y-3 rounded-lg border p-4">
-              <h3 className="text-sm font-semibold">Datos del plan</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label htmlFor="rpName">Nombre</Label>
-                  <Input id="rpName" value={planForm.name} onChange={(e) => setPlanForm((p) => ({ ...p, name: e.target.value }))} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="rpObjective">Objetivo</Label>
-                  <Select value={planForm.objective} onValueChange={(v) => setPlanForm((p) => ({ ...p, objective: v }))}>
-                    <SelectTrigger id="rpObjective"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                    <SelectContent>
-                      {OBJECTIVES.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="rpFrequency">Frecuencia</Label>
-                  <Select value={planForm.frequency} onValueChange={(v) => setPlanForm((p) => ({ ...p, frequency: v }))}>
-                    <SelectTrigger id="rpFrequency"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                    <SelectContent>
-                      {FREQUENCIES.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="rpDifficulty">Dificultad</Label>
-                  <Select value={planForm.difficulty} onValueChange={(v) => setPlanForm((p) => ({ ...p, difficulty: v }))}>
-                    <SelectTrigger id="rpDifficulty"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
-                    <SelectContent>
-                      {DIFFICULTIES.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="rpDesc">Descripción</Label>
-                <Textarea id="rpDesc" rows={2} value={planForm.description} onChange={(e) => setPlanForm((p) => ({ ...p, description: e.target.value }))} />
-              </div>
-              <Button variant="outline" size="sm" onClick={handleSavePlan} disabled={planSaving}>
-                {planSaving ? "Guardando..." : "Guardar cambios del plan"}
-              </Button>
+      <div className="space-y-6">
+        {/* Plan details */}
+        <div className="space-y-3 rounded-lg border p-4">
+          <h3 className="text-sm font-semibold">Datos del plan</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="rpName">Nombre</Label>
+              <Input id="rpName" value={planForm.name} onChange={(e) => setPlanForm((p) => ({ ...p, name: e.target.value }))} />
             </div>
-
-            {/* Splits */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold">Días de entrenamiento</h3>
-                <Button size="sm" variant="outline" onClick={openCreateSplit}>
-                  <Plus className="mr-1 h-3 w-3" /> Agregar día
-                </Button>
-              </div>
-
-              {plan.splits.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Sin días de entrenamiento</p>
-              ) : (
-                <div className="space-y-2">
-                  {plan.splits.map((split) => (
-                    <div key={split.id} className="rounded-lg border">
-                      <button
-                        type="button"
-                        className="flex w-full items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
-                        onClick={() => toggleSplit(split.id)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
-                            {split.label}
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{split.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {split.exercises.length} ejercicios
-                              {split.muscleGroups.length > 0 && ` · ${split.muscleGroups.map((g) => MUSCLE_LABELS[g] ?? g).join(", ")}`}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={(e) => { e.stopPropagation(); openEditSplit(split) }}
-                          >
-                            <Pencil className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-destructive hover:text-destructive"
-                            onClick={(e) => { e.stopPropagation(); handleDeleteSplit(split.id) }}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                          {expandedSplits.has(split.id) ? (
-                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </div>
-                      </button>
-
-                      {expandedSplits.has(split.id) && (
-                        <div className="border-t px-3 py-2 space-y-1.5">
-                          {split.exercises.length === 0 ? (
-                            <p className="text-xs text-muted-foreground text-center py-2">Sin ejercicios</p>
-                          ) : (
-                            split.exercises.map((se) => (
-                              <div key={se.id} className="flex items-center justify-between rounded-md bg-muted/30 px-2 py-1.5 text-xs">
-                                <span className="font-medium">{se.exercise.name}</span>
-                                <div className="flex items-center gap-2">
-                                  <span className="text-muted-foreground">
-                                    {se.sets}x{se.reps}
-                                    {se.weight > 0 ? ` ${se.weight}kg` : ""}
-                                  </span>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-5 w-5 text-destructive hover:text-destructive"
-                                    onClick={() => handleDeleteExercise(se.id)}
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="w-full text-xs"
-                            onClick={() => openAddExercise(split.id)}
-                          >
-                            <Plus className="mr-1 h-3 w-3" /> Agregar ejercicio
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="space-y-1.5">
+              <Label htmlFor="rpObjective">Objetivo</Label>
+              <Select value={planForm.objective} onValueChange={(v) => setPlanForm((p) => ({ ...p, objective: v }))}>
+                <SelectTrigger id="rpObjective"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>
+                  {OBJECTIVES.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="rpFrequency">Frecuencia</Label>
+              <Select value={planForm.frequency} onValueChange={(v) => setPlanForm((p) => ({ ...p, frequency: v }))}>
+                <SelectTrigger id="rpFrequency"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>
+                  {FREQUENCIES.map((f) => <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="rpDifficulty">Dificultad</Label>
+              <Select value={planForm.difficulty} onValueChange={(v) => setPlanForm((p) => ({ ...p, difficulty: v }))}>
+                <SelectTrigger id="rpDifficulty"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTIES.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="rpDesc">Descripción</Label>
+            <Textarea id="rpDesc" rows={2} value={planForm.description} onChange={(e) => setPlanForm((p) => ({ ...p, description: e.target.value }))} />
+          </div>
+          <Button variant="outline" size="sm" onClick={handleSavePlan} disabled={planSaving}>
+            {planSaving ? "Guardando..." : "Guardar cambios del plan"}
+          </Button>
+        </div>
 
-          <DialogFooter className="gap-2">
-            {onUnassign && (
-              <Button variant="destructive" size="sm" onClick={() => setUnassignConfirm(true)}>
-                Desasignar rutina
-              </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
-              Cerrar
+        {/* Splits */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold">Días de entrenamiento</h3>
+            <Button size="sm" variant="outline" onClick={openCreateSplit}>
+              <Plus className="mr-1 h-3 w-3" /> Agregar día
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </div>
+
+          {localSplits.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">Sin días de entrenamiento</p>
+          ) : (
+            <div className="space-y-2">
+              {localSplits.map((split) => (
+                <div key={split.id} className="rounded-lg border">
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between p-3 hover:bg-muted/50 transition-colors text-left"
+                    onClick={() => toggleSplit(split.id)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
+                        {split.label}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">{split.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {split.exercises.length} ejercicios
+                          {split.muscleGroups.length > 0 && ` · ${split.muscleGroups.map((g) => MUSCLE_LABELS[g] ?? g).join(", ")}`}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => { e.stopPropagation(); openEditSplit(split) }}
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteSplit(split.id) }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                      {expandedSplits.has(split.id) ? (
+                        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </button>
+
+                  {expandedSplits.has(split.id) && (
+                    <div className="border-t px-3 py-2 space-y-1.5">
+                      {split.exercises.length === 0 ? (
+                        <p className="text-xs text-muted-foreground text-center py-2">Sin ejercicios</p>
+                      ) : (
+                        split.exercises.map((se) => (
+                          <div key={se.id} className="flex items-center justify-between rounded-md bg-muted/30 px-2 py-1.5 text-xs">
+                            <span className="font-medium">{se.exercise.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">
+                                {se.sets}x{se.reps}
+                                {se.weight > 0 ? ` ${se.weight}kg` : ""}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5 text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteExercise(se.id)}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-xs"
+                        onClick={() => openAddExercise(split.id)}
+                      >
+                        <Plus className="mr-1 h-3 w-3" /> Agregar ejercicio
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer actions */}
+      <div className="flex items-center gap-2 pt-4 border-t mt-4">
+        {onUnassign && (
+          <Button variant="destructive" size="sm" onClick={() => setUnassignConfirm(true)}>
+            Desasignar rutina
+          </Button>
+        )}
+        <div className="flex-1" />
+        {onClose && (
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cerrar
+          </Button>
+        )}
+      </div>
 
       {/* Split Dialog */}
       <Dialog open={splitDialogOpen} onOpenChange={setSplitDialogOpen}>
@@ -592,5 +565,40 @@ export function RoutineEditorDialog({
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+export function RoutineEditorDialog({
+  plan,
+  open,
+  onOpenChange,
+  onPlanUpdated,
+  onUnassign,
+}: {
+  plan: Plan
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onPlanUpdated: () => void
+  onUnassign?: () => void
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Dumbbell className="h-5 w-5 text-accent-yellow" />
+            Editar rutina
+          </DialogTitle>
+          <DialogDescription>Modifica el plan de entrenamiento y sus días.</DialogDescription>
+        </DialogHeader>
+
+        <RoutineEditorContent
+          plan={plan}
+          onPlanUpdated={onPlanUpdated}
+          onUnassign={onUnassign}
+          onClose={() => onOpenChange(false)}
+        />
+      </DialogContent>
+    </Dialog>
   )
 }

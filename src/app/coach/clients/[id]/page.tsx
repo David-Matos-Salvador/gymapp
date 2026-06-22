@@ -9,18 +9,10 @@ import { Label } from "@/components/ui/label"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AppShell } from "@/components/layout/shell"
 import { useSound } from "@/hooks/use-sound"
-import { User, Mail, Phone, Calendar, Target, Award, AlertTriangle, Dumbbell, TrendingUp, CheckCircle, Plus, ArrowLeft, RefreshCw } from "lucide-react"
+import { User, Mail, Phone, Calendar, Target, Award, AlertTriangle, Dumbbell, TrendingUp, CheckCircle, Plus, Pencil, ArrowLeft, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-
-const objectiveLabels: Record<string, string> = {
-  WEIGHT_LOSS: "Pérdida de peso", MUSCLE_GAIN: "Ganancia muscular", TONING: "Tonificación",
-  STRENGTH: "Fuerza", ENDURANCE: "Resistencia", GENERAL_FITNESS: "Fitness general",
-  REHABILITATION: "Rehabilitación", COMPETITION: "Competición",
-}
-const experienceLabels: Record<string, string> = {
-  BEGINNER: "Principiante", INTERMEDIATE: "Intermedio", ADVANCED: "Avanzado", ELITE: "Élite",
-}
+import { OBJECTIVE_LABELS, EXPERIENCE_LABELS, calculateAge } from "@/constants/user"
 
 interface BodyMeasurement {
   id: string; date: string; weight: number | null; height: number | null;
@@ -91,7 +83,7 @@ export default function CoachClientDetail() {
     fetchClient()
   }, [id, router])
 
-  const age = client?.birthDate ? new Date().getFullYear() - new Date(client.birthDate).getFullYear() : null
+  const age = calculateAge(client?.birthDate ?? null)
   const currentMembership = client?.memberShips[0]
   const isMembershipActive = currentMembership?.status === "ACTIVE" && new Date(currentMembership.endDate) > new Date()
 
@@ -156,9 +148,12 @@ export default function CoachClientDetail() {
       })
       if (res.ok) {
         play("success")
-        toast.success("Rutina asignada")
+        toast.success(activePlan ? "Rutina cambiada" : "Rutina asignada")
         setRoutineOpen(false)
-        router.refresh()
+        // Re-fetch client data instead of router.refresh()
+        const clientRes = await fetch(`/api/trainer/clients/${id}`)
+        const clientData = await clientRes.json()
+        if (clientData.client) setClient(clientData.client)
       } else {
         toast.error("Error al asignar rutina")
       }
@@ -216,8 +211,8 @@ export default function CoachClientDetail() {
               <div className="space-y-1 text-sm pt-2">
                 {client.phone && <div className="flex items-center gap-2"><Phone className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">{client.phone}</span></div>}
                 <div className="flex items-center gap-2"><Calendar className="h-3 w-3 text-muted-foreground" /><span className="text-muted-foreground">{age ? `${age} años` : "Edad no registrada"}</span></div>
-                {client.objective && <div className="flex items-center gap-2"><Target className="h-3 w-3 text-muted-foreground" /><span>{objectiveLabels[client.objective] || client.objective}</span></div>}
-                {client.experienceLevel && <div className="flex items-center gap-2"><Award className="h-3 w-3 text-muted-foreground" /><span>{experienceLabels[client.experienceLevel] || client.experienceLevel}</span></div>}
+                {client.objective && <div className="flex items-center gap-2"><Target className="h-3 w-3 text-muted-foreground" /><span>{OBJECTIVE_LABELS[client.objective] || client.objective}</span></div>}
+                {client.experienceLevel && <div className="flex items-center gap-2"><Award className="h-3 w-3 text-muted-foreground" /><span>{EXPERIENCE_LABELS[client.experienceLevel] || client.experienceLevel}</span></div>}
               </div>
               {client.medicalNotes && (
                 <div className="rounded-lg bg-accent-yellow/10 p-3 mt-2">
@@ -278,9 +273,15 @@ export default function CoachClientDetail() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2"><Dumbbell className="h-5 w-5 text-accent-yellow" /> Rutinas</CardTitle>
                 {activePlan ? (
-                  <Button size="sm" variant="outline" onClick={() => { play("click"); setRoutineOpen(true); fetchRoutines() }}>
-                    <RefreshCw className="mr-1 h-4 w-4" /> Cambiar rutina
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <Button size="sm" onClick={() => { play("click"); router.push(`/coach/clients/${id}/personalize?planId=${activePlan!.id}`) }}>
+                      <Pencil className="mr-1 h-4 w-4" />
+                      Personalizar
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => { play("click"); setRoutineOpen(true); fetchRoutines() }}>
+                      <RefreshCw className="mr-1 h-4 w-4" /> Cambiar
+                    </Button>
+                  </div>
                 ) : (
                   <Button size="sm" onClick={() => { play("click"); setRoutineOpen(true); fetchRoutines() }}>
                     <Plus className="mr-1 h-4 w-4" /> Asignar rutina

@@ -9,17 +9,12 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Users , CalendarDays , Dumbbell, Plus, ArrowRight , Search, UserPlus , Mail, Phone, Target , Award, BadgeCheck, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
 
 interface ClientData { id: string; name: string | null; email: string; phone: string | null; objective: string | null; experienceLevel: string | null; hasActiveMembership: boolean; membershipPlan: string | null }
 interface RoutineData { id: string; name: string; exerciseCount: number }
 interface ClassData { id: string; name: string; dayOfWeek: string; duration: number; capacity: number; bookingsCount: number; schedule: string }
 interface Stats { totalClients: number; activeMemberships: number; upcomingClasses: number; totalRoutines: number }
-const objectiveLabels: Record<string, string> = {
-  WEIGHT_LOSS: "Perdida de peso", MUSCLE_GAIN: "Ganancia muscular", TONING: "Tonificacion",
-  STRENGTH: "Fuerza", ENDURANCE: "Resistencia", GENERAL_FITNESS: "Fitness general",
-  REHABILITATION: "Rehabilitacion", COMPETITION: "Competicion",
-}
-const experienceLabels: Record<string, string> = { BEGINNER: "Principiante", INTERMEDIATE: "Intermedio", ADVANCED: "Avanzado", ELITE: "Elite" }
 const dayLabels: Record<string, string> = { MONDAY: "lunes", TUESDAY: "martes", WEDNESDAY: "miercoles", THURSDAY: "jueves", FRIDAY: "viernes", SATURDAY: "sabado", SUNDAY: "domingo" }
 
 export function CoachDashboard({ clients: initialClients, routines, classes, stats }: {
@@ -128,11 +123,18 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
       <div className="grid gap-6 lg:grid-cols-2">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
           <Card className="h-full">
-            <CardHeader><CardTitle className="text-base">Mis clientes</CardTitle></CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base">Mis clientes</CardTitle>
+              <Button variant="ghost" size="sm" asChild onClick={() => play("click")}>
+                <Link href="/coach/clients">
+                  Ver todos <ArrowRight className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
+            </CardHeader>
             <CardContent className="space-y-3">
               {clients.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-8">No tienes clientes asignados aun</p>
-              ) : clients.map((client, i) => (
+              ) : clients.slice(0, 5).map((client, i) => (
                 <motion.div key={client.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.04 }}>
                   <Link href={`/coach/clients/${client.id}`} className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group" onClick={() => play("select")}>
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/10"><Users className="h-5 w-5 text-accent-yellow" /></div>
@@ -146,14 +148,23 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
                         {client.phone && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{client.phone}</span>}
                       </div>
                       <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                        {client.objective && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Target className="h-3 w-3" />{objectiveLabels[client.objective] || client.objective}</span>}
-                        {client.experienceLevel && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Award className="h-3 w-3" />{experienceLabels[client.experienceLevel] || client.experienceLevel}</span>}
+                        {client.objective && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Target className="h-3 w-3" />{OBJECTIVE_LABELS[client.objective] || client.objective}</span>}
+                        {client.experienceLevel && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Award className="h-3 w-3" />{EXPERIENCE_LABELS[client.experienceLevel] || client.experienceLevel}</span>}
                       </div>
                     </div>
                     <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0 mt-1" />
                   </Link>
                 </motion.div>
               ))}
+              {clients.length > 5 && (
+                <div className="text-center pt-1">
+                  <Button variant="link" size="sm" asChild onClick={() => play("click")}>
+                    <Link href="/coach/clients" className="text-muted-foreground">
+                      + {clients.length - 5} clientes más — Ver todos
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
+import { MUSCLE_LABELS } from "@/constants/user"
 import { Plus, Pencil, Trash2, Upload, ExternalLink, ImageIcon, Dumbbell } from "lucide-react"
 
 export interface Exercise {
@@ -69,9 +70,6 @@ const EQUIPMENT = [
   { value: "OTHER", label: "Otro" },
 ]
 
-const MUSCLE_LABELS: Record<string, string> = Object.fromEntries(
-  MUSCLE_GROUPS.map((g) => [g.value, g.label])
-)
 const EQUIPMENT_LABELS: Record<string, string> = Object.fromEntries(
   EQUIPMENT.map((e) => [e.value, e.label])
 )

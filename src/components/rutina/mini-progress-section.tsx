@@ -95,7 +95,7 @@ export function MiniProgressSection() {
             Progreso
           </CardTitle>
           <Link
-            href="/rutina/progreso"
+            href="/progress"
             className="text-xs font-medium text-accent-yellow hover:underline"
           >
             Ver todo →
@@ -162,7 +162,7 @@ export function MiniProgressSection() {
               <p className="text-sm text-muted-foreground text-center">
                 No hay mediciones en los últimos 30 días
               </p>
-              <Link href="/rutina/progreso?open=add">
+              <Link href="/progress?open=add">
                 <Button variant="outline" size="sm" className="rounded-lg">
                   <Plus className="mr-1 h-4 w-4" />
                   Registrar ahora

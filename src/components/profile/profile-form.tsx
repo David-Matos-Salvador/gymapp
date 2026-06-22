@@ -25,6 +25,7 @@ import {
   Loader2,
   Camera,
 } from "lucide-react"
+import { ROLE_LABELS, SEX_LABELS, OBJECTIVE_LABELS, EXPERIENCE_LABELS, calculateAge } from "@/constants/user"
 
 interface User {
   id: string
@@ -42,47 +43,6 @@ interface User {
   image: string | null
   createdAt: string
   updatedAt?: string | null
-}
-
-const roleLabels: Record<string, string> = {
-  ADMIN: "Administrador",
-  TRAINER: "Coach",
-  MEMBER: "Miembro",
-  SUPER_ADMIN: "Super Admin",
-}
-
-const sexLabels: Record<string, string> = {
-  MALE: "Masculino",
-  FEMALE: "Femenino",
-  OTHER: "Otro",
-}
-
-const objectiveLabels: Record<string, string> = {
-  WEIGHT_LOSS: "Pérdida de peso",
-  MUSCLE_GAIN: "Ganancia muscular",
-  TONING: "Tonificación",
-  STRENGTH: "Fuerza",
-  ENDURANCE: "Resistencia",
-  GENERAL_FITNESS: "Fitness general",
-  REHABILITATION: "Rehabilitación",
-  COMPETITION: "Competición",
-}
-
-const experienceLabels: Record<string, string> = {
-  BEGINNER: "Principiante",
-  INTERMEDIATE: "Intermedio",
-  ADVANCED: "Avanzado",
-  ELITE: "Élite",
-}
-
-function calculateAge(birthDate: string | null): string | null {
-  if (!birthDate) return null
-  const today = new Date()
-  const birth = new Date(birthDate)
-  let age = today.getFullYear() - birth.getFullYear()
-  const m = today.getMonth() - birth.getMonth()
-  if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--
-  return `${age} años`
 }
 
 function formatBirthDate(date: string | null): string | null {
@@ -236,11 +196,11 @@ export function ProfileForm({ user }: { user: User }) {
         <CardContent className="p-0">
           <div className="divide-y divide-border">
             <InfoItem icon={Mail} label="Correo electrónico" value={user.email} />
-            <InfoItem icon={Shield} label="Rol" value={roleLabels[user.role] ?? user.role} />
+            <InfoItem icon={Shield} label="Rol" value={ROLE_LABELS[user.role] ?? user.role} />
             <InfoItem
               icon={UserIcon}
               label="Sexo"
-              value={user.sex ? (sexLabels[user.sex] ?? user.sex) : null}
+              value={user.sex ? (SEX_LABELS[user.sex] ?? user.sex) : null}
             />
             <InfoItem
               icon={Calendar}
@@ -272,12 +232,12 @@ export function ProfileForm({ user }: { user: User }) {
             <InfoItem
               icon={Target}
               label="Objetivo"
-              value={user.objective ? (objectiveLabels[user.objective] ?? user.objective) : null}
+              value={user.objective ? (OBJECTIVE_LABELS[user.objective] ?? user.objective) : null}
             />
             <InfoItem
               icon={Activity}
               label="Nivel de experiencia"
-              value={user.experienceLevel ? (experienceLabels[user.experienceLevel] ?? user.experienceLevel) : null}
+              value={user.experienceLevel ? (EXPERIENCE_LABELS[user.experienceLevel] ?? user.experienceLevel) : null}
             />
             <InfoItem
               icon={Heart}

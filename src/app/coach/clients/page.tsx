@@ -5,15 +5,8 @@ import { AppShell } from "@/components/layout/shell"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Mail, Phone, Target, Award, BadgeCheck, ArrowRight } from "lucide-react"
-
-const objectiveLabels: Record<string, string> = {
-  WEIGHT_LOSS: "Pérdida de peso", MUSCLE_GAIN: "Ganancia muscular", TONING: "Tonificación",
-  STRENGTH: "Fuerza", ENDURANCE: "Resistencia", GENERAL_FITNESS: "Fitness general",
-  REHABILITATION: "Rehabilitación", COMPETITION: "Competición",
-}
-const experienceLabels: Record<string, string> = {
-  BEGINNER: "Principiante", INTERMEDIATE: "Intermedio", ADVANCED: "Avanzado", ELITE: "Élite",
-}
+import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
+import { BackButton } from "@/components/back-button"
 
 export default async function CoachClientsListPage() {
   const session = await auth()
@@ -37,9 +30,12 @@ export default async function CoachClientsListPage() {
   return (
     <AppShell>
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-4xl space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Mis clientes</h1>
-          <p className="text-muted-foreground">{clients.length} cliente{clients.length !== 1 ? "s" : ""} asignado{clients.length !== 1 ? "s" : ""}</p>
+        <div className="flex items-start gap-4">
+          <BackButton />
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Mis clientes</h1>
+            <p className="text-muted-foreground">{clients.length} cliente{clients.length !== 1 ? "s" : ""} asignado{clients.length !== 1 ? "s" : ""}</p>
+            </div>
         </div>
 
         {clients.length === 0 ? (
@@ -81,12 +77,12 @@ export default async function CoachClientsListPage() {
                           <div className="flex flex-wrap items-center gap-2 mt-2">
                             {client.objective && (
                               <span className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
-                                <Target className="h-3 w-3" />{objectiveLabels[client.objective] || client.objective}
+                                <Target className="h-3 w-3" />{OBJECTIVE_LABELS[client.objective] || client.objective}
                               </span>
                             )}
                             {client.experienceLevel && (
                               <span className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
-                                <Award className="h-3 w-3" />{experienceLabels[client.experienceLevel] || client.experienceLevel}
+                                <Award className="h-3 w-3" />{EXPERIENCE_LABELS[client.experienceLevel] || client.experienceLevel}
                               </span>
                             )}
                             {lastMeasurement?.weight && (

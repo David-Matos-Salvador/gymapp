@@ -28,9 +28,11 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
-  UserPlus,
+  Dumbbell,
   Users,
+  UserPlus,
 } from "lucide-react"
+import { MUSCLE_LABELS, DIFFICULTIES } from "@/constants/user"
 import type { Exercise } from "./exercise-management"
 
 export interface SplitExercise {
@@ -77,13 +79,6 @@ export interface Member {
   email: string
 }
 
-const MUSCLE_LABELS: Record<string, string> = {
-  CHEST: "Pecho", BACK: "Espalda", SHOULDERS: "Hombros", BICEPS: "Bíceps",
-  TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdominales",
-  CALVES: "Pantorrillas", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
-  FULL_BODY: "Cuerpo completo", CARDIO: "Cardio",
-}
-
 const EQUIPMENT_LABELS: Record<string, string> = {
   BARBELL: "Barra", DUMBBELL: "Mancuernas", MACHINE: "Máquina", CABLE: "Cable",
   BODYWEIGHT: "Peso corporal", KETTLEBELL: "Kettlebell", BAND: "Banda",
@@ -100,13 +95,6 @@ const FREQUENCIES = [
   { value: "3", label: "3 días" },
   { value: "4", label: "4 días" },
   { value: "5", label: "5 días" },
-]
-
-const DIFFICULTIES = [
-  { value: "BEGINNER", label: "Principiante" },
-  { value: "INTERMEDIATE", label: "Intermedio" },
-  { value: "ADVANCED", label: "Avanzado" },
-  { value: "ELITE", label: "Élite" },
 ]
 
 interface RoutineManagementProps {
