@@ -92,6 +92,23 @@ export async function POST(request: Request) {
         }),
       ])
 
+      const acceptedRequest = await prisma.trainerRequest.findFirst({
+        where: { clientId: user.id, status: "ACCEPTED" },
+        include: { trainer: { select: { id: true, name: true } } },
+      })
+
+      if (acceptedRequest) {
+        await prisma.notification.create({
+          data: {
+            userId: acceptedRequest.trainerId,
+            title: "Nuevo comprobante de pago",
+            message: `${user.name || "Un usuario"} subió un comprobante de ${membership.plan.currency.toUpperCase()} $${membership.plan.price}. Revisalo en Pagos.`,
+            type: "PAYMENT",
+            metadata: { paymentId: payment.id, clientId: user.id },
+          },
+        })
+      }
+
       return NextResponse.json({ payment }, { status: 201 })
     } catch (err) {
       console.error("Payment receipt error:", err)

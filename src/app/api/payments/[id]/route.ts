@@ -38,7 +38,31 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Este pago ya fue procesado" }, { status: 409 })
   }
 
+  const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN"
+
   if (action === "CONFIRM") {
+    const paymentUser = await prisma.user.findUnique({
+      where: { id: payment.userId },
+      select: { assignedTrainerId: true, name: true },
+    })
+
+    if (paymentUser?.assignedTrainerId && paymentUser.assignedTrainerId !== user.id && !isAdmin) {
+      return NextResponse.json({ error: "Este usuario ya tiene otro entrenador asignado" }, { status: 403 })
+    }
+
+    const hasAcceptedRequest = await prisma.trainerRequest.findFirst({
+      where: { trainerId: user.id, clientId: payment.userId, status: "ACCEPTED" },
+    })
+
+    const isAlreadyMyClient = paymentUser?.assignedTrainerId === user.id
+
+    if (!hasAcceptedRequest && !isAlreadyMyClient && !isAdmin) {
+      return NextResponse.json({ error: "Solo puedes confirmar pagos de tus clientes o de usuarios que aceptaron tu solicitud" }, { status: 403 })
+    }
+
+    const shouldAssignTrainer =
+      !paymentUser?.assignedTrainerId && hasAcceptedRequest ? user.id : undefined
+
     const [updatedPayment] = await prisma.$transaction([
       prisma.payment.update({
         where: { id },
@@ -53,13 +77,25 @@ export async function PUT(request: Request, { params }: RouteParams) {
         where: { userId: payment.userId, paymentConfirmed: false, status: "ACTIVE" },
         data: { paymentConfirmed: true },
       }),
+      ...(shouldAssignTrainer
+        ? [
+            prisma.user.update({
+              where: { id: payment.userId },
+              data: { assignedTrainerId: user.id },
+            }),
+          ]
+        : []),
     ])
+
+    const notificationMessage = shouldAssignTrainer
+      ? `Tu comprobante fue verificado. ${user.name || "Tu entrenador"} es ahora tu coach asignado. ¡Tu membresía está activa!`
+      : "Tu comprobante de pago fue verificado. ¡Tu membresía está activa!"
 
     await prisma.notification.create({
       data: {
         userId: payment.userId,
         title: "Pago confirmado",
-        message: "Tu comprobante de pago fue verificado. ¡Tu membresía está activa!",
+        message: notificationMessage,
         type: "PAYMENT",
         metadata: { paymentId: id },
       },

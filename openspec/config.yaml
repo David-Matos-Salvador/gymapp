@@ -1,0 +1,24 @@
+schema: spec-driven
+
+context: |
+  **Tech stack:** Next.js 16 (App Router), React 19, TypeScript, Prisma 7, PostgreSQL
+  **Auth:** NextAuth v5 (beta), roles: ADMIN | TRAINER | MEMBER
+  **Styling:** Tailwind CSS v4 (CSS-based config, no tailwind.config.ts), shadcn/ui v4
+  **State:** Zustand, React Query (TanStack)
+  **Forms:** React Hook Form + Zod
+  **Payments:** Stripe
+  **Testing:** Vitest (unit), Playwright (e2e)
+  **Theme:** Single theme system — tokens defined in src/app/globals.css (CSS custom properties :root and .dark)
+  **Domain:** Gym management — users, workouts, exercises, nutrition, subscriptions
+  **Business rule:** One member has exactly one trainer (assignedTrainerId)
+  **DB:** PostgreSQL via Docker, seed with `npm run db:reset`
+
+rules:
+  proposal:
+    - Keep proposals under 500 words
+    - Always include a "Non-goals" section
+  tasks:
+    - Break tasks into chunks of max 2 hours
+    - After DB-affecting changes, run `npm run db:reset` to verify
+  design:
+    - Check ARCHITECTURE.md for existing conventions before proposing new patterns

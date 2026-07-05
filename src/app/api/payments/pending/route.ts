@@ -13,8 +13,16 @@ export async function GET() {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
+  const myClientIds = await prisma.trainerRequest.findMany({
+    where: { trainerId: user.id, status: "ACCEPTED" },
+    select: { clientId: true },
+  })
+
   const payments = await prisma.payment.findMany({
-    where: { status: "PENDING" },
+    where: {
+      status: "PENDING",
+      userId: { in: myClientIds.map((r) => r.clientId) },
+    },
     include: {
       user: { select: { id: true, name: true, email: true } },
     },

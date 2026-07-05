@@ -63,24 +63,25 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Ya tienes un entrenador asignado" }, { status: 409 })
   }
 
+  const existingAccepted = await prisma.trainerRequest.findFirst({
+    where: { clientId: user.id, status: "ACCEPTED", id: { not: id } },
+  })
+  if (existingAccepted) {
+    return NextResponse.json({ error: "Ya tienes una solicitud aceptada pendiente de pago" }, { status: 409 })
+  }
+
   const now = new Date()
 
-  const [updatedRequest] = await prisma.$transaction([
-    prisma.trainerRequest.update({
-      where: { id },
-      data: { status: "ACCEPTED", acceptedAt: now },
-    }),
-    prisma.user.update({
-      where: { id: user.id },
-      data: { assignedTrainerId: trainerRequest.trainerId },
-    }),
-  ])
+  const updatedRequest = await prisma.trainerRequest.update({
+    where: { id },
+    data: { status: "ACCEPTED", acceptedAt: now },
+  })
 
   await prisma.notification.create({
     data: {
       userId: trainerRequest.trainerId,
       title: "Solicitud aceptada",
-      message: `${user.name || "Un usuario"} aceptó tu solicitud. Ya es tu cliente.`,
+      message: `${user.name || "Un usuario"} aceptó tu solicitud. Espera a que suba su comprobante de pago para confirmarlo.`,
       type: "INFO",
       metadata: { requestId: id, clientId: user.id },
     },
