@@ -1,0 +1,38 @@
+{
+  "batch": 1,
+  "baseUrl": "http://localhost:3001",
+  "password": "demo123",
+  "dependencies": [
+    { "id": "dep-1", "from": "trainer", "to": "diego", "action": "assign-plan", "status": "completed", "note": "ya está asignado en seed: plan coachPlan1" },
+    { "id": "dep-2", "from": "trainer2", "to": "valentina", "action": "send-request", "status": "completed" },
+    { "id": "dep-3", "from": "trainer2", "to": "roberto", "action": "send-request", "status": "completed" },
+    { "id": "dep-4", "from": "valentina", "to": "trainer2", "action": "accept-request", "status": "pending", "requires": ["dep-2"] },
+    { "id": "dep-5", "from": "roberto", "to": "trainer2", "action": "accept-request", "status": "pending", "requires": ["dep-3"] }
+  ],
+  "users": {
+    "superadmin@gymapp.com": { "role": "SUPER_ADMIN", "status": "completed", "completed_steps": ["login","dashboard","create-gym-modal","recent-users"] },
+    "admin@gymapp.com": { "role": "ADMIN", "status": "completed", "completed_steps": ["login","dashboard","memberships"] },
+    "trainer@gymapp.com": { "role": "TRAINER", "status": "completed", "completed_steps": ["login","dashboard","clients","carlos-detail","ana-detail","routines-new"] },
+    "trainer2@gymapp.com": { "role": "TRAINER", "status": "completed", "completed_steps": ["login","dashboard","empty-clients","create-routine","request-valentina","request-roberto"] },
+    "laura@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "diego@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "valentina@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "mateo@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "sofia@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "ricardo@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "carlos@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "ana@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "pedro@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "roberto@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] }
+  },
+  "bugs_found": [
+    { "step": "trainer-step6", "error": "GET /coach/payments → 404 — payments page not yet implemented", "severity": "medium" },
+    { "step": "trainer-step2", "error": "Trainer only sees 3 clients (Carlos, Ana, Pedro) instead of 6 — seed missing Diego, Sofia, Ricardo assigned to trainer1", "severity": "low" },
+    { "step": "admin-step4", "error": "GET /admin/gym-management → 404 — gym management page not yet implemented", "severity": "medium" },
+    { "step": "setup", "error": "Merge conflicts in shell.tsx (lines 37-50, 57-67) and exercise-animation.tsx (line 531-559) from unresolved git merge", "severity": "critical", "resolved": true },
+    { "step": "trainer-step4", "error": "Client detail page [id] threw Runtime TypeError: Cannot read properties of undefined (reading 'birthDate') — page was 'use client' without server data fetch. Refactored to server component wrapper.", "severity": "critical", "resolved": true },
+    { "step": "setup-seed", "error": "trainer2@gymapp.com and 6 members (diego, sofia, ricardo, laura, valentina, mateo, roberto) missing from seed.ts. Added manually.", "severity": "critical", "resolved": true },
+    { "step": "trainer2-step2", "error": "Client count stat still shows 0 after assigning Valentina — UI doesn't refresh stats immediately", "severity": "low" }
+  ],
+  "db_resets": 1
+}

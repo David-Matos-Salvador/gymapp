@@ -5,47 +5,17 @@
     }
   },
   "model": "deepseek/deepseek-v4-pro",
-  "defaultAgent": "project-manager",
+  "defaultAgent": "coordinator",
   "agents": {
-    "project-manager": {
-      "name": "Project Manager",
-      "description": "Coordina el equipo, prioriza tareas y gestiona el backlog del MVP",
-      "file": ".kilo/agent/project-manager.md"
+    "coordinator": {
+      "name": "Coordinator",
+      "description": "Gestiona dependencias entre usuarios, trackea progreso y coordina fixers",
+      "file": ".kilo/agent/coordinator.md"
     },
-    "frontend-dev": {
-      "name": "Frontend Developer",
-      "description": "Next.js App Router, React Server Components, Tailwind CSS y shadcn/ui",
-      "file": ".kilo/agent/frontend-dev.md"
-    },
-    "backend-dev": {
-      "name": "Backend Developer",
-      "description": "API Routes, Server Actions, Prisma ORM, PostgreSQL, NextAuth.js y Stripe",
-      "file": ".kilo/agent/backend-dev.md"
-    },
-    "ux-ui-designer": {
-      "name": "UX/UI Designer",
-      "description": "Design system, experiencia de usuario, dark-first gym aesthetic",
-      "file": ".kilo/agent/ux-ui-designer.md"
-    },
-    "qa-tester": {
-      "name": "QA Tester",
-      "description": "Testing automatizado con Vitest y Playwright, cobertura > 80%",
-      "file": ".kilo/agent/qa-tester.md"
-    },
-    "devops-engineer": {
-      "name": "DevOps Engineer",
-      "description": "Docker, docker-compose, CI/CD con GitHub Actions, deploy y backups",
-      "file": ".kilo/agent/devops-engineer.md"
-    },
-    "task-generator": {
-      "name": "Task Generator",
-      "description": "Audita el codebase y genera un BACKLOG.md estructurado con todo lo pendiente",
-      "file": ".kilo/agent/task-generator.md"
-    },
-    "orchestrator": {
-      "name": "Orchestrator",
-      "description": "Distribuye tareas del backlog a subagentes en worktrees aislados, gestiona QA y cierra tareas",
-      "file": ".kilo/agent/orchestrator.md"
+    "optimizer": {
+      "name": "Optimizer",
+      "description": "Monitorea ejecución y reporta mejoras UX — no implementa",
+      "file": ".kilo/agent/optimizer.md"
     }
   }
 }
