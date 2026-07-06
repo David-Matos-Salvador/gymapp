@@ -9,7 +9,6 @@ import { z } from "zod"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -105,14 +104,13 @@ function LoginFormInner() {
           {error && (
             <p className="text-sm text-destructive text-center">{error}</p>
           )}
-          <motion.div
-            whileTap={{ scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 500, damping: 15 }}
+          <Button
+            type="submit"
+            className="w-full active:scale-[0.96] transition-transform"
+            disabled={isSubmitting}
           >
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
-            </Button>
-          </motion.div>
+            {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
+          </Button>
         </form>
         <div className="mt-4 flex items-center gap-2">
           <Separator className="flex-1" />
