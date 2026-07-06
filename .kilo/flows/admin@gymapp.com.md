@@ -2,7 +2,7 @@
 - **Email**: admin@gymapp.com
 - **Password**: demo123
 - **Role**: ADMIN
-- **Base URL**: http://localhost:3001
+- **Base URL**: http://localhost:3000
 
 ## Steps
 

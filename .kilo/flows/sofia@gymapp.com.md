@@ -3,7 +3,7 @@
 - **Password**: demo123
 - **Role**: MEMBER
 - **Scenario**: Expired membership, has assigned plan
-- **Base URL**: http://localhost:3001
+- **Base URL**: http://localhost:3000
 
 ## Steps
 

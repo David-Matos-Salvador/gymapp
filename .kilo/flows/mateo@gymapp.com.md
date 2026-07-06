@@ -2,7 +2,7 @@
 - **Email**: mateo@gymapp.com
 - **Password**: demo123
 - **Role**: MEMBER
-- **Base URL**: http://localhost:3001
+- **Base URL**: http://localhost:3000
 
 ## Steps
 

@@ -3,7 +3,7 @@
 - **Password**: demo123
 - **Role**: MEMBER
 - **Dependencies**: dep-2 (trainer2 sends request) MUST be completed before step 4
-- **Base URL**: http://localhost:3001
+- **Base URL**: http://localhost:3000
 
 ## Steps
 

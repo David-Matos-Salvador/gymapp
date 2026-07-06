@@ -3,7 +3,7 @@
 - **Password**: demo123
 - **Role**: MEMBER
 - **Scenario**: Inactive/suspended membership, has assigned plan (coachPlan1)
-- **Base URL**: http://localhost:3001
+- **Base URL**: http://localhost:3000
 
 ## Steps
 

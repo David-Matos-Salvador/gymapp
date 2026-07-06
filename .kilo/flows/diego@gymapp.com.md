@@ -3,7 +3,7 @@
 - **Password**: demo123
 - **Role**: MEMBER
 - **Dependencies**: dep-1 (trainer already assigned plan in seed — completed)
-- **Base URL**: http://localhost:3001
+- **Base URL**: http://localhost:3000
 
 ## Steps
 
