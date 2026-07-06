@@ -29,6 +29,8 @@ export default async function ProfilePage() {
       medicalNotes: true,
       emergencyContact: true,
       emergencyPhone: true,
+      height: true,
+      weight: true,
       image: true,
       createdAt: true,
       updatedAt: true,
