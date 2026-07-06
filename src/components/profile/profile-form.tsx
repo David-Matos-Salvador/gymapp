@@ -24,6 +24,8 @@ import {
   XCircle,
   Loader2,
   Camera,
+  Ruler,
+  Weight,
 } from "lucide-react"
 import { ROLE_LABELS, SEX_LABELS, OBJECTIVE_LABELS, EXPERIENCE_LABELS, calculateAge } from "@/constants/user"
 
@@ -40,6 +42,8 @@ interface User {
   medicalNotes: string | null
   emergencyContact: string | null
   emergencyPhone: string | null
+  height: number | null
+  weight: number | null
   image: string | null
   createdAt: string
   updatedAt?: string | null
@@ -233,6 +237,16 @@ export function ProfileForm({ user }: { user: User }) {
               icon={Target}
               label="Objetivo"
               value={user.objective ? (OBJECTIVE_LABELS[user.objective] ?? user.objective) : null}
+            />
+            <InfoItem
+              icon={Ruler}
+              label="Altura"
+              value={user.height ? `${user.height} cm` : null}
+            />
+            <InfoItem
+              icon={Weight}
+              label="Peso"
+              value={user.weight ? `${user.weight} kg` : null}
             />
             <InfoItem
               icon={Activity}
