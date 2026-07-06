@@ -23,6 +23,17 @@ export default async function RutinasPage() {
   }
   if (!user.onboardingCompleted) redirect("/onboarding")
 
+  const membership = await prisma.membership.findFirst({
+    where: { userId: user.id },
+    select: { status: true, endDate: true },
+  })
+  const membershipStatus = membership?.status ?? "ACTIVE"
+  const membershipExpired =
+    membership
+      ? membership.status === "EXPIRED" ||
+        (membership.status === "ACTIVE" && new Date(membership.endDate) < new Date())
+      : false
+
   const assignment = await prisma.assignedRoutinePlan.findFirst({
     where: { userId: user.id, active: true },
     select: {
@@ -54,10 +65,11 @@ export default async function RutinasPage() {
   })
 
   if (!assignment?.plan) {
+    const firstName = user.name?.split(" ")[0] ?? "Atleta"
     return (
       <AppShell>
         <div className="mx-auto max-w-lg px-4 py-12 text-center space-y-4">
-          <h2 className="text-xl font-bold">Sin rutina asignada</h2>
+          <h2 className="text-xl font-bold">Hola, {firstName}</h2>
           <p className="text-sm text-muted-foreground">
             No tenés una rutina personalizada asignada.
           </p>
@@ -108,6 +120,8 @@ export default async function RutinasPage() {
         workoutDates={workoutDates.map((d) => d.toISOString())}
         weeklyStreak={weeklyStreakData.streak}
         bestStreak={weeklyStreakData.bestStreak}
+        membershipStatus={membershipStatus}
+        membershipExpired={membershipExpired}
       />
     </AppShell>
   )

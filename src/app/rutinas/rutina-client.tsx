@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
@@ -35,6 +36,8 @@ interface RutinaClientProps {
   workoutDates: string[]
   weeklyStreak: number
   bestStreak: number
+  membershipStatus: string
+  membershipExpired: boolean
 }
 
 export function RutinaClient({
@@ -51,6 +54,8 @@ export function RutinaClient({
   workoutDates,
   weeklyStreak,
   bestStreak,
+  membershipStatus,
+  membershipExpired,
 }: RutinaClientProps) {
   const router = useRouter()
   const inProgressState = useWorkoutStore()
@@ -137,6 +142,25 @@ export function RutinaClient({
         <p className="text-sm text-muted-foreground bg-muted/50 rounded-xl p-3">
           {planDescription}
         </p>
+      )}
+
+      {membershipStatus !== "ACTIVE" && (
+        <Link href="/membresia" className="block">
+          <div className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+            <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              {membershipStatus === "EXPIRED"
+                ? "Tu membresía ha vencido. Renová para seguir entrenando."
+                : membershipStatus === "INACTIVE"
+                  ? "Tu membresía está inactiva. Contactá al administrador."
+                  : membershipStatus === "SUSPENDED"
+                    ? "Tu membresía ha sido suspendida. Contactá al administrador."
+                    : membershipStatus === "CANCELLED"
+                      ? "Tu membresía ha sido cancelada."
+                      : "Tu membresía no está activa."}
+            </span>
+          </div>
+        </Link>
       )}
 
       {expiresAt && (

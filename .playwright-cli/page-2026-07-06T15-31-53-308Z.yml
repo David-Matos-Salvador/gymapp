@@ -1,0 +1,81 @@
+- generic:
+  - generic:
+    - banner:
+      - img
+      - generic: GymApp
+      - generic:
+        - button:
+          - img
+          - generic: "1"
+        - generic: Miembro
+    - main:
+      - generic:
+        - generic:
+          - generic:
+            - heading [level=1]: Solicitudes de entrenador
+            - paragraph: Gestiona las solicitudes de entrenadores que quieren ser tu coach
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - img
+                  - generic: Realizar pago de membresía
+              - generic:
+                - generic:
+                  - generic: Selecciona tu plan
+                  - combobox [expanded]:
+                    - generic: Elige un plan...
+                    - img
+                - generic:
+                  - generic: Comprobante de Yape
+                  - generic:
+                    - button:
+                      - img
+                      - text: Seleccionar imagen
+                    - button
+                - button [disabled]:
+                  - img
+                  - text: Subir comprobante y activar membresía
+    - navigation:
+      - generic:
+        - link:
+          - /url: /rutinas
+          - img
+          - generic: Mi Rutina
+        - link:
+          - /url: /progress
+          - img
+          - generic: Progreso
+        - link:
+          - /url: /classes
+          - img
+          - generic: Clases
+        - link:
+          - /url: /profile
+          - img
+          - generic: Perfil
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f2e92] [cursor=pointer]:
+    - img [ref=f2e93]
+  - alert
+  - listbox [ref=f2e119]:
+    - option "Pase Diario — MXN $50 / 1 días" [active] [ref=f2e120]:
+      - generic [ref=f2e121]: Pase Diario — MXN $50 / 1 días
+    - option "Pase Diario — MXN $50 / 1 días" [ref=f2e122]:
+      - generic [ref=f2e123]: Pase Diario — MXN $50 / 1 días
+    - option "Plan Semanal — MXN $150 / 7 días" [ref=f2e124]:
+      - generic [ref=f2e125]: Plan Semanal — MXN $150 / 7 días
+    - option "Plan Semanal — MXN $150 / 7 días" [ref=f2e126]:
+      - generic [ref=f2e127]: Plan Semanal — MXN $150 / 7 días
+    - option "Plan Mensual — MXN $500 / 30 días" [ref=f2e128]:
+      - generic [ref=f2e129]: Plan Mensual — MXN $500 / 30 días
+    - option "Plan Mensual — MXN $500 / 30 días" [ref=f2e130]:
+      - generic [ref=f2e131]: Plan Mensual — MXN $500 / 30 días
+    - option "Plan Trimestral — MXN $1200 / 90 días" [ref=f2e132]:
+      - generic [ref=f2e133]: Plan Trimestral — MXN $1200 / 90 días
+    - option "Plan Trimestral — MXN $1200 / 90 días" [ref=f2e134]:
+      - generic [ref=f2e135]: Plan Trimestral — MXN $1200 / 90 días
+    - option "Plan Anual — MXN $4000 / 365 días" [ref=f2e136]:
+      - generic [ref=f2e137]: Plan Anual — MXN $4000 / 365 días
+    - option "Plan Anual — MXN $4000 / 365 días" [ref=f2e138]:
+      - generic [ref=f2e139]: Plan Anual — MXN $4000 / 365 días

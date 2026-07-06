@@ -1,0 +1,6 @@
+[     208ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/0ix7_next_dist_0ucwv_8._.js:2477
+[    1490ms] [LOG] [Fast Refresh] done in 1383ms @ http://localhost:3000/_next/static/chunks/0ix7_next_dist_0ucwv_8._.js:2477
+[    1569ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/_next/static/chunks/0ix7_next_dist_0ucwv_8._.js:2477
+[    1595ms] [LOG] [HMR] connected @ http://localhost:3000/_next/static/chunks/0ix7_next_dist_0ucwv_8._.js:2477
+[    1741ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:3000/_next/static/chunks/0ix7_next_dist_0ucwv_8._.js:2477
+[    1783ms] [LOG] [Fast Refresh] done in 145ms @ http://localhost:3000/_next/static/chunks/0ix7_next_dist_0ucwv_8._.js:2477

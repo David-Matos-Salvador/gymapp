@@ -291,5 +291,33 @@ export async function POST(request: Request) {
     return templates.find((t) => name.startsWith(t.name))
   }
 
-  return NextResponse.json({ plans: plans.map(serializePlan) })
+  const assignedPlans = await prisma.assignedRoutinePlan.findMany({
+    where: { userId: user.id, active: true },
+    include: {
+      plan: {
+        include: {
+          splits: {
+            include: { exercises: { include: { exercise: true } } },
+            orderBy: { order: "asc" },
+          },
+        },
+      },
+    },
+  })
+
+  const coachPlans = assignedPlans.map(({ plan }) => {
+    return serializePlan(plan as unknown as typeof plans[0])
+  })
+
+  const seenIds = new Set<string>()
+  const allPlans = [
+    ...coachPlans,
+    ...plans.map(serializePlan),
+  ].filter((p) => {
+    if (seenIds.has(p.id)) return false
+    seenIds.add(p.id)
+    return true
+  })
+
+  return NextResponse.json({ plans: allPlans })
 }

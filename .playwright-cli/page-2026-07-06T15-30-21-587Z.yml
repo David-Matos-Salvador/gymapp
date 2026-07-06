@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e33]:
+    - banner [ref=e34]:
+      - generic [ref=e35]:
+        - button [ref=e86]:
+          - img [ref=e87]
+        - generic [ref=e36]:
+          - generic [ref=e37]: 5/9
+          - generic [ref=e38]: Condiciones
+        - button [ref=e39]:
+          - img [ref=e40]
+    - main [ref=e46]:
+      - generic [ref=e187]:
+        - generic [ref=e188]:
+          - generic [ref=e189]:
+            - heading "Condiciones físicas" [level=2] [ref=e190]
+            - paragraph [ref=e191]: Selecciona las condiciones que te apliquen
+          - generic [ref=e192]:
+            - button "Discapacidad" [ref=e193]
+            - button "Lesión" [ref=e194]
+            - button "Enfermedad" [ref=e195]
+            - button "Embarazo" [ref=e196]
+            - button "Otras" [ref=e197]
+            - button "No poseo" [ref=e198]
+        - generic [ref=e199]:
+          - button "Continuar" [disabled]:
+            - text: Continuar
+            - img
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e28] [cursor=pointer]:
+    - img [ref=e29]
+  - alert [ref=e32]

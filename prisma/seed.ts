@@ -214,13 +214,23 @@ async function main() {
   console.log("✅ Users created (10 members + 3 staff)")
 
   // ── Membership Plans ────────────────────────────────
-  const plans = await Promise.all([
-    prisma.membershipPlan.create({ data: { gymId: gym.id, name: "Plan Semanal", price: 150, currency: "MXN", durationDays: 7 } }),
-    prisma.membershipPlan.create({ data: { gymId: gym.id, name: "Plan Mensual", price: 500, currency: "MXN", durationDays: 30 } }),
-    prisma.membershipPlan.create({ data: { gymId: gym.id, name: "Plan Trimestral", price: 1200, currency: "MXN", durationDays: 90 } }),
-    prisma.membershipPlan.create({ data: { gymId: gym.id, name: "Plan Anual", price: 4000, currency: "MXN", durationDays: 365, description: "Ahorra 33% vs mensual" } }),
-    prisma.membershipPlan.create({ data: { gymId: gym.id, name: "Pase Diario", price: 50, currency: "MXN", durationDays: 1 } }),
-  ])
+  const planDefs = [
+    { name: "Plan Semanal", price: 150, currency: "MXN", durationDays: 7 },
+    { name: "Plan Mensual", price: 500, currency: "MXN", durationDays: 30 },
+    { name: "Plan Trimestral", price: 1200, currency: "MXN", durationDays: 90 },
+    { name: "Plan Anual", price: 4000, currency: "MXN", durationDays: 365, description: "Ahorra 33% vs mensual" },
+    { name: "Pase Diario", price: 50, currency: "MXN", durationDays: 1 },
+  ]
+
+  const plans = await Promise.all(
+    planDefs.map(async (def) => {
+      const existing = await prisma.membershipPlan.findFirst({
+        where: { gymId: gym.id, name: def.name },
+      })
+      if (existing) return existing
+      return prisma.membershipPlan.create({ data: { gymId: gym.id, ...def } })
+    })
+  )
 
   // ── Memberships (varied statuses) ───────────────────
   const now = new Date()

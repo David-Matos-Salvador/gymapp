@@ -1,0 +1,55 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - banner [ref=f1e3]:
+      - img [ref=f1e4]
+      - generic [ref=f1e7]: GymApp
+      - generic [ref=f1e8]:
+        - button "Notificaciones" [ref=f1e9]:
+          - img [ref=f1e10]
+          - generic [ref=f1e13]: "1"
+        - generic [ref=f1e14]: Miembro
+    - main [ref=f1e15]:
+      - generic [ref=f1e17]:
+        - generic [ref=f1e18]:
+          - heading "Mi Membresía" [level=2] [ref=f1e19]
+          - paragraph [ref=f1e20]: Gestioná tu plan y métodos de pago
+        - generic [ref=f1e21]:
+          - generic [ref=f1e23]:
+            - generic [ref=f1e24]: Plan Mensual
+            - generic [ref=f1e25]: Activa
+          - generic [ref=f1e26]:
+            - generic [ref=f1e28]:
+              - img [ref=f1e29]
+              - text: 6 jul 2026 — 5 ago 2026
+            - generic [ref=f1e31]:
+              - generic [ref=f1e32]:
+                - generic [ref=f1e33]:
+                  - img [ref=f1e34]
+                  - generic [ref=f1e37]: Transferencia
+                - paragraph [ref=f1e38]: "Ref: TRF-001"
+              - generic [ref=f1e39]:
+                - text: MXN $500
+                - generic [ref=f1e40]: / 30d
+            - generic [ref=f1e42]: Pagado
+    - navigation [ref=f1e43]:
+      - generic [ref=f1e44]:
+        - link "Mi Rutina" [ref=f1e45] [cursor=pointer]:
+          - /url: /rutinas
+          - img [ref=f1e46]
+          - generic [ref=f1e52]: Mi Rutina
+        - link "Progreso" [ref=f1e53] [cursor=pointer]:
+          - /url: /progress
+          - img [ref=f1e54]
+          - generic [ref=f1e57]: Progreso
+        - link "Clases" [ref=f1e58] [cursor=pointer]:
+          - /url: /classes
+          - img [ref=f1e59]
+          - generic [ref=f1e61]: Clases
+        - link "Perfil" [ref=f1e62] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=f1e63]
+          - generic [ref=f1e75]: Perfil
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f1e81] [cursor=pointer]:
+    - img [ref=f1e82]
+  - alert [ref=f1e85]

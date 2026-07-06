@@ -1,0 +1,58 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - banner [ref=f2e3]:
+      - img [ref=f2e4]
+      - generic [ref=f2e7]: GymApp
+      - generic [ref=f2e8]:
+        - button "Notificaciones" [ref=f2e9]:
+          - img [ref=f2e10]
+          - generic [ref=f2e13]: "2"
+        - generic [ref=f2e14]: Miembro
+    - main [ref=f2e15]:
+      - generic [ref=f2e17]:
+        - generic [ref=f2e18]:
+          - img [ref=f2e20]
+          - generic [ref=f2e23]:
+            - heading "Notificaciones" [level=1] [ref=f2e24]
+            - paragraph [ref=f2e25]: 2 sin leer
+        - generic [ref=f2e26]:
+          - generic [ref=f2e27]:
+            - heading "Notificaciones" [level=2] [ref=f2e28]
+            - button "Marcar todas leídas" [ref=f2e29]:
+              - img [ref=f2e30]
+              - text: Marcar todas leídas
+          - generic [ref=f2e33]:
+            - button "¡Te damos la bienvenida Laura! Completá tu perfil para recibir una rutina personalizada. hace 1m" [ref=f2e34]:
+              - img [ref=f2e36]
+              - generic [ref=f2e38]:
+                - paragraph [ref=f2e40]: ¡Te damos la bienvenida Laura!
+                - paragraph [ref=f2e42]: Completá tu perfil para recibir una rutina personalizada.
+                - paragraph [ref=f2e43]: hace 1m
+            - button "¡Te damos la bienvenida Laura! Completá tu perfil para recibir una rutina personalizada. hace 14m" [ref=f2e44]:
+              - img [ref=f2e46]
+              - generic [ref=f2e48]:
+                - paragraph [ref=f2e50]: ¡Te damos la bienvenida Laura!
+                - paragraph [ref=f2e52]: Completá tu perfil para recibir una rutina personalizada.
+                - paragraph [ref=f2e53]: hace 14m
+    - navigation [ref=f2e54]:
+      - generic [ref=f2e55]:
+        - link "Mi Rutina" [ref=f2e56] [cursor=pointer]:
+          - /url: /rutinas
+          - img [ref=f2e57]
+          - generic [ref=f2e63]: Mi Rutina
+        - link "Progreso" [ref=f2e64] [cursor=pointer]:
+          - /url: /progress
+          - img [ref=f2e65]
+          - generic [ref=f2e68]: Progreso
+        - link "Clases" [ref=f2e69] [cursor=pointer]:
+          - /url: /classes
+          - img [ref=f2e70]
+          - generic [ref=f2e72]: Clases
+        - link "Perfil" [ref=f2e73] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=f2e74]
+          - generic [ref=f2e86]: Perfil
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f2e92] [cursor=pointer]:
+    - img [ref=f2e93]
+  - alert [ref=f2e96]

@@ -1,0 +1,36 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e33]:
+    - banner [ref=e34]:
+      - generic [ref=e35]:
+        - button [ref=e86]:
+          - img [ref=e87]
+        - generic [ref=e36]:
+          - generic [ref=e37]: 6/9
+          - generic [ref=e38]: Peso y altura
+        - button [ref=e39]:
+          - img [ref=e40]
+    - main [ref=e46]:
+      - generic [ref=e195]:
+        - generic [ref=e196]:
+          - generic [ref=e197]:
+            - heading "Peso y altura" [level=2] [ref=e198]
+            - paragraph [ref=e199]: Estos datos nos ayudan a personalizar tu rutina
+          - generic [ref=e200]:
+            - generic [ref=e201]:
+              - text: ¿Cuánto pesas?
+              - generic [ref=e202]:
+                - 'textbox "Ej: 75" [ref=e203]'
+                - generic [ref=e204]: kg
+            - generic [ref=e205]:
+              - text: ¿Cuánto mides?
+              - generic [ref=e206]:
+                - 'textbox "Ej: 170" [ref=e207]'
+                - generic [ref=e208]: cm
+        - generic [ref=e209]:
+          - button "Continuar" [disabled]:
+            - text: Continuar
+            - img
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e28] [cursor=pointer]:
+    - img [ref=e29]
+  - alert [ref=e32]

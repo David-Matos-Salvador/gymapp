@@ -41,9 +41,14 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   if (action === "REJECTED") {
-    const updated = await prisma.trainerRequest.update({
+    const updated = await     prisma.trainerRequest.update({
       where: { id },
       data: { status: "REJECTED", rejectedAt: new Date() },
+    })
+
+    await prisma.notification.updateMany({
+      where: { userId: user.id, type: "TRAINER_REQUEST", read: false },
+      data: { read: true },
     })
 
     await prisma.notification.create({
@@ -75,6 +80,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
   const updatedRequest = await prisma.trainerRequest.update({
     where: { id },
     data: { status: "ACCEPTED", acceptedAt: now },
+  })
+
+  await prisma.notification.updateMany({
+    where: { userId: user.id, type: "TRAINER_REQUEST", read: false },
+    data: { read: true },
   })
 
   await prisma.notification.create({

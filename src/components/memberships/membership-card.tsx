@@ -1,9 +1,12 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { CalendarDays, CreditCard, Banknote, ArrowLeftRight, RefreshCw } from "lucide-react"
+import { CalendarDays, CreditCard, Banknote, ArrowLeftRight, RefreshCw, Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 interface MembershipPlan {
   name: string
@@ -65,6 +68,39 @@ export function MembershipCard({ membership }: MembershipCardProps) {
   const statusInfo = statusConfig[status] ?? { label: status, variant: "outline" as const }
   const PaymentIcon = paymentMethodIcons[paymentMethod] ?? CreditCard
   const isExpired = status === "EXPIRED" || (status === "ACTIVE" && new Date(endDate) < new Date())
+  const router = useRouter()
+  const [renewing, setRenewing] = useState(false)
+
+  async function handleRenew() {
+    setRenewing(true)
+    try {
+      const planDays = plan.durationDays
+      const start = new Date()
+      const end = new Date(start)
+      end.setDate(end.getDate() + planDays)
+
+      const res = await fetch(`/api/memberships/${membership.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "ACTIVE",
+          paymentConfirmed: false,
+          startDate: start.toISOString(),
+          endDate: end.toISOString(),
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error ?? "Error al renovar")
+      }
+      toast.success("Membresía renovada. Confirmá tu pago.")
+      router.refresh()
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error al renovar membresía")
+    } finally {
+      setRenewing(false)
+    }
+  }
 
   return (
     <Card>
@@ -120,9 +156,19 @@ export function MembershipCard({ membership }: MembershipCardProps) {
         </div>
 
         {isExpired && (
-          <Button variant="outline" size="sm" className="w-full">
-            <RefreshCw className="mr-2 size-3.5" />
-            Renovar
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full"
+            onClick={handleRenew}
+            disabled={renewing}
+          >
+            {renewing ? (
+              <Loader2 className="mr-2 size-3.5 animate-spin" />
+            ) : (
+              <RefreshCw className="mr-2 size-3.5" />
+            )}
+            {renewing ? "Renovando..." : "Renovar"}
           </Button>
         )}
       </CardContent>

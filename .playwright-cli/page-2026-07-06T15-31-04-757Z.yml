@@ -1,0 +1,66 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e33]:
+    - banner [ref=e34]:
+      - generic [ref=e35]:
+        - button [ref=e86]:
+          - img [ref=e87]
+        - generic [ref=e36]:
+          - generic [ref=e37]: 8/9
+          - generic [ref=e38]: Confirmación
+        - button [ref=e39]:
+          - img [ref=e40]
+    - main [ref=e46]:
+      - generic [ref=e287]:
+        - generic [ref=e288]:
+          - heading "Confirmá tus datos" [level=2] [ref=e289]
+          - paragraph [ref=e290]: Revisá que toda la información sea correcta
+        - generic [ref=e291]:
+          - generic [ref=e292]:
+            - generic [ref=e293]:
+              - paragraph [ref=e294]: Objetivo
+              - paragraph [ref=e295]: Ganar masa muscular
+            - button "Editar" [ref=e296]
+          - generic [ref=e297]:
+            - generic [ref=e298]:
+              - paragraph [ref=e299]: Historial
+              - paragraph [ref=e300]: 4x o más
+            - button "Editar" [ref=e301]
+          - generic [ref=e302]:
+            - generic [ref=e303]:
+              - paragraph [ref=e304]: Experiencia
+              - paragraph [ref=e305]: Intermedio
+            - button "Editar" [ref=e306]
+          - generic [ref=e307]:
+            - generic [ref=e308]:
+              - paragraph [ref=e309]: Frecuencia
+              - paragraph [ref=e310]: 4 días por semana
+            - button "Editar" [ref=e311]
+          - generic [ref=e312]:
+            - generic [ref=e313]:
+              - paragraph [ref=e314]: Condiciones
+              - paragraph [ref=e315]: No poseo
+            - button "Editar" [ref=e316]
+          - generic [ref=e317]:
+            - generic [ref=e318]:
+              - paragraph [ref=e319]: Peso / Altura
+              - paragraph [ref=e320]: 78 kg / 178 cm
+            - button "Editar" [ref=e321]
+          - generic [ref=e322]:
+            - generic [ref=e323]: IMC
+            - generic [ref=e324]: 24.6 (Normal)
+          - generic [ref=e325]:
+            - generic [ref=e326]:
+              - paragraph [ref=e327]: Horario
+              - paragraph [ref=e328]: Mañana (8am-11am)
+            - button "Editar" [ref=e329]
+        - generic [ref=e330]:
+          - button "Editar" [ref=e331]:
+            - img
+            - text: Editar
+          - button "Confirmar y generar rutina" [ref=e332]:
+            - img
+            - text: Confirmar y generar rutina
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e28] [cursor=pointer]:
+    - img [ref=e29]
+  - alert [ref=e32]

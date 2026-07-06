@@ -98,3 +98,4 @@
     at async fetchServerResponse (http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:7951:21)
     at async fetchMissingDynamicData (http://localhost:3000/_next/static/chunks/node_modules_next_dist_client_0fhqo1d._.js:9364:24) @ http://localhost:3000/_next/static/chunks/node_modules_next_dist_115brz8._.js:3318
 [ 1588266ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/__nextjs_original-stack-frames:0
+[ 1629591ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://localhost:3000/coach:0

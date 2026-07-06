@@ -126,7 +126,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     fetchUnreadCount()
-  }, [fetchUnreadCount])
+  }, [fetchUnreadCount, pathname])
 
   const handleMarkRead = useCallback(async (id: string) => {
     setNotifications((prev) =>

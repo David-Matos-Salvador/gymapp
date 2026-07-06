@@ -114,6 +114,8 @@ export default async function RutinaDetailPage({ params }: PageProps) {
         workoutDates={workoutDates.map((d) => d.toISOString())}
         weeklyStreak={weeklyStreakData.streak}
         bestStreak={weeklyStreakData.bestStreak}
+        membershipStatus="ACTIVE"
+        membershipExpired={false}
       />
     </AppShell>
   )

@@ -1,0 +1,80 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - banner [ref=f2e3]:
+      - img [ref=f2e4]
+      - generic [ref=f2e7]: GymApp
+      - generic [ref=f2e8]:
+        - button "Notificaciones" [ref=f2e9]:
+          - img [ref=f2e10]
+          - generic [ref=f2e13]: "1"
+        - generic [ref=f2e14]: Miembro
+    - main [ref=f2e15]:
+      - generic [ref=f2e17]:
+        - generic [ref=f2e18]:
+          - heading "Clases" [level=1] [ref=f2e19]
+          - paragraph [ref=f2e20]: Reserva tu lugar en clases grupales
+        - generic [ref=f2e21]:
+          - generic [ref=f2e23]:
+            - generic [ref=f2e24]:
+              - generic [ref=f2e26]: HIIT Intenso
+              - paragraph [ref=f2e27]: Entrenamiento interválico de alta intensidad.
+            - generic [ref=f2e28]:
+              - generic [ref=f2e29]:
+                - generic [ref=f2e30]:
+                  - img [ref=f2e31]
+                  - text: lunes
+                - generic [ref=f2e33]:
+                  - img [ref=f2e34]
+                  - text: 08:00 · 45min
+                - generic [ref=f2e37]:
+                  - img [ref=f2e38]
+                  - text: 2/15
+                - generic [ref=f2e43]:
+                  - img [ref=f2e44]
+                  - text: Coach Martínez
+              - button "Reservar lugar" [ref=f2e47]
+          - generic [ref=f2e49]:
+            - generic [ref=f2e50]:
+              - generic [ref=f2e51]:
+                - generic [ref=f2e52]: Yoga Vinyasa
+                - img [ref=f2e53]
+              - paragraph [ref=f2e56]: Fluidez de posturas sincronizadas.
+            - generic [ref=f2e57]:
+              - generic [ref=f2e58]:
+                - generic [ref=f2e59]:
+                  - img [ref=f2e60]
+                  - text: miércoles
+                - generic [ref=f2e62]:
+                  - img [ref=f2e63]
+                  - text: 19:00 · 60min
+                - generic [ref=f2e66]:
+                  - img [ref=f2e67]
+                  - text: 1/20
+                - generic [ref=f2e72]:
+                  - img [ref=f2e73]
+                  - text: Coach Martínez
+              - button "Cancelar reserva" [ref=f2e76]:
+                - img
+                - text: Cancelar reserva
+    - navigation [ref=f2e77]:
+      - generic [ref=f2e78]:
+        - link "Mi Rutina" [ref=f2e79] [cursor=pointer]:
+          - /url: /rutinas
+          - img [ref=f2e80]
+          - generic [ref=f2e86]: Mi Rutina
+        - link "Progreso" [ref=f2e87] [cursor=pointer]:
+          - /url: /progress
+          - img [ref=f2e88]
+          - generic [ref=f2e91]: Progreso
+        - link "Clases" [ref=f2e92] [cursor=pointer]:
+          - /url: /classes
+          - img [ref=f2e93]
+          - generic [ref=f2e95]: Clases
+        - link "Perfil" [ref=f2e97] [cursor=pointer]:
+          - /url: /profile
+          - img [ref=f2e98]
+          - generic [ref=f2e110]: Perfil
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f2e116] [cursor=pointer]:
+    - img [ref=f2e117]
+  - alert [ref=f2e120]

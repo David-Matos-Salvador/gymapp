@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react"
 import { Bell } from "lucide-react"
-import { Sheet, SheetContent } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
 
 interface NotificationBellProps {
@@ -53,6 +53,7 @@ export function NotificationBell({
         side="right"
         className="w-full max-w-sm p-0 [&>button.absolute]:top-4 [&>button.absolute]:right-4"
       >
+        <SheetTitle className="sr-only">Notificaciones</SheetTitle>
         {children}
       </SheetContent>
     </Sheet>

@@ -6,7 +6,7 @@
     { "id": "dep-1", "from": "trainer", "to": "diego", "action": "assign-plan", "status": "completed", "note": "ya está asignado en seed: plan coachPlan1" },
     { "id": "dep-2", "from": "trainer2", "to": "valentina", "action": "send-request", "status": "completed" },
     { "id": "dep-3", "from": "trainer2", "to": "roberto", "action": "send-request", "status": "completed" },
-    { "id": "dep-4", "from": "valentina", "to": "trainer2", "action": "accept-request", "status": "pending", "requires": ["dep-2"] },
+    { "id": "dep-4", "from": "valentina", "to": "trainer2", "action": "accept-request", "status": "completed", "requires": ["dep-2"], "note": "valentina accepted + paid Plan Mensual $500 via Yape" },
     { "id": "dep-5", "from": "roberto", "to": "trainer2", "action": "accept-request", "status": "pending", "requires": ["dep-3"] }
   ],
   "users": {
@@ -16,7 +16,7 @@
     "trainer2@gymapp.com": { "role": "TRAINER", "status": "completed", "completed_steps": ["login","dashboard","empty-clients","create-routine","request-valentina","request-roberto"] },
     "laura@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
     "diego@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
-    "valentina@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
+    "valentina@gymapp.com": { "role": "MEMBER", "status": "completed", "completed_steps": ["login","dashboard","notifications","accept-request","payment-yape","post-confirmation-notification","verify-plan","start-workout","complete-first-set"] },
     "mateo@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
     "sofia@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
     "ricardo@gymapp.com": { "role": "MEMBER", "status": "pending", "completed_steps": [] },
