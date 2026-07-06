@@ -13,16 +13,37 @@ export async function GET() {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
-  const myClientIds = await prisma.trainerRequest.findMany({
-    where: { trainerId: user.id, status: "ACCEPTED" },
-    select: { clientId: true },
-  })
+  let clientIds: string[] = []
+
+  if (user.role === "TRAINER") {
+    const trainerRequests = await prisma.trainerRequest.findMany({
+      where: { trainerId: user.id, status: "ACCEPTED" },
+      select: { clientId: true },
+    })
+
+    const assignedClients = await prisma.user.findMany({
+      where: { assignedTrainerId: user.id },
+      select: { id: true },
+    })
+
+    const idSet = new Set([
+      ...trainerRequests.map((tr) => tr.clientId),
+      ...assignedClients.map((c) => c.id),
+    ])
+    clientIds = Array.from(idSet)
+
+    if (clientIds.length === 0) {
+      return NextResponse.json({ payments: [] })
+    }
+  }
+
+  const where =
+    user.role === "TRAINER"
+      ? { status: "PENDING" as const, userId: { in: clientIds } }
+      : { status: "PENDING" as const }
 
   const payments = await prisma.payment.findMany({
-    where: {
-      status: "PENDING",
-      userId: { in: myClientIds.map((r) => r.clientId) },
-    },
+    where,
     include: {
       user: { select: { id: true, name: true, email: true } },
     },
