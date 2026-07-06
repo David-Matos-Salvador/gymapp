@@ -1,0 +1,26 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e3]:
+    - generic [ref=f2e4]:
+      - generic [ref=f2e5]: GymApp
+      - generic [ref=f2e6]: Inicia sesión en tu cuenta
+    - generic [ref=f2e7]:
+      - generic [ref=f2e8]:
+        - generic [ref=f2e9]:
+          - generic [ref=f2e10]: Email
+          - textbox "Email" [ref=f2e11]:
+            - /placeholder: tu@email.com
+        - generic [ref=f2e12]:
+          - generic [ref=f2e13]: Contraseña
+          - textbox "Contraseña" [ref=f2e14]:
+            - /placeholder: ••••••
+        - button "Iniciar sesión" [ref=f2e16]
+      - generic [ref=f2e18]: o
+      - button "Continuar con Google" [ref=f2e19]
+    - paragraph [ref=f2e21]:
+      - text: ¿No tienes cuenta?
+      - link "Crear cuenta" [ref=f2e22] [cursor=pointer]:
+        - /url: /register
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=f2e28] [cursor=pointer]:
+    - img [ref=f2e29]
+  - alert [ref=f2e32]
