@@ -49,6 +49,7 @@ export interface SplitData {
   id: string
   name: string
   description: string | null
+  estimatedDuration: number | null
   exercises: SplitExercise[]
   plan: SplitPlan | null
 }
