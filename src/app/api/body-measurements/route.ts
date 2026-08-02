@@ -65,7 +65,8 @@ export async function POST(request: Request) {
     )
   }
 
-  const targetUserId = (parsed.data as any).userId && (user.role === "TRAINER" || user.role === "ADMIN") ? (parsed.data as any).userId : user.id
+  const data = parsed.data
+  const targetUserId = data.userId && (user.role === "TRAINER" || user.role === "ADMIN") ? data.userId : user.id
 
   const measurement = await prisma.bodyMeasurement.create({
     data: {

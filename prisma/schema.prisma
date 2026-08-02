@@ -260,6 +260,8 @@ model MembershipPlan {
 
   gym        Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
   memberships Membership[]
+
+  @@unique([gymId, name])
 }
 
 model Membership {
@@ -279,6 +281,8 @@ model Membership {
 
   user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan MembershipPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, planId])
 }
 
 model CheckIn {
@@ -289,6 +293,8 @@ model CheckIn {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }
 
 model BodyMeasurement {
@@ -317,6 +323,8 @@ model BodyMeasurement {
   createdAt   DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }
 
 model ProgressPhoto {
@@ -362,6 +370,8 @@ model RoutinePlan {
   user        User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   splits      RoutineSplit[]
   assignments AssignedRoutinePlan[]
+
+  @@unique([name, userId])
 }
 
 model RoutineSplit {
@@ -411,6 +421,7 @@ model AssignedRoutinePlan {
 
   @@index([userId])
   @@index([planId])
+  @@unique([userId, planId])
 }
 
 // ── Exercise & Workout Models ─────────────────────────
@@ -432,6 +443,8 @@ model Exercise {
   creator        User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
   splitExercises RoutineSplitExercise[]
   gymEquipments  GymEquipment[]
+
+  @@unique([name])
 }
 
 model WorkoutLog {
@@ -495,6 +508,8 @@ model Booking {
 
   user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   classItem Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, classId])
 }
 
 model Payment {
@@ -547,4 +562,5 @@ model TrainerRequest {
   @@index([trainerId])
   @@index([clientId])
   @@index([status])
+  @@unique([trainerId, clientId])
 }

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTrainerClientIds, hasAnyTrainer } from "@/lib/trainer-client"
 
 export async function GET() {
   const session = await auth()
@@ -14,24 +15,28 @@ export async function GET() {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
-  const clients = await prisma.user.findMany({
-    where: { assignedTrainerId: user.id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      objective: true,
-      experienceLevel: true,
-      createdAt: true,
-      memberShips: {
-        include: { plan: true },
-        where: { status: "ACTIVE" },
-        take: 1,
-      },
-    },
-    orderBy: { name: "asc" },
-  })
+  const clientIds = await getTrainerClientIds(user.id)
+
+  const clients = clientIds.length > 0
+    ? await prisma.user.findMany({
+        where: { id: { in: clientIds } },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          objective: true,
+          experienceLevel: true,
+          createdAt: true,
+          memberShips: {
+            include: { plan: true },
+            where: { status: "ACTIVE" },
+            take: 1,
+          },
+        },
+        orderBy: { name: "asc" },
+      })
+    : []
 
   return NextResponse.json({ clients })
 }
@@ -59,7 +64,8 @@ export async function POST(request: Request) {
   if (client.role !== "MEMBER") {
     return NextResponse.json({ error: "Solo se puede enviar solicitud a miembros" }, { status: 400 })
   }
-  if (client.assignedTrainerId) {
+  const hasTrainer = await hasAnyTrainer(clientId)
+  if (hasTrainer) {
     return NextResponse.json({ error: "El usuario ya tiene un entrenador asignado" }, { status: 409 })
   }
 

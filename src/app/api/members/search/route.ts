@@ -30,10 +30,22 @@ export async function GET(request: Request) {
       name: true,
       email: true,
       assignedTrainerId: true,
+      trainerRequestsReceived: {
+        where: { status: "ACCEPTED" },
+        select: { id: true },
+      },
     },
     take: 10,
     orderBy: { email: "asc" },
   })
 
-  return NextResponse.json({ members })
+  return NextResponse.json({
+    members: members.map((m) => ({
+      id: m.id,
+      name: m.name,
+      email: m.email,
+      assignedTrainerId: m.assignedTrainerId,
+      hasTrainer: !!m.assignedTrainerId || m.trainerRequestsReceived.length > 0,
+    })),
+  })
 }

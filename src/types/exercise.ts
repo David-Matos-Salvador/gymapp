@@ -1,7 +1,7 @@
 /*
  * Frontend DTOs for workout/exercise UI components.
  * These intentionally mirror Prisma models but are decoupled:
- * - Exercise → subset of Prisma Exercise (no description, videoUrl, animationData)
+ * - Exercise → subset of Prisma Exercise (no animationData)
  * - SplitExercise → subset of RoutineSplitExercise (no notes, uses nested Exercise)
  * - SetLog → maps to WorkoutSetLog fields consumed on the client
  * - SplitData / SplitPlan → used for workout session page data fetching
@@ -17,6 +17,8 @@ export interface Exercise {
   muscleGroup: string
   equipment: string
   imageUrl?: string | null
+  videoUrl?: string | null
+  description?: string | null
 }
 
 export interface SplitExercise {

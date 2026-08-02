@@ -4,6 +4,8 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { StatCard } from "@/components/ui/stat-card"
+import { EmptyState } from "@/components/ui/empty-state"
 import {
   BadgeCheck,
   Banknote,
@@ -12,9 +14,9 @@ import {
   Clock,
   Users,
   Dumbbell,
-  ListTodo,
   ArrowRight,
 } from "lucide-react"
+import { formatDate, formatCurrency } from "@/lib/utils"
 
 interface AdminStats {
   totalActiveMemberships: number
@@ -35,62 +37,6 @@ interface RecentCheckIn {
   userName: string
   date: string
 }
-
-function formatDate(iso: string) {
-  const d = new Date(iso)
-  return d.toLocaleDateString("es-MX", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  })
-}
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("es-MX", {
-    style: "currency",
-    currency: "MXN",
-    minimumFractionDigits: 0,
-  }).format(amount)
-}
-
-const statCards = [
-  {
-    label: "Membresías activas",
-    value: (s: AdminStats) => s.totalActiveMemberships,
-    icon: BadgeCheck,
-    color: "border-t-accent-yellow",
-    iconColor: "text-accent-yellow",
-    bg: "bg-accent-yellow/10",
-    suffix: "",
-  },
-  {
-    label: "Ingresos del mes",
-    value: (s: AdminStats) => formatCurrency(s.monthlyIncome),
-    icon: Banknote,
-    color: "border-t-accent-yellow",
-    iconColor: "text-accent-yellow",
-    bg: "bg-accent-yellow/10",
-    suffix: "",
-  },
-  {
-    label: "Nuevos miembros",
-    value: (s: AdminStats) => s.newMembersThisMonth,
-    icon: UserPlus,
-    color: "border-t-accent-yellow",
-    iconColor: "text-accent-yellow",
-    bg: "bg-accent-yellow/10",
-    suffix: "este mes",
-  },
-  {
-    label: "Asistencia diaria",
-    value: (s: AdminStats) => s.avgDailyAttendance,
-    icon: CalendarCheck,
-    color: "border-t-primary",
-    iconColor: "text-primary",
-    bg: "bg-primary/10",
-    suffix: "promedio semanal",
-  },
-]
 
 export function AdminDashboard({
   stats,
@@ -127,38 +73,34 @@ export function AdminDashboard({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((card, i) => {
-          const value = card.value(stats)
-          return (
-            <motion.div
-              key={card.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }}
-            >
-              <Card
-                className={`hover:shadow-md transition-all border-t-2 ${card.color}`}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {card.label}
-                    </CardTitle>
-                    <card.icon className={`h-4 w-4 ${card.iconColor}`} />
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-3xl font-bold">{value}</p>
-                  {card.suffix && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {card.suffix}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
-          )
-        })}
+        <StatCard
+          label="Membresías activas"
+          value={stats.totalActiveMemberships}
+          icon={BadgeCheck}
+          delay={0}
+        />
+        <StatCard
+          label="Ingresos del mes"
+          value={formatCurrency(stats.monthlyIncome)}
+          icon={Banknote}
+          delay={0.05}
+        />
+        <StatCard
+          label="Nuevos miembros"
+          value={stats.newMembersThisMonth}
+          icon={UserPlus}
+          suffix="este mes"
+          delay={0.1}
+        />
+        <StatCard
+          label="Asistencia diaria"
+          value={stats.avgDailyAttendance}
+          icon={CalendarCheck}
+          iconColor="text-primary"
+          borderColor="border-t-primary"
+          suffix="promedio semanal"
+          delay={0.15}
+        />
       </div>
 
       <motion.div
@@ -175,9 +117,7 @@ export function AdminDashboard({
           </CardHeader>
           <CardContent>
             {expiringMemberships.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">
-                No hay membresías por vencer en los próximos 7 días
-              </p>
+              <EmptyState message="No hay membresías por vencer en los próximos 7 días" />
             ) : (
               <div className="space-y-2">
                 {expiringMemberships.map((m) => (
@@ -222,9 +162,7 @@ export function AdminDashboard({
           </CardHeader>
           <CardContent>
             {recentCheckIns.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-6">
-                No hay registros de asistencia
-              </p>
+              <EmptyState message="No hay registros de asistencia" />
             ) : (
               <div className="space-y-2">
                 {recentCheckIns.map((c) => (

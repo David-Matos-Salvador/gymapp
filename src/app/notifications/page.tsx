@@ -11,22 +11,21 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<MockNotification[]>([])
   const [loading, setLoading] = useState(true)
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await fetch("/api/notifications")
-      if (!res.ok) throw new Error("Error al cargar notificaciones")
-      const data = await res.json()
-      setNotifications(data.notifications ?? [])
-    } catch {
-      toast.error("Error al cargar notificaciones")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch("/api/notifications")
+        if (!res.ok) throw new Error("Error al cargar notificaciones")
+        const data = await res.json()
+        setNotifications(data.notifications ?? [])
+      } catch {
+        toast.error("Error al cargar notificaciones")
+      } finally {
+        setLoading(false)
+      }
+    }
     fetchNotifications()
-  }, [fetchNotifications])
+  }, [])
 
   const handleMarkRead = useCallback(async (id: string) => {
     setNotifications((prev) =>

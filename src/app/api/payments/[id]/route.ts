@@ -83,6 +83,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
               where: { id: payment.userId },
               data: { assignedTrainerId: user.id },
             }),
+            prisma.trainerRequest.updateMany({
+              where: { clientId: payment.userId, trainerId: user.id, status: "ACCEPTED" },
+              data: { status: "REJECTED", rejectedAt: new Date() },
+            }),
           ]
         : []),
     ])

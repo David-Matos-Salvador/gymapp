@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, CreditCard, Banknote, ArrowLeftRight, RefreshCw, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { formatDate } from "@/lib/utils"
 
 interface MembershipPlan {
   name: string
@@ -53,14 +54,6 @@ const paymentMethodLabels: Record<string, string> = {
   CARD: "Tarjeta",
   STRIPE: "Stripe",
   OTHER: "Otro",
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("es-MX", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
 }
 
 export function MembershipCard({ membership }: MembershipCardProps) {

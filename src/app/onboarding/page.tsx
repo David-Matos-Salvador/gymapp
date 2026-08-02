@@ -6,235 +6,40 @@ import { useSession, signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useSound } from "@/hooks/use-sound"
+import { calculateBMI, getBMICategory } from "@/lib/health"
 import {
-  Target,
-  Flame,
-  Heart,
-  HelpCircle,
-  Dumbbell,
-  Calendar,
-  Star,
-  Zap,
-  Award,
-  Trophy,
-  Timer,
-  Scale,
-  Clock,
-  ClipboardCheck,
+  type Objective,
+  type TrainingHistory,
+  type ExperienceLevelStep,
+  type UsualSchedule,
+  type OnboardingData,
+  type GeneratedPlanData,
+  TOTAL_STEPS,
+  STEPS,
+  STEP_BEHAVIOR,
+  objectiveOptions,
+  trainingHistoryOptions,
+  experienceOptions,
+  trainingFrequencyOptions,
+  physicalConditionOptions,
+  scheduleOptions,
+  loadingMessages,
+  stepVariants,
+  objectiveLabelMap,
+  trainingHistoryLabelMap,
+  experienceLabelMap,
+  scheduleLabelMap,
+} from "./constants"
+import {
   ChevronLeft,
   ChevronRight,
   Check,
   Loader2,
   Sparkles,
-  User,
-  Activity,
+  Dumbbell,
+  Zap,
   LogOut,
-  List,
 } from "lucide-react"
-
-type Objective = "WEIGHT_LOSS" | "MUSCLE_GAIN" | "GENERAL_FITNESS" | "UNSURE"
-type TrainingHistory = "NONE" | "ONCE" | "TWO_TO_THREE" | "FOUR_PLUS"
-type ExperienceLevelStep = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "ELITE"
-type UsualSchedule = "BEFORE_8AM" | "8AM_11AM" | "11AM_2PM" | "2PM_5PM" | "5PM_7PM" | "7PM_9PM" | "AFTER_9PM"
-
-interface OnboardingData {
-  objective: Objective | null
-  trainingHistory: TrainingHistory | null
-  experienceLevel: ExperienceLevelStep | null
-  trainingFrequency: number | null
-  physicalConditions: string[]
-  weight: number | null
-  height: number | null
-  usualSchedule: UsualSchedule | null
-}
-
-interface GeneratedPlanData {
-  id: string
-  name: string
-  description: string | null
-  focus: string
-  difficulty: string
-  frequency: number
-  objective: string
-  splits: {
-    id: string
-    label: string
-    name: string
-    muscleGroups: string[]
-    estimatedDuration: number | null
-    exercises: {
-      id: string
-      name: string
-      muscleGroup: string
-      equipment: string
-      sets: number
-      reps: string
-      weight: number
-      restSeconds: number
-    }[]
-  }[]
-}
-
-const TOTAL_STEPS = 9
-
-const STEPS = [
-  { num: 1, title: "Objetivo" },
-  { num: 2, title: "Historial" },
-  { num: 3, title: "Experiencia" },
-  { num: 4, title: "Frecuencia" },
-  { num: 5, title: "Condiciones" },
-  { num: 6, title: "Peso y altura" },
-  { num: 7, title: "Horario" },
-  { num: 8, title: "Confirmación" },
-  { num: 9, title: "Tu rutina" },
-]
-
-type StepBehavior = "auto-advance" | "manual" | "custom-button" | "system-auto" | "final"
-
-const STEP_BEHAVIOR: Record<number, StepBehavior> = {
-  1: "auto-advance",
-  2: "auto-advance",
-  3: "auto-advance",
-  4: "auto-advance",
-  5: "manual",
-  6: "manual",
-  7: "auto-advance",
-  8: "custom-button",
-  9: "custom-button",
-}
-
-const objectiveOptions = [
-  {
-    value: "WEIGHT_LOSS",
-    label: "Perder peso",
-    description: "Quemar grasa y definir",
-    icon: Flame,
-  },
-  {
-    value: "MUSCLE_GAIN",
-    label: "Ganar masa muscular",
-    description: "Fuerza e hipertrofia",
-    icon: Dumbbell,
-  },
-  {
-    value: "GENERAL_FITNESS",
-    label: "Mejorar forma física",
-    description: "Salud y bienestar general",
-    icon: Heart,
-  },
-  {
-    value: "UNSURE",
-    label: "Necesito ayuda",
-    description: "No estoy seguro de mi objetivo",
-    icon: HelpCircle,
-  },
-]
-
-const trainingHistoryOptions = [
-  { value: "NONE", label: "No he entrenado antes", description: "Soy completamente nuevo" },
-  { value: "ONCE", label: "1 vez por semana", description: "Entrenamiento ocasional" },
-  { value: "TWO_TO_THREE", label: "2 a 3 veces por semana", description: "Entrenamiento regular" },
-  { value: "FOUR_PLUS", label: "4 o más veces por semana", description: "Entrenamiento frecuente" },
-]
-
-const experienceOptions = [
-  { value: "BEGINNER", label: "Principiante", icon: HelpCircle, description: "Nunca he entrenado antes" },
-  { value: "INTERMEDIATE", label: "Intermedio", icon: Dumbbell, description: "Conozco lo básico" },
-  { value: "ADVANCED", label: "Avanzado", icon: Star, description: "Buen dominio de técnica y rutinas" },
-  { value: "ELITE", label: "Élite", icon: Trophy, description: "Entreno de forma autónoma" },
-]
-
-const trainingFrequencyOptions = [
-  { value: 3, label: "3 días por semana", description: "Ideal para principiantes — volumen equilibrado" },
-  { value: 4, label: "4 días por semana", description: "Balance óptimo — 4 días de entrenamiento" },
-  { value: 5, label: "5 días por semana", description: "Máximo rendimiento — 5 días intensivos" },
-]
-
-const physicalConditionOptions = [
-  "Discapacidad",
-  "Lesión",
-  "Enfermedad",
-  "Embarazo",
-  "Otras",
-  "No poseo",
-]
-
-const scheduleOptions = [
-  { value: "BEFORE_8AM", label: "Madrugada", time: "5am - 8am", icon: "🌅" },
-  { value: "8AM_11AM", label: "Mañana", time: "8am - 11am", icon: "🌤️" },
-  { value: "11AM_2PM", label: "Mediodía", time: "11am - 2pm", icon: "☀️" },
-  { value: "2PM_5PM", label: "Tarde", time: "2pm - 5pm", icon: "🌤️" },
-  { value: "5PM_7PM", label: "Atardecer", time: "5pm - 7pm", icon: "🌅" },
-  { value: "7PM_9PM", label: "Noche", time: "7pm - 9pm", icon: "🌙" },
-  { value: "AFTER_9PM", label: "Madrugada", time: "9pm+", icon: "🌑" },
-]
-
-const loadingMessages = [
-  { icon: Activity, text: "Analizando tu perfil...", duration: 1500 },
-  { icon: Dumbbell, text: "Generando rutina personalizada...", duration: 1800 },
-  { icon: Sparkles, text: "Preparando tu experiencia...", duration: 1200 },
-]
-
-const stepVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 200 : -200,
-    opacity: 0,
-    scale: 0.97,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    scale: 1,
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 200 : -200,
-    opacity: 0,
-    scale: 0.97,
-  }),
-}
-
-function calculateBMI(weight: number, height: number): number {
-  const heightM = height / 100
-  return Math.round((weight / (heightM * heightM)) * 10) / 10
-}
-
-function getBMICategory(bmi: number): { label: string; color: string; bgColor: string } {
-  if (bmi < 18.5) return { label: "Bajo peso", color: "text-orange-600", bgColor: "bg-orange-50" }
-  if (bmi < 25) return { label: "Normal", color: "text-emerald-600", bgColor: "bg-emerald-50" }
-  if (bmi < 30) return { label: "Sobrepeso", color: "text-orange-600", bgColor: "bg-orange-50" }
-  return { label: "Obesidad", color: "text-red-600", bgColor: "bg-red-50" }
-}
-
-const objectiveLabelMap: Record<string, string> = {
-  WEIGHT_LOSS: "Perder peso",
-  MUSCLE_GAIN: "Ganar masa muscular",
-  GENERAL_FITNESS: "Mejorar forma física",
-  UNSURE: "Necesito ayuda para definir",
-}
-
-const trainingHistoryLabelMap: Record<string, string> = {
-  NONE: "No he entrenado",
-  ONCE: "1x por semana",
-  TWO_TO_THREE: "2x a 3x",
-  FOUR_PLUS: "4x o más",
-}
-
-const experienceLabelMap: Record<string, string> = {
-  BEGINNER: "Principiante",
-  INTERMEDIATE: "Intermedio",
-  ADVANCED: "Avanzado",
-  ELITE: "Élite",
-}
-
-const scheduleLabelMap: Record<string, string> = {
-  BEFORE_8AM: "Madrugada (5am-8am)",
-  "8AM_11AM": "Mañana (8am-11am)",
-  "11AM_2PM": "Mediodía (11am-2pm)",
-  "2PM_5PM": "Tarde (2pm-5pm)",
-  "5PM_7PM": "Atardecer (5pm-7pm)",
-  "7PM_9PM": "Noche (7pm-9pm)",
-  AFTER_9PM: "Noche (después de 9pm)",
-}
 
 export default function OnboardingPage() {
   const router = useRouter()

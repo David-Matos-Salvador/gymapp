@@ -13,6 +13,7 @@ import { Plus } from "lucide-react"
 import { toast } from "sonner"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { useSound } from "@/hooks/use-sound"
+import { formatDate } from "@/lib/utils"
 
 interface BodyMeasurement {
   id: string; date: string; weight: number | null; height: number | null;
@@ -30,10 +31,6 @@ const emptyForm = {
   neck: "", shoulders: "", chest: "", waist: "", hips: "",
   leftArm: "", rightArm: "", leftForearm: "", rightForearm: "",
   leftThigh: "", rightThigh: "", leftCalf: "", rightCalf: "",
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("es", { year: "numeric", month: "short", day: "numeric" })
 }
 
 export default function ProgressPage() {

@@ -8,23 +8,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { StatCard } from "@/components/ui/stat-card"
+import { EmptyState } from "@/components/ui/empty-state"
 import { Users, CalendarDays, Dumbbell, Plus, ArrowRight, Search, UserPlus, Mail, Phone, Target, Award, BadgeCheck, Loader2, Send, Clock } from "lucide-react"
 import { toast } from "sonner"
 import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
+import { DAY_OF_WEEK_LABELS } from "@/constants/ui"
 
 interface ClientData { id: string; name: string | null; email: string; phone: string | null; objective: string | null; experienceLevel: string | null; hasActiveMembership: boolean; membershipPlan: string | null }
 interface RoutineData { id: string; name: string; exerciseCount: number }
 interface ClassData { id: string; name: string; dayOfWeek: string; duration: number; capacity: number; bookingsCount: number; schedule: string }
 interface Stats { totalClients: number; activeMemberships: number; upcomingClasses: number; totalRoutines: number }
-interface SearchMember { id: string; name: string | null; email: string; assignedTrainerId: string | null }
+interface SearchMember { id: string; name: string | null; email: string; assignedTrainerId: string | null; hasTrainer: boolean }
 interface TrainerRequest { id: string; clientId: string; status: string; createdAt: string; client: { id: string; name: string | null; email: string } }
-const dayLabels: Record<string, string> = { MONDAY: "lunes", TUESDAY: "martes", WEDNESDAY: "miercoles", THURSDAY: "jueves", FRIDAY: "viernes", SATURDAY: "sabado", SUNDAY: "domingo" }
 
-export function CoachDashboard({ clients: initialClients, routines, classes, stats }: {
+export function CoachDashboard({ clients, routines, classes, stats }: {
   clients: ClientData[]; routines: RoutineData[]; classes: ClassData[]; stats: Stats
 }) {
   const { play } = useSound()
-  const [clients, setClients] = useState(initialClients)
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchMember[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -100,13 +101,6 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
     finally { setAssignLoading(null) }
   }, [searchResults, play])
 
-  const statCards = [
-    { label: "Clientes", value: stats.totalClients, icon: Users, color: "border-t-accent-yellow", iconColor: "text-accent-yellow", bg: "bg-accent-yellow/10" },
-    { label: "Membresias activas", value: stats.activeMemberships, icon: BadgeCheck, color: "border-t-accent-yellow", iconColor: "text-accent-yellow", bg: "bg-accent-yellow/10" },
-    { label: "Clases proximas", value: stats.upcomingClasses, icon: CalendarDays, color: "border-t-accent-yellow", iconColor: "text-accent-yellow", bg: "bg-accent-yellow/10" },
-    { label: "Rutinas", value: stats.totalRoutines, icon: Dumbbell, color: "border-t-primary", iconColor: "text-primary", bg: "bg-primary/10" },
-  ]
-
   return (
     <div className="container mx-auto px-4 py-6 md:py-8 space-y-8">
       <div>
@@ -115,19 +109,10 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((card, i) => (
-          <motion.div key={card.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Card className={`hover:shadow-md transition-all border-t-2 ${card.color}`} onClick={() => play("hover")}>
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-medium text-muted-foreground">{card.label}</CardTitle>
-                  <card.icon className={`h-4 w-4 ${card.iconColor}`} />
-                </div>
-              </CardHeader>
-              <CardContent><p className="text-3xl font-bold">{card.value}</p></CardContent>
-            </Card>
-          </motion.div>
-        ))}
+        <StatCard label="Clientes" value={stats.totalClients} icon={Users} delay={0} />
+        <StatCard label="Membresías activas" value={stats.activeMemberships} icon={BadgeCheck} delay={0.05} />
+        <StatCard label="Clases próximas" value={stats.upcomingClasses} icon={CalendarDays} delay={0.1} />
+        <StatCard label="Rutinas" value={stats.totalRoutines} icon={Dumbbell} iconColor="text-primary" borderColor="border-t-primary" delay={0.15} />
       </div>
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
@@ -160,7 +145,7 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
                 <div className="absolute z-10 w-full mt-1 rounded-lg border bg-card shadow-lg max-h-64 overflow-y-auto">
                   {searchResults.map((member) => {
                     const hasPending = sentRequests.some((r) => r.clientId === member.id && r.status === "PENDING")
-                    const hasTrainer = !!member.assignedTrainerId
+                    const hasTrainer = member.hasTrainer
                     return (
                       <div key={member.id} className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 border-b last:border-b-0">
                         <div className="flex items-center gap-3">
@@ -229,7 +214,7 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
             </CardHeader>
             <CardContent className="space-y-3">
               {clients.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">No tienes clientes asignados aun</p>
+                <EmptyState message="No tienes clientes asignados aún" className="py-4" />
               ) : clients.slice(0, 5).map((client, i) => (
                 <motion.div key={client.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.04 }}>
                   <Link href={`/coach/clients/${client.id}`} className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group" onClick={() => play("select")}>
@@ -274,7 +259,7 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
               </CardHeader>
               <CardContent>
                 {routines.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">No has creado rutinas aun</p>
+                  <EmptyState message="No has creado rutinas aún" className="py-4" />
                 ) : (
                   <div className="space-y-2">
                     {routines.map((r) => (
@@ -294,13 +279,13 @@ export function CoachDashboard({ clients: initialClients, routines, classes, sta
               <CardHeader><CardTitle className="text-base">Mis clases</CardTitle></CardHeader>
               <CardContent>
                 {classes.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-6">No tienes clases programadas</p>
+                  <EmptyState message="No tienes clases programadas" className="py-4" />
                 ) : (
                   <div className="space-y-2">
                     {classes.map((c) => (
                       <div key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10"><CalendarDays className="h-4 w-4 text-accent-yellow" /></div>
-                        <div><p className="text-sm font-medium">{c.name}</p><p className="text-xs text-muted-foreground">{dayLabels[c.dayOfWeek] || c.dayOfWeek} . {c.duration}min . {c.bookingsCount}/{c.capacity}</p></div>
+                        <div><p className="text-sm font-medium">{c.name}</p><p className="text-xs text-muted-foreground">{DAY_OF_WEEK_LABELS[c.dayOfWeek] || c.dayOfWeek} . {c.duration}min . {c.bookingsCount}/{c.capacity}</p></div>
                       </div>
                     ))}
                   </div>

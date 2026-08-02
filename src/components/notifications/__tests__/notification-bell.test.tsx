@@ -21,6 +21,10 @@ vi.mock("lucide-react", () => {
     Dumbbell: MockIcon,
     Info: MockIcon,
     CheckCheck: MockIcon,
+    CalendarCheck: MockIcon,
+    Target: MockIcon,
+    Settings: MockIcon,
+    UserPlus: MockIcon,
   }
 })
 
@@ -30,6 +34,7 @@ vi.mock("@/components/ui/sheet", () => {
   return {
     Sheet: MockContainer,
     SheetContent: MockContainer,
+    SheetTitle: MockContainer,
   }
 })
 

@@ -263,17 +263,4 @@ export function stopAmbient() {
   activeAmbientChannel = "A"
 }
 
-export function duckAmbient(durationMs = 150) {
-  if (!ambientActive || !ambientGainNode || !audioContext) return
-  const ctx = audioContext
-  ambientGainNode.gain.cancelScheduledValues(ctx.currentTime)
-  ambientGainNode.gain.setValueAtTime(1.0, ctx.currentTime)
-  ambientGainNode.gain.linearRampToValueAtTime(0.4, ctx.currentTime + durationMs / 1000)
-  ambientGainNode.gain.linearRampToValueAtTime(1.0, ctx.currentTime + (durationMs * 1.5) / 1000)
-}
-
-export function isAmbientActive(): boolean {
-  return ambientActive
-}
-
 export type { AmbientPhase }

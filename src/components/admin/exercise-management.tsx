@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
+import { EQUIPMENT_LABELS } from "@/constants/ui"
 import { MUSCLE_LABELS } from "@/constants/user"
 import { Plus, Pencil, Trash2, Upload, ExternalLink, ImageIcon, Dumbbell } from "lucide-react"
 
@@ -69,10 +70,6 @@ const EQUIPMENT = [
   { value: "PLATE", label: "Disco" },
   { value: "OTHER", label: "Otro" },
 ]
-
-const EQUIPMENT_LABELS: Record<string, string> = Object.fromEntries(
-  EQUIPMENT.map((e) => [e.value, e.label])
-)
 
 interface ExerciseForm {
   name: string

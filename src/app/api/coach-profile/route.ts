@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 const updateCoachProfileSchema = z.object({
@@ -66,8 +67,8 @@ export async function POST(request: Request) {
     where: { id: user.id },
     data: {
       bio: parsed.data.bio ?? user.bio,
-      specialties: (parsed.data.specialties ?? user.specialties) as any,
-      certifications: (parsed.data.certifications ?? user.certifications) as any,
+      specialties: (parsed.data.specialties ?? user.specialties) as unknown as Prisma.InputJsonValue,
+      certifications: (parsed.data.certifications ?? user.certifications) as unknown as Prisma.InputJsonValue,
       yearsExperience: parsed.data.yearsExperience ?? user.yearsExperience,
     },
     select: {

@@ -85,6 +85,12 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Cliente no encontrado" }, { status: 404 })
   }
 
-  await prisma.user.update({ where: { id }, data: { assignedTrainerId: null } })
+  await prisma.$transaction([
+    prisma.user.update({ where: { id }, data: { assignedTrainerId: null } }),
+    prisma.trainerRequest.updateMany({
+      where: { clientId: id, trainerId: user.id, status: "ACCEPTED" },
+      data: { status: "REJECTED", rejectedAt: new Date() },
+    }),
+  ])
   return NextResponse.json({ success: true })
 }

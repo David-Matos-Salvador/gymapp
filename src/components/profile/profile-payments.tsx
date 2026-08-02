@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Calendar,
 } from "lucide-react"
+import { formatDate, formatCurrency } from "@/lib/utils"
 
 interface Payment {
   id: string
@@ -62,20 +63,6 @@ const typeLabels: Record<string, string> = {
   OTHER: "Otro",
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("es-MX", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
-function formatCurrency(amount: number, currency: string) {
-  return new Intl.NumberFormat("es-MX", { style: "currency", currency: currency.toUpperCase() }).format(amount)
-}
-
 function PaymentCard({ payment }: { payment: Payment }) {
   const statusInfo = statusConfig[payment.status] ?? { label: payment.status, variant: "outline" as const, icon: AlertCircle }
   const StatusIcon = statusInfo.icon
@@ -91,7 +78,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
             </div>
             <div>
               <p className="text-sm font-medium">{typeLabels[payment.type] ?? payment.type}</p>
-              <p className="text-xs text-muted-foreground">{formatDate(payment.createdAt)}</p>
+              <p className="text-xs text-muted-foreground">{formatDate(payment.createdAt, { includeTime: true })}</p>
             </div>
           </div>
           <Badge variant={statusInfo.variant} className="gap-1">
@@ -117,7 +104,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
         {payment.confirmedAt && (
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Calendar className="h-3 w-3" />
-            Confirmado: {formatDate(payment.confirmedAt)}
+            Confirmado: {formatDate(payment.confirmedAt, { includeTime: true })}
           </div>
         )}
       </CardContent>

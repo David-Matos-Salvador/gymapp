@@ -49,27 +49,30 @@ export default function RequestsPage() {
   const [acceptedTrainerId, setAcceptedTrainerId] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const fetchRequests = useCallback(async () => {
-    try {
-      const res = await fetch("/api/user/trainer-requests")
-      if (!res.ok) throw new Error("Error")
-      const data = await res.json()
-      setRequests(data.requests || [])
-    } catch { toast.error("Error al cargar solicitudes") }
-    finally { setLoading(false) }
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const res = await fetch("/api/user/trainer-requests")
+        if (!res.ok) throw new Error("Error")
+        const data = await res.json()
+        setRequests(data.requests || [])
+      } catch { toast.error("Error al cargar solicitudes") }
+      finally { setLoading(false) }
+    }
+    fetchRequests()
   }, [])
 
-  const fetchPlans = useCallback(async () => {
-    try {
-      const res = await fetch("/api/membership-plans")
-      if (!res.ok) return
-      const data = await res.json()
-      setPlans(data.plans || [])
-    } catch {}
+  useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const res = await fetch("/api/membership-plans")
+        if (!res.ok) return
+        const data = await res.json()
+        setPlans(data.plans || [])
+      } catch {}
+    }
+    fetchPlans()
   }, [])
-
-  useEffect(() => { fetchRequests() }, [fetchRequests])
-  useEffect(() => { fetchPlans() }, [fetchPlans])
 
   const handleAccept = useCallback(async (requestId: string, trainerId: string) => {
     setAccepting(requestId)

@@ -56,7 +56,10 @@ describe('GET /api/exercises', () => {
 
     expect(response.status).toBe(200)
     expect(body.exercises).toEqual(mockExercises)
-    expect(mockFindMany).toHaveBeenCalledWith({ orderBy: { name: 'asc' } })
+    expect(mockFindMany).toHaveBeenCalledWith({
+      orderBy: { name: "asc" },
+      include: { creator: { select: { id: true, name: true, role: true } } },
+    })
   })
 
   it('returns empty array when no exercises exist', async () => {

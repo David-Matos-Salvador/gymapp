@@ -1,5 +1,6 @@
 "use client"
 
+import { MUSCLE_LABELS } from "@/constants/user"
 import { useState, useCallback, useEffect, useRef } from "react"
 import { Check, GripVertical, ChevronRight, Clock, Minus, Plus, CheckCircle, ChevronDown, ChevronUp, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -8,22 +9,6 @@ import { ExerciseDetailSheet } from "./exercise-detail-sheet"
 import { ExerciseImage } from "@/components/exercise/exercise-image"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-
-const MUSCLE_GROUP_LABELS: Record<string, string> = {
-  CHEST: "Pecho",
-  BACK: "Espalda",
-  SHOULDERS: "Hombros",
-  BICEPS: "Bíceps",
-  TRICEPS: "Tríceps",
-  LEGS: "Piernas",
-  GLUTES: "Glúteos",
-  ABS: "Abdominales",
-  CALVES: "Pantorrillas",
-  FOREARMS: "Antebrazos",
-  TRAPS: "Trapecios",
-  FULL_BODY: "Cuerpo completo",
-  CARDIO: "Cardio",
-}
 
 type ExerciseAppearance = "current" | "pending" | "completed"
 
@@ -357,7 +342,7 @@ export function ExerciseCard({
 
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-[10px] text-muted-foreground">
-                {MUSCLE_GROUP_LABELS[se.exercise.muscleGroup] ?? se.exercise.muscleGroup}
+                {MUSCLE_LABELS[se.exercise.muscleGroup] ?? se.exercise.muscleGroup}
               </span>
               {se.restSeconds > 0 && (
                 <>

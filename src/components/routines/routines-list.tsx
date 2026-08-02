@@ -1,5 +1,6 @@
 "use client"
 
+import { MUSCLE_LABELS } from "@/constants/user"
 import { useRouter } from "next/navigation"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
@@ -21,13 +22,6 @@ interface RoutinesListProps {
   routines: BaseRoutine[]
   isCoach: boolean
   recommended?: boolean
-}
-
-const muscleGroupLabels: Record<string, string> = {
-  CHEST: "Pecho", BACK: "Espalda", SHOULDERS: "Hombros", BICEPS: "Bíceps",
-  TRICEPS: "Tríceps", LEGS: "Piernas", GLUTES: "Glúteos", ABS: "Abdominales",
-  CALVES: "Pantorrillas", FOREARMS: "Antebrazos", TRAPS: "Trapecios",
-  FULL_BODY: "Cuerpo completo", CARDIO: "Cardio",
 }
 
 export function RoutinesList({ routines, isCoach, recommended }: RoutinesListProps) {
@@ -109,7 +103,7 @@ export function RoutinesList({ routines, isCoach, recommended }: RoutinesListPro
                             key={group}
                             className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium"
                           >
-                            {muscleGroupLabels[group] ?? group}
+                            {MUSCLE_LABELS[group] ?? group}
                           </span>
                         ))}
                       </div>

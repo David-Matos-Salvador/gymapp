@@ -25,17 +25,18 @@ export default function CoachPaymentsPage() {
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState<string | null>(null)
 
-  const fetchPayments = useCallback(async () => {
-    try {
-      const res = await fetch("/api/payments/pending")
-      if (!res.ok) throw new Error("Error")
-      const data = await res.json()
-      setPayments(data.payments || [])
-    } catch { toast.error("Error al cargar pagos") }
-    finally { setLoading(false) }
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        const res = await fetch("/api/payments/pending")
+        if (!res.ok) throw new Error("Error")
+        const data = await res.json()
+        setPayments(data.payments || [])
+      } catch { toast.error("Error al cargar pagos") }
+      finally { setLoading(false) }
+    }
+    fetchPayments()
   }, [])
-
-  useEffect(() => { fetchPayments() }, [fetchPayments])
 
   const handleConfirm = useCallback(async (paymentId: string) => {
     setProcessing(paymentId)

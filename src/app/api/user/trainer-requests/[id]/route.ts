@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { hasAnyTrainer } from "@/lib/trainer-client"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -64,15 +65,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ request: updated })
   }
 
-  if (user.assignedTrainerId) {
-    return NextResponse.json({ error: "Ya tienes un entrenador asignado" }, { status: 409 })
-  }
-
-  const existingAccepted = await prisma.trainerRequest.findFirst({
-    where: { clientId: user.id, status: "ACCEPTED", id: { not: id } },
-  })
-  if (existingAccepted) {
-    return NextResponse.json({ error: "Ya tienes una solicitud aceptada pendiente de pago" }, { status: 409 })
+  const alreadyHasTrainer = await hasAnyTrainer(user.id)
+  if (alreadyHasTrainer) {
+    return NextResponse.json({ error: "Ya tienes un entrenador asignado o una solicitud aceptada pendiente" }, { status: 409 })
   }
 
   const now = new Date()

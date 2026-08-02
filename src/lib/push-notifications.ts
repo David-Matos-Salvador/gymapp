@@ -15,39 +15,6 @@
 const deviceTokens = new Map<string, string[]>()
 
 /**
- * Register a device token for push notifications.
- * In production, persist the token to DB instead of in-memory Map.
- */
-export async function registerDevice(userId: string, token: string): Promise<{ success: boolean; error?: string }> {
-  try {
-    if (!userId || !token) {
-      return { success: false, error: "userId and token are required" }
-    }
-
-    const existing = deviceTokens.get(userId) ?? []
-    if (!existing.includes(token)) {
-      existing.push(token)
-    }
-    deviceTokens.set(userId, existing)
-
-    console.log(`[Push] Device registered: userId=${userId}, token=${token.slice(0, 12)}...`)
-
-    // TODO: Persist to DB
-    // await prisma.deviceToken.upsert({
-    //   where: { userId_token: { userId, token } },
-    //   create: { userId, token },
-    //   update: {},
-    // })
-
-    return { success: true }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown error"
-    console.error("[Push] registerDevice failed:", message)
-    return { success: false, error: message }
-  }
-}
-
-/**
  * Send a push notification to a user's registered devices.
  * Currently logs to console — replace with FCM send logic.
  */

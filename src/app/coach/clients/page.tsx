@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { getTrainerClientIds } from "@/lib/trainer-client"
 import { AppShell } from "@/components/layout/shell"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,16 +15,20 @@ export default async function CoachClientsListPage() {
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
   if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) redirect("/coach")
 
-  const clients = await prisma.user.findMany({
-    where: { assignedTrainerId: user.id },
-    select: {
-      id: true, name: true, email: true, phone: true, objective: true, experienceLevel: true,
-      createdAt: true,
-      bodyMeasurements: { orderBy: { date: "desc" }, take: 1 },
-      memberShips: { include: { plan: true }, where: { status: "ACTIVE" }, take: 1 },
-    },
-    orderBy: { name: "asc" },
-  })
+  const clientIds = await getTrainerClientIds(user.id)
+
+  const clients = clientIds.length > 0
+    ? await prisma.user.findMany({
+        where: { id: { in: clientIds } },
+        select: {
+          id: true, name: true, email: true, phone: true, objective: true, experienceLevel: true,
+          createdAt: true,
+          bodyMeasurements: { orderBy: { date: "desc" }, take: 1 },
+          memberShips: { include: { plan: true }, where: { status: "ACTIVE" }, take: 1 },
+        },
+        orderBy: { name: "asc" },
+      })
+    : []
 
   const now = new Date()
 

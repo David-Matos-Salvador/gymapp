@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Search, CheckCircle2, RefreshCw, Clock, AlertCircle, User, CalendarDays, Banknote, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { formatDate } from "@/lib/utils"
 
 interface MembershipUser {
   id: string
@@ -52,14 +53,6 @@ const paymentMethodLabels: Record<string, string> = {
   CARD: "Tarjeta",
   STRIPE: "Stripe",
   OTHER: "Otro",
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("es-MX", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
 }
 
 function getStatusBadge(status: string) {

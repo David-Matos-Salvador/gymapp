@@ -15,6 +15,7 @@ import {
   Sparkles,
   TrendingUp,
   CreditCard,
+  UserCheck,
 } from "lucide-react"
 import { useRef, useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -34,22 +35,48 @@ export function AppBottomNav({ className }: { className?: string }) {
   const { isAdmin, isTrainer, isSuperAdmin, isMember } = useAuth()
   const { play } = useSound()
 
-  const primaryTabs = [
-    ...(isSuperAdmin ? [{ label: "Inicio", href: "/dashboard", icon: LayoutDashboard }] : []),
-    ...(isMember ? [{ label: "Mi Rutina", href: "/rutinas", icon: Dumbbell }] : []),
-    { label: "Progreso", href: "/progress", icon: TrendingUp },
-    { label: "Clases", href: "/classes", icon: CalendarDays },
-  ]
+  const tabs: { label: string; href: string; icon: typeof LayoutDashboard }[] = []
 
-  const profileTab = { label: "Perfil", href: "/profile", icon: UserCog }
+  // Inicio — all roles
+  tabs.push({ label: "Inicio", href: "/dashboard", icon: LayoutDashboard })
 
-  const roleTabs = [
-    ...(isTrainer || isAdmin ? [{ label: "Coach", href: "/coach", icon: Users }] : []),
-    ...(isTrainer || isAdmin || isSuperAdmin ? [{ label: "Pagos", href: "/coach/payments", icon: CreditCard }] : []),
-    ...(isAdmin || isSuperAdmin ? [{ label: "Admin", href: "/admin", icon: BarChart3 }] : []),
-  ]
+  // Mi Rutina — MEMBER only
+  if (isMember) {
+    tabs.push({ label: "Mi Rutina", href: "/rutinas", icon: Dumbbell })
+  }
 
-  const visibleItems = [...primaryTabs, ...roleTabs, profileTab]
+  // Progreso — MEMBER only
+  if (isMember) {
+    tabs.push({ label: "Progreso", href: "/progress", icon: TrendingUp })
+  }
+
+  // Clases — all roles
+  tabs.push({ label: "Clases", href: "/classes", icon: CalendarDays })
+
+  // Clientes — TRAINER only
+  if (isTrainer && !isAdmin) {
+    tabs.push({ label: "Clientes", href: "/coach/clients", icon: Users })
+  }
+
+  // Solicitudes — MEMBER only
+  if (isMember) {
+    tabs.push({ label: "Solicitudes", href: "/requests", icon: UserCheck })
+  }
+
+  // Admin — ADMIN, SUPER_ADMIN (links to gym management)
+  if (isAdmin || isSuperAdmin) {
+    tabs.push({ label: "Admin", href: "/admin/gym-management", icon: BarChart3 })
+  }
+
+  // Pagos — TRAINER, ADMIN, SUPER_ADMIN
+  if (isTrainer || isAdmin || isSuperAdmin) {
+    tabs.push({ label: "Pagos", href: "/coach/payments", icon: CreditCard })
+  }
+
+  // Perfil — all roles
+  tabs.push({ label: "Perfil", href: "/profile", icon: UserCog })
+
+  const visibleItems = tabs
 
   return (
     <nav
@@ -111,22 +138,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     prevPathnameRef.current = pathname
   }, [pathname])
 
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const res = await fetch("/api/notifications")
-      if (!res.ok) return
-      const data = await res.json()
-      const list = (data.notifications ?? []) as MockNotification[]
-      setNotifications(list)
-      setUnreadCount(list.filter((n) => !n.read).length)
-    } catch {
-      // silent
-    }
-  }, [])
-
   useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch("/api/notifications")
+        if (!res.ok) return
+        const data = await res.json()
+        const list = (data.notifications ?? []) as MockNotification[]
+        setNotifications(list)
+        setUnreadCount(list.filter((n) => !n.read).length)
+      } catch {
+        // silent
+      }
+    }
     fetchUnreadCount()
-  }, [fetchUnreadCount, pathname])
+  }, [pathname])
 
   const handleMarkRead = useCallback(async (id: string) => {
     setNotifications((prev) =>

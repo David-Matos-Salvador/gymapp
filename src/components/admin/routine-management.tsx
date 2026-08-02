@@ -33,6 +33,7 @@ import {
   UserPlus,
 } from "lucide-react"
 import { MUSCLE_LABELS, DIFFICULTIES } from "@/constants/user"
+import { EQUIPMENT_LABELS } from "@/constants/ui"
 import type { Exercise } from "./exercise-management"
 
 export interface SplitExercise {
@@ -77,12 +78,6 @@ export interface Member {
   id: string
   name: string | null
   email: string
-}
-
-const EQUIPMENT_LABELS: Record<string, string> = {
-  BARBELL: "Barra", DUMBBELL: "Mancuernas", MACHINE: "Máquina", CABLE: "Cable",
-  BODYWEIGHT: "Peso corporal", KETTLEBELL: "Kettlebell", BAND: "Banda",
-  SMITH_MACHINE: "Smith", EZ_BAR: "Barra EZ", BENCH: "Banco", PLATE: "Disco", OTHER: "Otro",
 }
 
 const OBJECTIVES = [

@@ -59,13 +59,7 @@ export async function proxy(request: NextRequest) {
 
   // Redirect away from /onboarding if already completed
   if (pathname.startsWith("/onboarding") && onboardingCompleted) {
-    const destination =
-      role === "ADMIN" || role === "SUPER_ADMIN"
-        ? "/admin"
-        : role === "TRAINER"
-          ? "/coach"
-          : "/dashboard"
-    return NextResponse.redirect(new URL(destination, request.url))
+    return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
   // ----- Optimistic role checks -----

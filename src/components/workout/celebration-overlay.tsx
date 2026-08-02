@@ -49,7 +49,7 @@ export function CelebrationOverlay({
 }: CelebrationOverlayProps) {
   const [confetti] = useState(generateConfetti)
   const [message] = useState(
-    MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)]
+    () => MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)]
   )
 
   useEffect(() => {
