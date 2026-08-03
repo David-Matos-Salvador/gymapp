@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dumbbell, ListTodo } from "lucide-react"
+import { Dumbbell, ListTodo, Wrench } from "lucide-react"
 import { ExerciseManagement, type Exercise } from "./exercise-management"
 import { RoutineManagement, type Plan } from "./routine-management"
+import { GymEquipmentManager, type Equipment } from "@/components/gym-equipment/gym-equipment-manager"
 
 interface SerializedMember {
   id: string
@@ -17,14 +18,31 @@ interface CurrentUser {
   role: string
 }
 
+interface SerializedGym {
+  id: string
+  ownerId: string | null
+  showMachineNumbers: boolean
+}
+
 interface GymManagementTabsProps {
   exercises: Exercise[]
   plans: Plan[]
   members: SerializedMember[]
   currentUser: CurrentUser
+  equipment: Equipment[]
+  gym: SerializedGym | null
+  canManageEquipment: boolean
 }
 
-export function GymManagementTabs({ exercises: initialExercises, plans: initialPlans, members, currentUser }: GymManagementTabsProps) {
+export function GymManagementTabs({
+  exercises: initialExercises,
+  plans: initialPlans,
+  members,
+  currentUser,
+  equipment: initialEquipment,
+  gym,
+  canManageEquipment,
+}: GymManagementTabsProps) {
   const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
   const [plans, setPlans] = useState<Plan[]>(initialPlans)
 
@@ -39,7 +57,7 @@ export function GymManagementTabs({ exercises: initialExercises, plans: initialP
       <div>
         <h1 className="text-2xl font-heading font-bold tracking-tight">Gestión del Gimnasio</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Administra ejercicios y rutinas de entrenamiento
+          Administra ejercicios, rutinas y equipamiento
         </p>
       </div>
 
@@ -53,6 +71,12 @@ export function GymManagementTabs({ exercises: initialExercises, plans: initialP
             <ListTodo className="size-4" />
             Rutinas
           </TabsTrigger>
+          {canManageEquipment && (
+            <TabsTrigger value="equipment" className="gap-2">
+              <Wrench className="size-4" />
+              Equipamiento
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="exercises" className="mt-6">
@@ -73,6 +97,17 @@ export function GymManagementTabs({ exercises: initialExercises, plans: initialP
             onExercisesChange={setExercises}
           />
         </TabsContent>
+
+        {canManageEquipment && (
+          <TabsContent value="equipment" className="mt-6">
+            <GymEquipmentManager
+              initialEquipment={initialEquipment}
+              exercises={exercises.map((ex) => ({ id: ex.id, name: ex.name }))}
+              gymId={gym?.id}
+              showMachineNumbers={gym?.showMachineNumbers ?? false}
+            />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

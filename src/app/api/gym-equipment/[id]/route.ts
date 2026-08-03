@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { canManageGymEquipment } from "@/lib/gym-equipment"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -13,27 +14,51 @@ const updateEquipmentSchema = z.object({
   location: z.string().optional().nullable(),
   imageUrl: z.string().url().optional().nullable(),
   exerciseId: z.string().optional().nullable(),
+  machineNumber: z.number().int().min(1).optional().nullable(),
 })
 
-export async function PATCH(request: Request, { params }: RouteParams) {
+interface AuthResult {
+  error: NextResponse | null
+  user: { id: string; role: string; gymId: string | null } | null
+}
+
+async function requireEquipmentManager(): Promise<AuthResult> {
   const session = await auth()
   if (!session?.user?.email) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    return { error: NextResponse.json({ error: "No autorizado" }, { status: 401 }), user: null }
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
-    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
+  if (!user) {
+    return { error: NextResponse.json({ error: "Sin permisos" }, { status: 403 }), user: null }
   }
+
+  return { error: null, user }
+}
+
+export async function PATCH(request: Request, { params }: RouteParams) {
+  const { error, user } = await requireEquipmentManager()
+  if (error) return error
 
   const { id } = await params
 
-  const existing = await prisma.gymEquipment.findUnique({ where: { id } })
+  const existing = await prisma.gymEquipment.findUnique({
+    where: { id },
+    select: { id: true, gymId: true },
+  })
   if (!existing) {
     return NextResponse.json({ error: "No encontrado" }, { status: 404 })
   }
 
-  if (user.role === "TRAINER" && user.gymId && existing.gymId !== user.gymId) {
+  const gym = await prisma.gym.findUnique({
+    where: { id: existing.gymId },
+    select: { id: true, ownerId: true },
+  })
+
+  if (!user || !canManageGymEquipment(user, gym)) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
@@ -56,24 +81,25 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
-  const session = await auth()
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-  }
-
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
-    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
-  }
+  const { error, user } = await requireEquipmentManager()
+  if (error) return error
 
   const { id } = await params
 
-  const existing = await prisma.gymEquipment.findUnique({ where: { id } })
+  const existing = await prisma.gymEquipment.findUnique({
+    where: { id },
+    select: { id: true, gymId: true },
+  })
   if (!existing) {
     return NextResponse.json({ error: "No encontrado" }, { status: 404 })
   }
 
-  if (user.role === "TRAINER" && user.gymId && existing.gymId !== user.gymId) {
+  const gym = await prisma.gym.findUnique({
+    where: { id: existing.gymId },
+    select: { id: true, ownerId: true },
+  })
+
+  if (!user || !canManageGymEquipment(user, gym)) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 

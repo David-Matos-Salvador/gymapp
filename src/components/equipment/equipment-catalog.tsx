@@ -19,14 +19,16 @@ interface Equipment {
   imageUrl: string | null
   exerciseId: string | null
   exercise: ExerciseRef | null
+  machineNumber: number | null
 }
 
 interface EquipmentCatalogProps {
   equipment: Equipment[]
   hasGym: boolean
+  showMachineNumbers: boolean
 }
 
-export function EquipmentCatalog({ equipment, hasGym }: EquipmentCatalogProps) {
+export function EquipmentCatalog({ equipment, hasGym, showMachineNumbers }: EquipmentCatalogProps) {
   const [search, setSearch] = useState("")
 
   const filtered = search.trim()
@@ -95,14 +97,26 @@ export function EquipmentCatalog({ equipment, hasGym }: EquipmentCatalogProps) {
             >
               <Card className="h-full hover:shadow-md transition-all">
                 {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="h-36 w-full object-cover rounded-t-xl"
-                  />
+                  <div className="relative">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="h-36 w-full object-cover rounded-t-xl"
+                    />
+                    {showMachineNumbers && item.machineNumber != null && (
+                      <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+                        {item.machineNumber}
+                      </span>
+                    )}
+                  </div>
                 ) : (
-                  <div className="h-36 w-full flex items-center justify-center bg-muted rounded-t-xl">
+                  <div className="h-36 w-full flex items-center justify-center bg-muted rounded-t-xl relative">
                     <ImageIcon className="h-10 w-10 text-muted-foreground/50" />
+                    {showMachineNumbers && item.machineNumber != null && (
+                      <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+                        {item.machineNumber}
+                      </span>
+                    )}
                   </div>
                 )}
                 <CardContent className="space-y-2 pt-4">

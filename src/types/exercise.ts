@@ -11,6 +11,14 @@
  *   src/components/workout/exercise-card.tsx
  *   src/components/workout/exercise-detail-sheet.tsx
  */
+export interface GymEquipmentRef {
+  id: string
+  name: string
+  machineNumber: number | null
+  location: string | null
+  gymId: string
+}
+
 export interface Exercise {
   id: string
   name: string
@@ -19,6 +27,7 @@ export interface Exercise {
   imageUrl?: string | null
   videoUrl?: string | null
   description?: string | null
+  gymEquipments?: GymEquipmentRef[]
 }
 
 export interface SplitExercise {

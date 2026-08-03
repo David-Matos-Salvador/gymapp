@@ -43,6 +43,7 @@ export async function proxy(request: NextRequest) {
   }
 
   const role = (session.user as { role?: string }).role
+  const isGymOwner = (session.user as { isGymOwner?: boolean }).isGymOwner
   const onboardingCompleted = (session.user as {
     onboardingCompleted?: boolean
   }).onboardingCompleted
@@ -65,6 +66,8 @@ export async function proxy(request: NextRequest) {
   // ----- Optimistic role checks -----
   for (const [prefix, allowedRoles] of Object.entries(ROLE_ROUTES)) {
     if (pathname.startsWith(prefix) && !allowedRoles.includes(role ?? "")) {
+      // Gym owners (any role) can reach /admin to manage their gym's equipment
+      if (prefix === "/admin" && isGymOwner) continue
       return NextResponse.redirect(new URL("/dashboard", request.url))
     }
   }

@@ -1,10 +1,10 @@
 "use client"
 
 import { MUSCLE_LABELS } from "@/constants/user"
-import { useState, useCallback, useEffect, useRef } from "react"
-import { Check, GripVertical, ChevronRight, Clock, Minus, Plus, CheckCircle, ChevronDown, ChevronUp, ArrowRight } from "lucide-react"
+import { useState, useCallback, useEffect, useRef, useMemo } from "react"
+import { Check, GripVertical, ChevronRight, Clock, Minus, Plus, CheckCircle, ChevronDown, ChevronUp, ArrowRight, Wrench } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { SetLog, SplitExercise } from "@/types/exercise"
+import type { SetLog, SplitExercise, GymEquipmentRef } from "@/types/exercise"
 import { ExerciseDetailSheet } from "./exercise-detail-sheet"
 import { ExerciseImage } from "@/components/exercise/exercise-image"
 import { Button } from "@/components/ui/button"
@@ -22,6 +22,16 @@ interface ExerciseCardProps {
   dragHandleProps?: Record<string, unknown>
   isDragging?: boolean
   onContinue?: () => void
+  userGymId?: string
+  showMachineNumbers?: boolean
+}
+
+function formatMachineLabel(list: GymEquipmentRef[], showNumbers: boolean): string | null {
+  if (list.length === 0) return null
+  const numbered = showNumbers && list.every((e) => e.machineNumber != null)
+  const parts = numbered ? list.map((e) => String(e.machineNumber)) : list.map((e) => e.name)
+  if (list.length === 1) return numbered ? `Máquina ${parts[0]}` : parts[0]
+  return numbered ? `Máquinas ${parts.join(", ")}` : `Máquinas: ${parts.join(", ")}`
 }
 
 /* ── CounterRow (generic) ──────────────────────── */
@@ -215,6 +225,8 @@ export function ExerciseCard({
   dragHandleProps,
   isDragging,
   onContinue,
+  userGymId,
+  showMachineNumbers = false,
 }: ExerciseCardProps) {
   const [localWeight, setLocalWeight] = useState(setsData[0]?.weight ?? se.weight)
   const completedCount = setsData.filter((s) => s.completed).length
@@ -226,6 +238,11 @@ export function ExerciseCard({
   const [perSetRestActive, setPerSetRestActive] = useState(false)
   const [stepperExpanded, setStepperExpanded] = useState(false)
   const allCompleted = totalSets > 0 && setsData.every((s) => s.completed)
+
+  const machineLabel = useMemo(() => {
+    const list = (se.exercise.gymEquipments ?? []).filter((e) => e.gymId === userGymId)
+    return formatMachineLabel(list, showMachineNumbers)
+  }, [se.exercise.gymEquipments, userGymId, showMachineNumbers])
 
   const clearPerSetRest = useCallback(() => {
     if (restIntervalRef.current) { clearInterval(restIntervalRef.current); restIntervalRef.current = null }
@@ -340,10 +357,16 @@ export function ExerciseCard({
               {se.exercise.name}
             </p>
 
-            <div className="flex items-center gap-1.5 mt-0.5">
+            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
               <span className="text-[10px] text-muted-foreground">
                 {MUSCLE_LABELS[se.exercise.muscleGroup] ?? se.exercise.muscleGroup}
               </span>
+              {machineLabel && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium px-1.5 py-0.5">
+                  <Wrench className="h-2.5 w-2.5" />
+                  {machineLabel}
+                </span>
+              )}
               {se.restSeconds > 0 && (
                 <>
                   <span className="text-[9px] text-muted-foreground/40">·</span>
@@ -357,7 +380,7 @@ export function ExerciseCard({
           </div>
         </div>
 
-        <ExerciseDetailSheet exercise={se.exercise}>
+        <ExerciseDetailSheet exercise={se.exercise} userGymId={userGymId} showMachineNumbers={showMachineNumbers}>
           <button
             type="button"
             className={cn(

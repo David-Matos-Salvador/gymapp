@@ -140,10 +140,13 @@ model Gym {
   address   String?
   phone     String?
   email     String?
-  logoUrl   String?
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  logoUrl             String?
+  active              Boolean  @default(true)
+  showMachineNumbers  Boolean  @default(false)
+  ownerId             String?  @unique
+  owner               User?    @relation("GymOwner", fields: [ownerId], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   users           User[]
   membershipPlans MembershipPlan[]
@@ -186,6 +189,7 @@ model User {
   yearsExperience   Int?
 
   gym              Gym?              @relation(fields: [gymId], references: [id])
+  ownedGym         Gym?              @relation("GymOwner")
   assignedTrainer  User?             @relation("TrainerClients", fields: [assignedTrainerId], references: [id])
   clients          User[]            @relation("TrainerClients")
   routinePlans            RoutinePlan[]
@@ -344,11 +348,12 @@ model GymEquipment {
   gymId       String
   name        String
   category    String?
-  imageUrl    String?
-  location    String?
-  exerciseId  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  imageUrl      String?
+  location      String?
+  exerciseId    String?
+  machineNumber Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   gym      Gym       @relation(fields: [gymId], references: [id], onDelete: Cascade)
   exercise Exercise? @relation(fields: [exerciseId], references: [id])

@@ -36,6 +36,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await prisma.user.findUnique({
           where: { email },
+          include: { ownedGym: { select: { id: true } } },
         })
 
         if (!user || !user.password) {
@@ -56,6 +57,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           role: user.role,
           onboardingCompleted: user.onboardingCompleted,
           onboardingCompletedAt: user.onboardingCompletedAt?.toISOString() ?? null,
+          isGymOwner: !!user.ownedGym,
         }
       },
     }),
@@ -66,6 +68,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.role = (user as { role?: string }).role
         token.onboardingCompleted = (user as { onboardingCompleted?: boolean }).onboardingCompleted
         token.onboardingCompletedAt = (user as { onboardingCompletedAt?: string | null }).onboardingCompletedAt ?? undefined
+        token.isGymOwner = (user as { isGymOwner?: boolean }).isGymOwner
       }
       if (trigger === "update" && session) {
         const s = session as { onboardingCompleted?: boolean; onboardingCompletedAt?: string }
@@ -78,10 +81,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        const sessionUser = session.user as { role?: string; onboardingCompleted?: boolean; onboardingCompletedAt?: string }
+        const sessionUser = session.user as { role?: string; onboardingCompleted?: boolean; onboardingCompletedAt?: string; isGymOwner?: boolean }
         sessionUser.role = token.role as string
         sessionUser.onboardingCompleted = token.onboardingCompleted as boolean
         sessionUser.onboardingCompletedAt = token.onboardingCompletedAt as string | undefined
+        sessionUser.isGymOwner = token.isGymOwner as boolean | undefined
       }
       return session
     },

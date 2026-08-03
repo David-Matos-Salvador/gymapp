@@ -21,6 +21,7 @@ async function main() {
       address: "Av. Revolución 123, CDMX",
       phone: "+525512345678",
       email: "info@fitnesstotal.mx",
+      showMachineNumbers: true,
     },
   })
 
@@ -40,6 +41,12 @@ async function main() {
       email: "admin@gymapp.com", name: "Admin Gym", password: passwordHash, role: "ADMIN",
       phone: "+5255999112233", sex: "MALE", gymId: gym.id,
     },
+  })
+
+  // El admin del gym seed es el dueño del gimnasio
+  await prisma.gym.update({
+    where: { id: gym.id },
+    data: { ownerId: admin.id },
   })
 
   const trainer = await prisma.user.upsert({
@@ -322,6 +329,44 @@ async function main() {
   ])
   const allExercises = [...baseExercises, ...moreExercises]
   console.log(`✅ ${allExercises.length} exercises created (25 original + ${moreExercises.length} new)`)
+
+  // ── Gym Equipment ─────────────────────────────────────
+  const pressBanca = allExercises.find((e) => e.name === "Press de banca")!
+  const sentadilla = allExercises.find((e) => e.name === "Sentadilla")!
+  const prensaPierna = allExercises.find((e) => e.name === "Prensa de piernas")!
+  const remoConBarra = allExercises.find((e) => e.name === "Remo con barra")!
+  const curlBiceps = allExercises.find((e) => e.name === "Curl con barra")!
+  const extensionTriceps = allExercises.find((e) => e.name === "Extensión en polea")!
+
+  const equipment = [
+    { name: "Press de banca plano", category: "MACHINE", location: "Zona de fuerza", exerciseId: pressBanca.id, machineNumber: 1 },
+    { name: "Press de banca inclinado", category: "MACHINE", location: "Zona de fuerza", exerciseId: pressBanca.id, machineNumber: 2 },
+    { name: "Rack de sentadilla", category: "BARBELL", location: "Zona de pesas", exerciseId: sentadilla.id, machineNumber: 3 },
+    { name: "Prensa de pierna 45°", category: "MACHINE", location: "Zona de pierna", exerciseId: prensaPierna.id, machineNumber: 4 },
+    { name: "Remo con barra T", category: "MACHINE", location: "Zona de espalda", exerciseId: remoConBarra.id, machineNumber: 5 },
+    { name: "Banco de curl Scott", category: "BENCH", location: "Zona de brazos", exerciseId: curlBiceps.id, machineNumber: 6 },
+    { name: "Máquina de remo", category: "CARDIO", location: "Zona de cardio", machineNumber: 7 },
+    { name: "Cinta de correr", category: "CARDIO", location: "Zona de cardio", machineNumber: 8 },
+    { name: "Bicicleta estática", category: "CARDIO", location: "Zona de cardio", machineNumber: 9 },
+    { name: "Polea alta", category: "CABLE", location: "Zona de brazos", exerciseId: extensionTriceps.id, machineNumber: 10 },
+  ]
+
+  for (const item of equipment) {
+    await prisma.gymEquipment.upsert({
+      where: { id: `${item.name.replace(/\s+/g, "-").toLowerCase()}-${gym.id}` },
+      update: { machineNumber: item.machineNumber },
+      create: {
+        id: `${item.name.replace(/\s+/g, "-").toLowerCase()}-${gym.id}`,
+        gymId: gym.id,
+        name: item.name,
+        category: item.category,
+        location: item.location,
+        exerciseId: item.exerciseId ?? null,
+        machineNumber: item.machineNumber,
+      },
+    })
+  }
+  console.log(`✅ ${equipment.length} gym equipment items created`)
 
 
   // ── Platform Plans (SUPER_ADMIN) ────────────────────

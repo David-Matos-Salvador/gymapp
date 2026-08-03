@@ -9,6 +9,7 @@ const createGymSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email().optional(),
   logoUrl: z.string().url().optional(),
+  showMachineNumbers: z.boolean().optional(),
 })
 
 export async function GET() {
@@ -40,11 +41,11 @@ export async function POST(request: Request) {
     )
   }
 
-  const { name, address, phone, email, logoUrl } = parsed.data
+  const { name, address, phone, email, logoUrl, showMachineNumbers } = parsed.data
   const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 50)
 
   const gym = await prisma.gym.create({
-    data: { name, slug, address, phone, email, logoUrl },
+    data: { name, slug, address, phone, email, logoUrl, showMachineNumbers },
   })
 
   return NextResponse.json({ gym }, { status: 201 })

@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Trash2, Dumbbell, MapPin } from "lucide-react"
+import { Plus, Trash2, Pencil, Dumbbell, MapPin } from "lucide-react"
 import { toast } from "sonner"
 
 interface ExerciseRef {
@@ -31,7 +31,7 @@ interface ExerciseRef {
   name: string
 }
 
-interface Equipment {
+export interface Equipment {
   id: string
   name: string
   category: string | null
@@ -39,12 +39,14 @@ interface Equipment {
   imageUrl: string | null
   exerciseId: string | null
   exercise: ExerciseRef | null
+  machineNumber: number | null
 }
 
 interface GymEquipmentManagerProps {
   initialEquipment: Equipment[]
   exercises: ExerciseRef[]
   gymId: string | undefined
+  showMachineNumbers: boolean
 }
 
 const categoryLabels: Record<string, string> = {
@@ -64,19 +66,23 @@ export function GymEquipmentManager({
   initialEquipment,
   exercises,
   gymId,
+  showMachineNumbers,
 }: GymEquipmentManagerProps) {
   const router = useRouter()
   const { play } = useSound()
   const [equipment, setEquipment] = useState<Equipment[]>(initialEquipment)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
   const [formName, setFormName] = useState("")
   const [formCategory, setFormCategory] = useState("")
   const [formLocation, setFormLocation] = useState("")
   const [formImageUrl, setFormImageUrl] = useState("")
   const [formExerciseId, setFormExerciseId] = useState("")
+  const [formMachineNumber, setFormMachineNumber] = useState("")
 
   function resetForm() {
     setFormName("")
@@ -84,37 +90,69 @@ export function GymEquipmentManager({
     setFormLocation("")
     setFormImageUrl("")
     setFormExerciseId("")
+    setFormMachineNumber("")
   }
 
-  async function handleCreate() {
+  function openCreate() {
+    setEditingId(null)
+    resetForm()
+    setDialogOpen(true)
+  }
+
+  function openEdit(item: Equipment) {
+    setEditingId(item.id)
+    setFormName(item.name)
+    setFormCategory(item.category ?? "")
+    setFormLocation(item.location ?? "")
+    setFormImageUrl(item.imageUrl ?? "")
+    setFormExerciseId(item.exerciseId ?? "")
+    setFormMachineNumber(item.machineNumber != null ? String(item.machineNumber) : "")
+    setDialogOpen(true)
+  }
+
+  async function handleSave() {
     if (!formName.trim() || !gymId) return
     setSaving(true)
     play("select")
 
-    const res = await fetch("/api/gym-equipment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: formName.trim(),
-        category: formCategory.trim() || undefined,
-        location: formLocation.trim() || undefined,
-        imageUrl: formImageUrl.trim() || undefined,
-        exerciseId: formExerciseId || undefined,
-        gymId,
-      }),
-    })
+    const body = {
+      name: formName.trim(),
+      category: formCategory.trim() || undefined,
+      location: formLocation.trim() || undefined,
+      imageUrl: formImageUrl.trim() || undefined,
+      exerciseId: formExerciseId || undefined,
+      machineNumber: formMachineNumber.trim() ? Number(formMachineNumber) : null,
+    }
+
+    const res = editingId
+      ? await fetch(`/api/gym-equipment/${editingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        })
+      : await fetch("/api/gym-equipment", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...body, gymId }),
+        })
 
     if (res.ok) {
       const data = await res.json()
-      setEquipment((prev) => [...prev, data.equipment])
+      if (editingId) {
+        setEquipment((prev) => prev.map((e) => (e.id === editingId ? data.equipment : e)))
+        toast.success("Equipo actualizado")
+      } else {
+        setEquipment((prev) => [...prev, data.equipment])
+        toast.success("Equipo agregado")
+      }
       play("success")
-      toast.success("Equipo agregado")
       setDialogOpen(false)
       resetForm()
+      setEditingId(null)
       router.refresh()
     } else {
       const data = await res.json()
-      toast.error(data.error ?? "Error al crear equipo")
+      toast.error(data.error ?? "Error al guardar equipo")
     }
     setSaving(false)
   }
@@ -128,6 +166,7 @@ export function GymEquipmentManager({
     if (res.ok) {
       setEquipment((prev) => prev.filter((e) => e.id !== id))
       toast.success("Equipo eliminado")
+      setDeleteConfirm(null)
       router.refresh()
     } else {
       const data = await res.json()
@@ -143,10 +182,7 @@ export function GymEquipmentManager({
           {equipment.length} {equipment.length === 1 ? "equipo" : "equipos"}
         </p>
         <Button
-          onClick={() => {
-            resetForm()
-            setDialogOpen(true)
-          }}
+          onClick={openCreate}
           disabled={!gymId}
           title={!gymId ? "No tienes un gimnasio asignado" : undefined}
         >
@@ -183,12 +219,7 @@ export function GymEquipmentManager({
                 Agrega el equipamiento de tu gimnasio
               </p>
             </div>
-            <Button
-              onClick={() => {
-                resetForm()
-                setDialogOpen(true)
-              }}
-            >
+            <Button onClick={openCreate}>
               <Plus className="h-4 w-4" />
               Agregar equipo
             </Button>
@@ -207,24 +238,50 @@ export function GymEquipmentManager({
             >
               <Card className="h-full hover:shadow-md transition-all">
                 {item.imageUrl && (
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="h-40 w-full object-cover"
-                  />
+                  <div className="relative">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="h-40 w-full object-cover"
+                    />
+                    {showMachineNumbers && item.machineNumber != null && (
+                      <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md">
+                        {item.machineNumber}
+                      </span>
+                    )}
+                  </div>
                 )}
                 <CardHeader>
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-base pr-2">{item.name}</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      className="text-muted-foreground hover:text-destructive shrink-0"
-                      onClick={() => handleDelete(item.id)}
-                      disabled={deleting === item.id}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    <div className="flex items-center gap-2 pr-2">
+                      {!item.imageUrl && showMachineNumbers && item.machineNumber != null && (
+                        <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0">
+                          {item.machineNumber}
+                        </span>
+                      )}
+                      <CardTitle className="text-base">{item.name}</CardTitle>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-muted-foreground hover:text-foreground"
+                        onClick={() => openEdit(item)}
+                        aria-label="Editar equipo"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-muted-foreground hover:text-destructive"
+                        onClick={() => setDeleteConfirm(item.id)}
+                        disabled={deleting === item.id}
+                        aria-label="Eliminar equipo"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                   {item.category && (
                     <p className="text-xs text-muted-foreground">
@@ -255,12 +312,20 @@ export function GymEquipmentManager({
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => {
+        setDialogOpen(open)
+        if (!open) {
+          setEditingId(null)
+          resetForm()
+        }
+      }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Agregar equipo</DialogTitle>
+            <DialogTitle>{editingId ? "Editar equipo" : "Agregar equipo"}</DialogTitle>
             <DialogDescription>
-              Ingresa los datos del nuevo equipamiento
+              {editingId
+                ? "Modifica los datos del equipamiento"
+                : "Ingresa los datos del nuevo equipamiento"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -318,16 +383,49 @@ export function GymEquipmentManager({
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="equipMachineNumber">Número de máquina</Label>
+              <Input
+                id="equipMachineNumber"
+                type="number"
+                value={formMachineNumber}
+                onChange={(e) => setFormMachineNumber(e.target.value)}
+                placeholder="Ej: 1, 2, 3..."
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
             <Button
-              onClick={handleCreate}
+              onClick={handleSave}
               disabled={saving || !formName.trim()}
             >
-              {saving ? "Guardando..." : "Guardar"}
+              {saving ? "Guardando..." : editingId ? "Guardar cambios" : "Guardar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Eliminar equipo</DialogTitle>
+            <DialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+              disabled={deleting === deleteConfirm}
+            >
+              Eliminar
             </Button>
           </DialogFooter>
         </DialogContent>

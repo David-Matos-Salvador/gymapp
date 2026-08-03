@@ -6,12 +6,14 @@ declare module "next-auth" {
     role?: UserRole
     onboardingCompleted?: boolean
     onboardingCompletedAt?: string | null
+    isGymOwner?: boolean
   }
   interface Session {
     user: {
       role?: UserRole
       onboardingCompleted?: boolean
       onboardingCompletedAt?: string
+      isGymOwner?: boolean
     } & DefaultSession["user"]
   }
 }
@@ -21,5 +23,6 @@ declare module "next-auth/jwt" {
     role?: UserRole
     onboardingCompleted?: boolean
     onboardingCompletedAt?: string
+    isGymOwner?: boolean
   }
 }

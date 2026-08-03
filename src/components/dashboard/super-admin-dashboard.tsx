@@ -23,6 +23,7 @@ import {
   Globe,
   ShieldCheck,
   Plus,
+  Hash,
 } from "lucide-react"
 import { ROLE_LABELS } from "@/constants/user"
 
@@ -31,6 +32,7 @@ interface GymData {
   name: string
   slug: string
   active: boolean
+  showMachineNumbers: boolean
   userCount: number
 }
 
@@ -63,7 +65,7 @@ export function SuperAdminDashboard({ stats: initialStats, gyms: initialGyms, re
   const [stats, setStats] = useState(initialStats)
   const [gyms, setGyms] = useState(initialGyms)
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [gymForm, setGymForm] = useState({ name: "", address: "", phone: "", email: "" })
+  const [gymForm, setGymForm] = useState({ name: "", address: "", phone: "", email: "", showMachineNumbers: false })
   const [gymSaving, setGymSaving] = useState(false)
 
   async function handleCreateGym() {
@@ -77,13 +79,14 @@ export function SuperAdminDashboard({ stats: initialStats, gyms: initialGyms, re
         address: gymForm.address || undefined,
         phone: gymForm.phone || undefined,
         email: gymForm.email || undefined,
+        showMachineNumbers: gymForm.showMachineNumbers,
       }),
     })
     if (res.ok) {
       play("success")
       toast.success("Gimnasio creado")
       setDialogOpen(false)
-      setGymForm({ name: "", address: "", phone: "", email: "" })
+      setGymForm({ name: "", address: "", phone: "", email: "", showMachineNumbers: false })
       const data = await fetch("/api/admin/platform").then((r) => r.json())
       setStats(data.stats)
       setGyms(data.gyms)
@@ -91,6 +94,22 @@ export function SuperAdminDashboard({ stats: initialStats, gyms: initialGyms, re
       toast.error("Error al crear gimnasio")
     }
     setGymSaving(false)
+  }
+
+  async function handleToggleMachineNumbers(gymId: string, current: boolean) {
+    play("select")
+    const res = await fetch(`/api/gyms/${gymId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ showMachineNumbers: !current }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setGyms((prev) => prev.map((g) => (g.id === gymId ? { ...g, showMachineNumbers: data.gym.showMachineNumbers } : g)))
+      toast.success(data.gym.showMachineNumbers ? "Números de máquina activados" : "Números de máquina desactivados")
+    } else {
+      toast.error("Error al actualizar")
+    }
   }
 
   return (
@@ -148,6 +167,15 @@ export function SuperAdminDashboard({ stats: initialStats, gyms: initialGyms, re
                     </div>
                     <p className="text-xs text-muted-foreground">{gym.userCount} usuarios registrados</p>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className={gym.showMachineNumbers ? "text-primary" : "text-muted-foreground"}
+                    onClick={() => handleToggleMachineNumbers(gym.id, gym.showMachineNumbers)}
+                    title={gym.showMachineNumbers ? "Desactivar números de máquina" : "Activar números de máquina"}
+                  >
+                    <Hash className="h-4 w-4" />
+                  </Button>
                 </div>
               ))}
             </CardContent>
@@ -223,6 +251,18 @@ export function SuperAdminDashboard({ stats: initialStats, gyms: initialGyms, re
                 onChange={(e) => setGymForm((f) => ({ ...f, email: e.target.value }))}
                 placeholder="info@gym.com"
               />
+            </div>
+            <div className="flex items-center gap-2 pt-2">
+              <Button
+                type="button"
+                variant={gymForm.showMachineNumbers ? "default" : "outline"}
+                size="sm"
+                onClick={() => setGymForm((f) => ({ ...f, showMachineNumbers: !f.showMachineNumbers }))}
+                className="gap-2"
+              >
+                <Hash className="h-3.5 w-3.5" />
+                {gymForm.showMachineNumbers ? "Mostrar números de máquina" : "Ocultar números de máquina"}
+              </Button>
             </div>
           </div>
           <DialogFooter>

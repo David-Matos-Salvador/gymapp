@@ -72,6 +72,13 @@ export async function POST(request: Request) {
       },
     })
 
+    if (gymId) {
+      await prisma.gym.update({
+        where: { id: gymId },
+        data: { ownerId: user.id },
+      })
+    }
+
     return NextResponse.json(
       {
         message: "Usuario registrado exitosamente",

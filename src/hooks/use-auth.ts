@@ -11,6 +11,7 @@ interface AuthUser {
   role?: UserRole
   onboardingCompleted?: boolean
   onboardingCompletedAt?: string
+  isGymOwner?: boolean
 }
 
 export function useAuth() {
@@ -24,6 +25,7 @@ export function useAuth() {
     isSuperAdmin: (session?.user as AuthUser)?.role === "SUPER_ADMIN",
     isTrainer: (session?.user as AuthUser)?.role === "TRAINER",
     isMember: (session?.user as AuthUser)?.role === "MEMBER",
+    isGymOwner: (session?.user as AuthUser)?.isGymOwner === true,
     update,
   }
 }

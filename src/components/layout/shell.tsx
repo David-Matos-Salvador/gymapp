@@ -16,6 +16,7 @@ import {
   TrendingUp,
   CreditCard,
   UserCheck,
+  Wrench,
 } from "lucide-react"
 import { useRef, useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -32,7 +33,7 @@ const userRoleChip: Record<string, { label: string; className: string }> = {
 
 export function AppBottomNav({ className }: { className?: string }) {
   const pathname = usePathname()
-  const { isAdmin, isTrainer, isSuperAdmin, isMember } = useAuth()
+  const { isAdmin, isTrainer, isSuperAdmin, isMember, isGymOwner } = useAuth()
   const { play } = useSound()
 
   const tabs: { label: string; href: string; icon: typeof LayoutDashboard }[] = []
@@ -50,6 +51,11 @@ export function AppBottomNav({ className }: { className?: string }) {
     tabs.push({ label: "Progreso", href: "/progress", icon: TrendingUp })
   }
 
+  // Equipamiento — MEMBER only (catalog; staff manage from /admin)
+  if (isMember) {
+    tabs.push({ label: "Equipamiento", href: "/equipamiento", icon: Wrench })
+  }
+
   // Clases — all roles
   tabs.push({ label: "Clases", href: "/classes", icon: CalendarDays })
 
@@ -63,8 +69,8 @@ export function AppBottomNav({ className }: { className?: string }) {
     tabs.push({ label: "Solicitudes", href: "/requests", icon: UserCheck })
   }
 
-  // Admin — ADMIN, SUPER_ADMIN (links to gym management)
-  if (isAdmin || isSuperAdmin) {
+  // Admin — ADMIN, SUPER_ADMIN, gym owners (links to gym management)
+  if (isAdmin || isSuperAdmin || isGymOwner) {
     tabs.push({ label: "Admin", href: "/admin/gym-management", icon: BarChart3 })
   }
 

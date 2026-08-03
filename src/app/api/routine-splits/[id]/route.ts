@@ -35,7 +35,18 @@ export async function GET(request: Request, { params }: RouteParams) {
   const split = await prisma.routineSplit.findUnique({
     where: { id },
     include: {
-      exercises: { include: { exercise: true }, orderBy: { order: "asc" } },
+      exercises: {
+        include: {
+          exercise: {
+            include: {
+              gymEquipments: {
+                select: { id: true, name: true, machineNumber: true, location: true, gymId: true },
+              },
+            },
+          },
+        },
+        orderBy: { order: "asc" },
+      },
       plan: { select: { id: true, name: true } },
     },
   })
@@ -44,7 +55,19 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Split no encontrado" }, { status: 404 })
   }
 
-  return NextResponse.json({ split })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { gymId: true },
+  })
+
+  const gym = user?.gymId
+    ? await prisma.gym.findUnique({
+        where: { id: user.gymId },
+        select: { id: true, showMachineNumbers: true },
+      })
+    : null
+
+  return NextResponse.json({ split, gym })
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
@@ -78,7 +101,18 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       where: { id },
       data: parsed.data,
       include: {
-        exercises: { include: { exercise: true }, orderBy: { order: "asc" } },
+        exercises: {
+          include: {
+            exercise: {
+              include: {
+                gymEquipments: {
+                  select: { id: true, name: true, machineNumber: true, location: true, gymId: true },
+                },
+              },
+            },
+          },
+          orderBy: { order: "asc" },
+        },
       },
     })
 

@@ -14,6 +14,7 @@ const updateGymSchema = z.object({
   email: z.string().email().optional(),
   logoUrl: z.string().url().optional(),
   active: z.boolean().optional(),
+  showMachineNumbers: z.boolean().optional(),
 })
 
 export async function GET(request: Request, { params }: RouteParams) {

@@ -40,6 +40,7 @@ export default function LogWorkoutPage() {
   const splitId = params.splitId as string
   const store = useWorkoutStore()
   const [split, setSplit] = useState<SplitData | null>(null)
+  const [gym, setGym] = useState<{ id: string; showMachineNumbers: boolean } | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [notes, setNotes] = useState("")
@@ -78,6 +79,7 @@ export default function LogWorkoutPage() {
       .then((data) => {
         const s = data.split as SplitData
         setSplit(s)
+        setGym((data.gym as { id: string; showMachineNumbers: boolean } | null) ?? null)
 
         const snapshot = useWorkoutStore.getState()
         const exerciseIdSet = new Set(s.exercises.map((e) => e.exerciseId))
@@ -357,6 +359,8 @@ export default function LogWorkoutPage() {
                     se={se}
                     setsData={exerciseSets}
                     appearance={appearance}
+                    userGymId={gym?.id}
+                    showMachineNumbers={gym?.showMachineNumbers ?? false}
                     onContinue={() => handleContinueExercise(se.exerciseId)}
                     onSetsCountChange={(newCount: number) => {
                       const state = useWorkoutStore.getState()
@@ -415,6 +419,8 @@ export default function LogWorkoutPage() {
                     se={se}
                     setsData={setsData[se.exerciseId] ?? []}
                     appearance="completed"
+                    userGymId={gym?.id}
+                    showMachineNumbers={gym?.showMachineNumbers ?? false}
                     onSetComplete={(setIdx) => {
                       const sets = [ ...(store.setsData[se.exerciseId] ?? []) ]
                       sets[setIdx] = { ...sets[setIdx], completed: true }
