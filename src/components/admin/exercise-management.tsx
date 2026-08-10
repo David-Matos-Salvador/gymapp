@@ -24,7 +24,7 @@ import {
 import { toast } from "sonner"
 import { EQUIPMENT_LABELS } from "@/constants/ui"
 import { MUSCLE_LABELS } from "@/constants/user"
-import { Plus, Pencil, Trash2, Upload, ExternalLink, ImageIcon, Dumbbell } from "lucide-react"
+import { Plus, Pencil, Trash2, Upload, ExternalLink, ImageIcon, Dumbbell, Power, PowerOff } from "lucide-react"
 
 export interface Exercise {
   id: string
@@ -93,11 +93,13 @@ const emptyForm: ExerciseForm = {
 
 interface ExerciseManagementProps {
   exercises: Exercise[]
+  gymExerciseMap?: Record<string, boolean>
   canEditExercise: (ex: Exercise) => boolean
   onExercisesChange: (exercises: Exercise[]) => void
+  onToggleExercise?: (exerciseId: string, active: boolean) => void
 }
 
-export function ExerciseManagement({ exercises, canEditExercise, onExercisesChange }: ExerciseManagementProps) {
+export function ExerciseManagement({ exercises, gymExerciseMap = {}, canEditExercise, onExercisesChange, onToggleExercise }: ExerciseManagementProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<ExerciseForm>(emptyForm)
@@ -306,6 +308,21 @@ export function ExerciseManagement({ exercises, canEditExercise, onExercisesChan
               </div>
 
               <div className="flex items-center gap-1 shrink-0">
+                {onToggleExercise && (
+                  <Button
+                    variant={gymExerciseMap[ex.id] !== false ? "default" : "outline"}
+                    size="icon-sm"
+                    className={gymExerciseMap[ex.id] !== false ? "bg-accent-yellow text-black hover:bg-accent-yellow/80" : "text-muted-foreground"}
+                    onClick={() => onToggleExercise(ex.id, gymExerciseMap[ex.id] === false)}
+                    title={gymExerciseMap[ex.id] !== false ? "Desactivar ejercicio" : "Activar ejercicio"}
+                  >
+                    {gymExerciseMap[ex.id] !== false ? (
+                      <Power className="size-4" />
+                    ) : (
+                      <PowerOff className="size-4" />
+                    )}
+                  </Button>
+                )}
                 {canEditExercise(ex) ? (
                   <>
                     <Button variant="ghost" size="icon-sm" onClick={() => openEdit(ex)}>

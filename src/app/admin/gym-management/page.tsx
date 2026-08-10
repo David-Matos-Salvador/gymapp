@@ -29,6 +29,28 @@ export default async function GymManagementPage() {
     orderBy: { name: "asc" },
   })
 
+  const gymExercises = user.gymId
+    ? await prisma.gymExercise.findMany({
+        where: { gymId: user.gymId },
+        select: { exerciseId: true, active: true },
+      })
+    : []
+
+  const gymExerciseMap = new Map(gymExercises.map((ge) => [ge.exerciseId, ge.active]))
+
+  const systemEquipment = user.gymId
+    ? await prisma.gymEquipment.findMany({ where: { isSystem: true }, orderBy: { name: "asc" } })
+    : []
+
+  const equipmentActivations = user.gymId
+    ? await prisma.gymEquipmentActivation.findMany({
+        where: { gymId: user.gymId },
+        select: { equipmentId: true, active: true },
+      })
+    : []
+
+  const equipActiveMap = new Map(equipmentActivations.map((a) => [a.equipmentId, a.active]))
+
   const plans = await prisma.routinePlan.findMany({
     include: {
       splits: {
@@ -46,24 +68,18 @@ export default async function GymManagementPage() {
     orderBy: { name: "asc" },
   })
 
-  const equipment = user.gymId
-    ? await prisma.gymEquipment.findMany({
-        where: { gymId: user.gymId },
-        include: { exercise: { select: { id: true, name: true } } },
-        orderBy: { name: "asc" },
-      })
-    : []
-
   const canManageEquipment = canManageGymEquipment(user, gym)
 
   return (
     <AppShell>
       <GymManagementTabs
         exercises={JSON.parse(JSON.stringify(exercises))}
+        gymExerciseMap={Object.fromEntries(gymExerciseMap)}
         plans={JSON.parse(JSON.stringify(plans))}
         members={JSON.parse(JSON.stringify(members))}
         currentUser={{ id: user.id, role: user.role }}
-        equipment={JSON.parse(JSON.stringify(equipment))}
+        systemEquipment={JSON.parse(JSON.stringify(systemEquipment))}
+        equipActiveMap={Object.fromEntries(equipActiveMap)}
         gym={gym ? JSON.parse(JSON.stringify(gym)) : null}
         canManageEquipment={canManageEquipment}
       />

@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Trash2, Pencil, Dumbbell, MapPin } from "lucide-react"
+import { Plus, Trash2, Pencil, Dumbbell, MapPin, Power, PowerOff } from "lucide-react"
 import { toast } from "sonner"
 
 interface ExerciseRef {
@@ -44,9 +44,12 @@ export interface Equipment {
 
 interface GymEquipmentManagerProps {
   initialEquipment: Equipment[]
+  systemEquipment?: Equipment[]
+  equipActiveMap?: Record<string, boolean>
   exercises: ExerciseRef[]
   gymId: string | undefined
   showMachineNumbers: boolean
+  onToggleEquipment?: (equipmentId: string, active: boolean) => void
 }
 
 const categoryLabels: Record<string, string> = {
@@ -64,9 +67,12 @@ const categoryLabels: Record<string, string> = {
 
 export function GymEquipmentManager({
   initialEquipment,
+  systemEquipment = [],
+  equipActiveMap = {},
   exercises,
   gymId,
   showMachineNumbers,
+  onToggleEquipment,
 }: GymEquipmentManagerProps) {
   const router = useRouter()
   const { play } = useSound()
@@ -179,7 +185,7 @@ export function GymEquipmentManager({
     <>
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {equipment.length} {equipment.length === 1 ? "equipo" : "equipos"}
+          {equipment.length} {equipment.length === 1 ? "equipo" : "equipos"} personalizados
         </p>
         <Button
           onClick={openCreate}
@@ -190,6 +196,47 @@ export function GymEquipmentManager({
           Agregar equipo
         </Button>
       </div>
+
+      {/* System equipment toggles */}
+      {systemEquipment.length > 0 && onToggleEquipment && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Equipamiento del sistema
+          </p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {systemEquipment.map((item) => {
+              const active = equipActiveMap[item.id] !== false
+              return (
+                <div
+                  key={item.id}
+                  className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${active ? "bg-card" : "bg-muted/30"}`}
+                >
+                  <div className="min-w-0">
+                    <p className={`text-sm font-medium ${active ? "" : "text-muted-foreground line-through"}`}>
+                      {item.name}
+                    </p>
+                    {item.machineNumber != null && (
+                      <p className="text-xs text-muted-foreground">#{item.machineNumber}</p>
+                    )}
+                  </div>
+                  <Button
+                    variant={active ? "default" : "outline"}
+                    size="sm"
+                    className={active ? "bg-accent-yellow text-black hover:bg-accent-yellow/80 shrink-0" : "shrink-0"}
+                    onClick={() => onToggleEquipment(item.id, !active)}
+                  >
+                    {active ? (
+                      <Power className="h-4 w-4" />
+                    ) : (
+                      <PowerOff className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {!gymId && (
         <Card>

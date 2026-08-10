@@ -40,7 +40,7 @@ export async function GET(request: Request, { params }: RouteParams) {
           exercise: {
             include: {
               gymEquipments: {
-                select: { id: true, name: true, machineNumber: true, location: true, gymId: true },
+                select: { id: true, name: true, machineNumber: true, location: true, gymId: true, imageUrl: true },
               },
             },
           },
@@ -59,6 +59,19 @@ export async function GET(request: Request, { params }: RouteParams) {
     where: { email: session.user.email },
     select: { gymId: true },
   })
+
+  let activeExerciseIds: Set<string> | null = null
+  if (user?.gymId) {
+    const gymExercises = await prisma.gymExercise.findMany({
+      where: { gymId: user.gymId, active: true },
+      select: { exerciseId: true },
+    })
+    activeExerciseIds = new Set(gymExercises.map((e) => e.exerciseId))
+  }
+
+  if (activeExerciseIds) {
+    split.exercises = split.exercises.filter((se) => activeExerciseIds!.has(se.exerciseId))
+  }
 
   const gym = user?.gymId
     ? await prisma.gym.findUnique({

@@ -17,6 +17,7 @@ export interface GymEquipmentRef {
   machineNumber: number | null
   location: string | null
   gymId: string
+  imageUrl: string | null
 }
 
 export interface Exercise {

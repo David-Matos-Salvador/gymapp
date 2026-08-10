@@ -339,34 +339,61 @@ async function main() {
   const extensionTriceps = allExercises.find((e) => e.name === "Extensión en polea")!
 
   const equipment = [
-    { name: "Press de banca plano", category: "MACHINE", location: "Zona de fuerza", exerciseId: pressBanca.id, machineNumber: 1 },
-    { name: "Press de banca inclinado", category: "MACHINE", location: "Zona de fuerza", exerciseId: pressBanca.id, machineNumber: 2 },
-    { name: "Rack de sentadilla", category: "BARBELL", location: "Zona de pesas", exerciseId: sentadilla.id, machineNumber: 3 },
-    { name: "Prensa de pierna 45°", category: "MACHINE", location: "Zona de pierna", exerciseId: prensaPierna.id, machineNumber: 4 },
-    { name: "Remo con barra T", category: "MACHINE", location: "Zona de espalda", exerciseId: remoConBarra.id, machineNumber: 5 },
-    { name: "Banco de curl Scott", category: "BENCH", location: "Zona de brazos", exerciseId: curlBiceps.id, machineNumber: 6 },
-    { name: "Máquina de remo", category: "CARDIO", location: "Zona de cardio", machineNumber: 7 },
-    { name: "Cinta de correr", category: "CARDIO", location: "Zona de cardio", machineNumber: 8 },
-    { name: "Bicicleta estática", category: "CARDIO", location: "Zona de cardio", machineNumber: 9 },
-    { name: "Polea alta", category: "CABLE", location: "Zona de brazos", exerciseId: extensionTriceps.id, machineNumber: 10 },
+    { name: "Press de banca plano", category: "MACHINE", location: "Zona de fuerza", exerciseId: pressBanca.id, machineNumber: 1, imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg" },
+    { name: "Press de banca inclinado", category: "MACHINE", location: "Zona de fuerza", exerciseId: pressBanca.id, machineNumber: 2, imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg" },
+    { name: "Rack de sentadilla", category: "BARBELL", location: "Zona de pesas", exerciseId: sentadilla.id, machineNumber: 3, imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg" },
+    { name: "Prensa de pierna 45°", category: "MACHINE", location: "Zona de pierna", exerciseId: prensaPierna.id, machineNumber: 4, imageUrl: "https://upload.wikimedia.org/wikipedia/commons/b/bd/Gym_Leg_Press_Machine.jpg" },
+    { name: "Remo con barra T", category: "MACHINE", location: "Zona de espalda", exerciseId: remoConBarra.id, machineNumber: 5, imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Barbell_Row/0.jpg" },
+    { name: "Banco de curl Scott", category: "BENCH", location: "Zona de brazos", exerciseId: curlBiceps.id, machineNumber: 6, imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/0.jpg" },
+    { name: "Máquina de remo", category: "CARDIO", location: "Zona de cardio", machineNumber: 7, imageUrl: "https://cdn.pixabay.com/photo/2015/04/06/16/00/machine-709588_640.jpg" },
+    { name: "Cinta de correr", category: "CARDIO", location: "Zona de cardio", machineNumber: 8, imageUrl: "https://upload.wikimedia.org/wikipedia/commons/6/62/Treadmill-gym.jpg" },
+    { name: "Bicicleta estática", category: "CARDIO", location: "Zona de cardio", machineNumber: 9, imageUrl: "https://upload.wikimedia.org/wikipedia/commons/7/77/Stationary_bikes_at_a_gym.jpg" },
+    { name: "Polea alta", category: "CABLE", location: "Zona de brazos", exerciseId: extensionTriceps.id, machineNumber: 10, imageUrl: "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg" },
   ]
 
+  // System equipment templates (gymId = null, isSystem = true)
+  const systemEquipmentIds: string[] = []
   for (const item of equipment) {
-    await prisma.gymEquipment.upsert({
-      where: { id: `${item.name.replace(/\s+/g, "-").toLowerCase()}-${gym.id}` },
-      update: { machineNumber: item.machineNumber },
+    const sysId = `sys-${item.name.replace(/\s+/g, "-").toLowerCase()}`
+    const sys = await prisma.gymEquipment.upsert({
+      where: { id: sysId },
+      update: { machineNumber: item.machineNumber, imageUrl: item.imageUrl },
       create: {
-        id: `${item.name.replace(/\s+/g, "-").toLowerCase()}-${gym.id}`,
-        gymId: gym.id,
+        id: sysId,
         name: item.name,
         category: item.category,
         location: item.location,
         exerciseId: item.exerciseId ?? null,
         machineNumber: item.machineNumber,
+        imageUrl: item.imageUrl,
+        isSystem: true,
       },
     })
+    systemEquipmentIds.push(sys.id)
   }
-  console.log(`✅ ${equipment.length} gym equipment items created`)
+  console.log(`✅ ${systemEquipmentIds.length} system equipment templates created`)
+
+  // Activate all system equipment for the seed gym
+  for (const equipId of systemEquipmentIds) {
+    await prisma.gymEquipmentActivation.upsert({
+      where: { gymId_equipmentId: { gymId: gym.id, equipmentId: equipId } },
+      update: {},
+      create: { gymId: gym.id, equipmentId: equipId, active: true },
+    })
+  }
+  console.log(`✅ ${systemEquipmentIds.length} equipment activations created for gym`)
+
+  // Activate all exercises for the seed gym
+  let exerciseCount = 0
+  for (const ex of allExercises) {
+    await prisma.gymExercise.upsert({
+      where: { gymId_exerciseId: { gymId: gym.id, exerciseId: ex.id } },
+      update: {},
+      create: { gymId: gym.id, exerciseId: ex.id, active: true },
+    })
+    exerciseCount++
+  }
+  console.log(`✅ ${exerciseCount} gym exercises activated for gym`)
 
 
   // ── Platform Plans (SUPER_ADMIN) ────────────────────

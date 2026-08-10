@@ -148,10 +148,12 @@ model Gym {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  users           User[]
-  membershipPlans MembershipPlan[]
-  classes         Class[]
-  gymEquipments   GymEquipment[]
+  users                  User[]
+  membershipPlans        MembershipPlan[]
+  classes                Class[]
+  gymEquipments          GymEquipment[]
+  gymExercises           GymExercise[]
+  gymEquipmentActivations GymEquipmentActivation[]
 }
 
 model User {
@@ -345,18 +347,42 @@ model ProgressPhoto {
 
 model GymEquipment {
   id          String   @id @default(cuid())
-  gymId       String
+  gymId       String?
   name        String
   category    String?
   imageUrl      String?
   location      String?
   exerciseId    String?
   machineNumber Int?
+  isSystem      Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  gym      Gym       @relation(fields: [gymId], references: [id], onDelete: Cascade)
-  exercise Exercise? @relation(fields: [exerciseId], references: [id])
+  gym         Gym?       @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  exercise    Exercise?  @relation(fields: [exerciseId], references: [id])
+  activations GymEquipmentActivation[]
+}
+
+model GymExercise {
+  gymId      String
+  exerciseId String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  gym      Gym      @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  @@id([gymId, exerciseId])
+}
+
+model GymEquipmentActivation {
+  gymId       String
+  equipmentId String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  gym       Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  equipment GymEquipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  @@id([gymId, equipmentId])
 }
 
 // ── New Routine Models ────────────────────────────────
@@ -448,6 +474,7 @@ model Exercise {
   creator        User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
   splitExercises RoutineSplitExercise[]
   gymEquipments  GymEquipment[]
+  gymExercises   GymExercise[]
 
   @@unique([name])
 }

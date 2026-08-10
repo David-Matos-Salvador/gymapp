@@ -53,13 +53,24 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "No encontrado" }, { status: 404 })
   }
 
-  const gym = await prisma.gym.findUnique({
-    where: { id: existing.gymId },
-    select: { id: true, ownerId: true },
-  })
-
-  if (!user || !canManageGymEquipment(user, gym)) {
+  if (!user) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  }
+
+  // System equipment (gymId = null) can only be edited by SUPER_ADMIN
+  if (!existing.gymId) {
+    if (user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+    }
+  } else {
+    const gym = await prisma.gym.findUnique({
+      where: { id: existing.gymId },
+      select: { id: true, ownerId: true },
+    })
+
+    if (!canManageGymEquipment(user, gym)) {
+      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+    }
   }
 
   const body = await request.json()
@@ -94,13 +105,24 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "No encontrado" }, { status: 404 })
   }
 
-  const gym = await prisma.gym.findUnique({
-    where: { id: existing.gymId },
-    select: { id: true, ownerId: true },
-  })
-
-  if (!user || !canManageGymEquipment(user, gym)) {
+  if (!user) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  }
+
+  // System equipment (gymId = null) can only be edited by SUPER_ADMIN
+  if (!existing.gymId) {
+    if (user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+    }
+  } else {
+    const gym = await prisma.gym.findUnique({
+      where: { id: existing.gymId },
+      select: { id: true, ownerId: true },
+    })
+
+    if (!canManageGymEquipment(user, gym)) {
+      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+    }
   }
 
   await prisma.gymEquipment.delete({ where: { id } })
