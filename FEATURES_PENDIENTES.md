@@ -81,3 +81,12 @@
 
 - **Descripción**: Mostrar días consecutivos entrenando (streak diario).
 - **Estado actual**: Existe función `calculateStreak()` en el dashboard pero no se muestra en `/rutina`. Se priorizó la racha semanal.
+
+---
+
+## Badge de pagos pendientes — tiempo real
+
+- **Descripción**: El badge rojo en el nav "Pagos" se actualiza con polling (setInterval 30s). Migrar a WebSocket / SSE para actualización instantánea sin polling.
+- **Estado actual**: Funcional con polling cada 30s en `src/components/layout/shell.tsx:41-52`.
+- **Tecnologías candidatas**: Server-Sent Events (SSE) nativo de Next.js, WebSockets con Pusher/Socket.io, o React Query con `refetchInterval` + `staleTime`.
+- **Prioridad**: Baja — el polling actual es suficiente para MVP.

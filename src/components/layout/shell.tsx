@@ -39,12 +39,18 @@ export function AppBottomNav({ className }: { className?: string }) {
   const tabs: { label: string; href: string; icon: typeof LayoutDashboard; badge?: number }[] = []
 
   useEffect(() => {
-    if (isTrainer || isAdmin || isSuperAdmin) {
+    if (!(isTrainer || isAdmin || isSuperAdmin)) return
+
+    const fetchCount = () => {
       fetch("/api/payments/pending-count")
         .then((r) => r.json())
         .then((d) => setPendingCount(d.count ?? 0))
         .catch(() => {})
     }
+
+    fetchCount()
+    const interval = setInterval(fetchCount, 30_000)
+    return () => clearInterval(interval)
   }, [isTrainer, isAdmin, isSuperAdmin])
 
   // Inicio — all roles
