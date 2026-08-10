@@ -2,9 +2,11 @@
 
 import { useState } from "react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { Dumbbell, Wrench, MapPin } from "lucide-react"
+import { Dumbbell, Wrench, MapPin, Layers } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ExerciseImage } from "@/components/exercise/exercise-image"
+import { EQUIPMENT_LABELS } from "@/constants/ui"
+import { MUSCLE_LABELS } from "@/constants/user"
 import type { Exercise } from "@/types/exercise"
 
 interface ExerciseDetailSheetProps {
@@ -18,6 +20,8 @@ export function ExerciseDetailSheet({ exercise, children, userGymId, showMachine
   const [open, setOpen] = useState(false)
 
   const gymEquipments = (exercise.gymEquipments ?? []).filter((e) => e.gymId === userGymId)
+  const equipmentLabel = EQUIPMENT_LABELS[exercise.equipment] ?? exercise.equipment
+  const muscleLabel = MUSCLE_LABELS[exercise.muscleGroup] ?? exercise.muscleGroup
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -31,48 +35,79 @@ export function ExerciseDetailSheet({ exercise, children, userGymId, showMachine
             {exercise.name}
           </SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col items-center py-6 px-6 space-y-4">
+        <div className="flex flex-col items-center py-6 px-6 space-y-4 overflow-y-auto">
           <ExerciseImage
             imageUrl={exercise.imageUrl}
             alt={exercise.name}
-            size="lg"
+            size="xl"
           />
+
+          <div className="flex flex-wrap justify-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium">
+              <Layers className="h-3 w-3 text-muted-foreground" />
+              {muscleLabel}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              <Wrench className="h-3 w-3" />
+              Equipo: {equipmentLabel}
+            </span>
+          </div>
+
           {gymEquipments.length > 0 && (
             <div className="w-full space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Equipo en tu gimnasio
+                {showMachineNumbers
+                  ? "Máquina en tu gimnasio"
+                  : "Equipamiento en tu gimnasio"}
               </p>
               {gymEquipments.map((eq) => (
                 <div
                   key={eq.id}
-                  className="flex items-center gap-3 rounded-lg border p-3"
+                  className="rounded-lg border p-3 space-y-2"
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 shrink-0">
-                    <Wrench className="h-4 w-4 text-primary" />
+                  <div className="relative aspect-[3/1] w-full rounded-lg overflow-hidden bg-muted">
+                    {eq.imageUrl ? (
+                      <img
+                        src={eq.imageUrl}
+                        alt={eq.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Wrench className="h-10 w-10 text-muted-foreground/40" />
+                      </div>
+                    )}
+                    {showMachineNumbers && eq.machineNumber != null && (
+                      <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow">
+                        {eq.machineNumber}
+                      </span>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="text-center">
                     <p className="text-sm font-medium">{eq.name}</p>
                     {eq.location && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                      <p className="text-xs text-muted-foreground flex items-center justify-center gap-1 mt-0.5">
                         <MapPin className="h-3 w-3 shrink-0" />
                         <span className="truncate">{eq.location}</span>
                       </p>
                     )}
                   </div>
-                  {showMachineNumbers && eq.machineNumber != null && (
-                    <span className="bg-primary text-primary-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shrink-0">
-                      {eq.machineNumber}
-                    </span>
-                  )}
                 </div>
               ))}
             </div>
           )}
-          <p className="text-muted-foreground text-center text-sm max-w-[280px] leading-relaxed">
-            Estamos trabajando en el detalle de este ejercicio.
-            <br />
-            Pronto podr&aacute;s ver instrucciones, videos y m&aacute;s informaci&oacute;n aqu&iacute;.
-          </p>
+
+          {exercise.description ? (
+            <p className="text-muted-foreground text-center text-sm max-w-[320px] leading-relaxed">
+              {exercise.description}
+            </p>
+          ) : (
+            <p className="text-muted-foreground text-center text-sm max-w-[280px] leading-relaxed">
+              Estamos trabajando en el detalle de este ejercicio.
+              <br />
+              Pronto podr&aacute;s ver instrucciones, videos y m&aacute;s informaci&oacute;n aqu&iacute;.
+            </p>
+          )}
           <Button variant="outline" onClick={() => setOpen(false)} className="gap-2 mt-4">
             Volver
           </Button>

@@ -346,7 +346,7 @@ export function ExerciseCard({
           <ExerciseImage
             imageUrl={se.exercise.imageUrl}
             alt={se.exercise.name}
-            size="sm"
+            size="md"
           />
 
           <div className="flex-1 min-w-0">
@@ -448,13 +448,6 @@ export function ExerciseCard({
           />
 
         </div>
-      )}
-
-      {/* ── Pending state: future exercise ──────── */}
-      {appearance === "pending" && (
-        <p className="text-[10px] text-muted-foreground/60 italic">
-          ⏳ Pendiente
-        </p>
       )}
 
       {/* ── Completed section: summary ──────────── */}
