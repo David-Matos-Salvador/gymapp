@@ -9,6 +9,19 @@ import { EQUIPMENT_LABELS } from "@/constants/ui"
 import { MUSCLE_LABELS } from "@/constants/user"
 import type { Exercise } from "@/types/exercise"
 
+function extractYouTubeId(url: string): string {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([^&]+)/,
+    /(?:youtu\.be\/)([^?]+)/,
+    /(?:youtube\.com\/embed\/)([^?]+)/,
+  ]
+  for (const p of patterns) {
+    const m = url.match(p)
+    if (m) return m[1]
+  }
+  return url
+}
+
 interface ExerciseDetailSheetProps {
   exercise: Exercise
   children: React.ReactNode
@@ -19,7 +32,7 @@ interface ExerciseDetailSheetProps {
 export function ExerciseDetailSheet({ exercise, children, userGymId, showMachineNumbers = false }: ExerciseDetailSheetProps) {
   const [open, setOpen] = useState(false)
 
-  const gymEquipments = (exercise.gymEquipments ?? []).filter((e) => e.gymId === userGymId)
+  const gymEquipments = exercise.gymEquipments ?? []
   const equipmentLabel = EQUIPMENT_LABELS[exercise.equipment] ?? exercise.equipment
   const muscleLabel = MUSCLE_LABELS[exercise.muscleGroup] ?? exercise.muscleGroup
 
@@ -94,6 +107,34 @@ export function ExerciseDetailSheet({ exercise, children, userGymId, showMachine
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+
+          {exercise.videoUrl && (
+            <div className="w-full space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Video demostrativo
+              </p>
+              <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted">
+                {exercise.videoUrl.includes("youtube.com") || exercise.videoUrl.includes("youtu.be") ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${extractYouTubeId(exercise.videoUrl)}`}
+                    title={exercise.name}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="h-full w-full"
+                  />
+                ) : (
+                  <a
+                    href={exercise.videoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-full w-full items-center justify-center text-sm text-primary hover:underline"
+                  >
+                    Ver video
+                  </a>
+                )}
+              </div>
             </div>
           )}
 

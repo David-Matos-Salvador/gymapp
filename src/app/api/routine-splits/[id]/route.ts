@@ -73,6 +73,26 @@ export async function GET(request: Request, { params }: RouteParams) {
     split.exercises = split.exercises.filter((se) => activeExerciseIds!.has(se.exerciseId))
   }
 
+  // Filter gymEquipments: show system equipment (gymId=null) only if activated for user's gym,
+  // plus custom equipment for user's gym (gymId matches)
+  let activeEquipmentIds: Set<string> | null = null
+  if (user?.gymId) {
+    const eqActivations = await prisma.gymEquipmentActivation.findMany({
+      where: { gymId: user.gymId, active: true },
+      select: { equipmentId: true },
+    })
+    activeEquipmentIds = new Set(eqActivations.map((e) => e.equipmentId))
+  }
+
+  if (activeEquipmentIds) {
+    for (const se of split.exercises) {
+      const equip = se.exercise.gymEquipments ?? []
+      se.exercise.gymEquipments = equip.filter(
+        (e) => e.gymId === user!.gymId || (e.gymId === null && activeEquipmentIds!.has(e.id))
+      )
+    }
+  }
+
   const gym = user?.gymId
     ? await prisma.gym.findUnique({
         where: { id: user.gymId },

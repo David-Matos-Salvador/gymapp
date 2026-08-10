@@ -16,7 +16,6 @@ import {
   TrendingUp,
   CreditCard,
   UserCheck,
-  Wrench,
 } from "lucide-react"
 import { useRef, useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -49,11 +48,6 @@ export function AppBottomNav({ className }: { className?: string }) {
   // Progreso — MEMBER only
   if (isMember) {
     tabs.push({ label: "Progreso", href: "/progress", icon: TrendingUp })
-  }
-
-  // Equipamiento — MEMBER only (catalog; staff manage from /admin)
-  if (isMember) {
-    tabs.push({ label: "Equipamiento", href: "/equipamiento", icon: Wrench })
   }
 
   // Clases — all roles

@@ -1,8 +1,6 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import { AppShell } from "@/components/layout/shell"
-import { EquipmentCatalog } from "@/components/equipment/equipment-catalog"
 import { canManageGymEquipment } from "@/lib/gym-equipment"
 
 export default async function EquipamientoPage() {
@@ -27,27 +25,5 @@ export default async function EquipamientoPage() {
     redirect("/admin/gym-management")
   }
 
-  if (user.role === "TRAINER") {
-    redirect("/dashboard")
-  }
-
-  const equipment = user.gymId
-    ? await prisma.gymEquipment.findMany({
-        where: { gymId: user.gymId },
-        include: { exercise: { select: { id: true, name: true } } },
-        orderBy: { name: "asc" },
-      })
-    : []
-
-  return (
-    <AppShell>
-      <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Equipamiento</h1>
-          <p className="text-muted-foreground">Catálogo de equipos de tu gimnasio</p>
-        </div>
-        <EquipmentCatalog equipment={equipment} hasGym={!!user.gymId} showMachineNumbers={gym?.showMachineNumbers ?? false} />
-      </div>
-    </AppShell>
-  )
+  redirect("/dashboard")
 }

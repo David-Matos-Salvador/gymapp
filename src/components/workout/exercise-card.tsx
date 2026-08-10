@@ -240,7 +240,7 @@ export function ExerciseCard({
   const allCompleted = totalSets > 0 && setsData.every((s) => s.completed)
 
   const machineLabel = useMemo(() => {
-    const list = (se.exercise.gymEquipments ?? []).filter((e) => e.gymId === userGymId)
+    const list = se.exercise.gymEquipments ?? []
     return formatMachineLabel(list, showMachineNumbers)
   }, [se.exercise.gymEquipments, userGymId, showMachineNumbers])
 

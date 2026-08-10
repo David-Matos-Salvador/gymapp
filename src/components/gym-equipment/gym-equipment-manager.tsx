@@ -215,9 +215,6 @@ export function GymEquipmentManager({
                     <p className={`text-sm font-medium ${active ? "" : "text-muted-foreground line-through"}`}>
                       {item.name}
                     </p>
-                    {item.machineNumber != null && (
-                      <p className="text-xs text-muted-foreground">#{item.machineNumber}</p>
-                    )}
                   </div>
                   <Button
                     variant={active ? "default" : "outline"}
@@ -387,12 +384,18 @@ export function GymEquipmentManager({
             </div>
             <div className="space-y-2">
               <Label htmlFor="equipCategory">Categoría</Label>
-              <Input
-                id="equipCategory"
-                value={formCategory}
-                onChange={(e) => setFormCategory(e.target.value)}
-                placeholder="Ej: MACHINE, CARDIO..."
-              />
+              <Select value={formCategory} onValueChange={setFormCategory}>
+                <SelectTrigger id="equipCategory" className="w-full">
+                  <SelectValue placeholder="Seleccionar categoría..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(categoryLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="equipLocation">Ubicación</Label>
