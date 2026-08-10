@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useSound } from "@/hooks/use-sound"
-import { User, Dumbbell, Building2, ChevronLeft } from "lucide-react"
+import { User, Dumbbell, Building2, ChevronLeft, Check, X, CheckCircle } from "lucide-react"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
@@ -75,15 +75,19 @@ export default function RegisterPage() {
   const { play } = useSound()
   const [mode, setMode] = useState<RegisterMode>("select")
   const [error, setError] = useState("")
-  const [successMsg, setSuccessMsg] = useState("")
+  const [success, setSuccess] = useState(false)
 
   const {
     register,
     handleSubmit,
+    watch,
+    setError: setFieldError,
     formState: { errors, isSubmitting },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   })
+
+  const password = watch("password", "")
 
   function selectMode(key: RegisterMode) {
     play("select")
@@ -93,7 +97,11 @@ export default function RegisterPage() {
 
   async function onSubmit(data: RegisterForm) {
     setError("")
-    setSuccessMsg("")
+
+    if (mode === "gym_owner" && (!data.gymName || data.gymName.trim().length < 2)) {
+      setFieldError("gymName", { message: "El nombre del gimnasio debe tener al menos 2 caracteres" })
+      return
+    }
 
     const roleMap: Record<string, string> = {
       member: "MEMBER",
@@ -128,12 +136,12 @@ export default function RegisterPage() {
     }
 
     play("success")
-    setSuccessMsg("Cuenta creada. Iniciando sesion...")
+    setSuccess(true)
 
     const redirectMap: Record<string, string> = {
-      member: "/rutinas",
-      trainer: "/coach",
-      gym_owner: "/admin",
+      member: "/onboarding",
+      trainer: "/dashboard",
+      gym_owner: "/admin/gym-management",
     }
 
     const result = await signIn("credentials", {
@@ -144,7 +152,7 @@ export default function RegisterPage() {
 
     if (result?.error) {
       setError("Registro exitoso pero fallo el inicio de sesion automatico. Intenta iniciar sesion.")
-      setSuccessMsg("")
+      setSuccess(false)
     } else {
       router.push(redirectMap[mode] || "/dashboard")
       router.refresh()
@@ -192,6 +200,33 @@ export default function RegisterPage() {
 
   const displayMode = modeLabels[mode]
 
+  if (success) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="py-12 space-y-4">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", duration: 0.5 }}
+              className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent-yellow/10"
+            >
+              <CheckCircle className="h-10 w-10 text-accent-yellow" />
+            </motion.div>
+            <CardTitle className="text-xl">Cuenta creada</CardTitle>
+            <CardDescription>Redirigiendo...</CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const passwordChecks = [
+    { label: "8 caracteres minimo", met: password.length >= 8 },
+    { label: "1 mayuscula", met: /[A-Z]/.test(password) },
+    { label: "1 numero", met: /[0-9]/.test(password) },
+  ]
+
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
@@ -202,9 +237,6 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {successMsg && (
-            <p className="text-sm text-accent-yellow text-center mb-4 font-medium">{successMsg}</p>
-          )}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre</Label>
@@ -234,13 +266,16 @@ export default function RegisterPage() {
             {mode === "gym_owner" && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="gymName">Nombre del gimnasio</Label>
+                  <Label htmlFor="gymName">Nombre del gimnasio *</Label>
                   <Input
                     id="gymName"
                     type="text"
                     placeholder="Fitness Total"
                     {...register("gymName")}
                   />
+                  {errors.gymName && (
+                    <p className="text-sm text-destructive">{errors.gymName.message}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="gymAddress">Direccion del gimnasio</Label>
@@ -262,6 +297,22 @@ export default function RegisterPage() {
                 placeholder="Min. 8 caracteres, 1 mayuscula, 1 numero"
                 {...register("password")}
               />
+              {password.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  {passwordChecks.map((check) => (
+                    <div key={check.label} className="flex items-center gap-2 text-xs">
+                      {check.met ? (
+                        <Check className="h-3 w-3 text-accent-yellow shrink-0" />
+                      ) : (
+                        <X className="h-3 w-3 text-muted-foreground/50 shrink-0" />
+                      )}
+                      <span className={check.met ? "text-accent-yellow" : "text-muted-foreground"}>
+                        {check.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
@@ -293,18 +344,22 @@ export default function RegisterPage() {
             <ChevronLeft className="h-3 w-3" />
             Cambiar modo
           </button>
-          <div className="mt-4 flex items-center gap-2">
-            <Separator className="flex-1" />
-            <span className="text-xs text-muted-foreground">o</span>
-            <Separator className="flex-1" />
-          </div>
-          <Button
-            variant="outline"
-            className="mt-4 w-full"
-            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-          >
-            Continuar con Google
-          </Button>
+          {mode !== "gym_owner" && (
+            <>
+              <div className="mt-4 flex items-center gap-2">
+                <Separator className="flex-1" />
+                <span className="text-xs text-muted-foreground">o</span>
+                <Separator className="flex-1" />
+              </div>
+              <Button
+                variant="outline"
+                className="mt-4 w-full"
+                onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+              >
+                Continuar con Google
+              </Button>
+            </>
+          )}
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">

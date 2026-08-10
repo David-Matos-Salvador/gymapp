@@ -52,6 +52,14 @@ export async function POST(request: Request) {
         .replace(/[^a-z0-9-]/g, "")
         .slice(0, 50)
 
+      const existingGym = await prisma.gym.findUnique({ where: { slug } })
+      if (existingGym) {
+        return NextResponse.json(
+          { error: "Ya existe un gimnasio con ese nombre. Elige otro." },
+          { status: 409 }
+        )
+      }
+
       const gym = await prisma.gym.create({
         data: {
           name: gymName,
@@ -77,6 +85,25 @@ export async function POST(request: Request) {
         where: { id: gymId },
         data: { ownerId: user.id },
       })
+
+      // Activate all system exercises for the new gym
+      const allExercises = await prisma.exercise.findMany({ select: { id: true } })
+      await prisma.gymExercise.createMany({
+        data: allExercises.map((ex) => ({ gymId, exerciseId: ex.id, active: true })),
+        skipDuplicates: true,
+      })
+
+      // Activate all system equipment for the new gym
+      const systemEquipment = await prisma.gymEquipment.findMany({
+        where: { isSystem: true },
+        select: { id: true },
+      })
+      if (systemEquipment.length > 0) {
+        await prisma.gymEquipmentActivation.createMany({
+          data: systemEquipment.map((eq) => ({ gymId, equipmentId: eq.id, active: true })),
+          skipDuplicates: true,
+        })
+      }
     }
 
     return NextResponse.json(
