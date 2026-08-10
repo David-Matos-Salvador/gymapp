@@ -34,8 +34,18 @@ export function AppBottomNav({ className }: { className?: string }) {
   const pathname = usePathname()
   const { isAdmin, isTrainer, isSuperAdmin, isMember, isGymOwner } = useAuth()
   const { play } = useSound()
+  const [pendingCount, setPendingCount] = useState(0)
 
-  const tabs: { label: string; href: string; icon: typeof LayoutDashboard }[] = []
+  const tabs: { label: string; href: string; icon: typeof LayoutDashboard; badge?: number }[] = []
+
+  useEffect(() => {
+    if (isTrainer || isAdmin || isSuperAdmin) {
+      fetch("/api/payments/pending-count")
+        .then((r) => r.json())
+        .then((d) => setPendingCount(d.count ?? 0))
+        .catch(() => {})
+    }
+  }, [isTrainer, isAdmin, isSuperAdmin])
 
   // Inicio — all roles
   tabs.push({ label: "Inicio", href: "/dashboard", icon: LayoutDashboard })
@@ -70,7 +80,7 @@ export function AppBottomNav({ className }: { className?: string }) {
 
   // Pagos — TRAINER, ADMIN, SUPER_ADMIN
   if (isTrainer || isAdmin || isSuperAdmin) {
-    tabs.push({ label: "Pagos", href: "/coach/payments", icon: CreditCard })
+    tabs.push({ label: "Pagos", href: "/coach/payments", icon: CreditCard, badge: pendingCount })
   }
 
   // Perfil — all roles
@@ -110,6 +120,11 @@ export function AppBottomNav({ className }: { className?: string }) {
               <span className="text-[11px] leading-none">{item.label}</span>
               {isActive && (
                 <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 rounded-full bg-accent-yellow" />
+              )}
+              {item.badge != null && item.badge > 0 && (
+                <span className="absolute -top-0.5 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[9px] font-bold text-destructive-foreground">
+                  {item.badge > 99 ? "99+" : item.badge}
+                </span>
               )}
             </Link>
           )
