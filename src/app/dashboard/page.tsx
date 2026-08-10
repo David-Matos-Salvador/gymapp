@@ -358,6 +358,12 @@ export default async function DashboardPage() {
       ? await prisma.user.count({ where: { gymId: user.gymId } })
       : 0
 
+    const pendingPayments = user.gymId
+      ? await prisma.payment.count({
+          where: { status: "PENDING", user: { gymId: user.gymId } },
+        })
+      : await prisma.payment.count({ where: { status: "PENDING" } })
+
     return (
       <AppShell>
         <AdminDashboard
@@ -370,6 +376,7 @@ export default async function DashboardPage() {
             totalMembers,
             activeEquipment: activeEquipment + customEquipment,
             activeExercises,
+            pendingPayments,
           }}
           expiringMemberships={expiringMemberships.map((m) => ({
             id: m.id,

@@ -15,10 +15,16 @@ export function formatDate(iso: string | Date, options?: { includeTime?: boolean
   })
 }
 
-export function formatCurrency(amount: number, currency = "MXN"): string {
-  return new Intl.NumberFormat("es-MX", {
+export function formatCurrency(amount: number, currency = "PEN"): string {
+  const fmt = new Intl.NumberFormat("es-PE", {
     style: "currency",
     currency,
-    minimumFractionDigits: 0,
-  }).format(amount)
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+  const formatted = fmt.format(amount)
+  if (currency.toUpperCase() === "PEN" && !formatted.startsWith("S/")) {
+    return `S/ ${amount.toLocaleString("es-PE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  }
+  return formatted
 }

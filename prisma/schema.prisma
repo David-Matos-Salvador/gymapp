@@ -258,7 +258,7 @@ model MembershipPlan {
   name        String
   description String?
   price       Float
-  currency    String   @default("MXN")
+  currency    String   @default("PEN")
   durationDays Int
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
@@ -548,7 +548,7 @@ model Payment {
   id                    String        @id @default(cuid())
   userId                String
   amount                Float
-  currency              String        @default("mxn")
+  currency              String        @default("PEN")
   status                PaymentStatus @default(PENDING)
   method                PaymentMethod @default(CASH)
   stripeSessionId       String?       @unique

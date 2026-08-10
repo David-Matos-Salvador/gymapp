@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
-import { CreditCard, Check, X, Loader2, Image, Mail, DollarSign, Clock } from "lucide-react"
+import { CreditCard, Check, X, Loader2, Mail, Clock, Eye } from "lucide-react"
 import { toast } from "sonner"
+import { formatCurrency } from "@/lib/utils"
 
 interface PendingPayment {
   id: string
@@ -24,6 +25,7 @@ export default function CoachPaymentsPage() {
   const [payments, setPayments] = useState<PendingPayment[]>([])
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState<string | null>(null)
+  const [previewReceipt, setPreviewReceipt] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchPayments = async () => {
@@ -118,26 +120,41 @@ export default function CoachPaymentsPage() {
                           </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-sm">
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <DollarSign className="h-3.5 w-3.5" />
-                            {payment.currency.toUpperCase()} ${payment.amount}
+                          <span className="font-semibold text-accent-yellow">
+                            {formatCurrency(payment.amount, payment.currency)}
                           </span>
                           <Badge variant="outline" className="text-xs">{payment.method}</Badge>
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Clock className="h-3 w-3" />
-                            {new Date(payment.createdAt).toLocaleDateString("es-MX", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            {new Date(payment.createdAt).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
                           </span>
                         </div>
                       </div>
-                      {payment.receiptUrl && (
-                        <a
-                          href={payment.receiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex shrink-0 items-center gap-2 text-sm text-accent-yellow hover:underline"
-                        >
-                          <Image className="h-4 w-4" /> Ver comprobante
-                        </a>
+
+                      {payment.receiptUrl ? (
+                        <div className="shrink-0 space-y-2 w-full sm:w-[200px]">
+                          <img
+                            src={payment.receiptUrl}
+                            alt="Comprobante de pago"
+                            className="w-full h-36 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => setPreviewReceipt(payment.receiptUrl)}
+                          />
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-xs gap-1"
+                            onClick={() => setPreviewReceipt(payment.receiptUrl)}
+                          >
+                            <Eye className="h-3 w-3" />
+                            Ampliar comprobante
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="shrink-0 w-full sm:w-[200px]">
+                          <div className="w-full h-36 rounded-lg border bg-muted flex items-center justify-center">
+                            <p className="text-xs text-muted-foreground">Sin comprobante</p>
+                          </div>
+                        </div>
                       )}
                     </div>
                     <div className="flex gap-2 justify-end">
@@ -163,6 +180,21 @@ export default function CoachPaymentsPage() {
                 </Card>
               </motion.div>
             ))}
+          </div>
+        )}
+
+        {/* Receipt preview modal */}
+        {previewReceipt && (
+          <div
+            className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 cursor-pointer"
+            onClick={() => setPreviewReceipt(null)}
+          >
+            <img
+              src={previewReceipt}
+              alt="Comprobante de pago"
+              className="max-h-[85vh] max-w-full rounded-lg shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
         )}
       </div>

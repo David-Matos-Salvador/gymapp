@@ -28,6 +28,7 @@ interface AdminStats {
   totalMembers: number
   activeEquipment: number
   activeExercises: number
+  pendingPayments: number
 }
 
 interface ExpiringMembership {
@@ -85,6 +86,15 @@ export function AdminDashboard({
               <ArrowRight className="size-3" />
             </Button>
           </Link>
+          {stats.pendingPayments > 0 && (
+            <Link href="/coach/payments">
+              <Button variant="outline" size="sm" className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/10">
+                <Clock className="size-4" />
+                {stats.pendingPayments} {stats.pendingPayments === 1 ? "pago pendiente" : "pagos pendientes"}
+                <ArrowRight className="size-3" />
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

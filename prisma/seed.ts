@@ -222,11 +222,11 @@ async function main() {
 
   // ── Membership Plans ────────────────────────────────
   const planDefs = [
-    { name: "Plan Semanal", price: 150, currency: "MXN", durationDays: 7 },
-    { name: "Plan Mensual", price: 500, currency: "MXN", durationDays: 30 },
-    { name: "Plan Trimestral", price: 1200, currency: "MXN", durationDays: 90 },
-    { name: "Plan Anual", price: 4000, currency: "MXN", durationDays: 365, description: "Ahorra 33% vs mensual" },
-    { name: "Pase Diario", price: 50, currency: "MXN", durationDays: 1 },
+    { name: "Plan Semanal", price: 150, currency: "PEN", durationDays: 7 },
+    { name: "Plan Mensual", price: 500, currency: "PEN", durationDays: 30 },
+    { name: "Plan Trimestral", price: 1200, currency: "PEN", durationDays: 90 },
+    { name: "Plan Anual", price: 4000, currency: "PEN", durationDays: 365, description: "Ahorra 33% vs mensual" },
+    { name: "Pase Diario", price: 50, currency: "PEN", durationDays: 1 },
   ]
 
   const plans = await Promise.all(
@@ -1066,7 +1066,7 @@ async function main() {
       data: {
         userId: mateo.id,
         amount: 500,
-        currency: "MXN",
+        currency: "PEN",
         status: "PENDING",
         method: "YAPE",
         type: "MEMBERSHIP",
