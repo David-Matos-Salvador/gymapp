@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { emitRealtime } from "@/lib/realtime"
 import { sendPush } from "@/lib/push-notifications"
 import { sendMembershipReminder } from "@/lib/email"
 
@@ -48,6 +49,8 @@ export async function POST(request: Request) {
   const notification = await prisma.notification.create({
     data: { title, message, type, userId },
   })
+
+  emitRealtime("notifications")
 
   const emailResult: { triggered: boolean; success?: boolean; error?: string } = { triggered: false }
   const pushResult: { triggered: boolean; success?: boolean; sent?: number; error?: string } = { triggered: false }

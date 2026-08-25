@@ -16,6 +16,24 @@ export async function POST(request: Request) {
   const body = await request.json()
   const { classId } = body
 
+  if (user.role === "MEMBER") {
+    const membership = await prisma.membership.findFirst({
+      where: { userId: user.id },
+      orderBy: { endDate: "desc" },
+    })
+    const isActive =
+      membership &&
+      membership.status === "ACTIVE" &&
+      membership.endDate &&
+      new Date(membership.endDate) > new Date()
+    if (!isActive) {
+      return NextResponse.json(
+        { error: "Necesitas una membresía activa para reservar una clase" },
+        { status: 403 }
+      )
+    }
+  }
+
   const classItem = await prisma.class.findUnique({ where: { id: classId } })
   if (!classItem) {
     return NextResponse.json({ error: "Clase no encontrada" }, { status: 404 })

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { emitRealtime } from "@/lib/realtime"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -105,6 +106,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
       },
     })
 
+    emitRealtime("pending-count")
+    emitRealtime("notifications")
+
     return NextResponse.json({ payment: updatedPayment })
   }
 
@@ -133,6 +137,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
       metadata: { paymentId: id },
     },
   })
+
+  emitRealtime("pending-count")
+  emitRealtime("notifications")
 
   return NextResponse.json({ payment: updatedPayment })
 }

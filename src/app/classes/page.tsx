@@ -29,19 +29,33 @@ export default async function ClassesPage() {
       trainer: { select: { name: true } },
       bookings: { select: { id: true, userId: true, status: true } },
     },
-    orderBy: { schedule: "asc" },
+    orderBy: { startTime: "asc" },
   })
 
   const serializedClasses = classes.map((c) => ({
-    ...c,
-    schedule: c.schedule.toISOString(),
+    id: c.id,
+    name: c.name,
+    description: c.description,
+    dayOfWeek: c.dayOfWeek,
+    startTime: c.startTime,
+    duration: c.duration,
+    capacity: c.capacity,
+    trainer: { name: c.trainer.name },
+    bookings: c.bookings,
   }))
 
   const serializedBookings = user.bookings.map((b) => ({
-    ...b,
+    id: b.id,
+    status: b.status,
     classItem: {
-      ...b.classItem,
-      schedule: b.classItem.schedule.toISOString(),
+      id: b.classItem.id,
+      name: b.classItem.name,
+      description: b.classItem.description,
+      dayOfWeek: b.classItem.dayOfWeek,
+      startTime: b.classItem.startTime,
+      duration: b.classItem.duration,
+      capacity: b.classItem.capacity,
+      trainer: { name: b.classItem.trainer.name },
     },
   }))
 
@@ -55,7 +69,6 @@ export default async function ClassesPage() {
         <ClassesView
           classes={serializedClasses}
           bookings={serializedBookings}
-          userId={user.id}
           userRole={user.role}
         />
       </div>

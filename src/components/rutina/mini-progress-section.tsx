@@ -9,18 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { TrendingUp, Plus } from "lucide-react"
 import Link from "next/link"
 
-const LineChart = dynamic(() => import("recharts").then((m) => m.LineChart), { ssr: false })
-const Line = dynamic(() => import("recharts").then((m) => m.Line), { ssr: false })
-const XAxis = dynamic(() => import("recharts").then((m) => m.XAxis), { ssr: false })
-const YAxis = dynamic(() => import("recharts").then((m) => m.YAxis), { ssr: false })
-const Tooltip = dynamic(() => import("recharts").then((m) => m.Tooltip), { ssr: false })
-const ResponsiveContainer = dynamic(() => import("recharts").then((m) => m.ResponsiveContainer), { ssr: false })
-
-const TOOLTIP_STYLE = {
-  fontSize: "12px",
-  borderRadius: "8px",
-  border: "1px solid var(--border)",
-}
+const ProgressChart = dynamic(
+  () => import("@/components/charts/progress-chart").then((m) => m.ProgressChart),
+  { ssr: false }
+)
 
 const LOADING_SKELETON = (
   <Card className="rounded-xl">
@@ -104,27 +96,20 @@ export function MiniProgressSection() {
         <CardContent className="space-y-4">
           {measurements.length > 0 ? (
             <>
-              <div className="h-[180px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={measurements}>
-                    <XAxis dataKey="date" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                    <YAxis
-                      domain={["dataMin - 2", "dataMax + 2"]}
-                      tick={{ fontSize: 10 }}
-                      width={40}
-                    />
-                    <Tooltip contentStyle={TOOLTIP_STYLE} />
-                    <Line
-                      type="monotone"
-                      dataKey="weight"
-                      stroke="oklch(0.62 0.19 145)"
-                      strokeWidth={2}
-                      dot={{ r: 3, fill: "oklch(0.62 0.19 145)" }}
-                      activeDot={{ r: 5 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
+              <ProgressChart
+                data={measurements}
+                xKey="date"
+                height={180}
+                series={[
+                  {
+                    key: "weight",
+                    label: "Peso (kg)",
+                    color: "hsl(var(--chart-1))",
+                    unit: "kg",
+                    showArea: true,
+                  },
+                ]}
+              />
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-lg bg-muted/50 p-3 text-center">
                   <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -141,11 +126,9 @@ export function MiniProgressSection() {
                   </p>
                   <p
                     className={`text-lg font-bold tabular-nums ${
-                      weightChange !== null && weightChange < 0
+                      weightChange !== null && weightChange !== 0
                         ? "text-accent-yellow"
-                        : weightChange !== null && weightChange > 0
-                          ? "text-accent-yellow"
-                          : "text-muted-foreground"
+                        : "text-muted-foreground"
                     }`}
                   >
                     {weightChange !== null

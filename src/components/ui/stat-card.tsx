@@ -2,13 +2,13 @@
 
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
 
 interface StatCardProps {
   label: string
-  value: string | number
+  value?: string | number
   icon: LucideIcon
   iconColor?: string
   borderColor?: string
@@ -33,31 +33,30 @@ export function StatCard({
 }: StatCardProps) {
   const card = (
     <Card
+      size="sm"
       className={cn(
-        "hover:shadow-md transition-all border-t-2",
+        "h-full border-t-2 transition-shadow hover:shadow-md",
         borderColor,
         (href || onClick) && "cursor-pointer"
       )}
       onClick={onClick}
     >
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            {label}
-          </CardTitle>
-          <Icon className={cn("h-4 w-4", iconColor)} />
+      <div className="flex h-full items-center justify-between gap-2 px-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-medium text-muted-foreground">{label}</p>
+          {children ?? (
+            <p className="mt-0.5 text-2xl md:text-3xl font-bold tracking-tight tabular-nums leading-none">
+              {value}
+              {suffix && (
+                <span className="ml-1.5 text-xs md:text-sm font-normal text-muted-foreground">
+                  {suffix}
+                </span>
+              )}
+            </p>
+          )}
         </div>
-      </CardHeader>
-      <CardContent>
-        {children ?? (
-          <>
-            <p className="text-3xl font-bold">{value}</p>
-            {suffix && (
-              <p className="text-xs text-muted-foreground mt-1">{suffix}</p>
-            )}
-          </>
-        )}
-      </CardContent>
+        <Icon className={cn("h-5 w-5 shrink-0", iconColor)} />
+      </div>
     </Card>
   )
 
@@ -66,9 +65,10 @@ export function StatCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
+      className="h-full"
     >
       {href ? (
-        <Link href={href} onClick={onClick}>
+        <Link href={href} onClick={onClick} className="block h-full">
           {card}
         </Link>
       ) : (

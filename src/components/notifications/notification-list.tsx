@@ -103,10 +103,10 @@ export function NotificationList({
           <BellOff className="size-7 text-muted-foreground" />
         </div>
         <p className="text-base font-medium text-foreground">
-          No tenés notificaciones
+          No tienes notificaciones
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Cuando tengas notificaciones, aparecerán acá.
+          Cuando tengas notificaciones, aparecerán aquí.
         </p>
       </div>
     )

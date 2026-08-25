@@ -31,7 +31,7 @@ export function MembresiaContent({ membership }: { membership: MembershipData | 
       <div className="container mx-auto px-4 py-8 max-w-lg space-y-6">
         <div className="text-center space-y-2">
           <h2 className="text-xl font-bold">Membresía</h2>
-          <p className="text-sm text-muted-foreground">Aún no tenés una membresía activa.</p>
+          <p className="text-sm text-muted-foreground">Aún no tienes una membresía activa.</p>
         </div>
         <Card>
           <CardContent className="flex flex-col items-center py-10 text-center space-y-4">

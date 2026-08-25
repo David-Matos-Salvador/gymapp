@@ -43,7 +43,7 @@ test.describe('Notifications Flow', () => {
     await bell.click()
 
     const markAllBtn = page.getByText(/Marcar todas leídas/i)
-    const emptyState = page.getByText(/No tenés notificaciones/i)
+    const emptyState = page.getByText(/No tienes notificaciones/i)
 
     const hasNotifications = await markAllBtn.isVisible({ timeout: 3000 }).catch(() => false)
     const isEmpty = await emptyState.isVisible({ timeout: 1000 }).catch(() => false)

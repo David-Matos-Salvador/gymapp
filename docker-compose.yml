@@ -17,6 +17,21 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    container_name: gymapp-redis
+    restart: unless-stopped
+    ports:
+      # 6380 en el host para no chocar con un Redis local (p.ej. Homebrew) en 6379
+      - "6380:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   app:
     build:
       context: .
@@ -27,6 +42,7 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: "postgresql://gymuser:gympassword@db:5432/gymdb?schema=public"
+      REDIS_URL: "redis://redis:6379"
       AUTH_SECRET: "hiTXOFdVPhNNc0eZoTseTtnAikyix8lU+vk8EUSu4gI="
       AUTH_URL: "http://localhost:3000"
       AUTH_GOOGLE_ID: "675239987109-oq1qijd4tof7ilb5ja1jhrgcmc5dvu3n.apps.googleusercontent.com"
@@ -37,6 +53,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
 
 volumes:
   pgdata:
+  redisdata:

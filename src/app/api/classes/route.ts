@@ -8,7 +8,7 @@ export async function GET() {
       trainer: { select: { id: true, name: true, email: true } },
       bookings: { select: { id: true, userId: true, status: true } },
     },
-    orderBy: { schedule: "asc" },
+    orderBy: { startTime: "asc" },
   })
 
   return NextResponse.json({ classes })
@@ -26,9 +26,9 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json()
-  const { name, description, capacity, duration, dayOfWeek, schedule } = body
+  const { name, description, capacity, duration, dayOfWeek, startTime } = body
 
-  if (!name || !capacity || !duration || !dayOfWeek || !schedule) {
+  if (!name || !capacity || !duration || !dayOfWeek || !startTime) {
     return NextResponse.json({ error: "Faltan campos requeridos" }, { status: 400 })
   }
 
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       capacity,
       duration,
       dayOfWeek,
-      schedule: new Date(schedule),
+      startTime,
     },
     include: {
       trainer: { select: { id: true, name: true, email: true } },

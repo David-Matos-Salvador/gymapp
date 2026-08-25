@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { emitRealtime } from "@/lib/realtime"
 import { getTrainerClientIds, hasAnyTrainer } from "@/lib/trainer-client"
 
 export async function GET() {
@@ -89,6 +90,8 @@ export async function POST(request: Request) {
       metadata: { requestId: trainerRequest.id, trainerId: user.id, trainerName: user.name },
     },
   })
+
+  emitRealtime("notifications")
 
   return NextResponse.json({ request: trainerRequest }, { status: 201 })
 }

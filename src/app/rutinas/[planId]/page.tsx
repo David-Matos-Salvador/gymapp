@@ -115,7 +115,6 @@ export default async function RutinaDetailPage({ params }: PageProps) {
         weeklyStreak={weeklyStreakData.streak}
         bestStreak={weeklyStreakData.bestStreak}
         membershipStatus="ACTIVE"
-        membershipExpired={false}
       />
     </AppShell>
   )

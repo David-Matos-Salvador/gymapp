@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { emitRealtime } from "@/lib/realtime"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 
@@ -102,12 +103,15 @@ export async function POST(request: Request) {
           data: {
             userId: acceptedRequest.trainerId,
             title: "Nuevo comprobante de pago",
-            message: `${user.name || "Un usuario"} subió un comprobante de ${membership.plan.currency.toUpperCase()} $${membership.plan.price}. Revisalo en Pagos.`,
+            message: `${user.name || "Un usuario"} subió un comprobante de ${membership.plan.currency.toUpperCase()} $${membership.plan.price}. Revísalo en Pagos.`,
             type: "PAYMENT",
             metadata: { paymentId: payment.id, clientId: user.id },
           },
         })
+        emitRealtime("notifications")
       }
+
+      emitRealtime("pending-count")
 
       return NextResponse.json({ payment }, { status: 201 })
     } catch (err) {

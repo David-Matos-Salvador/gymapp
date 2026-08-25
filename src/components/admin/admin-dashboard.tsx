@@ -65,7 +65,7 @@ export function AdminDashboard({
   recentWorkouts: RecentWorkout[]
 }) {
   return (
-    <div className="container mx-auto px-4 py-6 md:py-8 space-y-8">
+    <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           {gymName ?? "Panel de Administración"}
@@ -98,7 +98,7 @@ export function AdminDashboard({
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Membresías activas"
           value={stats.totalActiveMemberships}
@@ -126,14 +126,14 @@ export function AdminDashboard({
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
         <StatCard
           label="Equipamiento activo"
           value={stats.activeEquipment}
           icon={Wrench}
           iconColor="text-primary"
           borderColor="border-t-primary"
-          suffix="equipos en el gym"
+          suffix="equipos"
           delay={0.18}
         />
         <StatCard
@@ -149,7 +149,7 @@ export function AdminDashboard({
           icon={CalendarCheck}
           iconColor="text-primary"
           borderColor="border-t-primary"
-          suffix="promedio semanal"
+          suffix="prom. semanal"
           delay={0.24}
         />
       </div>

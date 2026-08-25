@@ -3,7 +3,6 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AppShell } from "@/components/layout/shell"
 import {
-  getUser,
   getWeeklyProgress,
   getWeeklyStreak,
   getWorkoutsThisWeek,
@@ -13,18 +12,6 @@ import { MemberDashboard } from "@/components/dashboard/member-dashboard"
 import { CoachDashboard } from "@/components/coach/coach-dashboard"
 import { AdminDashboard } from "@/components/admin/admin-dashboard"
 import { SuperAdminDashboard } from "@/components/dashboard/super-admin-dashboard"
-
-function getWeekBounds(date: Date) {
-  const d = new Date(date)
-  const day = d.getDay()
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1)
-  const monday = new Date(d.setDate(diff))
-  monday.setHours(0, 0, 0, 0)
-  const sunday = new Date(monday)
-  sunday.setDate(sunday.getDate() + 6)
-  sunday.setHours(23, 59, 59, 999)
-  return { monday, sunday }
-}
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -97,27 +84,24 @@ export default async function DashboardPage() {
     }
 
     const now = new Date()
-    const { monday, sunday } = getWeekBounds(now)
 
     const weekBookings = await prisma.booking.findMany({
       where: {
         userId: user.id,
         status: "CONFIRMED",
-        classItem: {
-          schedule: { gte: monday, lte: sunday },
-        },
       },
       include: {
         classItem: {
           select: {
             name: true,
             dayOfWeek: true,
+            startTime: true,
             duration: true,
             trainer: { select: { name: true } },
           },
         },
       },
-      orderBy: { classItem: { schedule: "asc" } },
+      orderBy: [{ classItem: { dayOfWeek: "asc" } }, { classItem: { startTime: "asc" } }],
       take: 10,
     })
 
@@ -176,6 +160,7 @@ export default async function DashboardPage() {
             id: b.id,
             className: b.classItem.name,
             dayOfWeek: b.classItem.dayOfWeek,
+            startTime: b.classItem.startTime,
             duration: b.classItem.duration,
             trainerName: b.classItem.trainer.name,
           }))}
@@ -214,14 +199,14 @@ export default async function DashboardPage() {
     const classes = await prisma.class.findMany({
       where: { trainerId: user.id },
       include: { bookings: { where: { status: "CONFIRMED" } } },
-      orderBy: { schedule: "asc" },
+      orderBy: { startTime: "asc" },
     })
 
     const now = new Date()
     const activeMemberships = clients.filter((c) =>
       c.memberShips.some((m) => m.status === "ACTIVE" && new Date(m.endDate) > now)
     ).length
-    const upcomingClasses = classes.filter((c) => new Date(c.schedule) > now).length
+    const upcomingClasses = classes.length
 
     return (
       <AppShell>
@@ -247,10 +232,10 @@ export default async function DashboardPage() {
             id: c.id,
             name: c.name,
             dayOfWeek: c.dayOfWeek,
+            startTime: c.startTime,
             duration: c.duration,
             capacity: c.capacity,
             bookingsCount: c.bookings.length,
-            schedule: c.schedule.toISOString(),
           }))}
           stats={{
             totalClients: clients.length,

@@ -86,7 +86,7 @@ export function MembershipCard({ membership }: MembershipCardProps) {
         const data = await res.json()
         throw new Error(data.error ?? "Error al renovar")
       }
-      toast.success("Membresía renovada. Confirmá tu pago.")
+      toast.success("Membresía renovada. Confirma tu pago.")
       router.refresh()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al renovar membresía")

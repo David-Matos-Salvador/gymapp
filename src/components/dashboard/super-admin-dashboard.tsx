@@ -113,11 +113,11 @@ export function SuperAdminDashboard({ stats: initialStats, gyms: initialGyms, re
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-8 space-y-8">
+    <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Globe className="h-7 w-7 text-blue-500" />
+            <Globe className="h-7 w-7 text-accent-yellow" />
             Panel de Plataforma
           </h1>
           <p className="text-muted-foreground">Super Admin — Gestión global de GymApp</p>
@@ -128,13 +128,13 @@ export function SuperAdminDashboard({ stats: initialStats, gyms: initialGyms, re
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard label="Gimnasios" value={stats.totalGyms} icon={Store} iconColor="text-blue-500" borderColor="border-t-blue-500" delay={0} />
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
+        <StatCard label="Gimnasios" value={stats.totalGyms} icon={Store} delay={0} />
         <StatCard label="Usuarios totales" value={stats.totalUsers} icon={Users} delay={0.04} />
         <StatCard label="Membresías activas" value={stats.activeMemberships} icon={CreditCard} delay={0.08} />
         <StatCard label="Check-ins hoy" value={stats.todayCheckins} icon={Activity} delay={0.12} />
         <StatCard label="Entrenadores" value={stats.totalTrainers} icon={Dumbbell} iconColor="text-primary" borderColor="border-t-primary" delay={0.16} />
-        <StatCard label="Ingresos totales" value={`$${stats.totalRevenue.toLocaleString()}`} icon={TrendingUp} iconColor="text-emerald-500" borderColor="border-t-emerald-500" delay={0.2} />
+        <StatCard label="Ingresos totales" value={`$${stats.totalRevenue.toLocaleString()}`} icon={TrendingUp} iconColor="text-primary" borderColor="border-t-primary" delay={0.2} />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -142,7 +142,7 @@ export function SuperAdminDashboard({ stats: initialStats, gyms: initialGyms, re
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-blue-500" /> Gimnasios
+                <Building2 className="h-5 w-5 text-accent-yellow" /> Gimnasios
               </CardTitle>
               <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
                 <Plus className="h-4 w-4 mr-1" /> Crear gym
@@ -153,8 +153,8 @@ export function SuperAdminDashboard({ stats: initialStats, gyms: initialGyms, re
                 <EmptyState message="No hay gimnasios registrados" className="py-4" />
               ) : gyms.map((gym) => (
                 <div key={gym.id} className="flex items-center gap-3 rounded-lg border p-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                    <Store className="h-5 w-5 text-blue-500" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-yellow/10">
+                    <Store className="h-5 w-5 text-accent-yellow" />
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">

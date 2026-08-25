@@ -5,9 +5,9 @@ Levanta el proyecto completo en local para desarrollo y testing:
 docker info > /dev/null 2>&1 || (echo "Docker no está corriendo. Ábrelo primero." && exit 1)
 ```
 
-2. Levanta la base de datos PostgreSQL si no está corriendo ya:
+2. Levanta la base de datos PostgreSQL y Redis si no están corriendo:
 ```bash
-docker compose up -d db
+docker compose up -d db redis
 ```
 
 3. Espera a que PostgreSQL esté healthy:
@@ -46,5 +46,6 @@ npm run test
 
 9. Reporta el resumen:
 - DB: corriendo en localhost:5432
+- Redis: corriendo en localhost:6379
 - App: http://localhost:3000
 - Tests: resultado del lint y vitest

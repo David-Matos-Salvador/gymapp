@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 import { useSound } from "@/hooks/use-sound"
+import { useRealtime } from "@/hooks/use-realtime"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -15,12 +16,12 @@ import {
   Sparkles,
   TrendingUp,
   CreditCard,
-  UserCheck,
 } from "lucide-react"
 import { useRef, useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { NotificationBell, NotificationList } from "@/components/notifications"
 import type { MockNotification } from "@/components/notifications"
+import { TrainerRequestDialog } from "@/components/notifications/trainer-request-dialog"
 import { toast } from "sonner"
 
 const userRoleChip: Record<string, { label: string; className: string }> = {
@@ -30,28 +31,12 @@ const userRoleChip: Record<string, { label: string; className: string }> = {
   SUPER_ADMIN: { label: "Súper Admin", className: "text-destructive bg-destructive/10" },
 }
 
-export function AppBottomNav({ className }: { className?: string }) {
+export function AppBottomNav({ className, pendingCount = 0 }: { className?: string; pendingCount?: number }) {
   const pathname = usePathname()
   const { isAdmin, isTrainer, isSuperAdmin, isMember, isGymOwner } = useAuth()
   const { play } = useSound()
-  const [pendingCount, setPendingCount] = useState(0)
 
   const tabs: { label: string; href: string; icon: typeof LayoutDashboard; badge?: number }[] = []
-
-  useEffect(() => {
-    if (!(isTrainer || isAdmin || isSuperAdmin)) return
-
-    const fetchCount = () => {
-      fetch("/api/payments/pending-count")
-        .then((r) => r.json())
-        .then((d) => setPendingCount(d.count ?? 0))
-        .catch(() => {})
-    }
-
-    fetchCount()
-    const interval = setInterval(fetchCount, 30_000)
-    return () => clearInterval(interval)
-  }, [isTrainer, isAdmin, isSuperAdmin])
 
   // Inicio — all roles
   tabs.push({ label: "Inicio", href: "/dashboard", icon: LayoutDashboard })
@@ -72,11 +57,6 @@ export function AppBottomNav({ className }: { className?: string }) {
   // Clientes — TRAINER only
   if (isTrainer && !isAdmin) {
     tabs.push({ label: "Clientes", href: "/coach/clients", icon: Users })
-  }
-
-  // Solicitudes — MEMBER only
-  if (isMember) {
-    tabs.push({ label: "Solicitudes", href: "/requests", icon: UserCheck })
   }
 
   // Admin — ADMIN, SUPER_ADMIN, gym owners (links to gym management)
@@ -149,6 +129,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [dir, setDir] = useState<1 | -1>(1)
   const [unreadCount, setUnreadCount] = useState(0)
   const [notifications, setNotifications] = useState<MockNotification[]>([])
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
+  const [pendingCount, setPendingCount] = useState(0)
 
   useEffect(() => {
     if (prevPathnameRef.current !== null && prevPathnameRef.current !== pathname) {
@@ -200,11 +182,46 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const handleNavigate = useCallback((notification: MockNotification) => {
     if (notification.type === "TRAINER_REQUEST") {
-      router.push("/requests")
-    } else if (notification.type === "PAYMENT") {
+      const requestId = notification.metadata?.requestId
+      if (requestId) {
+        setSelectedRequestId(requestId)
+        return
+      }
+    }
+    if (notification.type === "PAYMENT") {
       router.push("/coach/payments")
     }
   }, [router])
+
+  const refreshNotifications = useCallback(() => {
+    fetch("/api/notifications")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => {
+        const list = (data.notifications ?? []) as MockNotification[]
+        setNotifications(list)
+        setUnreadCount(list.filter((n) => !n.read).length)
+      })
+      .catch(() => {})
+  }, [])
+
+  const refreshPendingCount = useCallback(() => {
+    fetch("/api/payments/pending-count")
+      .then((r) => r.json())
+      .then((d) => setPendingCount(d.count ?? 0))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const role = user?.role
+    if (role === "TRAINER" || role === "ADMIN" || role === "SUPER_ADMIN") {
+      refreshPendingCount()
+    }
+  }, [user?.role, refreshPendingCount])
+
+  useRealtime((type) => {
+    if (type === "pending-count") refreshPendingCount()
+    if (type === "notifications") refreshNotifications()
+  })
 
   const variants = {
     initial: (d: number) => ({ x: d > 0 ? 30 : -30, opacity: 0 }),
@@ -254,7 +271,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </AnimatePresence>
       </main>
 
-      <AppBottomNav />
+      <AppBottomNav pendingCount={pendingCount} />
+
+      <TrainerRequestDialog
+        key={selectedRequestId ?? "closed"}
+        requestId={selectedRequestId}
+        onClose={() => setSelectedRequestId(null)}
+        onResolved={refreshNotifications}
+      />
     </div>
   )
 }

@@ -178,7 +178,7 @@ export function ProfilePayments() {
           <div>
             <p className="text-sm font-medium">Sin pagos registrados</p>
             <p className="text-xs text-muted-foreground">
-              No tenés historial de pagos todavía
+              No tienes historial de pagos todavía
             </p>
           </div>
         </CardContent>

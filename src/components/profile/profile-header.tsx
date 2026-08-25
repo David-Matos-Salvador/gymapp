@@ -113,7 +113,7 @@ export function ProfileHeader({ user }: { user: User }) {
         </div>
         {completion < 100 && (
           <p className="text-xs text-muted-foreground mt-1.5">
-            Completá tu perfil para una experiencia personalizada
+            Completa tu perfil para una experiencia personalizada
           </p>
         )}
       </div>

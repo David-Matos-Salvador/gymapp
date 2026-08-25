@@ -521,7 +521,7 @@ model Class {
   capacity    Int
   duration    Int
   dayOfWeek   DayOfWeek
-  schedule    DateTime
+  startTime   String
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

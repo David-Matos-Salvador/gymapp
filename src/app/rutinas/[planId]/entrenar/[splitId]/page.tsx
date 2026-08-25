@@ -129,7 +129,7 @@ export default function LogWorkoutPage() {
   const handleSubmit = useCallback(async () => {
     if (saving) return
     const allSets = Object.values(store.setsData).flat().filter((s) => s.completed)
-    if (allSets.length === 0) { toast.error("Completá al menos una serie"); return }
+    if (allSets.length === 0) { toast.error("Completa al menos una serie"); return }
     setSaving(true)
     const body = {
       splitId,

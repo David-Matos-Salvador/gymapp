@@ -5,7 +5,7 @@ import { useSound } from "@/hooks/use-sound"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { CalendarDays, Clock, Users, User, CheckCircle2, X } from "lucide-react"
+import { CalendarDays, Clock, Users, User, CheckCircle2, X, CalendarPlus } from "lucide-react"
 import { toast } from "sonner"
 
 interface ClassItem {
@@ -13,7 +13,7 @@ interface ClassItem {
   name: string
   description: string | null
   dayOfWeek: string
-  schedule: string
+  startTime: string
   duration: number
   capacity: number
   trainer: { name: string | null }
@@ -29,7 +29,6 @@ interface Booking {
 interface ClassesViewProps {
   classes: ClassItem[]
   bookings: Booking[]
-  userId: string
   userRole: string
 }
 
@@ -40,7 +39,40 @@ const daysOfWeek: Record<string, string> = {
 
 const dayOrder = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
 
-export function ClassesView({ classes, bookings, userId, userRole }: ClassesViewProps) {
+const dayToIndex: Record<string, number> = {
+  SUNDAY: 0, MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4, FRIDAY: 5, SATURDAY: 6,
+}
+
+function nextOccurrence(dayOfWeek: string, startTime: string): Date {
+  const now = new Date()
+  const target = dayToIndex[dayOfWeek] ?? 1
+  const [h, m] = startTime.split(":").map(Number)
+  const d = new Date(now)
+  d.setDate(now.getDate() + ((target - now.getDay() + 7) % 7))
+  d.setHours(h || 0, m || 0, 0, 0)
+  if (d <= now) d.setDate(d.getDate() + 7)
+  return d
+}
+
+function formatGoogleDate(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}T${pad(d.getHours())}${pad(d.getMinutes())}00`
+}
+
+function buildCalendarUrl(cls: ClassItem): string {
+  const start = nextOccurrence(cls.dayOfWeek, cls.startTime)
+  const end = new Date(start.getTime() + cls.duration * 60000)
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: cls.name,
+    dates: `${formatGoogleDate(start)}/${formatGoogleDate(end)}`,
+    details: cls.description ?? "",
+    recur: "RRULE:FREQ=WEEKLY",
+  })
+  return `https://calendar.google.com/calendar/render?${params.toString()}`
+}
+
+export function ClassesView({ classes, bookings, userRole }: ClassesViewProps) {
   const { play } = useSound()
   const [bookingIds, setBookingIds] = useState<Set<string>>(
     new Set(bookings.filter((b) => b.status === "CONFIRMED").map((b) => b.classItem.id))
@@ -99,12 +131,9 @@ export function ClassesView({ classes, bookings, userId, userRole }: ClassesView
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {sorted.map((cls, i) => {
-        const time = new Date(cls.schedule).toLocaleTimeString("es", {
-          hour: "2-digit",
-          minute: "2-digit",
-        })
         const booked = bookingIds.has(cls.id)
-        const isFull = (cls.bookings ?? []).filter((b) => b.status === "CONFIRMED").length >= cls.capacity
+        const confirmedCount = (cls.bookings ?? []).filter((b) => b.status === "CONFIRMED").length
+        const isFull = confirmedCount >= cls.capacity
 
         return (
           <motion.div
@@ -131,11 +160,11 @@ export function ClassesView({ classes, bookings, userId, userRole }: ClassesView
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {time} · {cls.duration}min
+                    {cls.startTime} · {cls.duration}min
                   </span>
                   <span className="flex items-center gap-1">
                     <Users className="h-3 w-3" />
-                    {(cls.bookings ?? []).filter((b) => b.status === "CONFIRMED").length}/{cls.capacity}
+                    {confirmedCount}/{cls.capacity}
                   </span>
                   <span className="flex items-center gap-1">
                     <User className="h-3 w-3" />
@@ -145,16 +174,24 @@ export function ClassesView({ classes, bookings, userId, userRole }: ClassesView
 
                 {(userRole === "MEMBER" || userRole === "TRAINER") && (
                   booked ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handleCancel(cls.id)}
-                      disabled={loading === cls.id}
-                    >
-                      <X className="mr-1 h-3 w-3" />
-                      Cancelar reserva
-                    </Button>
+                    <div className="space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() => handleCancel(cls.id)}
+                        disabled={loading === cls.id}
+                      >
+                        <X className="mr-1 h-3 w-3" />
+                        Cancelar reserva
+                      </Button>
+                      <Button asChild variant="ghost" size="sm" className="w-full">
+                        <a href={buildCalendarUrl(cls)} target="_blank" rel="noopener noreferrer">
+                          <CalendarPlus className="mr-1 h-3 w-3" />
+                          Añadir a Google Calendar
+                        </a>
+                      </Button>
+                    </div>
                   ) : (
                     <Button
                       size="sm"

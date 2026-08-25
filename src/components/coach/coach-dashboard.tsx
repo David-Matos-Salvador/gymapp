@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { StatCard } from "@/components/ui/stat-card"
 import { EmptyState } from "@/components/ui/empty-state"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Users, CalendarDays, Dumbbell, Plus, ArrowRight, Search, UserPlus, Mail, Phone, Target, Award, BadgeCheck, Loader2, Send, Clock } from "lucide-react"
 import { toast } from "sonner"
 import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
@@ -17,7 +20,7 @@ import { DAY_OF_WEEK_LABELS } from "@/constants/ui"
 
 interface ClientData { id: string; name: string | null; email: string; phone: string | null; objective: string | null; experienceLevel: string | null; hasActiveMembership: boolean; membershipPlan: string | null }
 interface RoutineData { id: string; name: string; exerciseCount: number }
-interface ClassData { id: string; name: string; dayOfWeek: string; duration: number; capacity: number; bookingsCount: number; schedule: string }
+interface ClassData { id: string; name: string; dayOfWeek: string; startTime: string; duration: number; capacity: number; bookingsCount: number }
 interface Stats { totalClients: number; activeMemberships: number; upcomingClasses: number; totalRoutines: number }
 interface SearchMember { id: string; name: string | null; email: string; assignedTrainerId: string | null; hasTrainer: boolean }
 interface TrainerRequest { id: string; clientId: string; status: string; createdAt: string; client: { id: string; name: string | null; email: string } }
@@ -34,6 +37,10 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
   const [assignSuccess, setAssignSuccess] = useState("")
   const [showResults, setShowResults] = useState(false)
   const [sentRequests, setSentRequests] = useState<TrainerRequest[]>([])
+  const [classList, setClassList] = useState<ClassData[]>(classes)
+  const [classDialogOpen, setClassDialogOpen] = useState(false)
+  const [classSaving, setClassSaving] = useState(false)
+  const [classForm, setClassForm] = useState({ name: "", description: "", dayOfWeek: "", startTime: "", duration: "60", capacity: "15" })
   const searchRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -101,14 +108,56 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
     finally { setAssignLoading(null) }
   }, [searchResults, play])
 
+  async function handleCreateClass() {
+    if (!classForm.name.trim() || !classForm.dayOfWeek || !classForm.startTime) {
+      toast.error("Completa nombre, día y hora")
+      return
+    }
+    setClassSaving(true)
+    const res = await fetch("/api/classes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: classForm.name.trim(),
+        description: classForm.description.trim() || undefined,
+        dayOfWeek: classForm.dayOfWeek,
+        startTime: classForm.startTime,
+        duration: parseInt(classForm.duration) || 60,
+        capacity: parseInt(classForm.capacity) || 15,
+      }),
+    })
+    const data = await res.json()
+    if (res.ok) {
+      play("success")
+      toast.success("Clase creada")
+      setClassList((prev) => [
+        ...prev,
+        {
+          id: data.class.id,
+          name: data.class.name,
+          dayOfWeek: data.class.dayOfWeek,
+          startTime: data.class.startTime,
+          duration: data.class.duration,
+          capacity: data.class.capacity,
+          bookingsCount: 0,
+        },
+      ])
+      setClassDialogOpen(false)
+      setClassForm({ name: "", description: "", dayOfWeek: "", startTime: "", duration: "60", capacity: "15" })
+    } else {
+      toast.error(data.error ?? "Error al crear clase")
+    }
+    setClassSaving(false)
+  }
+
   return (
-    <div className="container mx-auto px-4 py-6 md:py-8 space-y-8">
+    <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
       <div>
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Panel de Coach</h1>
         <p className="text-muted-foreground">Gestiona tus clientes, rutinas y clases</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <StatCard label="Clientes" value={stats.totalClients} icon={Users} delay={0} />
         <StatCard label="Membresías activas" value={stats.activeMemberships} icon={BadgeCheck} delay={0.05} />
         <StatCard label="Clases próximas" value={stats.upcomingClasses} icon={CalendarDays} delay={0.1} />
@@ -276,16 +325,26 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
 
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
             <Card>
-              <CardHeader><CardTitle className="text-base">Mis clases</CardTitle></CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="text-base">Mis clases</CardTitle>
+                <Button size="sm" onClick={() => { play("click"); setClassDialogOpen(true) }}>
+                  <Plus className="mr-1 h-4 w-4" /> Nueva clase
+                </Button>
+              </CardHeader>
               <CardContent>
-                {classes.length === 0 ? (
+                {classList.length === 0 ? (
                   <EmptyState message="No tienes clases programadas" className="py-4" />
                 ) : (
                   <div className="space-y-2">
-                    {classes.map((c) => (
+                    {classList.map((c) => (
                       <div key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10"><CalendarDays className="h-4 w-4 text-accent-yellow" /></div>
-                        <div><p className="text-sm font-medium">{c.name}</p><p className="text-xs text-muted-foreground">{DAY_OF_WEEK_LABELS[c.dayOfWeek] || c.dayOfWeek} . {c.duration}min . {c.bookingsCount}/{c.capacity}</p></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{c.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {DAY_OF_WEEK_LABELS[c.dayOfWeek] || c.dayOfWeek} · {c.startTime} · {c.duration}min · {c.bookingsCount}/{c.capacity}
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -295,6 +354,89 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
           </motion.div>
         </div>
       </div>
+
+      <Dialog open={classDialogOpen} onOpenChange={setClassDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nueva clase</DialogTitle>
+            <DialogDescription>Programa una clase grupal recurrente.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="className">Nombre</Label>
+              <Input
+                id="className"
+                value={classForm.name}
+                onChange={(e) => setClassForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Spinning"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="classDescription">Descripción</Label>
+              <Input
+                id="classDescription"
+                value={classForm.description}
+                onChange={(e) => setClassForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Clase de cardio en bici"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Día</Label>
+                <Select value={classForm.dayOfWeek} onValueChange={(v) => setClassForm((f) => ({ ...f, dayOfWeek: v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Elige día" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(DAY_OF_WEEK_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="classStartTime">Hora de inicio</Label>
+                <Input
+                  id="classStartTime"
+                  type="time"
+                  value={classForm.startTime}
+                  onChange={(e) => setClassForm((f) => ({ ...f, startTime: e.target.value }))}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="classDuration">Duración (min)</Label>
+                <Input
+                  id="classDuration"
+                  type="number"
+                  min={15}
+                  step={5}
+                  value={classForm.duration}
+                  onChange={(e) => setClassForm((f) => ({ ...f, duration: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="classCapacity">Capacidad</Label>
+                <Input
+                  id="classCapacity"
+                  type="number"
+                  min={1}
+                  value={classForm.capacity}
+                  onChange={(e) => setClassForm((f) => ({ ...f, capacity: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setClassDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleCreateClass} disabled={classSaving}>
+              {classSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              {classSaving ? "Creando..." : "Crear clase"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

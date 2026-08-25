@@ -12,6 +12,34 @@ const updateSchema = z.object({
   action: z.enum(["ACCEPTED", "REJECTED"]),
 })
 
+export async function GET(_request: Request, { params }: RouteParams) {
+  const session = await auth()
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
+  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+  if (!user) {
+    return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+
+  const { id } = await params
+  const request = await prisma.trainerRequest.findUnique({
+    where: { id },
+    include: {
+      trainer: { select: { id: true, name: true, email: true, bio: true, specialties: true, yearsExperience: true } },
+    },
+  })
+  if (!request) {
+    return NextResponse.json({ error: "Solicitud no encontrada" }, { status: 404 })
+  }
+  if (request.clientId !== user.id && request.trainerId !== user.id) {
+    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  }
+
+  return NextResponse.json({ request })
+}
+
 export async function PUT(request: Request, { params }: RouteParams) {
   const session = await auth()
   if (!session?.user?.email) {

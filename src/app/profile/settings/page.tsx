@@ -50,7 +50,7 @@ export default function SettingsPage() {
                 Apariencia
               </CardTitle>
               <CardDescription>
-                Elegí el tema que prefieras
+                Elige el tema que prefieras
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-4">

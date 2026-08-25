@@ -854,7 +854,7 @@ async function main() {
       data: {
         name: "HIIT Intenso", description: "Entrenamiento interválico de alta intensidad.",
         trainerId: trainer.id, gymId: gym.id, capacity: 15, duration: 45,
-        dayOfWeek: "MONDAY", schedule: new Date("2026-05-11T07:00:00-06:00"),
+        dayOfWeek: "MONDAY", startTime: "07:00",
       },
     })
   }
@@ -866,7 +866,7 @@ async function main() {
       data: {
         name: "Yoga Vinyasa", description: "Fluidez de posturas sincronizadas.",
         trainerId: trainer.id, gymId: gym.id, capacity: 20, duration: 60,
-        dayOfWeek: "WEDNESDAY", schedule: new Date("2026-05-13T18:00:00-06:00"),
+        dayOfWeek: "WEDNESDAY", startTime: "18:00",
       },
     })
   }
@@ -1022,12 +1022,12 @@ async function main() {
   await prisma.notification.deleteMany({})
   await prisma.notification.createMany({
     data: [
-      { userId: carlos.id, title: "¡Bienvenido a Fitness Total!", message: "Tu rutina Push-Pull-Legs está lista. Empezá hoy.", type: "INFO" },
+      { userId: carlos.id, title: "¡Bienvenido a Fitness Total!", message: "Tu rutina Push-Pull-Legs está lista. Empieza hoy.", type: "INFO" },
       { userId: ana.id, title: "Bienvenida Ana", message: "Coach Martínez te asignó una rutina. ¡Buena suerte!", type: "INFO" },
       { userId: pedro.id, title: "Bienvenido Pedro", message: "Tu rutina de fuerza avanzada está lista.", type: "INFO" },
-      { userId: laura.id, title: "¡Te damos la bienvenida Laura!", message: "Completá tu perfil para recibir una rutina personalizada.", type: "INFO" },
-      { userId: diego.id, title: "Coach Martínez te asignó", message: "Tu entrenador ya te preparó una rutina. Empezá cuando quieras.", type: "INFO" },
-      { userId: valentina.id, title: "Perfil completado", message: "Elegí una rutina para comenzar tu entrenamiento.", type: "INFO" },
+      { userId: laura.id, title: "¡Te damos la bienvenida Laura!", message: "Completa tu perfil para recibir una rutina personalizada.", type: "INFO" },
+      { userId: diego.id, title: "Coach Martínez te asignó", message: "Tu entrenador ya te preparó una rutina. Empieza cuando quieras.", type: "INFO" },
+      { userId: valentina.id, title: "Perfil completado", message: "Elige una rutina para comenzar tu entrenamiento.", type: "INFO" },
       { userId: sofia.id, title: "Membresía vencida", message: "Tu membresía expiró. Renová para seguir entrenando.", type: "WARNING" },
       { userId: ricardo.id, title: "Membresía suspendida", message: "Tu cuenta está temporalmente inactiva. Contactá al administrador.", type: "WARNING" },
     ],
@@ -1036,7 +1036,7 @@ async function main() {
 
   // ── Trainer Requests (demo) ─────────────────────────
   // Trainer 2 (Coach Andrea) sends a request to valentina (onboarding done, no coach)
-  await prisma.trainerRequest.upsert({
+  const valentinaRequest = await prisma.trainerRequest.upsert({
     where: { trainerId_clientId: { trainerId: trainer2.id, clientId: valentina.id } },
     update: {},
     create: {
@@ -1052,7 +1052,7 @@ async function main() {
       title: "Solicitud de entrenador",
       message: "Coach Andrea quiere ser tu coach. Revisa y acepta la solicitud.",
       type: "TRAINER_REQUEST",
-      metadata: { trainerId: trainer2.id, trainerName: "Coach Andrea" },
+      metadata: { requestId: valentinaRequest.id, trainerId: trainer2.id, trainerName: "Coach Andrea" },
     },
   })
   console.log("✅ Trainer requests created")
@@ -1096,7 +1096,7 @@ async function main() {
   console.log("    🧑 Roberto     roberto@gymapp.com    — onboarding done, SIN coach (ideal para asignar con trainer2)")
   console.log("\n🔄 Flujo trainer→cliente:")
   console.log("  1. Login como trainer2, busca 'roberto' en /coach, envía solicitud")
-  console.log("  2. Login como roberto, ve a /requests, acepta la solicitud")
+  console.log("  2. Login como roberto, abre la campana de notificaciones y acepta la solicitud")
   console.log("  3. Roberto elige plan, sube comprobante Yape")
   console.log("  4. Login como trainer2, ve a /coach/payments, confirma el pago")
 }

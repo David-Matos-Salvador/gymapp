@@ -9,7 +9,6 @@ import { WeeklyCalendar } from "@/components/rutina/weekly-calendar"
 import { WeeklyProgress } from "@/components/rutina/weekly-progress"
 import { SplitCard } from "@/components/rutina/split-card"
 import { useWorkoutStore } from "@/stores/workout-store"
-import { Breadcrumb } from "@/components/layout/breadcrumb"
 
 interface Split {
   id: string
@@ -37,7 +36,6 @@ interface RutinaClientProps {
   weeklyStreak: number
   bestStreak: number
   membershipStatus: string
-  membershipExpired: boolean
 }
 
 export function RutinaClient({
@@ -55,7 +53,6 @@ export function RutinaClient({
   weeklyStreak,
   bestStreak,
   membershipStatus,
-  membershipExpired,
 }: RutinaClientProps) {
   const router = useRouter()
   const inProgressState = useWorkoutStore()
@@ -114,8 +111,6 @@ export function RutinaClient({
     return proposed ? [proposed, ...rest] : splits
   }, [splits, propuestoSplitId])
 
-  const breadcrumbItems = useMemo(() => [{ label: planName }], [planName])
-
   function getSplitVariant(splitId: string) {
     if (inProgressSplitId === splitId) return { variant: "in-progress" as const, completedExerciseCount: inProgressState.completedExerciseIds.length }
     if (hasActiveWorkout && inProgressState.splitId !== splitId) return { variant: "locked" as const }
@@ -125,17 +120,15 @@ export function RutinaClient({
 
   return (
     <motion.div
-      className="mx-auto max-w-lg px-4 py-6 pb-24 space-y-5"
+      className="container mx-auto max-w-3xl px-4 py-6 md:py-8 pb-24 space-y-6"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <Breadcrumb items={breadcrumbItems} className="px-0" />
-
-      <div className="flex flex-col gap-0.5">
-        <h1 className="text-[1.75rem] font-bold tracking-tight">
+      <div>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
           Hola, {userName}
         </h1>
-        <p className="text-sm text-muted-foreground">{planName}</p>
+        <p className="text-muted-foreground">{planName}</p>
       </div>
 
       {planDescription && (
@@ -150,11 +143,11 @@ export function RutinaClient({
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
             <span>
               {membershipStatus === "EXPIRED"
-                ? "Tu membresía ha vencido. Renová para seguir entrenando."
+                ? "Tu membresía ha vencido. Renueva para seguir entrenando."
                 : membershipStatus === "INACTIVE"
-                  ? "Tu membresía está inactiva. Contactá al administrador."
+                  ? "Tu membresía está inactiva. Contacta al administrador."
                   : membershipStatus === "SUSPENDED"
-                    ? "Tu membresía ha sido suspendida. Contactá al administrador."
+                    ? "Tu membresía ha sido suspendida. Contacta al administrador."
                     : membershipStatus === "CANCELLED"
                       ? "Tu membresía ha sido cancelada."
                       : "Tu membresía no está activa."}

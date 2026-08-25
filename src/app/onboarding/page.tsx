@@ -735,8 +735,8 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Confirmá tus datos</h2>
-              <p className="text-muted-foreground">Revisá que toda la información sea correcta</p>
+              <h2 className="text-2xl font-bold tracking-tight">Confirma tus datos</h2>
+              <p className="text-muted-foreground">Revisa que toda la información sea correcta</p>
             </div>
 
             {error && (
