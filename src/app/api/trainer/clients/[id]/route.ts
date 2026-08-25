@@ -33,6 +33,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       medicalNotes: true,
       emergencyContact: true,
       emergencyPhone: true,
+      onboardingCompleted: true,
       bodyMeasurements: { orderBy: { date: "desc" }, take: 10 },
       assignedRoutinePlans: {
         where: { active: true },

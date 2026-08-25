@@ -1026,7 +1026,7 @@ async function main() {
       { userId: ana.id, title: "Bienvenida Ana", message: "Coach Martínez te asignó una rutina. ¡Buena suerte!", type: "INFO" },
       { userId: pedro.id, title: "Bienvenido Pedro", message: "Tu rutina de fuerza avanzada está lista.", type: "INFO" },
       { userId: laura.id, title: "¡Te damos la bienvenida Laura!", message: "Completa tu perfil para recibir una rutina personalizada.", type: "INFO" },
-      { userId: diego.id, title: "Coach Martínez te asignó", message: "Tu entrenador ya te preparó una rutina. Empieza cuando quieras.", type: "INFO" },
+      { userId: diego.id, title: "Coach Martínez te asignó", message: "Tu entrenador ya te preparó la rutina 'Fuerza 5x5 Modificada'. Termina tu configuración para empezar.", type: "INFO" },
       { userId: valentina.id, title: "Perfil completado", message: "Elige una rutina para comenzar tu entrenamiento.", type: "INFO" },
       { userId: sofia.id, title: "Membresía vencida", message: "Tu membresía expiró. Renová para seguir entrenando.", type: "WARNING" },
       { userId: ricardo.id, title: "Membresía suspendida", message: "Tu cuenta está temporalmente inactiva. Contactá al administrador.", type: "WARNING" },
@@ -1056,6 +1056,20 @@ async function main() {
     },
   })
   console.log("✅ Trainer requests created")
+
+  // ── Trainer Invites (demo) ───────────────────────────
+  await prisma.trainerInvite.deleteMany({})
+  await prisma.trainerInvite.create({
+    data: {
+      token: "demo-invite-andrea-mariana",
+      trainerId: trainer2.id,
+      gymId: gym.id,
+      name: "Mariana López",
+      status: "PENDING",
+      expiresAt: new Date(Date.now() + 7 * 86400000),
+    },
+  })
+  console.log("✅ Trainer invites created")
 
   // ── Payment example (pending Yape payment) ──────────
   const existingPayment = await prisma.payment.findFirst({
@@ -1094,6 +1108,7 @@ async function main() {
   console.log("    🔥 Ana         ana@gymapp.com        — activa, 1 workout esta semana")
   console.log("    🏆 Pedro       pedro@gymapp.com      — avanzado, workouts esporádicos")
   console.log("    🧑 Roberto     roberto@gymapp.com    — onboarding done, SIN coach (ideal para asignar con trainer2)")
+  console.log("\n🔗 Invitación demo (trainer2): /invite/demo-invite-andrea-mariana")
   console.log("\n🔄 Flujo trainer→cliente:")
   console.log("  1. Login como trainer2, busca 'roberto' en /coach, envía solicitud")
   console.log("  2. Login como roberto, abre la campana de notificaciones y acepta la solicitud")

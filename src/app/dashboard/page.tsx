@@ -185,6 +185,7 @@ export default async function DashboardPage() {
         phone: true,
         objective: true,
         experienceLevel: true,
+        onboardingCompleted: true,
         memberShips: { include: { plan: true }, where: { status: "ACTIVE" }, take: 1 },
       },
       orderBy: { name: "asc" },
@@ -218,6 +219,7 @@ export default async function DashboardPage() {
             phone: c.phone,
             objective: c.objective,
             experienceLevel: c.experienceLevel,
+            onboardingCompleted: c.onboardingCompleted,
             hasActiveMembership: c.memberShips.some(
               (m) => m.status === "ACTIVE" && new Date(m.endDate) > now
             ),

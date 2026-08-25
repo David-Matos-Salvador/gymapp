@@ -37,6 +37,7 @@ interface ClientData {
   id: string; name: string | null; email: string; phone: string | null; birthDate: string | null
   objective: string | null; experienceLevel: string | null; medicalNotes: string | null
   emergencyContact: string | null; emergencyPhone: string | null
+  onboardingCompleted: boolean
   bodyMeasurements: BodyMeasurement[]
   assignedRoutinePlans: PlanAssignment[]
   workoutLogs: WorkoutLogData[]
@@ -206,6 +207,11 @@ export default function CoachClientDetail() {
                 {isMembershipActive ? (
                   <span className="inline-flex items-center gap-1 text-xs text-accent-yellow bg-accent-yellow/10 rounded-full px-2 py-0.5"><CheckCircle className="h-3 w-3" /> Activo</span>
                 ) : <span className="inline-flex items-center gap-1 text-xs text-destructive bg-destructive/10 rounded-full px-2 py-0.5">Sin membresía activa</span>}
+                {!client.onboardingCompleted && (
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted rounded-full px-2 py-0.5">
+                    <AlertTriangle className="h-3 w-3" /> Pendiente de onboarding
+                  </span>
+                )}
                 {currentMembership?.plan && <span className="text-xs text-muted-foreground">{currentMembership.plan.name}</span>}
               </div>
               <div className="space-y-1 text-sm pt-2">

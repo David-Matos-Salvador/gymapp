@@ -27,11 +27,65 @@ export async function GET() {
     select: { id: true },
   })
 
+  // Rutina asignada por el coach (el plan no pertenece al miembro)
+  const coachAssignment = await prisma.assignedRoutinePlan.findFirst({
+    where: { userId: user.id, active: true, plan: { userId: { not: user.id } } },
+    include: {
+      plan: {
+        include: {
+          user: { select: { name: true } },
+          splits: {
+            orderBy: { order: "asc" },
+            include: {
+              exercises: {
+                orderBy: { order: "asc" },
+                select: {
+                  sets: true,
+                  reps: true,
+                  weight: true,
+                  restSeconds: true,
+                  exercise: { select: { id: true, name: true, muscleGroup: true, equipment: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  const coachPlan = coachAssignment
+    ? {
+        id: coachAssignment.plan.id,
+        name: coachAssignment.plan.name,
+        description: coachAssignment.plan.description,
+        coachName: coachAssignment.plan.user?.name ?? null,
+        splits: coachAssignment.plan.splits.map((s) => ({
+          id: s.id,
+          label: s.label,
+          name: s.name,
+          muscleGroups: s.muscleGroups,
+          estimatedDuration: s.estimatedDuration,
+          exercises: s.exercises.map((e) => ({
+            id: e.exercise.id,
+            name: e.exercise.name,
+            muscleGroup: e.exercise.muscleGroup,
+            equipment: e.exercise.equipment,
+            sets: e.sets,
+            reps: e.reps,
+            weight: e.weight,
+            restSeconds: e.restSeconds,
+          })),
+        })),
+      }
+    : null
+
   return NextResponse.json({
     onboardingCompleted: user.onboardingCompleted,
     onboardingCompletedAt: user.onboardingCompletedAt?.toISOString() ?? null,
     hasRoutine: !!assignment,
     trainingFrequency: user.trainingFrequency ?? null,
+    coachPlan,
   })
 }
 

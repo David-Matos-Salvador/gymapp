@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,22 +14,24 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, CalendarDays, Dumbbell, Plus, ArrowRight, Search, UserPlus, Mail, Phone, Target, Award, BadgeCheck, Loader2, Send, Clock } from "lucide-react"
+import { Users, CalendarDays, Dumbbell, Plus, ArrowRight, Search, UserPlus, Mail, Phone, Target, Award, BadgeCheck, Loader2, Send, Clock, Link2, Copy, CheckCircle, Check } from "lucide-react"
 import { toast } from "sonner"
 import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
 import { DAY_OF_WEEK_LABELS } from "@/constants/ui"
 
-interface ClientData { id: string; name: string | null; email: string; phone: string | null; objective: string | null; experienceLevel: string | null; hasActiveMembership: boolean; membershipPlan: string | null }
+interface ClientData { id: string; name: string | null; email: string; phone: string | null; objective: string | null; experienceLevel: string | null; hasActiveMembership: boolean; membershipPlan: string | null; onboardingCompleted: boolean }
 interface RoutineData { id: string; name: string; exerciseCount: number }
 interface ClassData { id: string; name: string; dayOfWeek: string; startTime: string; duration: number; capacity: number; bookingsCount: number }
 interface Stats { totalClients: number; activeMemberships: number; upcomingClasses: number; totalRoutines: number }
 interface SearchMember { id: string; name: string | null; email: string; assignedTrainerId: string | null; hasTrainer: boolean }
 interface TrainerRequest { id: string; clientId: string; status: string; createdAt: string; client: { id: string; name: string | null; email: string } }
+interface InviteData { id: string; token: string; name: string | null; email: string | null; phone: string | null; status: string; expiresAt: string; createdAt: string; usedBy: { name: string | null; email: string } | null }
 
 export function CoachDashboard({ clients, routines, classes, stats }: {
   clients: ClientData[]; routines: RoutineData[]; classes: ClassData[]; stats: Stats
 }) {
   const { play } = useSound()
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [searchResults, setSearchResults] = useState<SearchMember[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
@@ -41,6 +44,13 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
   const [classDialogOpen, setClassDialogOpen] = useState(false)
   const [classSaving, setClassSaving] = useState(false)
   const [classForm, setClassForm] = useState({ name: "", description: "", dayOfWeek: "", startTime: "", duration: "60", capacity: "15" })
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
+  const [inviteMode, setInviteMode] = useState<"register" | "link">("register")
+  const [inviteSaving, setInviteSaving] = useState(false)
+  const [inviteForm, setInviteForm] = useState({ name: "", email: "", phone: "", password: "" })
+  const [inviteUrl, setInviteUrl] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [invites, setInvites] = useState<InviteData[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -48,6 +58,13 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
     fetch("/api/trainer/requests?status=PENDING")
       .then((r) => r.json())
       .then((d) => setSentRequests(d.requests || []))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    fetch("/api/trainer/invites")
+      .then((r) => r.json())
+      .then((d) => setInvites(d.invites || []))
       .catch(() => {})
   }, [])
 
@@ -108,6 +125,87 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
     finally { setAssignLoading(null) }
   }, [searchResults, play])
 
+  function openInviteDialog() {
+    play("click")
+    setInviteMode("register")
+    setInviteForm({ name: "", email: "", phone: "", password: "" })
+    setInviteUrl(null)
+    setCopied(false)
+    setInviteDialogOpen(true)
+  }
+
+  async function handleRegisterMember() {
+    if (!inviteForm.name.trim() || !inviteForm.email.trim() || !inviteForm.password) {
+      toast.error("Completa nombre, email y contraseña")
+      return
+    }
+    setInviteSaving(true)
+    try {
+      const res = await fetch("/api/trainer/members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: inviteForm.name.trim(),
+          email: inviteForm.email.trim(),
+          phone: inviteForm.phone.trim() || undefined,
+          password: inviteForm.password,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Error al crear el miembro")
+        return
+      }
+      play("success")
+      toast.success(`${data.user.name} creado como tu cliente`)
+      setInviteDialogOpen(false)
+      router.refresh()
+    } catch {
+      toast.error("Error de conexión")
+    } finally {
+      setInviteSaving(false)
+    }
+  }
+
+  async function handleCreateInvite() {
+    setInviteSaving(true)
+    try {
+      const res = await fetch("/api/trainer/invites", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: inviteForm.name.trim() || undefined,
+          email: inviteForm.email.trim() || undefined,
+          phone: inviteForm.phone.trim() || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || "Error al crear la invitación")
+        return
+      }
+      play("success")
+      setInviteUrl(data.url)
+      setInvites((prev) => [data.invite, ...prev])
+      toast.success("Link de invitación creado")
+    } catch {
+      toast.error("Error de conexión")
+    } finally {
+      setInviteSaving(false)
+    }
+  }
+
+  async function copyInviteLink(url: string) {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      play("success")
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error("No se pudo copiar")
+    }
+  }
+
   async function handleCreateClass() {
     if (!classForm.name.trim() || !classForm.dayOfWeek || !classForm.startTime) {
       toast.error("Completa nombre, día y hora")
@@ -166,10 +264,13 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
 
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
               <UserPlus className="h-5 w-5 text-accent-yellow" /><CardTitle>Buscar y enviar solicitud</CardTitle>
             </div>
+            <Button size="sm" onClick={openInviteDialog}>
+              <Plus className="mr-1 h-4 w-4" /> Nuevo cliente
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative" ref={searchRef}>
@@ -246,6 +347,42 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
                 </div>
               </div>
             )}
+
+            {invites.length > 0 && (
+              <div className="mt-4">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Invitaciones</p>
+                <div className="space-y-2">
+                  {invites.map((inv) => (
+                    <div key={inv.id} className="flex items-center justify-between rounded-lg border p-3 bg-muted/30 gap-2">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10"><Link2 className="h-4 w-4 text-accent-yellow" /></div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {inv.usedBy ? (inv.usedBy.name || inv.usedBy.email) : (inv.name || inv.email || "Invitación sin datos")}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {inv.email || "Sin email"} · expira {new Date(inv.expiresAt).toLocaleDateString("es")}
+                          </p>
+                        </div>
+                      </div>
+                      {inv.status === "COMPLETED" ? (
+                        <Badge variant="secondary" className="text-xs shrink-0 gap-1"><CheckCircle className="h-3 w-3" /> Aceptada</Badge>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="shrink-0"
+                          onClick={() => copyInviteLink(`${window.location.origin}/invite/${inv.token}`)}
+                        >
+                          {copied ? <Check className="mr-1 h-3 w-3" /> : <Copy className="mr-1 h-3 w-3" />}
+                          {copied ? "Copiado" : "Copiar link"}
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
@@ -272,6 +409,7 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-medium truncate">{client.name || "Sin nombre"}</p>
                         {client.hasActiveMembership && <span className="inline-flex items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-accent-yellow">Activo</span>}
+                        {!client.onboardingCompleted && <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">Pendiente de onboarding</span>}
                       </div>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
                         <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Mail className="h-3 w-3" />{client.email}</span>
@@ -434,6 +572,123 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
               {classSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
               {classSaving ? "Creando..." : "Crear clase"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nuevo cliente</DialogTitle>
+            <DialogDescription>Registra a un miembro ahora o compártele un link para que se registre él mismo.</DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              variant={inviteMode === "register" ? "default" : "outline"}
+              onClick={() => { play("click"); setInviteMode("register"); setInviteUrl(null) }}
+            >
+              <UserPlus className="mr-1 h-4 w-4" /> Registrar ahora
+            </Button>
+            <Button
+              variant={inviteMode === "link" ? "default" : "outline"}
+              onClick={() => { play("click"); setInviteMode("link"); setInviteUrl(null) }}
+            >
+              <Link2 className="mr-1 h-4 w-4" /> Enviar link
+            </Button>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="invName">Nombre{inviteMode === "register" ? "" : " (opcional)"}</Label>
+              <Input
+                id="invName"
+                value={inviteForm.name}
+                onChange={(e) => setInviteForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Nombre completo"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="invEmail">Email{inviteMode === "register" ? "" : " (opcional)"}</Label>
+                <Input
+                  id="invEmail"
+                  type="email"
+                  value={inviteForm.email}
+                  onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="cliente@email.com"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invPhone">Teléfono (opcional)</Label>
+                <Input
+                  id="invPhone"
+                  type="tel"
+                  value={inviteForm.phone}
+                  onChange={(e) => setInviteForm((f) => ({ ...f, phone: e.target.value }))}
+                  placeholder="+52 55 0000 0000"
+                />
+              </div>
+            </div>
+
+            {inviteMode === "register" ? (
+              <div className="space-y-2">
+                <Label htmlFor="invPassword">Contraseña inicial</Label>
+                <Input
+                  id="invPassword"
+                  type="text"
+                  value={inviteForm.password}
+                  onChange={(e) => setInviteForm((f) => ({ ...f, password: e.target.value }))}
+                  placeholder="Min. 8 caracteres, 1 mayuscula, 1 numero"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Comparte esta contraseña con el cliente. Podrá cambiarla después.
+                </p>
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground rounded-lg bg-muted/50 p-3">
+                El link expira en 7 días. Si llenas nombre y email, el formulario del cliente ya vendrá
+                pre-cargado. Puede completarlo en el gimnasio o en su casa.
+              </p>
+            )}
+
+            {inviteUrl && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <p className="text-xs font-medium">Link de invitación:</p>
+                <p className="text-xs break-all">{inviteUrl}</p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => copyInviteLink(inviteUrl)}>
+                    {copied ? <Check className="mr-1 h-3 w-3" /> : <Copy className="mr-1 h-3 w-3" />}
+                    {copied ? "Copiado" : "Copiar"}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const msg = `Únete a la app de tu coach: ${inviteUrl}`
+                      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank")
+                    }}
+                  >
+                    <Send className="mr-1 h-3 w-3" /> WhatsApp
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>Cerrar</Button>
+            {inviteMode === "register" ? (
+              <Button onClick={handleRegisterMember} disabled={inviteSaving}>
+                {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+                {inviteSaving ? "Creando..." : "Crear miembro"}
+              </Button>
+            ) : (
+              <Button onClick={handleCreateInvite} disabled={inviteSaving}>
+                {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+                {inviteSaving ? "Creando..." : "Crear link"}
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

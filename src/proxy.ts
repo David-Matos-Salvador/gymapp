@@ -7,7 +7,7 @@ import type { NextRequest } from "next/server"
  * Note: /api, /_next/*, /favicon.ico, /icons, /manifest are already excluded
  * by the config.matcher below and never reach this function.
  */
-const PUBLIC_PATHS = ["/login", "/register"]
+const PUBLIC_PATHS = ["/login", "/register", "/invite"]
 
 /**
  * Optimistic role-based route prefixes.

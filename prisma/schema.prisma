@@ -133,6 +133,12 @@ enum TrainerRequestStatus {
   REJECTED
 }
 
+enum InviteStatus {
+  PENDING
+  COMPLETED
+  EXPIRED
+}
+
 model Gym {
   id        String   @id @default(cuid())
   name      String
@@ -154,6 +160,7 @@ model Gym {
   gymEquipments          GymEquipment[]
   gymExercises           GymExercise[]
   gymEquipmentActivations GymEquipmentActivation[]
+  trainerInvites         TrainerInvite[]
 }
 
 model User {
@@ -211,6 +218,8 @@ model User {
   trainerRequestsSent     TrainerRequest[] @relation("TrainerRequestSender")
   trainerRequestsReceived TrainerRequest[] @relation("TrainerRequestReceiver")
   paymentConfirmations    Payment[]        @relation("PaymentConfirmer")
+  trainerInvites          TrainerInvite[]  @relation("TrainerInvites")
+  invitedByInvites        TrainerInvite[]  @relation("InvitedUsers")
 
   accounts Account[]
   sessions Session[]
@@ -595,4 +604,26 @@ model TrainerRequest {
   @@index([clientId])
   @@index([status])
   @@unique([trainerId, clientId])
+}
+
+model TrainerInvite {
+  id           String       @id @default(cuid())
+  token        String       @unique
+  trainerId    String
+  gymId        String?
+  name         String?
+  email        String?
+  phone        String?
+  status       InviteStatus @default(PENDING)
+  expiresAt    DateTime
+  usedByUserId String?
+  completedAt  DateTime?
+  createdAt    DateTime     @default(now())
+
+  trainer User?      @relation("TrainerInvites", fields: [trainerId], references: [id], onDelete: Cascade)
+  gym     Gym?       @relation(fields: [gymId], references: [id], onDelete: SetNull)
+  usedBy  User?      @relation("InvitedUsers", fields: [usedByUserId], references: [id], onDelete: SetNull)
+
+  @@index([trainerId])
+  @@index([status])
 }

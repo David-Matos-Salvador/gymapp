@@ -39,7 +39,32 @@ import {
   Dumbbell,
   Zap,
   LogOut,
+  UserRound,
 } from "lucide-react"
+
+interface CoachPlanData {
+  id: string
+  name: string
+  description: string | null
+  coachName: string | null
+  splits: {
+    id: string
+    label: string
+    name: string
+    muscleGroups: string[]
+    estimatedDuration: number | null
+    exercises: {
+      id: string
+      name: string
+      muscleGroup: string
+      equipment: string
+      sets: number
+      reps: string
+      weight: number
+      restSeconds: number
+    }[]
+  }[]
+}
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -53,6 +78,7 @@ export default function OnboardingPage() {
   const [error, setError] = useState("")
   const [editingStep, setEditingStep] = useState<number | null>(null)
   const [generatedPlans, setGeneratedPlans] = useState<GeneratedPlanData[]>([])
+  const [coachPlan, setCoachPlan] = useState<CoachPlanData | null>(null)
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationPhase, setGenerationPhase] = useState(0)
@@ -117,6 +143,9 @@ export default function OnboardingPage() {
             router.push("/dashboard")
           } else if (d.trainingFrequency) {
             setData((prev) => ({ ...prev, trainingFrequency: d.trainingFrequency }))
+          }
+          if (d.coachPlan) {
+            setCoachPlan(d.coachPlan)
           }
         })
         .catch(() => {})
@@ -274,6 +303,42 @@ export default function OnboardingPage() {
     [play, router, updateSession, data]
   )
 
+  // Completa el onboarding manteniendo la rutina que ya asignó el coach
+  const finishWithCoachPlan = useCallback(async () => {
+    setIsSubmitting(true)
+    setError("")
+
+    try {
+      const res = await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      })
+      if (!res.ok) {
+        let errorMsg = "Error al guardar"
+        try {
+          const json = await res.json()
+          errorMsg = json.error || json.details || errorMsg
+        } catch {
+          // keep default
+        }
+        throw new Error(errorMsg)
+      }
+      play("success")
+      try {
+        await updateSession({ onboardingCompleted: true, onboardingCompletedAt: new Date().toISOString() })
+      } catch {
+        // silent
+      }
+      await new Promise((r) => setTimeout(r, 600))
+      router.push("/dashboard")
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error al guardar los datos")
+      setIsSubmitting(false)
+    }
+  }, [data, play, router, updateSession])
+
   const handlePlanClick = useCallback(
     (plan: GeneratedPlanData) => {
       const now = Date.now()
@@ -292,6 +357,24 @@ export default function OnboardingPage() {
     },
     [assignPlan, play]
   )
+
+  const handleCoachCardClick = useCallback(() => {
+    if (!coachPlan) return
+    const id = `coach-${coachPlan.id}`
+    const now = Date.now()
+    const prev = lastClickRef.current
+
+    if (prev && prev.id === id && now - prev.time < 300) {
+      lastClickRef.current = null
+      finishWithCoachPlan()
+      return
+    }
+
+    lastClickRef.current = { id, time: now }
+
+    play("select")
+    setExpandedPlanId((prev) => (prev === id ? null : id))
+  }, [coachPlan, finishWithCoachPlan, play])
 
   const handleWeightChange = (value: string) => {
     const cleaned = value.replace(/[^0-9.]/g, "")
@@ -763,6 +846,44 @@ export default function OnboardingPage() {
               <SummaryRow label="Horario" value={scheduleLabelMap[data.usualSchedule!]} onEdit={() => jumpToEditStep(7)} />
             </div>
 
+            {coachPlan && (
+              <div className="rounded-2xl border-2 border-accent-yellow/40 bg-accent-yellow/5 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <UserRound className="h-4 w-4 text-accent-yellow" />
+                  <p className="text-sm font-semibold text-accent-yellow">
+                    Tu coach{coachPlan.coachName ? ` ${coachPlan.coachName}` : ""} ya te asignó una rutina
+                  </p>
+                </div>
+                <div className="rounded-xl border bg-card p-3">
+                  <p className="font-bold text-base">{coachPlan.name}</p>
+                  {coachPlan.description && (
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{coachPlan.description}</p>
+                  )}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {coachPlan.splits.length} divisiones · {coachPlan.splits.reduce((s, sp) => s + sp.exercises.length, 0)} ejercicios
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  className="w-full h-12 rounded-xl bg-accent-yellow text-accent-yellow-foreground hover:bg-accent-yellow/90"
+                  onClick={finishWithCoachPlan}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <Dumbbell className="mr-2 h-4 w-4" />
+                      Usar la rutina de mi coach
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+
             <div className="flex gap-3 pt-2">
               <Button
                 variant="outline"
@@ -807,8 +928,82 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {generatedPlans.length > 0 ? (
+            {generatedPlans.length > 0 || coachPlan ? (
               <div className="space-y-3">
+                {coachPlan && (
+                  <motion.button
+                    key="coach-plan"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={handleCoachCardClick}
+                    className={`w-full rounded-2xl border-2 p-5 text-left transition-all ${
+                      expandedPlanId === `coach-${coachPlan.id}`
+                        ? "border-accent-yellow bg-accent-yellow/5 shadow-sm"
+                        : "border-accent-yellow/40 bg-accent-yellow/5 hover:border-accent-yellow/70"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2.5 flex-wrap">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-accent-yellow/10 text-accent-yellow flex items-center gap-1">
+                            <UserRound className="h-3 w-3" />
+                            Asignada por tu coach{coachPlan.coachName ? ` · ${coachPlan.coachName}` : ""}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-base mt-1.5">{coachPlan.name}</h3>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{coachPlan.description}</p>
+                        <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                          <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" />{coachPlan.splits.length} divisiones</span>
+                          <span>{coachPlan.splits.reduce((sum, s) => sum + s.exercises.length, 0)} ejercicios</span>
+                        </div>
+                      </div>
+                      <ChevronRight className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${expandedPlanId === `coach-${coachPlan.id}` ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`} />
+                    </div>
+                    {expandedPlanId === `coach-${coachPlan.id}` && (
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="mt-4 pt-4 border-t">
+                        <p className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
+                          Grupos musculares: {[...new Set(coachPlan.splits.flatMap((s) => s.muscleGroups))].join(", ").toLowerCase()}
+                        </p>
+                        <div className="space-y-2.5 mb-3">
+                          {coachPlan.splits.map((split) => (
+                            <div key={split.id} className="rounded-lg border bg-muted/30 p-3">
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
+                                  {split.label}
+                                </span>
+                                <span className="text-xs font-semibold">{split.name}</span>
+                                {split.estimatedDuration && (
+                                  <span className="text-[10px] text-muted-foreground ml-auto">~{split.estimatedDuration} min</span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-muted-foreground mb-1.5">{split.muscleGroups.join(" \u00b7 ")}</p>
+                              <div className="space-y-0.5">
+                                {split.exercises.slice(0, 4).map((ex) => (
+                                  <div key={ex.id} className="flex items-center gap-2 text-[10px]">
+                                    <span className="text-muted-foreground">\u00b7</span>
+                                    <span className="truncate">{ex.name}</span>
+                                    <span className="text-muted-foreground ml-auto">{ex.sets}\u00d7{ex.reps}</span>
+                                  </div>
+                                ))}
+                                {split.exercises.length > 4 && (
+                                  <p className="text-[10px] text-muted-foreground pl-3">+{split.exercises.length - 4} m\u00e1s</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-accent-yellow font-medium mt-3 text-center">Doble toque para usar esta rutina</p>
+                      </motion.div>
+                    )}
+                  </motion.button>
+                )}
+
+                {generatedPlans.length > 0 && coachPlan && (
+                  <p className="text-center text-xs text-muted-foreground pt-1">
+                    O elige una rutina generada para ti
+                  </p>
+                )}
+
                 {generatedPlans.map((plan, i) => {
                   const isExpanded = expandedPlanId === plan.id
                   const totalExercises = plan.splits.reduce((sum, s) => sum + s.exercises.length, 0)

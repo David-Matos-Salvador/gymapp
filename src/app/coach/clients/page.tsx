@@ -5,7 +5,7 @@ import { getTrainerClientIds } from "@/lib/trainer-client"
 import { AppShell } from "@/components/layout/shell"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, Mail, Phone, Target, Award, BadgeCheck, ArrowRight } from "lucide-react"
+import { Users, Mail, Phone, Target, Award, BadgeCheck, ArrowRight, Clock } from "lucide-react"
 import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
 import { BackButton } from "@/components/back-button"
 
@@ -22,6 +22,7 @@ export default async function CoachClientsListPage() {
         where: { id: { in: clientIds } },
         select: {
           id: true, name: true, email: true, phone: true, objective: true, experienceLevel: true,
+          onboardingCompleted: true,
           createdAt: true,
           bodyMeasurements: { orderBy: { date: "desc" }, take: 1 },
           memberShips: { include: { plan: true }, where: { status: "ACTIVE" }, take: 1 },
@@ -72,6 +73,11 @@ export default async function CoachClientsListPage() {
                             {isMembershipActive && (
                               <span className="inline-flex items-center gap-1 text-[10px] text-accent-yellow bg-accent-yellow/10 rounded-full px-1.5 py-0.5">
                                 <BadgeCheck className="h-3 w-3" /> Activo
+                              </span>
+                            )}
+                            {!client.onboardingCompleted && (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground bg-muted rounded-full px-1.5 py-0.5">
+                                <Clock className="h-3 w-3" /> Pendiente de onboarding
                               </span>
                             )}
                           </div>
