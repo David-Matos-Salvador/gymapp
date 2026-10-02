@@ -1,0 +1,69 @@
+# Despliega una rama en QA (https://gym-qa.davidmatos.lat) a través de Coolify.
+#
+# - Manual: Actions → "Deploy QA" → Run workflow → escribir la rama (por defecto "qa").
+# - Automático: cada push a la rama qa.
+# El último deploy gana: si se despliega una rama suelta y luego llega un push a qa,
+# QA vuelve a mostrar qa.
+#
+# Requiere en el repo (Settings → Secrets and variables → Actions):
+#   secret   COOLIFY_TOKEN     token de API de Coolify con permiso "write" y "deploy"
+#   variable COOLIFY_URL       https://coolify.davidmatos.lat
+#   variable COOLIFY_QA_UUID   uuid de la app de QA en Coolify (aparece en su URL)
+# En Coolify, desactivar "Auto Deploy" de la app de QA (si no, desplegaría dos veces).
+name: Deploy QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      rama:
+        description: Rama a desplegar en QA
+        required: true
+        default: qa
+  push:
+    branches: [qa]
+
+concurrency:
+  group: deploy-qa
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Elegir rama
+        id: rama
+        env:
+          INPUT_RAMA: ${{ inputs.rama }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rama="${INPUT_RAMA:-qa}"
+          if ! gh api "repos/${GITHUB_REPOSITORY}/branches/${rama}" --silent; then
+            echo "::error::La rama '${rama}' no existe en ${GITHUB_REPOSITORY}"
+            exit 1
+          fi
+          echo "rama=${rama}" >> "$GITHUB_OUTPUT"
+          echo "### Desplegando \`${rama}\` en QA" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Apuntar la app de QA a la rama
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          APP_UUID: ${{ vars.COOLIFY_QA_UUID }}
+          RAMA: ${{ steps.rama.outputs.rama }}
+        run: |
+          curl -fsS --retry 3 -X PATCH \
+            -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg b "$RAMA" '{git_branch: $b}')" \
+            "${COOLIFY_URL%/}/api/v1/applications/${APP_UUID}"
+
+      - name: Desplegar
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          APP_UUID: ${{ vars.COOLIFY_QA_UUID }}
+        run: |
+          curl -fsS --retry 3 -X POST \
+            -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+            "${COOLIFY_URL%/}/api/v1/deploy?uuid=${APP_UUID}&force=false"
+          echo "Seguimiento: ${COOLIFY_URL%/} → proyecto gymapp → qa → Deployments" >> "$GITHUB_STEP_SUMMARY"
