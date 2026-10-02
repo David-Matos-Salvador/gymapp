@@ -1,0 +1,84 @@
+# Despliegue a QA o producción a través de Coolify (equivalente a "Run pipeline" de Bitbucket).
+#
+# Manual: Actions → "Deploy" → Run workflow
+#   - "Use workflow from": la rama a desplegar (como "Branch" en Bitbucket)
+#   - "Ambiente": qa o produccion (como elegir el pipeline)
+#   QA acepta cualquier rama; producción solo main.
+# Automático: cada push a qa despliega QA.
+# El último deploy gana: si se despliega una rama suelta en QA y luego llega un push
+# a qa, QA vuelve a mostrar qa.
+#
+# Requiere en el repo (Settings → Secrets and variables → Actions):
+#   secret   COOLIFY_TOKEN       token de API de Coolify con permisos write y deploy
+#   variable COOLIFY_URL         https://coolify.davidmatos.lat
+#   variable COOLIFY_QA_UUID     uuid de la app de QA en Coolify (aparece en su URL)
+#   variable COOLIFY_PROD_UUID   uuid de la app de producción (cuando exista)
+# En Coolify, desactivar "Auto Deploy" en esas apps (si no, desplegarían dos veces).
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      ambiente:
+        description: Ambiente
+        type: choice
+        options: [qa, produccion]
+        default: qa
+  push:
+    branches: [qa]
+
+concurrency:
+  group: deploy-${{ inputs.ambiente || 'qa' }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validar
+        id: cfg
+        env:
+          AMBIENTE: ${{ inputs.ambiente || 'qa' }}
+          RAMA: ${{ github.ref_name }}
+          QA_UUID: ${{ vars.COOLIFY_QA_UUID }}
+          PROD_UUID: ${{ vars.COOLIFY_PROD_UUID }}
+        run: |
+          if [[ "$AMBIENTE" == "produccion" ]]; then
+            if [[ "$RAMA" != "main" ]]; then
+              echo "::error::Producción solo se despliega desde main (elegiste '$RAMA')."
+              exit 1
+            fi
+            uuid="$PROD_UUID"
+          else
+            uuid="$QA_UUID"
+          fi
+          if [[ -z "$uuid" ]]; then
+            echo "::error::Falta la variable del uuid de Coolify para '$AMBIENTE'."
+            exit 1
+          fi
+          echo "uuid=$uuid" >> "$GITHUB_OUTPUT"
+          echo "### Desplegando \`$RAMA\` en **$AMBIENTE**" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Apuntar la app a la rama
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          APP_UUID: ${{ steps.cfg.outputs.uuid }}
+          RAMA: ${{ github.ref_name }}
+        run: |
+          curl -fsS --retry 3 -X PATCH \
+            -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg b "$RAMA" '{git_branch: $b}')" \
+            "${COOLIFY_URL%/}/api/v1/applications/${APP_UUID}"
+
+      - name: Desplegar
+        env:
+          COOLIFY_TOKEN: ${{ secrets.COOLIFY_TOKEN }}
+          COOLIFY_URL: ${{ vars.COOLIFY_URL }}
+          APP_UUID: ${{ steps.cfg.outputs.uuid }}
+        run: |
+          curl -fsS --retry 3 -X POST \
+            -H "Authorization: Bearer ${COOLIFY_TOKEN}" \
+            "${COOLIFY_URL%/}/api/v1/deploy?uuid=${APP_UUID}&force=false"
+          echo "Seguimiento: ${COOLIFY_URL%/} → proyecto gymapp → Deployments" >> "$GITHUB_STEP_SUMMARY"
