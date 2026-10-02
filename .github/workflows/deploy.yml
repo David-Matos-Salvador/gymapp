@@ -1,10 +1,8 @@
 # Despliegues a través de Coolify (equivalente a los pipelines de Bitbucket).
 #
 # QA
-#   - Manual: Actions → "Deploy" → Run workflow → "Use workflow from" = rama a desplegar.
-#   - Automático: cada push a la rama qa.
-#   El último deploy gana: si se despliega una rama suelta y luego llega un push a qa,
-#   QA vuelve a mostrar qa.
+#   - Solo manual: Actions → "Deploy" → Run workflow → "Use workflow from" = rama a desplegar
+#     (cualquier rama: main, feat/…, fix/…). QA muestra la última rama desplegada.
 #
 # Producción
 #   - Solo automático al publicar un tag vX.Y.Z hecho sobre main:
@@ -16,13 +14,12 @@
 #   variable COOLIFY_URL         https://coolify.davidmatos.lat
 #   variable COOLIFY_QA_UUID     uuid de la app de QA en Coolify (aparece en su URL)
 #   variable COOLIFY_PROD_UUID   uuid de la app de producción (cuando exista)
-# En Coolify, desactivar "Auto Deploy" en esas apps (si no, desplegarían dos veces).
+# En Coolify, desactivar "Auto Deploy" en esas apps: los deploys los decide este workflow.
 name: Deploy
 
 on:
   workflow_dispatch:
   push:
-    branches: [qa]
     tags: ['v*.*.*']
 
 concurrency:
