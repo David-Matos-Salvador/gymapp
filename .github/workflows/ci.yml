@@ -1,12 +1,16 @@
 name: CI
 on:
   push:
-    branches: [main]
+    branches: [main, qa]
   pull_request:
-    branches: [main]
+    branches: [main, qa]
 jobs:
   test:
     runs-on: ubuntu-latest
+    # prisma.config.ts exige DATABASE_URL incluso para `prisma generate`.
+    env:
+      DATABASE_URL: postgresql://test:test@localhost:5432/test
+      AUTH_SECRET: test-secret
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,6 +21,3 @@ jobs:
       - run: npx prisma generate
       - run: npm run lint
       - run: npm run test
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
-          AUTH_SECRET: test-secret
