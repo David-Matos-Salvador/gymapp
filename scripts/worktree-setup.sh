@@ -50,7 +50,7 @@ sed -i '' \
 } >> .env.local
 
 DATABASE_URL="$db_url" npx prisma generate
-DATABASE_URL="$db_url" npx prisma db push --force-reset --skip-generate
+DATABASE_URL="$db_url" npx prisma db push --accept-data-loss --force-reset
 DATABASE_URL="$db_url" npx tsx prisma/seed.ts
 
 echo "Worktree listo:"
