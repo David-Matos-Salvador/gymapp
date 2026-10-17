@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+
+const BOOKING_INCLUDE = {
+  classItem: {
+    include: { trainer: { select: { name: true } } },
+  },
+} as const
+
+// Explicit bounds so a stuck lock/transaction fails fast instead of hanging the request.
+const TRANSACTION_OPTIONS = { maxWait: 10_000, timeout: 15_000 } as const
 
 export async function POST(request: Request) {
   const session = await auth()
@@ -13,62 +23,88 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
-  const body = await request.json()
-  const { classId } = body
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: "Cuerpo inválido" }, { status: 400 })
+  }
+
+  const classId = (body as { classId?: unknown } | null)?.classId
+  if (typeof classId !== "string" || classId.trim().length === 0) {
+    return NextResponse.json({ error: "classId es requerido" }, { status: 400 })
+  }
 
   if (user.role === "MEMBER") {
     const membership = await prisma.membership.findFirst({
-      where: { userId: user.id },
+      where: {
+        userId: user.id,
+        status: "ACTIVE",
+        endDate: { gt: new Date() },
+        paymentConfirmed: true,
+      },
       orderBy: { endDate: "desc" },
     })
-    const isActive =
-      membership &&
-      membership.status === "ACTIVE" &&
-      membership.endDate &&
-      new Date(membership.endDate) > new Date()
-    if (!isActive) {
+    if (!membership) {
       return NextResponse.json(
-        { error: "Necesitas una membresía activa para reservar una clase" },
+        { error: "Necesitas una membresía activa y confirmada para reservar una clase" },
         { status: 403 }
       )
     }
   }
 
-  const classItem = await prisma.class.findUnique({ where: { id: classId } })
-  if (!classItem) {
-    return NextResponse.json({ error: "Clase no encontrada" }, { status: 404 })
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Pessimistic lock on the class row: every capacity check for this class
+      // is serialized, so concurrent requests cannot both observe a free seat.
+      const locked = await tx.$queryRaw<Array<{ id: string; capacity: number }>>`
+        SELECT id, capacity FROM "Class" WHERE id = ${classId} FOR UPDATE
+      `
+      if (locked.length === 0) {
+        return { status: 404, body: { error: "Clase no encontrada" } }
+      }
+      const capacity = locked[0].capacity
+
+      const existing = await tx.booking.findUnique({
+        where: { userId_classId: { userId: user.id, classId } },
+      })
+
+      if (existing && (existing.status === "CONFIRMED" || existing.status === "ATTENDED")) {
+        return { status: 409, body: { error: "Ya tienes una reserva en esta clase" } }
+      }
+
+      const confirmedCount = await tx.booking.count({
+        where: { classId, status: "CONFIRMED" },
+      })
+      if (confirmedCount >= capacity) {
+        return { status: 409, body: { error: "Clase llena" } }
+      }
+
+      if (existing) {
+        // A cancelled booking is reused instead of inserted, preserving
+        // @@unique([userId, classId]) and avoiding P2002 on re-booking.
+        const booking = await tx.booking.update({
+          where: { id: existing.id },
+          data: { status: "CONFIRMED" },
+          include: BOOKING_INCLUDE,
+        })
+        return { status: 201, body: { booking } }
+      }
+
+      const booking = await tx.booking.create({
+        data: { userId: user.id, classId, status: "CONFIRMED" },
+        include: BOOKING_INCLUDE,
+      })
+      return { status: 201, body: { booking } }
+    }, TRANSACTION_OPTIONS)
+
+    return NextResponse.json(result.body, { status: result.status })
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ error: "Ya tienes una reserva en esta clase" }, { status: 409 })
+    }
+    throw error
   }
-
-  const existingBooking = await prisma.booking.findFirst({
-    where: { userId: user.id, classId, status: "CONFIRMED" },
-  })
-
-  if (existingBooking) {
-    return NextResponse.json({ error: "Ya tienes una reserva en esta clase" }, { status: 409 })
-  }
-
-  const confirmedCount = await prisma.booking.count({
-    where: { classId, status: "CONFIRMED" },
-  })
-
-  if (confirmedCount >= classItem.capacity) {
-    return NextResponse.json({ error: "Clase llena" }, { status: 409 })
-  }
-
-  const booking = await prisma.booking.create({
-    data: {
-      userId: user.id,
-      classId,
-      status: "CONFIRMED",
-    },
-    include: {
-      classItem: {
-        include: { trainer: { select: { name: true } } },
-      },
-    },
-  })
-
-  return NextResponse.json({ booking }, { status: 201 })
 }
 
 export async function DELETE(request: Request) {
