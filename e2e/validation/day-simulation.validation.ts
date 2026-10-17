@@ -403,6 +403,17 @@ test.afterAll(async () => {
       file: "src/components/ui/card.tsx",
       fix: "Renderizar CardTitle como h2 (o exponer asChild) y usar h1 en títulos de página.",
     },
+    {
+      id: "F-11",
+      severity: "Alta",
+      area: "Auth / API",
+      title: "IDOR: cualquier usuario autenticado puede modificar membresías ajenas",
+      detail:
+        "PATCH /api/memberships/[id] solo valida que haya sesión; no verifica rol ni ownership. Un MEMBER puede cambiar status/paymentConfirmed de la membresía de otro usuario.",
+      evidence: "Paso auth-idor-membership: Carlos modifica la membresía de Ana",
+      file: "src/app/api/memberships/[id]/route.ts",
+      fix: "Exigir ADMIN/SUPER_ADMIN para cambios arbitrarios; si se permite auto-renovación, limitarla a la propia membresía y nunca aceptar paymentConfirmed=true desde el cliente.",
+    },
   ]
 
   const report = {
@@ -670,6 +681,30 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       const trainer = requireSession("trainer")
       await visit(trainer.page, "/admin")
       await expect(trainer.page).not.toHaveURL(/\/admin/, { timeout: 20_000 })
+    }
+  )
+
+  await runStep(
+    "auth-idor-membership",
+    {
+      phase: "06:40 Apertura",
+      role: "carlos",
+      expected: "Un miembro no puede modificar la membresía de otro usuario",
+    },
+    requireSession("carlos").page,
+    async () => {
+      const anaMembership = await getMembership(USERS.ana)
+      if (!anaMembership) throw new Error("Ana no tiene membresía para probar el IDOR")
+
+      const response = await requireSession("carlos").page.request.patch(
+        `/api/memberships/${anaMembership.id}`,
+        { data: { paymentConfirmed: true } }
+      )
+      if (response.status() !== 403 && response.status() !== 401) {
+        throw new Error(
+          `PATCH de una membresía ajena devolvió ${response.status()}; se esperaba 403/401 (IDOR)`
+        )
+      }
     }
   )
 
