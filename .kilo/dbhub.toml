@@ -1,0 +1,13 @@
+[[sources]]
+id = "gymdb"
+description = "Base de datos local de gym-app (solo lectura)"
+dsn = "${DATABASE_URL}"
+lazy = true
+connection_timeout = 10
+query_timeout = 15
+
+[[tools]]
+name = "execute_sql"
+source = "gymdb"
+readonly = true
+max_rows = 200
