@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatDate } from "@/lib/utils"
+import { canRenewMembership } from "@/lib/membership-status"
 
 interface MembershipPlan {
   name: string
@@ -79,27 +80,18 @@ export function MembershipCard({ membership }: MembershipCardProps) {
   } = membership
   const statusInfo = statusConfig[status] ?? { label: status, variant: "outline" as const }
   const PaymentIcon = paymentMethodIcons[paymentMethod] ?? CreditCard
-  const isExpired = status === "EXPIRED" || (status === "ACTIVE" && new Date(endDate) < new Date())
+  const renewable = canRenewMembership({ status, endDate, paymentConfirmed })
   const router = useRouter()
   const [renewing, setRenewing] = useState(false)
 
   async function handleRenew() {
     setRenewing(true)
     try {
-      const planDays = plan.durationDays
-      const start = new Date()
-      const end = new Date(start)
-      end.setDate(end.getDate() + planDays)
-
+      // D-01/D-08: server-calculated renewal for the authenticated owner only.
       const res = await fetch(`/api/memberships/${membership.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: "ACTIVE",
-          paymentConfirmed: false,
-          startDate: start.toISOString(),
-          endDate: end.toISOString(),
-        }),
+        body: JSON.stringify({ renew: true }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -171,7 +163,7 @@ export function MembershipCard({ membership }: MembershipCardProps) {
           )}
         </div>
 
-        {isExpired && (
+        {renewable && (
           <Button
             variant="outline"
             size="sm"

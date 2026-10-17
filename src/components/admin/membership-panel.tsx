@@ -18,6 +18,11 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatDate } from "@/lib/utils"
+import {
+  canRenewMembership,
+  getMembershipStatusLabel,
+  getMembershipTab,
+} from "@/lib/membership-status"
 
 interface MembershipUser {
   id: string
@@ -69,11 +74,11 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState<string | null>(null)
 
-  const pending = data.filter((m) => m.status === "ACTIVE" && !m.paymentConfirmed)
-  const active = data.filter((m) => m.status === "ACTIVE" && m.paymentConfirmed)
-  const expired = data.filter(
-    (m) => m.status === "EXPIRED" || (m.status === "ACTIVE" && new Date(m.endDate) < new Date())
-  )
+  // D-02: every membership belongs to exactly one tab.
+  const now = new Date()
+  const pending = data.filter((m) => getMembershipTab(m, now) === "pending")
+  const active = data.filter((m) => getMembershipTab(m, now) === "active")
+  const expired = data.filter((m) => getMembershipTab(m, now) === "expired")
 
   function filterBySearch(list: Membership[]) {
     if (!search.trim()) return list
@@ -113,20 +118,12 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
   async function handleRenew(id: string) {
     setLoading(id)
     play("select")
-    const planDays = data.find((m) => m.id === id)?.plan.durationDays ?? 30
-    const startDate = new Date()
-    const endDate = new Date(startDate)
-    endDate.setDate(endDate.getDate() + planDays)
 
+    // D-01: the server calculates the renewal dates. The client never sends dates.
     const res = await fetch(`/api/memberships/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        status: "ACTIVE",
-        paymentConfirmed: false,
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
-      }),
+      body: JSON.stringify({ renew: true }),
     })
     if (res.ok) {
       const json = await res.json()
@@ -135,8 +132,8 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
           m.id === id
             ? {
                 ...m,
-                status: "ACTIVE",
-                paymentConfirmed: false,
+                status: json.membership.status,
+                paymentConfirmed: json.membership.paymentConfirmed,
                 startDate: json.membership.startDate,
                 endDate: json.membership.endDate,
                 updatedAt: json.membership.updatedAt,
@@ -190,9 +187,20 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
                       <p className="text-xs text-muted-foreground truncate">{m.user.email}</p>
                     </div>
                   </div>
-                  <span className="shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                    {m.plan.name}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                        m.status === "ACTIVE"
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+                          : "border-destructive/30 bg-destructive/10 text-destructive"
+                      }`}
+                    >
+                      {getMembershipStatusLabel(m.status)}
+                    </span>
+                    <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                      {m.plan.name}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
@@ -232,8 +240,7 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
                     </span>
                   ) : null}
 
-                  {(m.status === "EXPIRED" ||
-                    (m.status === "ACTIVE" && new Date(m.endDate) < new Date())) && (
+                  {canRenewMembership(m, now) && (
                     <Button
                       size="xs"
                       variant="outline"
