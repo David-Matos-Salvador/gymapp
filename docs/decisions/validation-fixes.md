@@ -95,3 +95,4 @@ Diferir como limitación conocida. Documentar en `BACKLOG.md`/`FEATURES_PENDIENT
 - El copy del payment form puede cambiar a “Comprobante enviado, pendiente de revisión”; actualizar la aserción del validation solo para reflejar el comportamiento nuevo, sin debilitar la comprobación de `paymentConfirmed=false`.
 - `Payment.membershipId` es follow-up; sin él, resolver la membresía no confirmada por userId y devolver 409 si hay ambigüedad.
 - No commitear `VALIDATION_REPORT.*`, screenshots ni `.env.local` desde los worktrees.
+- Si `npm run db:reset` tarda por carga paralela, resetear la DB aislada manualmente y correr la suite con `VALIDATION_SKIP_RESET=1`. El timeout configurable es `VALIDATION_RESET_TIMEOUT` (default 300s).

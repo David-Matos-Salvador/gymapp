@@ -270,7 +270,7 @@ test.beforeAll(async () => {
     execSync("npm run db:reset", {
       cwd: process.cwd(),
       stdio: "pipe",
-      timeout: 180_000,
+      timeout: Number(process.env.VALIDATION_RESET_TIMEOUT ?? 300_000),
       env: { ...process.env, CI: "1" },
     })
   }
