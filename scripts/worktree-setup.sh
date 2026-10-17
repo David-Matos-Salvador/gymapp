@@ -32,6 +32,14 @@ else
   : > .env.local
 fi
 
+sed -i '' \
+  -e '/^DATABASE_URL=/d' \
+  -e '/^REDIS_URL=/d' \
+  -e '/^AUTH_URL=/d' \
+  -e '/^NEXT_PUBLIC_APP_URL=/d' \
+  -e '/^PORT=/d' \
+  .env.local
+
 {
   echo ""
   echo "DATABASE_URL=${db_url}"
@@ -41,6 +49,7 @@ fi
   echo "PORT=${port}"
 } >> .env.local
 
+DATABASE_URL="$db_url" npx prisma generate
 DATABASE_URL="$db_url" npx prisma db push --force-reset --skip-generate
 DATABASE_URL="$db_url" npx tsx prisma/seed.ts
 
