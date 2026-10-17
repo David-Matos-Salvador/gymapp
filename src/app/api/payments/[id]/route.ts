@@ -41,6 +41,25 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
   const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN"
 
+  // D-07: membership side effects only apply to MEMBERSHIP payments. The
+  // target is the user's unconfirmed membership: 0 means no-op, more than one
+  // is ambiguous and must be rejected.
+  let targetMembershipId: string | null = null
+  if (payment.type === "MEMBERSHIP") {
+    const unconfirmedMemberships = await prisma.membership.findMany({
+      where: { userId: payment.userId, paymentConfirmed: false },
+      select: { id: true },
+      take: 2,
+    })
+    if (unconfirmedMemberships.length > 1) {
+      return NextResponse.json(
+        { error: "Hay más de una membresía sin confirmar para este usuario" },
+        { status: 409 }
+      )
+    }
+    targetMembershipId = unconfirmedMemberships[0]?.id ?? null
+  }
+
   if (action === "CONFIRM") {
     const paymentUser = await prisma.user.findUnique({
       where: { id: payment.userId },
@@ -73,33 +92,50 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const shouldAssignTrainer =
       !paymentUser?.assignedTrainerId && hasAcceptedRequest ? user.id : undefined
 
-    const [updatedPayment] = await prisma.$transaction([
-      prisma.payment.update({
-        where: { id },
+    const updatedPayment = await prisma.$transaction(async (tx) => {
+      // Atomic guard: only a PENDING payment can transition.
+      const claimed = await tx.payment.updateMany({
+        where: { id, status: "PENDING" },
         data: {
           status: "COMPLETED",
           confirmedById: user.id,
           confirmedAt: new Date(),
           notes: notes || null,
         },
-      }),
-      prisma.membership.updateMany({
-        where: { userId: payment.userId, paymentConfirmed: false, status: "ACTIVE" },
-        data: { paymentConfirmed: true },
-      }),
-      ...(shouldAssignTrainer
-        ? [
-            prisma.user.update({
-              where: { id: payment.userId },
-              data: { assignedTrainerId: user.id },
-            }),
-            prisma.trainerRequest.updateMany({
-              where: { clientId: payment.userId, trainerId: user.id, status: "ACCEPTED" },
-              data: { status: "REJECTED", rejectedAt: new Date() },
-            }),
-          ]
-        : []),
-    ])
+      })
+      if (claimed.count === 0) return null
+
+      // Set the one-way gate on the unconfirmed membership, copy the payment
+      // method/reference, and leave status and dates untouched. If there is no
+      // unconfirmed membership, this is a no-op.
+      if (targetMembershipId) {
+        await tx.membership.updateMany({
+          where: { id: targetMembershipId, paymentConfirmed: false },
+          data: {
+            paymentConfirmed: true,
+            paymentMethod: payment.method,
+            paymentRef: payment.reference,
+          },
+        })
+      }
+
+      if (shouldAssignTrainer) {
+        await tx.user.update({
+          where: { id: payment.userId },
+          data: { assignedTrainerId: user.id },
+        })
+        await tx.trainerRequest.updateMany({
+          where: { clientId: payment.userId, trainerId: user.id, status: "ACCEPTED" },
+          data: { status: "REJECTED", rejectedAt: new Date() },
+        })
+      }
+
+      return tx.payment.findUnique({ where: { id } })
+    })
+
+    if (!updatedPayment) {
+      return NextResponse.json({ error: "Este pago ya fue procesado" }, { status: 409 })
+    }
 
     const notificationMessage = shouldAssignTrainer
       ? `Tu comprobante fue verificado. ${user.name || "Tu entrenador"} es ahora tu coach asignado. ¡Tu membresía está activa!`
@@ -121,21 +157,26 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ payment: updatedPayment })
   }
 
-  const [updatedPayment] = await prisma.$transaction([
-    prisma.payment.update({
-      where: { id },
+  // D-07: rejecting never revokes an already-confirmed membership, and an
+  // unconfirmed membership simply stays unconfirmed. Status/dates are not
+  // touched.
+  const updatedPayment = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.payment.updateMany({
+      where: { id, status: "PENDING" },
       data: {
         status: "FAILED",
         confirmedById: user.id,
         confirmedAt: new Date(),
         notes: notes || "Pago rechazado",
       },
-    }),
-    prisma.membership.updateMany({
-      where: { userId: payment.userId, paymentConfirmed: false, status: "ACTIVE" },
-      data: { status: "SUSPENDED" },
-    }),
-  ])
+    })
+    if (claimed.count === 0) return null
+    return tx.payment.findUnique({ where: { id } })
+  })
+
+  if (!updatedPayment) {
+    return NextResponse.json({ error: "Este pago ya fue procesado" }, { status: 409 })
+  }
 
   await prisma.notification.create({
     data: {

@@ -81,28 +81,21 @@ export async function POST(request: Request) {
     }
 
     try {
-      const [payment] = await prisma.$transaction([
-        prisma.payment.create({
-          data: {
-            userId: user.id,
-            amount: membership.plan.price,
-            currency: membership.plan.currency,
-            status: "PENDING",
-            method: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
-            type: "MEMBERSHIP",
-            receiptUrl,
-            reference,
-          },
-        }),
-        prisma.membership.update({
-          where: { id: membershipId },
-          data: {
-            paymentConfirmed: true,
-            paymentMethod: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
-            paymentRef: reference,
-          },
-        }),
-      ])
+      // Payment is the source of truth: uploading a receipt only creates a
+      // PENDING payment. Membership stays untouched until an admin/trainer
+      // reviews and confirms the payment.
+      const payment = await prisma.payment.create({
+        data: {
+          userId: user.id,
+          amount: membership.plan.price,
+          currency: membership.plan.currency,
+          status: "PENDING",
+          method: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
+          type: "MEMBERSHIP",
+          receiptUrl,
+          reference,
+        },
+      })
 
       const acceptedRequest = await prisma.trainerRequest.findFirst({
         where: { clientId: user.id, status: "ACCEPTED" },

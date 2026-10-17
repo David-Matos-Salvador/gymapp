@@ -52,46 +52,35 @@ export function PaymentForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    // Payment is the source of truth: without a receipt there is nothing for
+    // the admin to review, so the form must never confirm the membership by
+    // itself.
+    if (!receiptFile) {
+      toast.error("Adjuntá un comprobante para que tu pago pueda ser revisado")
+      return
+    }
+
     setSubmitting(true)
 
     try {
-      if (receiptFile) {
-        const formData = new FormData()
-        formData.append("file", receiptFile)
-        formData.append("method", method)
-        formData.append("membershipId", membershipId)
-        if (method === "TRANSFER" && reference.trim()) {
-          formData.append("reference", reference.trim())
-        }
-
-        const res = await fetch("/api/payments/receipt", {
-          method: "POST",
-          body: formData,
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error ?? "Error al subir comprobante")
-      } else {
-        const body: Record<string, unknown> = {
-          paymentConfirmed: true,
-          paymentMethod: method,
-        }
-        if (method === "TRANSFER" && reference.trim()) {
-          body.paymentRef = reference.trim()
-        }
-
-        const res = await fetch(`/api/memberships/${membershipId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        })
-        if (!res.ok) {
-          const data = await res.json()
-          throw new Error(data.error ?? "Error al confirmar el pago")
-        }
+      const formData = new FormData()
+      formData.append("file", receiptFile)
+      formData.append("method", method)
+      formData.append("membershipId", membershipId)
+      if (method === "TRANSFER" && reference.trim()) {
+        formData.append("reference", reference.trim())
       }
 
+      const res = await fetch("/api/payments/receipt", {
+        method: "POST",
+        body: formData,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? "Error al subir comprobante")
+
       setSuccess(true)
-      toast.success("Pago confirmado correctamente")
+      toast.success("Comprobante enviado. Pendiente de revisión.")
       onSuccess?.()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al procesar el pago")
@@ -107,9 +96,9 @@ export function PaymentForm({
           <div className="flex size-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
             <CheckCircle2 className="size-6 text-green-600 dark:text-green-400" />
           </div>
-          <p className="text-lg font-semibold text-foreground">Pago confirmado</p>
+          <p className="text-lg font-semibold text-foreground">Comprobante enviado</p>
           <p className="text-sm text-muted-foreground">
-            Tu membresía ha sido activada correctamente.
+            Tu pago quedó pendiente de revisión. La membresía se activará cuando sea confirmado.
           </p>
         </CardContent>
       </Card>
@@ -168,7 +157,7 @@ export function PaymentForm({
           )}
 
           <div className="space-y-1.5">
-            <Label>Comprobante de pago (opcional)</Label>
+            <Label>Comprobante de pago</Label>
             <div className="flex items-center gap-3">
               <Button
                 type="button"

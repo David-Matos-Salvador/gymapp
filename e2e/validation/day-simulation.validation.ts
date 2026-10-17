@@ -1724,7 +1724,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
         buffer: TINY_PNG,
       })
       await valentina.page.getByRole("button", { name: /Confirmar pago/i }).click()
-      await toast(valentina.page, /Pago confirmado correctamente/i)
+      await toast(valentina.page, /Comprobante enviado/i)
 
       const membership = await getMembership(USERS.valentina)
       if (membership?.paymentConfirmed !== false) {
