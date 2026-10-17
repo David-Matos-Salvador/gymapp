@@ -96,3 +96,12 @@ Diferir como limitación conocida. Documentar en `BACKLOG.md`/`FEATURES_PENDIENT
 - `Payment.membershipId` es follow-up; sin él, resolver la membresía no confirmada por userId y devolver 409 si hay ambigüedad.
 - No commitear `VALIDATION_REPORT.*`, screenshots ni `.env.local` desde los worktrees.
 - Si `npm run db:reset` tarda por carga paralela, resetear la DB aislada manualmente y correr la suite con `VALIDATION_SKIP_RESET=1`. El timeout configurable es `VALIDATION_RESET_TIMEOUT` (default 300s).
+
+## Estado de la ronda (2026-10-17)
+
+- Mergeados en `fix/validation-batch-1`: booking race (`e184800`), membresías (`74721a2`), pagos (`0c9071d`).
+- `npm run validate` en integración: 202 tests OK.
+- Validación E2E previa a pagos: 58/60; solo fallaban los dos pasos de pagos.
+- Tras aplicar pagos, la suite volvió a marcar esos dos pasos; los unit tests de pagos pasan. Sospecha: dev server viejo reutilizado o estado del entorno. La verificación final quedó bloqueada por Docker Desktop (I/O errors en la VM; `docker ps` no responde).
+- Próximo paso: reiniciar/resetear Docker, recrear `gymapp_fix_integration` con `scripts/worktree-setup.sh integration 3120 4`, matar cualquier server previo en 3120 y correr `npm run test:validation` con `DATABASE_URL=postgresql://gymuser:gympassword@localhost:5432/gymapp_fix_integration?schema=public`, `PORT=3120` y `NEXT_PUBLIC_APP_URL=http://localhost:3120`.
+
