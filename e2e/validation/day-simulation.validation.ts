@@ -416,6 +416,23 @@ test.afterAll(async () => {
     },
   ]
 
+  const resolveCommits: Record<string, string> = {
+    "F-01": "9f574d8",
+    "F-02": "9f574d8",
+    "F-04": "74721a2",
+    "F-05": "0c9071d",
+    "F-06": "0c9071d",
+    "F-07": "74721a2",
+    "F-08": "3c8a548",
+    "F-09": "e184800",
+    "F-11": "74721a2",
+  }
+
+  const resolvedFindings = knownFindings
+    .filter((finding) => resolveCommits[finding.id])
+    .map((finding) => ({ ...finding, commit: resolveCommits[finding.id] }))
+  const openFindings = knownFindings.filter((finding) => !resolveCommits[finding.id])
+
   const report = {
     runId: RUN_ID,
     startedAt: STARTED_AT,
@@ -426,7 +443,8 @@ test.afterAll(async () => {
     dbAfter,
     results,
     consoleErrors,
-    knownFindings,
+    knownFindings: openFindings,
+    resolvedFindings,
     notValidated: [
       "Google OAuth (requiere una cuenta real de Google)",
       "Stripe checkout y webhook (claves vacías en .env)",
@@ -512,7 +530,7 @@ ${consoleNote}${consoleSection}
 
 ## Hallazgos adicionales
 
-${knownFindings
+${openFindings
   .map(
     (finding) => `### ${finding.id} — ${finding.title}
 
@@ -524,6 +542,12 @@ ${knownFindings
 - **Fix sugerido:** ${finding.fix}
 `
   )
+  .join("\n")}
+
+## Resueltos
+
+${resolvedFindings
+  .map((finding) => `- **${finding.id}** — ${finding.title} (commit \`${finding.commit}\`)`)
   .join("\n")}
 
 ## Notas de cobertura

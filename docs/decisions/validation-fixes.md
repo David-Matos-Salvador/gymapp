@@ -99,7 +99,8 @@ Diferir como limitación conocida. Documentar en `BACKLOG.md`/`FEATURES_PENDIENT
 
 ## Estado de la ronda (2026-10-17)
 
-- Mergeados en `fix/validation-batch-1`: booking race (`e184800`), membresías (`74721a2`), pagos (`0c9071d`).
-- `npm run validate` en integración: 202 tests OK.
-- Validación E2E de la ola 1: **60/60 pasos OK**. La causa de los fallos previos de pagos era un dev server viejo; con `.next` limpio y la DB re-seedeada, los dos pasos pasaron.
-- Quedan para la ola 2: **F-08** (500 intermitente en onboarding), **F-01** (login GET), **F-02** (warnings de Recharts); F-03 y F-10 siguen diferidos.
+- Mergeados en `fix/validation-batch-1`: booking race (`e184800`), membresías (`74721a2`), pagos (`0c9071d`), onboarding (`3c8a548`), hardening (`9f574d8`).
+- `npm run validate` en integración: 204 tests OK.
+- Validación final E2E de integración: **60/60 pasos OK**.
+- Resueltos: **F-01, F-02, F-04, F-05, F-06, F-07, F-08, F-09, F-11**.
+- Abiertos/diferidos: **F-03** (historial de entrenamientos placeholder) y **F-10** (CardTitle sin heading semántico).
