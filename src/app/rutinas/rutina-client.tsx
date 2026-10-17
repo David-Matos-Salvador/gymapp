@@ -93,27 +93,37 @@ export function RutinaClient({
   }
 
   const inProgressSplitId =
-    inProgressState.splitId && inProgressState.phase !== "prepare" && inProgressState.phase !== "done"
+    inProgressState.splitId &&
+    inProgressState.phase !== "prepare" &&
+    inProgressState.phase !== "done"
       ? inProgressState.splitId
       : null
 
   const hasActiveWorkout =
-    inProgressSplitId !== null &&
-    splits.some((s) => s.id === inProgressSplitId)
+    inProgressSplitId !== null && splits.some((s) => s.id === inProgressSplitId)
 
   const sortedSplits = useMemo(() => {
     if (!propuestoSplitId) return splits
     let proposed: (typeof splits)[number] | undefined
     const rest: typeof splits = []
     for (const s of splits) {
-      if (s.id === propuestoSplitId) { proposed = s } else { rest.push(s) }
+      if (s.id === propuestoSplitId) {
+        proposed = s
+      } else {
+        rest.push(s)
+      }
     }
     return proposed ? [proposed, ...rest] : splits
   }, [splits, propuestoSplitId])
 
   function getSplitVariant(splitId: string) {
-    if (inProgressSplitId === splitId) return { variant: "in-progress" as const, completedExerciseCount: inProgressState.completedExerciseIds.length }
-    if (hasActiveWorkout && inProgressState.splitId !== splitId) return { variant: "locked" as const }
+    if (inProgressSplitId === splitId)
+      return {
+        variant: "in-progress" as const,
+        completedExerciseCount: inProgressState.completedExerciseIds.length,
+      }
+    if (hasActiveWorkout && inProgressState.splitId !== splitId)
+      return { variant: "locked" as const }
     if (propuestoSplitId === splitId) return { variant: "proposed" as const }
     return { variant: "default" as const }
   }
@@ -125,9 +135,7 @@ export function RutinaClient({
       animate={{ opacity: 1, y: 0 }}
     >
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Hola, {userName}
-        </h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Hola, {userName}</h1>
         <p className="text-muted-foreground">{planName}</p>
       </div>
 
@@ -186,12 +194,11 @@ export function RutinaClient({
       {weeklyStreak > 0 && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2.5 py-1 text-xs font-semibold text-accent-yellow">
-            🔥 {weeklyStreak} semana{weeklyStreak !== 1 ? "s" : ""} seguida{weeklyStreak !== 1 ? "s" : ""}
+            🔥 {weeklyStreak} semana{weeklyStreak !== 1 ? "s" : ""} seguida
+            {weeklyStreak !== 1 ? "s" : ""}
           </span>
           {bestStreak > weeklyStreak && (
-            <span className="text-xs text-muted-foreground/60">
-              (récord: {bestStreak})
-            </span>
+            <span className="text-xs text-muted-foreground/60">(récord: {bestStreak})</span>
           )}
         </div>
       )}

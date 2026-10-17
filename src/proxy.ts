@@ -44,17 +44,15 @@ export async function proxy(request: NextRequest) {
 
   const role = (session.user as { role?: string }).role
   const isGymOwner = (session.user as { isGymOwner?: boolean }).isGymOwner
-  const onboardingCompleted = (session.user as {
-    onboardingCompleted?: boolean
-  }).onboardingCompleted
+  const onboardingCompleted = (
+    session.user as {
+      onboardingCompleted?: boolean
+    }
+  ).onboardingCompleted
 
   // ----- Onboarding gate (MEMBER only) -----
   // Members who haven't completed onboarding must go through /onboarding
-  if (
-    role === "MEMBER" &&
-    !onboardingCompleted &&
-    !pathname.startsWith("/onboarding")
-  ) {
+  if (role === "MEMBER" && !onboardingCompleted && !pathname.startsWith("/onboarding")) {
     return NextResponse.redirect(new URL("/onboarding", request.url))
   }
 
@@ -76,7 +74,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|icons|manifest).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|icons|manifest).*)"],
 }

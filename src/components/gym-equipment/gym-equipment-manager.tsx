@@ -212,21 +212,23 @@ export function GymEquipmentManager({
                   className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${active ? "bg-card" : "bg-muted/30"}`}
                 >
                   <div className="min-w-0">
-                    <p className={`text-sm font-medium ${active ? "" : "text-muted-foreground line-through"}`}>
+                    <p
+                      className={`text-sm font-medium ${active ? "" : "text-muted-foreground line-through"}`}
+                    >
                       {item.name}
                     </p>
                   </div>
                   <Button
                     variant={active ? "default" : "outline"}
                     size="sm"
-                    className={active ? "bg-accent-yellow text-black hover:bg-accent-yellow/80 shrink-0" : "shrink-0"}
+                    className={
+                      active
+                        ? "bg-accent-yellow text-black hover:bg-accent-yellow/80 shrink-0"
+                        : "shrink-0"
+                    }
                     onClick={() => onToggleEquipment(item.id, !active)}
                   >
-                    {active ? (
-                      <Power className="h-4 w-4" />
-                    ) : (
-                      <PowerOff className="h-4 w-4" />
-                    )}
+                    {active ? <Power className="h-4 w-4" /> : <PowerOff className="h-4 w-4" />}
                   </Button>
                 </div>
               )
@@ -283,11 +285,7 @@ export function GymEquipmentManager({
               <Card className="h-full hover:shadow-md transition-all">
                 {item.imageUrl && (
                   <div className="relative">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      className="h-40 w-full object-cover"
-                    />
+                    <img src={item.imageUrl} alt={item.name} className="h-40 w-full object-cover" />
                     {showMachineNumbers && item.machineNumber != null && (
                       <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center shadow-md">
                         {item.machineNumber}
@@ -356,13 +354,16 @@ export function GymEquipmentManager({
         </div>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={(open) => {
-        setDialogOpen(open)
-        if (!open) {
-          setEditingId(null)
-          resetForm()
-        }
-      }}>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open)
+          if (!open) {
+            setEditingId(null)
+            resetForm()
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingId ? "Editar equipo" : "Agregar equipo"}</DialogTitle>
@@ -417,10 +418,7 @@ export function GymEquipmentManager({
             </div>
             <div className="space-y-2">
               <Label htmlFor="equipExercise">Ejercicio vinculado</Label>
-              <Select
-                value={formExerciseId}
-                onValueChange={setFormExerciseId}
-              >
+              <Select value={formExerciseId} onValueChange={setFormExerciseId}>
                 <SelectTrigger id="equipExercise" className="w-full">
                   <SelectValue placeholder="Seleccionar ejercicio..." />
                 </SelectTrigger>
@@ -448,10 +446,7 @@ export function GymEquipmentManager({
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button
-              onClick={handleSave}
-              disabled={saving || !formName.trim()}
-            >
+            <Button onClick={handleSave} disabled={saving || !formName.trim()}>
               {saving ? "Guardando..." : editingId ? "Guardar cambios" : "Guardar"}
             </Button>
           </DialogFooter>

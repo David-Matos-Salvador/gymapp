@@ -16,7 +16,7 @@ describe("Button", () => {
 
   it("renders a button element with default variant and size", () => {
     const html = renderToString(React.createElement(Button, null, "Click me"))
-    expect(html).toContain('<button')
+    expect(html).toContain("<button")
     expect(html).toContain('data-slot="button"')
     expect(html).toContain('data-variant="default"')
     expect(html).toContain('data-size="default"')
@@ -25,7 +25,7 @@ describe("Button", () => {
 
   it("renders with custom variant and size", () => {
     const html = renderToString(
-      React.createElement(Button, { variant: "destructive", size: "lg" }, "Delete"),
+      React.createElement(Button, { variant: "destructive", size: "lg" }, "Delete")
     )
     expect(html).toContain('data-variant="destructive"')
     expect(html).toContain('data-size="lg"')
@@ -33,9 +33,7 @@ describe("Button", () => {
   })
 
   it("renders as a Slot when asChild is true", () => {
-    const html = renderToString(
-      React.createElement(Button, { asChild: true }, "Go"),
-    )
+    const html = renderToString(React.createElement(Button, { asChild: true }, "Go"))
     expect(html).not.toContain("<button")
   })
 
@@ -43,9 +41,13 @@ describe("Button", () => {
     const html = renderToString(
       React.createElement(
         Button,
-        { type: "submit" as React.ButtonHTMLAttributes<HTMLButtonElement>["type"], disabled: true, className: "custom-class" },
-        "Submit",
-      ),
+        {
+          type: "submit" as React.ButtonHTMLAttributes<HTMLButtonElement>["type"],
+          disabled: true,
+          className: "custom-class",
+        },
+        "Submit"
+      )
     )
     expect(html).toContain('type="submit"')
     expect(html).toContain("disabled")

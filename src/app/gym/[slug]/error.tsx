@@ -26,7 +26,9 @@ export default function GymError({
         Ocurrió un error al cargar la información del gimnasio.
       </p>
       <div className="flex gap-3">
-        <Button variant="outline" onClick={() => reset()}>Reintentar</Button>
+        <Button variant="outline" onClick={() => reset()}>
+          Reintentar
+        </Button>
         <Button asChild>
           <Link href="/login">Ir al inicio</Link>
         </Button>

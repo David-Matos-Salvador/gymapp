@@ -7,30 +7,30 @@
 
 ## 1. Stack tecnológico
 
-| Capa | Tecnología | Versión |
-|------|-----------|---------|
-| Framework | Next.js 16 (App Router) | 16.2.5 |
-| UI | React 19 + Tailwind CSS v4 + shadcn/ui | — |
-| Lenguaje | TypeScript (strict) | ^5 |
-| ORM | Prisma v7 + PostgreSQL 16 | 7.8.0 |
-| Auth | NextAuth.js v5 (Credentials + Google) | 5.0.0-beta.31 |
-| Validación | Zod | ^4.4 |
-| Forms | react-hook-form | ^7.75 |
-| Animaciones | Framer Motion + Canvas | ^12.38 |
-| Charts | Recharts | ^3.8 |
-| Pagos | Stripe (preparado, modo manual actual) | ^22.1 |
-| Testing | Vitest + Playwright | ^4.1 |
+| Capa        | Tecnología                             | Versión       |
+| ----------- | -------------------------------------- | ------------- |
+| Framework   | Next.js 16 (App Router)                | 16.2.5        |
+| UI          | React 19 + Tailwind CSS v4 + shadcn/ui | —             |
+| Lenguaje    | TypeScript (strict)                    | ^5            |
+| ORM         | Prisma v7 + PostgreSQL 16              | 7.8.0         |
+| Auth        | NextAuth.js v5 (Credentials + Google)  | 5.0.0-beta.31 |
+| Validación  | Zod                                    | ^4.4          |
+| Forms       | react-hook-form                        | ^7.75         |
+| Animaciones | Framer Motion + Canvas                 | ^12.38        |
+| Charts      | Recharts                               | ^3.8          |
+| Pagos       | Stripe (preparado, modo manual actual) | ^22.1         |
+| Testing     | Vitest + Playwright                    | ^4.1          |
 
 ---
 
 ## 2. Tipos de usuario
 
-| Rol | Descripción |
-|-----|-------------|
+| Rol           | Descripción                                                                                                          |
+| ------------- | -------------------------------------------------------------------------------------------------------------------- |
 | `SUPER_ADMIN` | Administrador global de la plataforma. Ve todos los gimnasios, usuarios, ingresos. Puede crear/desactivar gimnasios. |
-| `ADMIN` | Dueño / administrador de un gimnasio específico |
-| `TRAINER` | Entrenador que gestiona clientes, rutinas, seguimiento |
-| `MEMBER` | Cliente final que entrena y registra su progreso |
+| `ADMIN`       | Dueño / administrador de un gimnasio específico                                                                      |
+| `TRAINER`     | Entrenador que gestiona clientes, rutinas, seguimiento                                                               |
+| `MEMBER`      | Cliente final que entrena y registra su progreso                                                                     |
 
 ---
 
@@ -93,91 +93,91 @@ src/
 
 ### Usuarios y autenticación
 
-| Modelo | Descripción |
-|--------|-------------|
-| `User` | Usuario con datos personales, perfil, coach asignado, gym |
-| `Account` | NextAuth adapter (Google OAuth) |
-| `Session` | NextAuth adapter (JWT) |
+| Modelo    | Descripción                                               |
+| --------- | --------------------------------------------------------- |
+| `User`    | Usuario con datos personales, perfil, coach asignado, gym |
+| `Account` | NextAuth adapter (Google OAuth)                           |
+| `Session` | NextAuth adapter (JWT)                                    |
 
 ### Gimnasio
 
-| Modelo | Descripción |
-|--------|-------------|
-| `Gym` | Gimnasio con nombre, slug, dirección, contacto |
+| Modelo         | Descripción                                               |
+| -------------- | --------------------------------------------------------- |
+| `Gym`          | Gimnasio con nombre, slug, dirección, contacto            |
 | `GymEquipment` | Equipamiento del gym vinculado opcionalmente a ejercicios |
 
 ### Membresías (pago manual LATAM)
 
-| Modelo | Descripción |
-|--------|-------------|
+| Modelo           | Descripción                                                       |
+| ---------------- | ----------------------------------------------------------------- |
 | `MembershipPlan` | Planes de membresía (semanal, mensual, trimestral, anual, diario) |
-| `Membership` | Membresía activa con fechas, estado, pago confirmado |
+| `Membership`     | Membresía activa con fechas, estado, pago confirmado              |
 
 ### Rutinas y entrenamiento
 
-| Modelo | Descripción |
-|--------|-------------|
-| `Routine` | Rutina de ejercicios (asignable a cliente específico) |
-| `Exercise` | Catálogo de ejercicios con grupo muscular, equipo, datos de animación |
-| `RoutineExercise` | Join table: ejercicios en rutinas con sets/reps/peso |
-| `WorkoutLog` | Registro de entrenamiento completado |
-| `WorkoutSetLog` | Sets individuales con reps, peso, RPE, completado |
+| Modelo            | Descripción                                                           |
+| ----------------- | --------------------------------------------------------------------- |
+| `Routine`         | Rutina de ejercicios (asignable a cliente específico)                 |
+| `Exercise`        | Catálogo de ejercicios con grupo muscular, equipo, datos de animación |
+| `RoutineExercise` | Join table: ejercicios en rutinas con sets/reps/peso                  |
+| `WorkoutLog`      | Registro de entrenamiento completado                                  |
+| `WorkoutSetLog`   | Sets individuales con reps, peso, RPE, completado                     |
 
 ### Seguimiento
 
-| Modelo | Descripción |
-|--------|-------------|
+| Modelo            | Descripción                                  |
+| ----------------- | -------------------------------------------- |
 | `BodyMeasurement` | 18 campos de medidas corporales + peso + IMC |
-| `ProgressPhoto` | Fotos de progreso con categoría y fecha |
-| `CheckIn` | Check-in diario al gimnasio |
+| `ProgressPhoto`   | Fotos de progreso con categoría y fecha      |
+| `CheckIn`         | Check-in diario al gimnasio                  |
 
 ### Clases
 
-| Modelo | Descripción |
-|--------|-------------|
-| `Class` | Clases grupales con horario y capacidad |
-| `Booking` | Reserva de clase por usuario |
+| Modelo    | Descripción                             |
+| --------- | --------------------------------------- |
+| `Class`   | Clases grupales con horario y capacidad |
+| `Booking` | Reserva de clase por usuario            |
 
 ### Transacciones
 
-| Modelo | Descripción |
-|--------|-------------|
-| `Payment` | Pagos (Stripe preparado, modo efectivo/transferencia actual) |
-| `Notification` | Notificaciones del sistema |
+| Modelo         | Descripción                                                  |
+| -------------- | ------------------------------------------------------------ |
+| `Payment`      | Pagos (Stripe preparado, modo efectivo/transferencia actual) |
+| `Notification` | Notificaciones del sistema                                   |
 
 ---
 
 ## 5. API Endpoints
 
-| Endpoint | Method | Auth | Descripción |
-|----------|--------|------|-------------|
-| `/api/auth/[...nextauth]` | GET/POST | No | NextAuth handlers |
-| `/api/auth/register` | POST | No | Registro de usuario |
-| `/api/health` | GET | No | Health check |
-| `/api/exercises` | GET | No | Catálogo de ejercicios |
-| `/api/recommended-routines` | GET | No | Rutinas públicas recomendadas |
-| `/api/routines` | GET/POST | Sí | Listar/Crear rutinas |
-| `/api/routines/[id]` | GET/PATCH/DELETE | Sí | CRUD de rutina |
-| `/api/workout-logs` | GET/POST | Sí | Listar/Registrar entrenamientos |
-| `/api/workout-logs/[id]` | GET/DELETE | Sí | Detalle/Eliminar log |
-| `/api/body-measurements` | GET/POST | Sí | Listar/Registrar mediciones |
-| `/api/body-measurements/[id]` | PATCH/DELETE | Sí | Modificar/Eliminar medición |
-| `/api/check-ins` | GET/POST | Sí | Listar/Check-in diario |
-| `/api/classes` | GET/POST | Parcial | Listar/Crear clases |
-| `/api/bookings` | POST/DELETE | Sí | Reservar/Cancelar clase |
-| `/api/admin/platform` | GET | SUPER_ADMIN | Stats globales de la plataforma |
-| `/api/gyms` | GET/POST | Parcial | Listar/Crear gimnasio |
-| `/api/gym-equipment` | GET/POST | Parcial | Listar/Crear equipo |
-| `/api/gym-equipment/[id]` | PATCH/DELETE | Sí | Modificar/Eliminar equipo |
-| `/api/membership-plans` | GET/POST | Parcial | Listar/Crear planes |
-| `/api/membership-plans/[id]` | PATCH/DELETE | Sí | Modificar/Eliminar plan |
-| `/api/memberships` | GET/POST | Sí | Ver/Asignar membresía |
-| `/api/memberships/[id]` | PATCH | Sí | Actualizar membresía |
-| `/api/members/search` | GET | TRAINER | Buscar miembro por email |
-| `/api/trainer/clients` | GET/POST | TRAINER | Listar/Asignar clientes |
-| `/api/trainer/clients/[id]` | GET/DELETE | TRAINER | Detalle/Desasignar cliente |
-| `/api/coach-profile` | GET/POST | Sí | Perfil del entrenador |
-| `/api/profile` | GET/POST | Sí | Perfil del usuario |
+| Endpoint                      | Method           | Auth        | Descripción                     |
+| ----------------------------- | ---------------- | ----------- | ------------------------------- |
+| `/api/auth/[...nextauth]`     | GET/POST         | No          | NextAuth handlers               |
+| `/api/auth/register`          | POST             | No          | Registro de usuario             |
+| `/api/health`                 | GET              | No          | Health check                    |
+| `/api/exercises`              | GET              | No          | Catálogo de ejercicios          |
+| `/api/recommended-routines`   | GET              | No          | Rutinas públicas recomendadas   |
+| `/api/routines`               | GET/POST         | Sí          | Listar/Crear rutinas            |
+| `/api/routines/[id]`          | GET/PATCH/DELETE | Sí          | CRUD de rutina                  |
+| `/api/workout-logs`           | GET/POST         | Sí          | Listar/Registrar entrenamientos |
+| `/api/workout-logs/[id]`      | GET/DELETE       | Sí          | Detalle/Eliminar log            |
+| `/api/body-measurements`      | GET/POST         | Sí          | Listar/Registrar mediciones     |
+| `/api/body-measurements/[id]` | PATCH/DELETE     | Sí          | Modificar/Eliminar medición     |
+| `/api/check-ins`              | GET/POST         | Sí          | Listar/Check-in diario          |
+| `/api/classes`                | GET/POST         | Parcial     | Listar/Crear clases             |
+| `/api/bookings`               | POST/DELETE      | Sí          | Reservar/Cancelar clase         |
+| `/api/admin/platform`         | GET              | SUPER_ADMIN | Stats globales de la plataforma |
+| `/api/gyms`                   | GET/POST         | Parcial     | Listar/Crear gimnasio           |
+| `/api/gym-equipment`          | GET/POST         | Parcial     | Listar/Crear equipo             |
+| `/api/gym-equipment/[id]`     | PATCH/DELETE     | Sí          | Modificar/Eliminar equipo       |
+| `/api/membership-plans`       | GET/POST         | Parcial     | Listar/Crear planes             |
+| `/api/membership-plans/[id]`  | PATCH/DELETE     | Sí          | Modificar/Eliminar plan         |
+| `/api/memberships`            | GET/POST         | Sí          | Ver/Asignar membresía           |
+| `/api/memberships/[id]`       | PATCH            | Sí          | Actualizar membresía            |
+| `/api/members/search`         | GET              | TRAINER     | Buscar miembro por email        |
+| `/api/trainer/clients`        | GET/POST         | TRAINER     | Listar/Asignar clientes         |
+| `/api/trainer/clients/[id]`   | GET/DELETE       | TRAINER     | Detalle/Desasignar cliente      |
+| `/api/coach-profile`          | GET/POST         | Sí          | Perfil del entrenador           |
+| `/api/profile`                | GET/POST         | Sí          | Perfil del usuario              |
 
 ---
 
@@ -257,16 +257,16 @@ src/
 
 ## 9. Futuras integraciones
 
-| Feature | Estado |
-|---------|--------|
-| Videos de ejercicios embebidos (YouTube/Vimeo) | Campo `videoUrl` listo, UI pendiente |
-| Subida de videos propios (bucket S3/Cloudinary) | Planificado |
-| Canvas animados para todos los ejercicios | 6 ejercicios priorizados, resto pendiente |
-| Stripe pagos automáticos | SDK instalado, endpoints sin implementar |
-| Landing pública por gimnasio con SEO | Modelo Gym con slug, rutas pendientes |
-| Notificaciones push/email | Modelo Notification, sin integración con servicios externos |
-| Multi-idioma (PT-BR para Brasil) | Preparado con labels traducibles |
-| App móvil (React Native) | No iniciado |
+| Feature                                         | Estado                                                      |
+| ----------------------------------------------- | ----------------------------------------------------------- |
+| Videos de ejercicios embebidos (YouTube/Vimeo)  | Campo `videoUrl` listo, UI pendiente                        |
+| Subida de videos propios (bucket S3/Cloudinary) | Planificado                                                 |
+| Canvas animados para todos los ejercicios       | 6 ejercicios priorizados, resto pendiente                   |
+| Stripe pagos automáticos                        | SDK instalado, endpoints sin implementar                    |
+| Landing pública por gimnasio con SEO            | Modelo Gym con slug, rutas pendientes                       |
+| Notificaciones push/email                       | Modelo Notification, sin integración con servicios externos |
+| Multi-idioma (PT-BR para Brasil)                | Preparado con labels traducibles                            |
+| App móvil (React Native)                        | No iniciado                                                 |
 
 ---
 
@@ -287,18 +287,19 @@ El seed (`prisma/seed.ts`) crea datos de prueba realistas para LATAM:
 
 **Credenciales**: todas las cuentas usan password `demo123`
 
-| Email | Rol | Acceso |
-|-------|-----|--------|
+| Email                   | Rol         | Acceso                     |
+| ----------------------- | ----------- | -------------------------- |
 | `superadmin@gymapp.com` | SUPER_ADMIN | Panel global de plataforma |
-| `admin@gymapp.com` | ADMIN | Panel de su gimnasio |
-| `trainer@gymapp.com` | TRAINER | Panel de coach |
-| `carlos@gymapp.com` | MEMBER | Dashboard de entrenamiento |
+| `admin@gymapp.com`      | ADMIN       | Panel de su gimnasio       |
+| `trainer@gymapp.com`    | TRAINER     | Panel de coach             |
+| `carlos@gymapp.com`     | MEMBER      | Dashboard de entrenamiento |
 
 ---
 
 ## 11. Patrones de código
 
 ### Auth en Server Components
+
 ```typescript
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -307,6 +308,7 @@ if (!session?.user?.email) redirect("/login")
 ```
 
 ### Auth en API Routes
+
 ```typescript
 const session = await auth()
 if (!session?.user?.email) {
@@ -316,24 +318,32 @@ const user = await prisma.user.findUnique({ where: { email: session.user.email }
 ```
 
 ### Validación con Zod
+
 ```typescript
 import { z } from "zod"
 const schema = z.object({ name: z.string().min(1), price: z.number().positive() })
 const parsed = schema.safeParse(body)
 if (!parsed.success) {
-  return NextResponse.json({ error: "Datos inválidos", details: parsed.error.flatten().fieldErrors }, { status: 400 })
+  return NextResponse.json(
+    { error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
+    { status: 400 }
+  )
 }
 ```
 
 ### Params en Next.js 16
+
 ```typescript
-interface RouteParams { params: Promise<{ id: string }> }
+interface RouteParams {
+  params: Promise<{ id: string }>
+}
 export async function GET(request: Request, { params }: RouteParams) {
   const { id } = await params
 }
 ```
 
 ### Mutaciones Server Action
+
 ```typescript
 async function deleteRoutine(formData: FormData) {
   "use server"

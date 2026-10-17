@@ -8,31 +8,74 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { StatCard } from "@/components/ui/stat-card"
 import { ProgressChart } from "@/components/charts/progress-chart"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Plus, Scale, Percent, Dumbbell, Activity, TrendingDown, TrendingUp, Minus, History, ChevronDown } from "lucide-react"
+import {
+  Plus,
+  Scale,
+  Percent,
+  Dumbbell,
+  Activity,
+  TrendingDown,
+  TrendingUp,
+  Minus,
+  History,
+  ChevronDown,
+} from "lucide-react"
 import { toast } from "sonner"
 import { useSound } from "@/hooks/use-sound"
 import { cn, formatDate } from "@/lib/utils"
 
 interface BodyMeasurement {
-  id: string; date: string; weight: number | null; height: number | null;
-  bodyFat: number | null; muscleMass: number | null; bmi: number | null;
-  neck: number | null; shoulders: number | null; chest: number | null; waist: number | null;
-  hips: number | null;
-  leftArm: number | null; rightArm: number | null;
-  leftForearm: number | null; rightForearm: number | null;
-  leftThigh: number | null; rightThigh: number | null;
-  leftCalf: number | null; rightCalf: number | null;
+  id: string
+  date: string
+  weight: number | null
+  height: number | null
+  bodyFat: number | null
+  muscleMass: number | null
+  bmi: number | null
+  neck: number | null
+  shoulders: number | null
+  chest: number | null
+  waist: number | null
+  hips: number | null
+  leftArm: number | null
+  rightArm: number | null
+  leftForearm: number | null
+  rightForearm: number | null
+  leftThigh: number | null
+  rightThigh: number | null
+  leftCalf: number | null
+  rightCalf: number | null
 }
 
 const emptyForm = {
-  weight: "", height: "", bodyFat: "", muscleMass: "",
-  neck: "", shoulders: "", chest: "", waist: "", hips: "",
-  leftArm: "", rightArm: "", leftForearm: "", rightForearm: "",
-  leftThigh: "", rightThigh: "", leftCalf: "", rightCalf: "",
+  weight: "",
+  height: "",
+  bodyFat: "",
+  muscleMass: "",
+  neck: "",
+  shoulders: "",
+  chest: "",
+  waist: "",
+  hips: "",
+  leftArm: "",
+  rightArm: "",
+  leftForearm: "",
+  rightForearm: "",
+  leftThigh: "",
+  rightThigh: "",
+  leftCalf: "",
+  rightCalf: "",
 }
 
 const CHART_COLORS = {
@@ -54,7 +97,10 @@ const KEY_METRICS: MetricDef[] = [
   { key: "bmi", label: "IMC", unit: "" },
 ]
 
-function metricValue(m: BodyMeasurement, key: Exclude<keyof BodyMeasurement, "id" | "date">): number | null {
+function metricValue(
+  m: BodyMeasurement,
+  key: Exclude<keyof BodyMeasurement, "id" | "date">
+): number | null {
   if (key === "bmi" && m.bmi == null && m.weight != null && m.height != null) {
     return m.weight / ((m.height / 100) * (m.height / 100))
   }
@@ -112,7 +158,8 @@ export default function ProgressPage() {
 
   useEffect(() => {
     fetch("/api/body-measurements")
-      .then((r) => r.json()).then((d) => setMeasurements(d.measurements ?? []))
+      .then((r) => r.json())
+      .then((d) => setMeasurements(d.measurements ?? []))
       .catch(() => toast.error("Error al cargar mediciones"))
 
     if (new URLSearchParams(window.location.search).has("open")) {
@@ -121,13 +168,18 @@ export default function ProgressPage() {
   }, [])
 
   const bmi = useMemo(() => {
-    const w = parseFloat(form.weight); const h = parseFloat(form.height)
+    const w = parseFloat(form.weight)
+    const h = parseFloat(form.height)
     if (w > 0 && h > 0) return (w / ((h / 100) * (h / 100))).toFixed(1)
     return ""
   }, [form.weight, form.height])
 
-  function updateField(field: string, value: string) { setForm((prev) => ({ ...prev, [field]: value })) }
-  function resetForm() { setForm(emptyForm) }
+  function updateField(field: string, value: string) {
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
+  function resetForm() {
+    setForm(emptyForm)
+  }
 
   async function handleSave() {
     const weight = parseFloat(form.weight) || undefined
@@ -135,35 +187,62 @@ export default function ProgressPage() {
     const bodyFat = parseFloat(form.bodyFat) || undefined
     const muscleMass = parseFloat(form.muscleMass) || undefined
     const bmiVal = bmi ? parseFloat(bmi) : undefined
-    if (!weight && !height && !bodyFat && !muscleMass) { toast.error("Agrega al menos un valor"); return }
+    if (!weight && !height && !bodyFat && !muscleMass) {
+      toast.error("Agrega al menos un valor")
+      return
+    }
     setSaving(true)
     const p = (k: string) => parseFloat(form[k as keyof typeof form]) || undefined
     const res = await fetch("/api/body-measurements", {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        weight, height, bodyFat, muscleMass, bmi: bmiVal,
-        neck: p("neck"), shoulders: p("shoulders"), chest: p("chest"),
-        waist: p("waist"), hips: p("hips"),
-        leftArm: p("leftArm"), rightArm: p("rightArm"),
-        leftForearm: p("leftForearm"), rightForearm: p("rightForearm"),
-        leftThigh: p("leftThigh"), rightThigh: p("rightThigh"),
-        leftCalf: p("leftCalf"), rightCalf: p("rightCalf"),
+        weight,
+        height,
+        bodyFat,
+        muscleMass,
+        bmi: bmiVal,
+        neck: p("neck"),
+        shoulders: p("shoulders"),
+        chest: p("chest"),
+        waist: p("waist"),
+        hips: p("hips"),
+        leftArm: p("leftArm"),
+        rightArm: p("rightArm"),
+        leftForearm: p("leftForearm"),
+        rightForearm: p("rightForearm"),
+        leftThigh: p("leftThigh"),
+        rightThigh: p("rightThigh"),
+        leftCalf: p("leftCalf"),
+        rightCalf: p("rightCalf"),
       }),
     })
     if (res.ok) {
-      play("success"); toast.success("Medición guardada")
-      setDialogOpen(false); resetForm()
+      play("success")
+      toast.success("Medición guardada")
+      setDialogOpen(false)
+      resetForm()
       const data = await fetch("/api/body-measurements").then((r) => r.json())
       setMeasurements(data.measurements ?? [])
-    } else { toast.error("Error al guardar la medición") }
+    } else {
+      toast.error("Error al guardar la medición")
+    }
     setSaving(false)
   }
 
-  const chartData = useMemo(() =>
-    [...measurements].filter((m) => m.weight != null || m.bodyFat != null || m.muscleMass != null)
-      .reverse().map((m) => ({
-        date: formatDate(m.date), weight: m.weight, bodyFat: m.bodyFat, muscleMass: m.muscleMass,
-      })), [measurements])
+  const chartData = useMemo(
+    () =>
+      [...measurements]
+        .filter((m) => m.weight != null || m.bodyFat != null || m.muscleMass != null)
+        .reverse()
+        .map((m) => ({
+          date: formatDate(m.date),
+          weight: m.weight,
+          bodyFat: m.bodyFat,
+          muscleMass: m.muscleMass,
+        })),
+    [measurements]
+  )
 
   const weightPoints = chartData.filter((d) => d.weight != null)
   const hasBodyFatData = chartData.some((d) => d.bodyFat != null)
@@ -176,9 +255,12 @@ export default function ProgressPage() {
     const lastWeight = measurements.find((m) => m.weight != null)?.weight ?? null
     const firstFat = [...measurements].reverse().find((m) => m.bodyFat != null)?.bodyFat ?? null
     const lastFat = measurements.find((m) => m.bodyFat != null)?.bodyFat ?? null
-    const firstMuscle = [...measurements].reverse().find((m) => m.muscleMass != null)?.muscleMass ?? null
+    const firstMuscle =
+      [...measurements].reverse().find((m) => m.muscleMass != null)?.muscleMass ?? null
     const lastMuscle = measurements.find((m) => m.muscleMass != null)?.muscleMass ?? null
-    const withBmi = measurements.find((m) => m.bmi != null || (m.weight != null && m.height != null))
+    const withBmi = measurements.find(
+      (m) => m.bmi != null || (m.weight != null && m.height != null)
+    )
     let bmi = withBmi?.bmi ?? null
     if (bmi == null && withBmi?.weight != null && withBmi?.height != null) {
       bmi = withBmi.weight / ((withBmi.height / 100) * (withBmi.height / 100))
@@ -202,14 +284,24 @@ export default function ProgressPage() {
   }, [weightPoints])
 
   const tableColumns = [
-    { key: "weight", label: "Peso (kg)" }, { key: "height", label: "Altura (cm)" },
-    { key: "bodyFat", label: "% Grasa" }, { key: "muscleMass", label: "Masa musc. (kg)" }, { key: "bmi", label: "IMC" },
-    { key: "neck", label: "Cuello" }, { key: "shoulders", label: "Hombros" },
-    { key: "chest", label: "Pecho" }, { key: "waist", label: "Cintura" }, { key: "hips", label: "Cadera" },
-    { key: "leftArm", label: "Bíceps izq." }, { key: "rightArm", label: "Bíceps der." },
-    { key: "leftForearm", label: "Anteb. izq." }, { key: "rightForearm", label: "Anteb. der." },
-    { key: "leftThigh", label: "Muslo izq." }, { key: "rightThigh", label: "Muslo der." },
-    { key: "leftCalf", label: "Pant. izq." }, { key: "rightCalf", label: "Pant. der." },
+    { key: "weight", label: "Peso (kg)" },
+    { key: "height", label: "Altura (cm)" },
+    { key: "bodyFat", label: "% Grasa" },
+    { key: "muscleMass", label: "Masa musc. (kg)" },
+    { key: "bmi", label: "IMC" },
+    { key: "neck", label: "Cuello" },
+    { key: "shoulders", label: "Hombros" },
+    { key: "chest", label: "Pecho" },
+    { key: "waist", label: "Cintura" },
+    { key: "hips", label: "Cadera" },
+    { key: "leftArm", label: "Bíceps izq." },
+    { key: "rightArm", label: "Bíceps der." },
+    { key: "leftForearm", label: "Anteb. izq." },
+    { key: "rightForearm", label: "Anteb. der." },
+    { key: "leftThigh", label: "Muslo izq." },
+    { key: "rightThigh", label: "Muslo der." },
+    { key: "leftCalf", label: "Pant. izq." },
+    { key: "rightCalf", label: "Pant. der." },
   ] as const
 
   const detailColumns = tableColumns.filter(
@@ -245,7 +337,12 @@ export default function ProgressPage() {
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Progreso</h1>
               <p className="text-muted-foreground">Seguimiento de medidas corporales</p>
             </div>
-            <Button onClick={() => { play("click"); setDialogOpen(true) }}>
+            <Button
+              onClick={() => {
+                play("click")
+                setDialogOpen(true)
+              }}
+            >
               <Plus className="h-4 w-4" /> Nueva medición
             </Button>
           </div>
@@ -280,7 +377,9 @@ export default function ProgressPage() {
             </div>
           </StatCard>
           <StatCard label="IMC" icon={Activity} delay={0.2}>
-            <p className="text-3xl font-bold tabular-nums">{stats.bmi != null ? stats.bmi.toFixed(1) : "-"}</p>
+            <p className="text-3xl font-bold tabular-nums">
+              {stats.bmi != null ? stats.bmi.toFixed(1) : "-"}
+            </p>
             <p className="text-xs text-muted-foreground mt-1">
               {stats.bmiDate ? `Último registro: ${formatDate(stats.bmiDate)}` : "Sin registros"}
             </p>
@@ -309,13 +408,27 @@ export default function ProgressPage() {
               </CardHeader>
               <CardContent>
                 {weightPoints.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">Sin datos de peso registrados</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    Sin datos de peso registrados
+                  </p>
                 ) : (
                   <ProgressChart
                     data={weightPoints}
                     xKey="date"
-                    series={[{ key: "weight", label: "Peso (kg)", color: CHART_COLORS.weight, unit: "kg", showArea: true }]}
-                    referenceLine={avgWeight != null ? { value: avgWeight, label: `Promedio ${avgWeight.toFixed(1)}` } : undefined}
+                    series={[
+                      {
+                        key: "weight",
+                        label: "Peso (kg)",
+                        color: CHART_COLORS.weight,
+                        unit: "kg",
+                        showArea: true,
+                      },
+                    ]}
+                    referenceLine={
+                      avgWeight != null
+                        ? { value: avgWeight, label: `Promedio ${avgWeight.toFixed(1)}` }
+                        : undefined
+                    }
                   />
                 )}
               </CardContent>
@@ -335,10 +448,26 @@ export default function ProgressPage() {
                     xKey="date"
                     series={[
                       ...(hasBodyFatData
-                        ? [{ key: "bodyFat", label: "% Grasa", color: CHART_COLORS.bodyFat, unit: "%", showArea: true }]
+                        ? [
+                            {
+                              key: "bodyFat",
+                              label: "% Grasa",
+                              color: CHART_COLORS.bodyFat,
+                              unit: "%",
+                              showArea: true,
+                            },
+                          ]
                         : []),
                       ...(hasMuscleMassData
-                        ? [{ key: "muscleMass", label: "Masa muscular (kg)", color: CHART_COLORS.muscleMass, unit: "kg", yAxisId: "right" as const }]
+                        ? [
+                            {
+                              key: "muscleMass",
+                              label: "Masa muscular (kg)",
+                              color: CHART_COLORS.muscleMass,
+                              unit: "kg",
+                              yAxisId: "right" as const,
+                            },
+                          ]
                         : []),
                     ]}
                   />
@@ -349,10 +478,14 @@ export default function ProgressPage() {
 
           <TabsContent value="historial" className="mt-6">
             <Card>
-              <CardHeader><CardTitle>Historial de mediciones</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>Historial de mediciones</CardTitle>
+              </CardHeader>
               <CardContent className="space-y-3">
                 {measurements.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">No hay mediciones registradas todavía</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No hay mediciones registradas todavía
+                  </p>
                 ) : (
                   measurements.map((m, i) => {
                     const prev = measurements[i + 1]
@@ -368,24 +501,43 @@ export default function ProgressPage() {
                             <p className="text-sm font-medium">{formatDate(m.date)}</p>
                             <p className="text-xs text-muted-foreground">{relativeDays(m.date)}</p>
                           </div>
-                          <ChevronDown className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", isExpanded && "rotate-180")} />
+                          <ChevronDown
+                            className={cn(
+                              "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                              isExpanded && "rotate-180"
+                            )}
+                          />
                         </button>
 
                         <div className="grid grid-cols-2 gap-2 px-3 pb-3 sm:grid-cols-4">
                           {KEY_METRICS.map((metric) => {
                             const value = metricValue(m, metric.key)
                             const prevValue = prev ? metricValue(prev, metric.key) : null
-                            const delta = value != null && prevValue != null ? value - prevValue : null
+                            const delta =
+                              value != null && prevValue != null ? value - prevValue : null
                             return (
-                              <div key={metric.key} className="rounded-lg bg-muted/50 p-2 text-center">
-                                <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{metric.label}</p>
+                              <div
+                                key={metric.key}
+                                className="rounded-lg bg-muted/50 p-2 text-center"
+                              >
+                                <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                                  {metric.label}
+                                </p>
                                 <p className="mt-0.5 text-sm font-bold tabular-nums">
                                   {value != null ? value.toFixed(1) : "-"}
-                                  {metric.unit && <span className="ml-0.5 text-[10px] font-normal text-muted-foreground">{metric.unit}</span>}
+                                  {metric.unit && (
+                                    <span className="ml-0.5 text-[10px] font-normal text-muted-foreground">
+                                      {metric.unit}
+                                    </span>
+                                  )}
                                 </p>
                                 {delta != null && delta !== 0 && (
                                   <p className="mt-0.5 flex items-center justify-center gap-0.5 text-[10px] text-muted-foreground tabular-nums">
-                                    {delta < 0 ? <TrendingDown className="h-2.5 w-2.5" /> : <TrendingUp className="h-2.5 w-2.5" />}
+                                    {delta < 0 ? (
+                                      <TrendingDown className="h-2.5 w-2.5" />
+                                    ) : (
+                                      <TrendingUp className="h-2.5 w-2.5" />
+                                    )}
                                     {delta > 0 ? "+" : ""}
                                     {delta.toFixed(1)}
                                   </p>
@@ -400,9 +552,14 @@ export default function ProgressPage() {
                             {detailColumns.map((col) => {
                               const v = m[col.key]
                               return (
-                                <div key={col.key} className="flex items-baseline justify-between gap-2">
+                                <div
+                                  key={col.key}
+                                  className="flex items-baseline justify-between gap-2"
+                                >
                                   <span className="text-xs text-muted-foreground">{col.label}</span>
-                                  <span className="text-xs font-medium tabular-nums">{v != null ? v : "-"}</span>
+                                  <span className="text-xs font-medium tabular-nums">
+                                    {v != null ? v : "-"}
+                                  </span>
                                 </div>
                               )
                             })}
@@ -421,25 +578,53 @@ export default function ProgressPage() {
           <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Nueva medición</DialogTitle>
-              <DialogDescription>Registra tus medidas corporales. Deja en blanco los campos que no necesites.</DialogDescription>
+              <DialogDescription>
+                Registra tus medidas corporales. Deja en blanco los campos que no necesites.
+              </DialogDescription>
             </DialogHeader>
             <div className="grid grid-cols-2 gap-4">
               {measurementFields.map((field) => (
                 <div key={field.key} className="space-y-1.5">
                   <Label htmlFor={field.key}>{field.label}</Label>
-                  <Input id={field.key} type="number" step={field.step} min={0} placeholder="-"
-                    value={form[field.key as keyof typeof form]} onChange={(e) => updateField(field.key, e.target.value)} />
+                  <Input
+                    id={field.key}
+                    type="number"
+                    step={field.step}
+                    min={0}
+                    placeholder="-"
+                    value={form[field.key as keyof typeof form]}
+                    onChange={(e) => updateField(field.key, e.target.value)}
+                  />
                 </div>
               ))}
               <div className="space-y-1.5">
                 <Label htmlFor="bmi">IMC</Label>
-                <Input id="bmi" value={bmi} readOnly className="bg-muted" placeholder="Auto-calculado" />
-                <p className="text-[10px] text-muted-foreground">Se calcula automáticamente con peso y altura</p>
+                <Input
+                  id="bmi"
+                  value={bmi}
+                  readOnly
+                  className="bg-muted"
+                  placeholder="Auto-calculado"
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Se calcula automáticamente con peso y altura
+                </p>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => { play("click"); setDialogOpen(false); resetForm() }}>Cancelar</Button>
-              <Button onClick={handleSave} disabled={saving}>{saving ? "Guardando..." : "Guardar"}</Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  play("click")
+                  setDialogOpen(false)
+                  resetForm()
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "Guardando..." : "Guardar"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

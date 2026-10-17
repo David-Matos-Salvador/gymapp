@@ -7,7 +7,13 @@ vi.mock("react", () => ({
 }))
 
 vi.mock("@/stores/settings-store")
-vi.mock("@/lib/sounds")
+vi.mock("@/lib/sounds", () => ({
+  sounds: {
+    click: vi.fn(),
+    success: vi.fn(),
+    restStart: vi.fn(),
+  },
+}))
 
 import { useSound } from "../use-sound"
 
@@ -16,12 +22,9 @@ describe("useSound", () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(sounds).click = vi.fn()
-    vi.mocked(sounds).success = vi.fn()
-    vi.mocked(sounds).restStart = vi.fn()
-    vi.mocked(useSettingsStore as unknown as (selector: (s: unknown) => unknown) => unknown).mockImplementation(
-      (selector) => selector({ soundEnabled: mockSoundEnabled() })
-    )
+    vi.mocked(
+      useSettingsStore as unknown as (selector: (s: unknown) => unknown) => unknown
+    ).mockImplementation((selector) => selector({ soundEnabled: mockSoundEnabled() }))
   })
 
   it("returns play as a function", () => {
@@ -35,8 +38,7 @@ describe("useSound", () => {
 
   it("calls the sound function when soundEnabled is true", () => {
     mockSoundEnabled.mockReturnValue(true)
-    const clickSound = vi.fn()
-    vi.mocked(sounds).click = clickSound
+    const clickSound = vi.mocked(sounds.click)
 
     const { play } = useSound()
     play("click")
@@ -46,8 +48,7 @@ describe("useSound", () => {
 
   it("does not call the sound function when soundEnabled is false", () => {
     mockSoundEnabled.mockReturnValue(false)
-    const clickSound = vi.fn()
-    vi.mocked(sounds).click = clickSound
+    const clickSound = vi.mocked(sounds.click)
 
     const { play } = useSound()
     play("click")
@@ -57,10 +58,8 @@ describe("useSound", () => {
 
   it("can play different sound types", () => {
     mockSoundEnabled.mockReturnValue(true)
-    const successSound = vi.fn()
-    const restStartSound = vi.fn()
-    vi.mocked(sounds).success = successSound
-    vi.mocked(sounds).restStart = restStartSound
+    const successSound = vi.mocked(sounds.success)
+    const restStartSound = vi.mocked(sounds.restStart)
 
     const { play } = useSound()
     play("success")

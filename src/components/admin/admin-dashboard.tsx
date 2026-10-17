@@ -88,9 +88,14 @@ export function AdminDashboard({
           </Link>
           {stats.pendingPayments > 0 && (
             <Link href="/coach/payments">
-              <Button variant="outline" size="sm" className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/10">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
+              >
                 <Clock className="size-4" />
-                {stats.pendingPayments} {stats.pendingPayments === 1 ? "pago pendiente" : "pagos pendientes"}
+                {stats.pendingPayments}{" "}
+                {stats.pendingPayments === 1 ? "pago pendiente" : "pagos pendientes"}
                 <ArrowRight className="size-3" />
               </Button>
             </Link>
@@ -118,12 +123,7 @@ export function AdminDashboard({
           suffix="este mes"
           delay={0.1}
         />
-        <StatCard
-          label="Total miembros"
-          value={stats.totalMembers}
-          icon={Users}
-          delay={0.15}
-        />
+        <StatCard label="Total miembros" value={stats.totalMembers} icon={Users} delay={0.15} />
       </div>
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-3">
@@ -155,7 +155,11 @@ export function AdminDashboard({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <div className="flex items-center gap-2">
@@ -163,7 +167,9 @@ export function AdminDashboard({
                 <CardTitle className="text-base">Membresías por vencer</CardTitle>
               </div>
               {expiringMemberships.length > 0 && (
-                <Badge variant="secondary" className="text-xs">{expiringMemberships.length}</Badge>
+                <Badge variant="secondary" className="text-xs">
+                  {expiringMemberships.length}
+                </Badge>
               )}
             </CardHeader>
             <CardContent className="space-y-2">
@@ -181,7 +187,9 @@ export function AdminDashboard({
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs text-muted-foreground">Vence</p>
-                      <p className="text-sm font-medium text-accent-yellow">{formatDate(m.endDate)}</p>
+                      <p className="text-sm font-medium text-accent-yellow">
+                        {formatDate(m.endDate)}
+                      </p>
                     </div>
                   </div>
                 ))
@@ -190,7 +198,11 @@ export function AdminDashboard({
           </Card>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
           <Card className="h-full">
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -204,7 +216,10 @@ export function AdminDashboard({
               ) : (
                 <>
                   {recentWorkouts.slice(0, 4).map((w, i) => (
-                    <div key={`w-${w.id}-${i}`} className="flex items-center gap-3 rounded-lg border p-3">
+                    <div
+                      key={`w-${w.id}-${i}`}
+                      className="flex items-center gap-3 rounded-lg border p-3"
+                    >
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
                         <Dumbbell className="h-4 w-4 text-accent-yellow" />
                       </div>

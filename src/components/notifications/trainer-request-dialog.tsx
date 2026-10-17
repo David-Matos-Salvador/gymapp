@@ -1,13 +1,36 @@
 "use client"
 
 import { useEffect, useState, useRef, useCallback } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { toast } from "sonner"
-import { Users, Check, X, Mail, Award, Clock, Loader2, Upload, CreditCard, CheckCircle2 } from "lucide-react"
+import {
+  Users,
+  Check,
+  X,
+  Mail,
+  Award,
+  Clock,
+  Loader2,
+  Upload,
+  CreditCard,
+  CheckCircle2,
+} from "lucide-react"
 
 interface TrainerRequestDetail {
   id: string
@@ -39,7 +62,11 @@ interface TrainerRequestDialogProps {
   onResolved?: () => void
 }
 
-export function TrainerRequestDialog({ requestId, onClose, onResolved }: TrainerRequestDialogProps) {
+export function TrainerRequestDialog({
+  requestId,
+  onClose,
+  onResolved,
+}: TrainerRequestDialogProps) {
   const [request, setRequest] = useState<TrainerRequestDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [processing, setProcessing] = useState(false)
@@ -177,7 +204,9 @@ export function TrainerRequestDialog({ requestId, onClose, onResolved }: Trainer
           <div className="flex flex-col items-center justify-center py-10 text-center space-y-3">
             <DialogTitle className="sr-only">Error al cargar la solicitud</DialogTitle>
             <p className="text-sm text-muted-foreground">No se pudo cargar la solicitud.</p>
-            <Button variant="outline" onClick={onClose}>Cerrar</Button>
+            <Button variant="outline" onClick={onClose}>
+              Cerrar
+            </Button>
           </div>
         )}
 
@@ -191,7 +220,9 @@ export function TrainerRequestDialog({ requestId, onClose, onResolved }: Trainer
             <p className="text-sm text-muted-foreground">
               {showPayment ? "Comprobante enviado a tu entrenador." : "Tu solicitud fue procesada."}
             </p>
-            <Button onClick={finishResolved} className="mt-2">Entendido</Button>
+            <Button onClick={finishResolved} className="mt-2">
+              Entendido
+            </Button>
           </div>
         )}
 
@@ -215,11 +246,13 @@ export function TrainerRequestDialog({ requestId, onClose, onResolved }: Trainer
                   <p className="text-lg font-semibold">{request.trainer.name || "Sin nombre"}</p>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                     <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                      <Mail className="h-3.5 w-3.5" />{request.trainer.email}
+                      <Mail className="h-3.5 w-3.5" />
+                      {request.trainer.email}
                     </span>
                     {request.trainer.yearsExperience != null && (
                       <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                        <Award className="h-3.5 w-3.5" />{request.trainer.yearsExperience} años exp.
+                        <Award className="h-3.5 w-3.5" />
+                        {request.trainer.yearsExperience} años exp.
                       </span>
                     )}
                   </div>
@@ -229,7 +262,9 @@ export function TrainerRequestDialog({ requestId, onClose, onResolved }: Trainer
                   {request.trainer.specialties && request.trainer.specialties.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {request.trainer.specialties.map((s) => (
-                        <Badge key={s} variant="secondary" className="text-xs">{s}</Badge>
+                        <Badge key={s} variant="secondary" className="text-xs">
+                          {s}
+                        </Badge>
                       ))}
                     </div>
                   )}
@@ -241,11 +276,19 @@ export function TrainerRequestDialog({ requestId, onClose, onResolved }: Trainer
               </div>
               <div className="flex gap-2 justify-end">
                 <Button variant="outline" size="sm" onClick={handleReject} disabled={processing}>
-                  {processing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <X className="h-3 w-3 mr-1" />}
+                  {processing ? (
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                  ) : (
+                    <X className="h-3 w-3 mr-1" />
+                  )}
                   Rechazar
                 </Button>
                 <Button size="sm" onClick={handleAccept} disabled={processing}>
-                  {processing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Check className="h-3 w-3 mr-1" />}
+                  {processing ? (
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                  ) : (
+                    <Check className="h-3 w-3 mr-1" />
+                  )}
                   Aceptar
                 </Button>
               </div>
@@ -261,7 +304,8 @@ export function TrainerRequestDialog({ requestId, onClose, onResolved }: Trainer
                 Activar tu membresía
               </DialogTitle>
               <DialogDescription>
-                {request.trainer.name || "Tu entrenador"} fue aceptado. Elige un plan y sube tu comprobante de Yape.
+                {request.trainer.name || "Tu entrenador"} fue aceptado. Elige un plan y sube tu
+                comprobante de Yape.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -287,15 +331,23 @@ export function TrainerRequestDialog({ requestId, onClose, onResolved }: Trainer
                   <p className="text-2xl font-bold text-accent-yellow">
                     {selectedPlanData.currency} ${selectedPlanData.price}
                   </p>
-                  <p className="text-xs text-muted-foreground">Duración: {selectedPlanData.durationDays} días</p>
-                  <p className="text-sm text-muted-foreground">Paga mediante Yape y sube tu comprobante.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Duración: {selectedPlanData.durationDays} días
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Paga mediante Yape y sube tu comprobante.
+                  </p>
                 </div>
               )}
 
               <div className="space-y-2">
                 <Label>Comprobante de Yape</Label>
                 <div className="flex items-center gap-3">
-                  <Button variant="outline" onClick={() => fileInputRef.current?.click()} type="button">
+                  <Button
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    type="button"
+                  >
                     <Upload className="h-4 w-4 mr-2" /> Seleccionar imagen
                   </Button>
                   <input
@@ -305,7 +357,11 @@ export function TrainerRequestDialog({ requestId, onClose, onResolved }: Trainer
                     className="sr-only"
                     onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
                   />
-                  {receiptFile && <span className="text-sm text-muted-foreground truncate max-w-[160px]">{receiptFile.name}</span>}
+                  {receiptFile && (
+                    <span className="text-sm text-muted-foreground truncate max-w-[160px]">
+                      {receiptFile.name}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -314,7 +370,11 @@ export function TrainerRequestDialog({ requestId, onClose, onResolved }: Trainer
                 disabled={uploading || !selectedPlan || !receiptFile}
                 className="w-full"
               >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Upload className="h-4 w-4 mr-2" />
+                )}
                 Subir comprobante y activar membresía
               </Button>
             </div>

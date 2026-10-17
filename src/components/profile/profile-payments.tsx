@@ -32,7 +32,14 @@ interface Payment {
   confirmedAt: string | null
 }
 
-const statusConfig: Record<string, { label: string; variant: "default" | "destructive" | "outline" | "secondary"; icon: typeof CheckCircle2 }> = {
+const statusConfig: Record<
+  string,
+  {
+    label: string
+    variant: "default" | "destructive" | "outline" | "secondary"
+    icon: typeof CheckCircle2
+  }
+> = {
   PENDING: { label: "Pendiente", variant: "outline", icon: Clock },
   COMPLETED: { label: "Completado", variant: "default", icon: CheckCircle2 },
   FAILED: { label: "Rechazado", variant: "destructive", icon: XCircle },
@@ -64,7 +71,11 @@ const typeLabels: Record<string, string> = {
 }
 
 function PaymentCard({ payment }: { payment: Payment }) {
-  const statusInfo = statusConfig[payment.status] ?? { label: payment.status, variant: "outline" as const, icon: AlertCircle }
+  const statusInfo = statusConfig[payment.status] ?? {
+    label: payment.status,
+    variant: "outline" as const,
+    icon: AlertCircle,
+  }
   const StatusIcon = statusInfo.icon
   const MethodIcon = methodIcons[payment.method] ?? CreditCard
 
@@ -78,7 +89,9 @@ function PaymentCard({ payment }: { payment: Payment }) {
             </div>
             <div>
               <p className="text-sm font-medium">{typeLabels[payment.type] ?? payment.type}</p>
-              <p className="text-xs text-muted-foreground">{formatDate(payment.createdAt, { includeTime: true })}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatDate(payment.createdAt, { includeTime: true })}
+              </p>
             </div>
           </div>
           <Badge variant={statusInfo.variant} className="gap-1">
@@ -177,9 +190,7 @@ export function ProfilePayments() {
           </div>
           <div>
             <p className="text-sm font-medium">Sin pagos registrados</p>
-            <p className="text-xs text-muted-foreground">
-              No tienes historial de pagos todavía
-            </p>
+            <p className="text-xs text-muted-foreground">No tienes historial de pagos todavía</p>
           </div>
         </CardContent>
       </Card>

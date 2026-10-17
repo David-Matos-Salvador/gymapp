@@ -22,7 +22,17 @@ export interface MockNotification {
   id: string
   title: string
   message: string
-  type: "INFO" | "WARNING" | "REMINDER" | "PAYMENT" | "MEMBERSHIP" | "CLASS" | "CHECK_IN" | "GOAL" | "SYSTEM" | "TRAINER_REQUEST"
+  type:
+    | "INFO"
+    | "WARNING"
+    | "REMINDER"
+    | "PAYMENT"
+    | "MEMBERSHIP"
+    | "CLASS"
+    | "CHECK_IN"
+    | "GOAL"
+    | "SYSTEM"
+    | "TRAINER_REQUEST"
   read: boolean
   createdAt: string
   metadata?: { requestId?: string; trainerId?: string; paymentId?: string }
@@ -84,9 +94,7 @@ export function NotificationList({
   onMarkAllRead,
   onNavigate,
 }: NotificationListProps) {
-  const sorted = [...notifications].sort(
-    (a, b) => Number(b.read) - Number(a.read),
-  )
+  const sorted = [...notifications].sort((a, b) => Number(b.read) - Number(a.read))
 
   function handleClick(notification: MockNotification) {
     onMarkRead(notification.id)
@@ -102,9 +110,7 @@ export function NotificationList({
         <div className="flex size-16 items-center justify-center rounded-full bg-muted mb-4">
           <BellOff className="size-7 text-muted-foreground" />
         </div>
-        <p className="text-base font-medium text-foreground">
-          No tienes notificaciones
-        </p>
+        <p className="text-base font-medium text-foreground">No tienes notificaciones</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Cuando tengas notificaciones, aparecerán aquí.
         </p>
@@ -114,10 +120,8 @@ export function NotificationList({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between px-5 py-4">
-        <h2 className="font-heading text-base font-semibold text-foreground">
-          Notificaciones
-        </h2>
+      <div className="flex items-center justify-between pl-5 pr-14 py-4">
+        <h2 className="font-heading text-base font-semibold text-foreground">Notificaciones</h2>
         {unreadCount > 0 && (
           <button
             type="button"
@@ -147,13 +151,13 @@ export function NotificationList({
                 onClick={() => handleClick(notification)}
                 className={cn(
                   "flex w-full items-start gap-3 px-5 py-3.5 text-left transition-colors hover:bg-muted/60",
-                  !notification.read && "bg-accent-yellow/5",
+                  !notification.read && "bg-accent-yellow/5"
                 )}
               >
                 <div
                   className={cn(
                     "flex size-8 shrink-0 items-center justify-center rounded-full",
-                    color,
+                    color
                   )}
                 >
                   <Icon className="size-4" />
@@ -165,7 +169,7 @@ export function NotificationList({
                         "text-sm leading-snug truncate",
                         !notification.read
                           ? "font-semibold text-foreground"
-                          : "font-medium text-foreground/80",
+                          : "font-medium text-foreground/80"
                       )}
                     >
                       {notification.title}

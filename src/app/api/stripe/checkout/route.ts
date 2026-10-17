@@ -9,7 +9,10 @@ const stripe = stripeSecret ? new Stripe(stripeSecret, { apiVersion: "2025-04-30
 
 export async function POST(request: Request) {
   if (!stripe) {
-    return NextResponse.json({ error: "Stripe no está configurado. Agrega STRIPE_SECRET_KEY al .env" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Stripe no está configurado. Agrega STRIPE_SECRET_KEY al .env" },
+      { status: 500 }
+    )
   }
 
   const session = await auth()
@@ -26,14 +29,16 @@ export async function POST(request: Request) {
       payment_method_types: ["card"],
       mode: "payment",
       customer_email: user.email,
-      line_items: [{
-        price_data: {
-          currency: "mxn",
-          product_data: { name: planName },
-          unit_amount: Math.round(price * 100),
+      line_items: [
+        {
+          price_data: {
+            currency: "mxn",
+            product_data: { name: planName },
+            unit_amount: Math.round(price * 100),
+          },
+          quantity: 1,
         },
-        quantity: 1,
-      }],
+      ],
       metadata: { userId: user.id, planId },
       success_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/membresia?success=true`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/membresia?canceled=true`,

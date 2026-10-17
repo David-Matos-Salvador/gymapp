@@ -49,7 +49,10 @@ export function ProfileHeader({ user }: { user: User }) {
     month: "long",
   })
 
-  const roleConfig = { label: ROLE_LABELS[user.role] ?? user.role, variant: ROLE_VARIANTS[user.role] ?? "default" as const }
+  const roleConfig = {
+    label: ROLE_LABELS[user.role] ?? user.role,
+    variant: ROLE_VARIANTS[user.role] ?? ("default" as const),
+  }
 
   return (
     <motion.div
@@ -58,7 +61,10 @@ export function ProfileHeader({ user }: { user: User }) {
       className="flex flex-col items-center text-center space-y-4 pt-2 pb-4"
     >
       {/* Avatar */}
-      <Avatar size="lg" className="size-20 ring-2 ring-accent-yellow/30 ring-offset-2 ring-offset-background">
+      <Avatar
+        size="lg"
+        className="size-20 ring-2 ring-accent-yellow/30 ring-offset-2 ring-offset-background"
+      >
         {user.image && <AvatarImage src={user.image} alt={initials} />}
         <AvatarFallback className="bg-accent-yellow text-black text-2xl font-bold">
           {initials}
@@ -70,9 +76,7 @@ export function ProfileHeader({ user }: { user: User }) {
 
       {/* Name & Role */}
       <div className="space-y-1">
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          {firstName}
-        </h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{firstName}</h1>
         <p className="text-sm text-muted-foreground">{user.email}</p>
         <Badge variant={roleConfig.variant} className="mt-1">
           {roleConfig.label}
@@ -96,9 +100,7 @@ export function ProfileHeader({ user }: { user: User }) {
       {/* Profile Completion Bar */}
       <div className="w-full max-w-xs pt-2">
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-muted-foreground">
-            Perfil completado
-          </span>
+          <span className="text-xs text-muted-foreground">Perfil completado</span>
           <span className="text-xs font-medium tabular-nums text-muted-foreground">
             {completion}%
           </span>

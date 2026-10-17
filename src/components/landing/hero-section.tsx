@@ -19,7 +19,10 @@ export function HeroSection() {
   const { play } = useSound()
 
   return (
-    <section ref={heroRef} className="relative min-h-screen flex items-center justify-center overflow-hidden pt-14">
+    <section
+      ref={heroRef}
+      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-14"
+    >
       <motion.div
         style={{ y: heroY, opacity: heroOpacity }}
         className="absolute inset-0 pointer-events-none"
@@ -58,7 +61,8 @@ export function HeroSection() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
         >
-          La plataforma inteligente que lleva tu gimnasio al siguiente nivel. Digitaliza operaciones, gestiona clientes y optimiza resultados.
+          La plataforma inteligente que lleva tu gimnasio al siguiente nivel. Digitaliza
+          operaciones, gestiona clientes y optimiza resultados.
         </motion.p>
 
         <motion.div
@@ -79,9 +83,7 @@ export function HeroSection() {
             </Link>
           </Button>
           <Button size="lg" variant="outline" className="h-12 px-8 text-base rounded-full" asChild>
-            <Link href="/login">
-              Iniciar sesión
-            </Link>
+            <Link href="/login">Iniciar sesión</Link>
           </Button>
         </motion.div>
 

@@ -9,8 +9,7 @@ import Image from "next/image"
 import { Dumbbell, ChevronLeft, Play, Clock, Calendar } from "lucide-react"
 import Link from "next/link"
 
-const humanizeEnum = (val: string) =>
-  val.charAt(0) + val.slice(1).toLowerCase().replace(/_/g, " ")
+const humanizeEnum = (val: string) => val.charAt(0) + val.slice(1).toLowerCase().replace(/_/g, " ")
 
 const extractYoutubeId = (url: string): string | null => {
   const patterns = [
@@ -29,7 +28,10 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
   const session = await auth()
   if (!session?.user?.email) redirect("/login")
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true } })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true },
+  })
   if (!user) redirect("/login")
 
   const { id } = await params
@@ -108,7 +110,9 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
             </div>
 
             {exercise.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed">{exercise.description}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {exercise.description}
+              </p>
             )}
 
             <Button size="sm" variant="outline" className="w-fit" asChild>
@@ -200,7 +204,9 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
                           <span>
                             {log.reps} {log.reps === 1 ? "rep" : "reps"}
                           </span>
-                          <span className="text-right">{log.weight > 0 ? `${log.weight} kg` : "—"}</span>
+                          <span className="text-right">
+                            {log.weight > 0 ? `${log.weight} kg` : "—"}
+                          </span>
                         </div>
                       ))}
                     </div>

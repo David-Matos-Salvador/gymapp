@@ -52,8 +52,14 @@ export const MUSCLE_LABELS: Record<string, string> = {
   CARDIO: "Cardio",
 }
 
-export const OBJECTIVES = Object.entries(OBJECTIVE_LABELS).map(([value, label]) => ({ value, label }))
-export const DIFFICULTIES = Object.entries(EXPERIENCE_LABELS).map(([value, label]) => ({ value, label }))
+export const OBJECTIVES = Object.entries(OBJECTIVE_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}))
+export const DIFFICULTIES = Object.entries(EXPERIENCE_LABELS).map(([value, label]) => ({
+  value,
+  label,
+}))
 export const FREQUENCIES = [
   { value: "1", label: "1 día" },
   { value: "2", label: "2 días" },

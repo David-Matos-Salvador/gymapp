@@ -2,7 +2,19 @@
 
 import { MUSCLE_LABELS } from "@/constants/user"
 import { useState, useCallback, useEffect, useRef, useMemo } from "react"
-import { Check, GripVertical, ChevronRight, Clock, Minus, Plus, CheckCircle, ChevronDown, ChevronUp, ArrowRight, Wrench } from "lucide-react"
+import {
+  Check,
+  GripVertical,
+  ChevronRight,
+  Clock,
+  Minus,
+  Plus,
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  ArrowRight,
+  Wrench,
+} from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { SetLog, SplitExercise, GymEquipmentRef } from "@/types/exercise"
 import { ExerciseDetailSheet } from "./exercise-detail-sheet"
@@ -77,16 +89,8 @@ function CounterRow({
 }
 
 /* ── Reps Counter per set ──────────────────────── */
-function RepsDisplay({
-  value,
-}: {
-  value: number
-}) {
-  return (
-    <span className="text-[10px] text-muted-foreground font-medium">
-      {value} reps
-    </span>
-  )
+function RepsDisplay({ value }: { value: number }) {
+  return <span className="text-[10px] text-muted-foreground font-medium">{value} reps</span>
 }
 
 /* ── Sets Stepper (expandable) ────────────────── */
@@ -138,12 +142,14 @@ function SetsStepper({
               return (
                 <div key={i} className="flex items-stretch flex-1 min-w-0">
                   {/* Step block */}
-                  <div className={cn(
-                    "flex flex-col items-center gap-1 py-1.5 rounded-lg transition-all flex-1",
-                    isFilled && "bg-accent-yellow/5",
-                    isCurrent && "bg-accent-yellow/5 ring-1 ring-accent-yellow/30",
-                    isBlocked && "opacity-40",
-                  )}>
+                  <div
+                    className={cn(
+                      "flex flex-col items-center gap-1 py-1.5 rounded-lg transition-all flex-1",
+                      isFilled && "bg-accent-yellow/5",
+                      isCurrent && "bg-accent-yellow/5 ring-1 ring-accent-yellow/30",
+                      isBlocked && "opacity-40"
+                    )}
+                  >
                     <button
                       type="button"
                       onClick={() => {
@@ -158,7 +164,9 @@ function SetsStepper({
                           : isCurrent
                             ? "border-accent-yellow text-accent-yellow"
                             : "border-muted-foreground/20 text-muted-foreground/50",
-                        !isBlocked && !isFilled && "cursor-pointer hover:border-accent-yellow/60 hover:text-accent-yellow/80 active:scale-90",
+                        !isBlocked &&
+                          !isFilled &&
+                          "cursor-pointer hover:border-accent-yellow/60 hover:text-accent-yellow/80 active:scale-90"
                       )}
                     >
                       {isFilled ? <Check className="h-4 w-4" /> : i + 1}
@@ -171,8 +179,10 @@ function SetsStepper({
                     if (i >= totalSets - 1) return null
                     const nextSet = setsData[i + 1]
                     const nextPrevDone = setsData.slice(0, i + 1).every((s) => s.completed)
-                    const barActive = isFilled && !nextSet?.completed && nextPrevDone && restActive && restTotal > 0
-                    const progressPct = restTotal > 0 ? ((restTotal - restRemaining) / restTotal) * 100 : 0
+                    const barActive =
+                      isFilled && !nextSet?.completed && nextPrevDone && restActive && restTotal > 0
+                    const progressPct =
+                      restTotal > 0 ? ((restTotal - restRemaining) / restTotal) * 100 : 0
 
                     return (
                       <div className="flex items-stretch w-14 shrink-0 px-1">
@@ -242,16 +252,21 @@ export function ExerciseCard({
   const machineLabel = useMemo(() => {
     const list = se.exercise.gymEquipments ?? []
     return formatMachineLabel(list, showMachineNumbers)
-  }, [se.exercise.gymEquipments, userGymId, showMachineNumbers])
+  }, [se.exercise.gymEquipments, showMachineNumbers])
 
   const clearPerSetRest = useCallback(() => {
-    if (restIntervalRef.current) { clearInterval(restIntervalRef.current); restIntervalRef.current = null }
+    if (restIntervalRef.current) {
+      clearInterval(restIntervalRef.current)
+      restIntervalRef.current = null
+    }
     setPerSetRestActive(false)
     setPerSetRestRemaining(0)
   }, [])
 
   useEffect(() => {
-    return () => { if (restIntervalRef.current) clearInterval(restIntervalRef.current) }
+    return () => {
+      if (restIntervalRef.current) clearInterval(restIntervalRef.current)
+    }
   }, [])
 
   const handleToggleSet = useCallback(
@@ -267,7 +282,10 @@ export function ExerciseCard({
             setPerSetRestRemaining((prev) => {
               const next = prev - 1
               if (next <= 0) {
-                if (restIntervalRef.current) { clearInterval(restIntervalRef.current); restIntervalRef.current = null }
+                if (restIntervalRef.current) {
+                  clearInterval(restIntervalRef.current)
+                  restIntervalRef.current = null
+                }
                 setPerSetRestActive(false)
                 return 0
               }
@@ -278,14 +296,14 @@ export function ExerciseCard({
       }
       onSetComplete?.(setIdx)
     },
-    [onSetComplete, clearPerSetRest, completedCount, setsData, totalSets, se.restSeconds],
+    [onSetComplete, clearPerSetRest, completedCount, setsData, totalSets, se.restSeconds]
   )
 
   const applyWeight = useCallback(
     (newWeight: number) => {
       onWeightChange?.(newWeight)
     },
-    [onWeightChange],
+    [onWeightChange]
   )
 
   const incrementWeight = useCallback(() => {
@@ -322,9 +340,10 @@ export function ExerciseCard({
     <div
       className={cn(
         "flex flex-col rounded-xl border bg-card p-3 transition-all duration-300 select-none gap-2",
-        isCurrent && "ring-2 ring-accent-yellow/40 border-accent-yellow/30 shadow-accent-yellow/5 shadow-md",
+        isCurrent &&
+          "ring-2 ring-accent-yellow/40 border-accent-yellow/30 shadow-accent-yellow/5 shadow-md",
         isDragging && "opacity-50 scale-95 shadow-lg",
-        isCompleted && "opacity-70",
+        isCompleted && "opacity-70"
       )}
     >
       {/* ── Header row ─────────────────────────── */}
@@ -332,28 +351,31 @@ export function ExerciseCard({
         {isCompleted ? (
           <CheckCircle className="h-4 w-4 text-accent-yellow shrink-0" />
         ) : (
-          <div {...dragHandleProps} className="flex items-center cursor-grab active:cursor-grabbing touch-none shrink-0 group/drag">
-            <GripVertical className={cn(
-              "h-4 w-4 transition-colors",
-              isCurrent
-                ? "text-muted-foreground/30"
-                : "text-muted-foreground/25 group-hover/drag:text-muted-foreground/50",
-            )} />
+          <div
+            {...dragHandleProps}
+            className="flex items-center cursor-grab active:cursor-grabbing touch-none shrink-0 group/drag"
+          >
+            <GripVertical
+              className={cn(
+                "h-4 w-4 transition-colors",
+                isCurrent
+                  ? "text-muted-foreground/30"
+                  : "text-muted-foreground/25 group-hover/drag:text-muted-foreground/50"
+              )}
+            />
           </div>
         )}
 
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <ExerciseImage
-            imageUrl={se.exercise.imageUrl}
-            alt={se.exercise.name}
-            size="md"
-          />
+          <ExerciseImage imageUrl={se.exercise.imageUrl} alt={se.exercise.name} size="md" />
 
           <div className="flex-1 min-w-0">
-            <p className={cn(
-              "text-sm font-medium truncate",
-              isCompleted && "line-through decoration-muted-foreground/40",
-            )}>
+            <p
+              className={cn(
+                "text-sm font-medium truncate",
+                isCompleted && "line-through decoration-muted-foreground/40"
+              )}
+            >
               {se.exercise.name}
             </p>
 
@@ -380,7 +402,11 @@ export function ExerciseCard({
           </div>
         </div>
 
-        <ExerciseDetailSheet exercise={se.exercise} userGymId={userGymId} showMachineNumbers={showMachineNumbers}>
+        <ExerciseDetailSheet
+          exercise={se.exercise}
+          userGymId={userGymId}
+          showMachineNumbers={showMachineNumbers}
+        >
           <button
             type="button"
             className={cn(
@@ -389,7 +415,7 @@ export function ExerciseCard({
                 ? "text-accent-yellow/50 hover:text-accent-yellow/80"
                 : isCompleted
                   ? "text-muted-foreground/20"
-                  : "text-muted-foreground/30",
+                  : "text-muted-foreground/30"
             )}
             aria-label="Detalle del ejercicio"
           >
@@ -414,10 +440,12 @@ export function ExerciseCard({
               onIncrement={handleSetsIncrement}
               onDecrement={handleSetsDecrement}
             />
-            <span className={cn(
-              "text-[11px] tabular-nums font-medium ml-auto",
-              completedCount === totalSets ? "text-accent-yellow" : "text-muted-foreground/50",
-            )}>
+            <span
+              className={cn(
+                "text-[11px] tabular-nums font-medium ml-auto",
+                completedCount === totalSets ? "text-accent-yellow" : "text-muted-foreground/50"
+              )}
+            >
               {completedCount}/{totalSets}
             </span>
           </div>
@@ -425,11 +453,7 @@ export function ExerciseCard({
           {/* Continue button */}
           {onContinue && (
             <div>
-              <Button
-                onClick={handleContinue}
-                size="sm"
-                className="w-full gap-2"
-              >
+              <Button onClick={handleContinue} size="sm" className="w-full gap-2">
                 Continuar <ArrowRight className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -446,7 +470,6 @@ export function ExerciseCard({
             expanded={stepperExpanded}
             onExpandedChange={setStepperExpanded}
           />
-
         </div>
       )}
 

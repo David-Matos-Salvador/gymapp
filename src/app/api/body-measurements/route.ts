@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTrainerClientIds } from "@/lib/trainer-client"
 
 const createMeasurementSchema = z.object({
   weight: z.number().positive().optional(),
@@ -66,7 +67,21 @@ export async function POST(request: Request) {
   }
 
   const data = parsed.data
-  const targetUserId = data.userId && (user.role === "TRAINER" || user.role === "ADMIN") ? data.userId : user.id
+  let targetUserId = user.id
+
+  if (data.userId && data.userId !== user.id) {
+    if (user.role === "ADMIN") {
+      targetUserId = data.userId
+    } else if (user.role === "TRAINER") {
+      const clientIds = await getTrainerClientIds(user.id)
+      if (!clientIds.includes(data.userId)) {
+        return NextResponse.json({ error: "El miembro no es tu cliente" }, { status: 403 })
+      }
+      targetUserId = data.userId
+    } else {
+      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+    }
+  }
 
   const measurement = await prisma.bodyMeasurement.create({
     data: {

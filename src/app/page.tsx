@@ -18,10 +18,22 @@ export default function LandingPage() {
   const router = useRouter()
 
   useEffect(() => {
-    if (user?.role === "SUPER_ADMIN") { router.replace("/super-admin"); return }
-    if (isAdmin) { router.replace("/admin"); return }
-    if (isTrainer) { router.replace("/coach"); return }
-    if (isAuthenticated) { router.replace("/rutinas"); return }
+    if (user?.role === "SUPER_ADMIN") {
+      router.replace("/super-admin")
+      return
+    }
+    if (isAdmin) {
+      router.replace("/admin")
+      return
+    }
+    if (isTrainer) {
+      router.replace("/coach")
+      return
+    }
+    if (isAuthenticated) {
+      router.replace("/rutinas")
+      return
+    }
   }, [isAuthenticated, isAdmin, isTrainer, user, router])
 
   return (

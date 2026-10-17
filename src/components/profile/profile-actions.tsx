@@ -30,9 +30,7 @@ export function ProfileActions() {
             </div>
             <div className="flex-1 text-left">
               <p className="text-sm font-medium">Configuración</p>
-              <p className="text-xs text-muted-foreground">
-                Tema, sonidos y preferencias
-              </p>
+              <p className="text-xs text-muted-foreground">Tema, sonidos y preferencias</p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </Link>
@@ -51,9 +49,7 @@ export function ProfileActions() {
             </div>
             <div className="flex-1 text-left">
               <p className="text-sm font-medium">Pagos</p>
-              <p className="text-xs text-muted-foreground">
-                Historial de tus pagos
-              </p>
+              <p className="text-xs text-muted-foreground">Historial de tus pagos</p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </Link>
@@ -74,9 +70,7 @@ export function ProfileActions() {
             </div>
             <div className="flex-1 text-left">
               <p className="text-sm font-medium text-destructive">Cerrar sesión</p>
-              <p className="text-xs text-muted-foreground">
-                Salir de tu cuenta
-              </p>
+              <p className="text-xs text-muted-foreground">Salir de tu cuenta</p>
             </div>
           </button>
         </CardContent>

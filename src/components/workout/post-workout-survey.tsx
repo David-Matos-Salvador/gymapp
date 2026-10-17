@@ -18,11 +18,7 @@ interface PostWorkoutSurveyProps {
   onSubmit: (rating: number) => void
 }
 
-export function PostWorkoutSurvey({
-  open,
-  onClose,
-  onSubmit,
-}: PostWorkoutSurveyProps) {
+export function PostWorkoutSurvey({ open, onClose, onSubmit }: PostWorkoutSurveyProps) {
   const [selected, setSelected] = useState<number | null>(null)
 
   const handleSelect = (value: number) => {
@@ -49,9 +45,7 @@ export function PostWorkoutSurvey({
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
-            <h2 className="text-xl font-bold text-center mb-2">
-              ¿Cómo te sentiste?
-            </h2>
+            <h2 className="text-xl font-bold text-center mb-2">¿Cómo te sentiste?</h2>
             <p className="text-sm text-muted-foreground text-center mb-6">
               Valorá tu entrenamiento de hoy
             </p>
@@ -82,9 +76,7 @@ export function PostWorkoutSurvey({
                   >
                     {item.emoji}
                   </span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {item.label}
-                  </span>
+                  <span className="text-[10px] text-muted-foreground">{item.label}</span>
                 </motion.button>
               ))}
             </div>

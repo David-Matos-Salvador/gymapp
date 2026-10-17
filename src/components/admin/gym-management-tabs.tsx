@@ -6,7 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Dumbbell, ListTodo, Wrench } from "lucide-react"
 import { ExerciseManagement, type Exercise } from "./exercise-management"
 import { RoutineManagement, type Plan } from "./routine-management"
-import { GymEquipmentManager, type Equipment } from "@/components/gym-equipment/gym-equipment-manager"
+import {
+  GymEquipmentManager,
+  type Equipment,
+} from "@/components/gym-equipment/gym-equipment-manager"
 
 interface SerializedMember {
   id: string
@@ -50,9 +53,11 @@ export function GymManagementTabs({
 }: GymManagementTabsProps) {
   const router = useRouter()
   const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
-  const [gymExerciseMap, setGymExerciseMap] = useState<Record<string, boolean>>(initialGymExerciseMap)
+  const [gymExerciseMap, setGymExerciseMap] =
+    useState<Record<string, boolean>>(initialGymExerciseMap)
   const [plans, setPlans] = useState<Plan[]>(initialPlans)
-  const [equipActiveMap, setEquipActiveMap] = useState<Record<string, boolean>>(initialEquipActiveMap)
+  const [equipActiveMap, setEquipActiveMap] =
+    useState<Record<string, boolean>>(initialEquipActiveMap)
 
   const canEditExercise = (exercise: Exercise) =>
     exercise.userId === currentUser.id || currentUser.role === "SUPER_ADMIN"
@@ -60,25 +65,31 @@ export function GymManagementTabs({
   const canEditPlan = (plan: Plan) =>
     plan.userId === currentUser.id || currentUser.role === "SUPER_ADMIN"
 
-  const handleToggleExercise = useCallback(async (exerciseId: string, active: boolean) => {
-    setGymExerciseMap((prev) => ({ ...prev, [exerciseId]: active }))
-    await fetch("/api/gym-exercises", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ exerciseId, active }),
-    })
-    router.refresh()
-  }, [router])
+  const handleToggleExercise = useCallback(
+    async (exerciseId: string, active: boolean) => {
+      setGymExerciseMap((prev) => ({ ...prev, [exerciseId]: active }))
+      await fetch("/api/gym-exercises", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ exerciseId, active }),
+      })
+      router.refresh()
+    },
+    [router]
+  )
 
-  const handleToggleEquipment = useCallback(async (equipmentId: string, active: boolean) => {
-    setEquipActiveMap((prev) => ({ ...prev, [equipmentId]: active }))
-    await fetch("/api/gym-equipment-activations", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ equipmentId, active }),
-    })
-    router.refresh()
-  }, [router])
+  const handleToggleEquipment = useCallback(
+    async (equipmentId: string, active: boolean) => {
+      setEquipActiveMap((prev) => ({ ...prev, [equipmentId]: active }))
+      await fetch("/api/gym-equipment-activations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ equipmentId, active }),
+      })
+      router.refresh()
+    },
+    [router]
+  )
 
   return (
     <div className="container max-w-4xl mx-auto px-4 py-6 space-y-6">
@@ -124,7 +135,6 @@ export function GymManagementTabs({
             members={members}
             canEditPlan={canEditPlan}
             onPlansChange={setPlans}
-            onExercisesChange={setExercises}
           />
         </TabsContent>
 

@@ -8,7 +8,10 @@ export const PHASE_LABELS: Record<WorkoutPhase, string> = {
   done: "Completado",
 }
 
-export const PHASE_COLORS: Record<WorkoutPhase, { bg: string; border: string; text: string } | null> = {
+export const PHASE_COLORS: Record<
+  WorkoutPhase,
+  { bg: string; border: string; text: string } | null
+> = {
   prepare: null,
   warmup: {
     bg: "bg-amber-50 dark:bg-amber-950",

@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from "react"
@@ -12,26 +11,35 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useSound } from "@/hooks/use-sound"
 import { User, Dumbbell, Building2, ChevronLeft, Check, X, CheckCircle } from "lucide-react"
 
-const registerSchema = z.object({
-  name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Email invalido"),
-  password: z
-    .string()
-    .min(8, "Minimo 8 caracteres")
-    .regex(/[A-Z]/, "Debe contener una mayuscula")
-    .regex(/[0-9]/, "Debe contener un numero"),
-  confirmPassword: z.string(),
-  gymName: z.string().optional(),
-  gymAddress: z.string().optional(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Las contrasenas no coinciden",
-  path: ["confirmPassword"],
-})
+const registerSchema = z
+  .object({
+    name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
+    email: z.string().email("Email invalido"),
+    password: z
+      .string()
+      .min(8, "Minimo 8 caracteres")
+      .regex(/[A-Z]/, "Debe contener una mayuscula")
+      .regex(/[0-9]/, "Debe contener un numero"),
+    confirmPassword: z.string(),
+    gymName: z.string().optional(),
+    gymAddress: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Las contrasenas no coinciden",
+    path: ["confirmPassword"],
+  })
 
 type RegisterForm = z.infer<typeof registerSchema>
 
@@ -40,7 +48,7 @@ type RegisterMode = "select" | "member" | "trainer" | "gym_owner"
 const modeLabels: Record<Exclude<RegisterMode, "select">, string> = {
   member: "Usuario",
   trainer: "Entrenador",
-  gym_owner: "Dueno de gym",
+  gym_owner: "Dueño de gym",
 }
 
 const modeOptions = [
@@ -62,7 +70,7 @@ const modeOptions = [
   },
   {
     key: "gym_owner" as const,
-    title: "Soy dueno de un gym",
+    title: "Soy dueño de un gym",
     description: "Quiero digitalizar mi gimnasio, membresias y empleados",
     icon: Building2,
     color: "border-accent-yellow text-accent-yellow",
@@ -99,7 +107,9 @@ export default function RegisterPage() {
     setError("")
 
     if (mode === "gym_owner" && (!data.gymName || data.gymName.trim().length < 2)) {
-      setFieldError("gymName", { message: "El nombre del gimnasio debe tener al menos 2 caracteres" })
+      setFieldError("gymName", {
+        message: "El nombre del gimnasio debe tener al menos 2 caracteres",
+      })
       return
     }
 
@@ -151,7 +161,9 @@ export default function RegisterPage() {
     })
 
     if (result?.error) {
-      setError("Registro exitoso pero fallo el inicio de sesion automatico. Intenta iniciar sesion.")
+      setError(
+        "Registro exitoso pero fallo el inicio de sesion automatico. Intenta iniciar sesion."
+      )
       setSuccess(false)
     } else {
       router.push(redirectMap[mode] || "/dashboard")
@@ -232,23 +244,14 @@ export default function RegisterPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Crear cuenta</CardTitle>
-          <CardDescription>
-            Registrate como {displayMode.toLowerCase()}
-          </CardDescription>
+          <CardDescription>Registrate como {displayMode.toLowerCase()}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Nombre</Label>
-              <Input
-                id="name"
-                type="text"
-                placeholder="Tu nombre completo"
-                {...register("name")}
-              />
-              {errors.name && (
-                <p className="text-sm text-destructive">{errors.name.message}</p>
-              )}
+              <Input id="name" type="text" placeholder="Tu nombre completo" {...register("name")} />
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -259,9 +262,7 @@ export default function RegisterPage() {
                 placeholder="tu@email.com"
                 {...register("email")}
               />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             {mode === "gym_owner" && (
               <>
@@ -289,7 +290,7 @@ export default function RegisterPage() {
               </>
             )}
             <div className="space-y-2">
-              <Label htmlFor="password">Contrasena</Label>
+              <Label htmlFor="password">Contraseña</Label>
               <Input
                 id="password"
                 type="password"
@@ -318,7 +319,7 @@ export default function RegisterPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar contrasena</Label>
+              <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -330,9 +331,7 @@ export default function RegisterPage() {
                 <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
               )}
             </div>
-            {error && (
-              <p className="text-sm text-destructive text-center">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive text-center">{error}</p>}
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? "Creando cuenta..." : "Crear cuenta"}
             </Button>

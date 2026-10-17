@@ -26,7 +26,8 @@ export function HowItWorksSection({ steps }: HowItWorksSectionProps) {
             ¿Cómo <span className="text-accent-yellow">funciona</span>?
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Digitaliza tu gimnasio en tres simples pasos. Sin instalaciones complicadas ni hardware especializado.
+            Digitaliza tu gimnasio en tres simples pasos. Sin instalaciones complicadas ni hardware
+            especializado.
           </p>
         </motion.div>
 

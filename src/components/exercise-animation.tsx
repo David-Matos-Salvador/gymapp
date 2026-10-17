@@ -67,8 +67,6 @@ const FOOT_R = { x: 195, y: 285 }
 
 const UPPER_ARM_LEN = 52
 const FOREARM_LEN = 48
-const UPPER_LEG_LEN = 65
-const LOWER_LEG_LEN = 60
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -79,7 +77,7 @@ function pointAtAngle(
   x: number,
   y: number,
   angleDeg: number,
-  length: number,
+  length: number
 ): { x: number; y: number } {
   const rad = (angleDeg * Math.PI) / 180
   return {
@@ -101,11 +99,7 @@ function easeInOutQuad(t: number): number {
  * startDeg, endDeg – the drawing angle values that correspond to
  * animation angle 0 and 90 respectively.
  */
-function mapAngle(
-  animAngle: number,
-  startDeg: number,
-  endDeg: number,
-): number {
+function mapAngle(animAngle: number, startDeg: number, endDeg: number): number {
   const t = Math.max(0, Math.min(1, animAngle / 90))
   return lerp(startDeg, endDeg, t)
 }
@@ -130,7 +124,15 @@ function muscleGroupToHighlight(muscleGroup: string): BodyPart {
   return map[muscleGroup] ?? "full"
 }
 
-type BodyPart = "torso" | "shoulders" | "upperArm" | "forearm" | "hips" | "upperLeg" | "lowerLeg" | "full"
+type BodyPart =
+  | "torso"
+  | "shoulders"
+  | "upperArm"
+  | "forearm"
+  | "hips"
+  | "upperLeg"
+  | "lowerLeg"
+  | "full"
 
 // ---------------------------------------------------------------------------
 // Drawing a stick figure
@@ -152,10 +154,7 @@ interface ArmAngles {
  *   animAngle 0  → elbow nearly straight (forearm continues upper-arm direction)
  *   animAngle 90 → elbow fully bent   (forearm "curls up" toward shoulder)
  */
-function computeArmAngles(
-  animAngle: number,
-  joints: string[],
-): ArmAngles {
+function computeArmAngles(animAngle: number): ArmAngles {
   // Resting upper arm hangs mostly down, slightly forward
   const upperRestL = 255 // left arm, degrees (math coords)
   const upperRestR = 285 // right arm
@@ -176,24 +175,11 @@ function computeArmAngles(
 }
 
 /** Draw the entire stick figure. */
-function drawStickFigure(
-  ctx: CanvasRenderingContext2D,
-  animAngle: number,
-  joints: string[],
-  highlight: BodyPart,
-  staticFigure: boolean,
-) {
-  const arms = computeArmAngles(animAngle, joints)
+function drawStickFigure(ctx: CanvasRenderingContext2D, animAngle: number, highlight: BodyPart) {
+  const arms = computeArmAngles(animAngle)
 
   // -- Helper: draw a line segment with optional highlight --
-  function line(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    width: number,
-    part: BodyPart,
-  ) {
+  function line(x1: number, y1: number, x2: number, y2: number, width: number, part: BodyPart) {
     const isHighlighted = highlight === part || highlight === "full"
     ctx.beginPath()
     ctx.moveTo(x1, y1)
@@ -205,13 +191,7 @@ function drawStickFigure(
   }
 
   // -- Helper: draw a circle --
-  function circle(
-    cx: number,
-    cy: number,
-    r: number,
-    part: BodyPart,
-    fill?: boolean,
-  ) {
+  function circle(cx: number, cy: number, r: number, part: BodyPart, fill?: boolean) {
     const isHighlighted = highlight === part || highlight === "full"
     ctx.beginPath()
     ctx.arc(cx, cy, r, 0, Math.PI * 2)
@@ -286,7 +266,7 @@ function drawStickFigure(
 function drawBreathIndicator(
   ctx: CanvasRenderingContext2D,
   currentPhaseName: string,
-  breathPattern: AnimationData["breathPattern"],
+  breathPattern: AnimationData["breathPattern"]
 ) {
   const cx = 38
   const cy = 38
@@ -325,11 +305,12 @@ function drawBreathIndicator(
   ctx.font = "bold 11px system-ui, sans-serif"
   ctx.textAlign = "center"
   ctx.textBaseline = "top"
-  const label = currentPhaseName === "isometric_hold"
-    ? "MANTENER"
-    : currentPhaseName === breathPattern.inhale
-      ? "INH"
-      : "EXH"
+  const label =
+    currentPhaseName === "isometric_hold"
+      ? "MANTENER"
+      : currentPhaseName === breathPattern.inhale
+        ? "INH"
+        : "EXH"
   ctx.fillText(label, cx, cy + r + 6)
 }
 
@@ -365,7 +346,7 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
 
         const data = await res.json()
         const found = (data.exercises as ExerciseData[] | undefined)?.find(
-          (ex) => ex.id === exerciseId,
+          (ex) => ex.id === exerciseId
         )
 
         if (!found) throw new Error("Exercise not found")
@@ -399,7 +380,7 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
     if (!animData) {
       ctx.clearRect(0, 0, CANVAS, CANVAS)
       const highlightPart = muscleGroupToHighlight(exercise?.muscleGroup ?? "FULL_BODY")
-      drawStickFigure(ctx, 0, [], highlightPart, true)
+      drawStickFigure(ctx, 0, highlightPart)
       ctx.beginPath()
       ctx.arc(CANVAS - 24, 24, 6, 0, Math.PI * 2)
       ctx.fillStyle = "#cbd5e1"
@@ -439,7 +420,7 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
     const highlightPart = muscleGroupToHighlight(exercise?.muscleGroup ?? "FULL_BODY")
     const currentPhaseName = phases[phaseIndexRef.current].name
 
-    drawStickFigure(ctx, currentAngle, animData.joints, highlightPart, false)
+    drawStickFigure(ctx, currentAngle, highlightPart)
     drawBreathIndicator(ctx, currentPhaseName, animData.breathPattern)
 
     rafRef.current = requestAnimationFrame(tickRef.current!)
@@ -508,9 +489,7 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
           <line x1="12" y1="8" x2="12" y2="12" />
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
-        <p className="text-center text-sm text-muted-foreground">
-          {error || "Exercise not found"}
-        </p>
+        <p className="text-center text-sm text-muted-foreground">{error || "Exercise not found"}</p>
       </motion.div>
     )
   }

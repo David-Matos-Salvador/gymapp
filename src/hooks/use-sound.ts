@@ -7,10 +7,13 @@ import { useCallback } from "react"
 export function useSound() {
   const soundEnabled = useSettingsStore((s) => s.soundEnabled)
 
-  const play = useCallback((sound: keyof typeof sounds) => {
-    if (!soundEnabled) return
-    sounds[sound]()
-  }, [soundEnabled])
+  const play = useCallback(
+    (sound: keyof typeof sounds) => {
+      if (!soundEnabled) return
+      sounds[sound]()
+    },
+    [soundEnabled]
+  )
 
   return { play }
 }

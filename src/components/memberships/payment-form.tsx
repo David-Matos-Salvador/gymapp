@@ -4,7 +4,13 @@ import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
 import { Loader2, CreditCard, Banknote, ArrowLeftRight, CheckCircle2, Upload } from "lucide-react"
@@ -164,7 +170,12 @@ export function PaymentForm({
           <div className="space-y-1.5">
             <Label>Comprobante de pago (opcional)</Label>
             <div className="flex items-center gap-3">
-              <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 <Upload className="h-4 w-4 mr-2" /> Subir comprobante
               </Button>
               <input
@@ -174,7 +185,11 @@ export function PaymentForm({
                 className="sr-only"
                 onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
               />
-              {receiptFile && <span className="text-xs text-muted-foreground truncate max-w-[160px]">{receiptFile.name}</span>}
+              {receiptFile && (
+                <span className="text-xs text-muted-foreground truncate max-w-[160px]">
+                  {receiptFile.name}
+                </span>
+              )}
             </div>
           </div>
 

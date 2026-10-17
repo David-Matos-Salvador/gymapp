@@ -2,15 +2,6 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-async function canEditPlan(planId: string, user: { id: string; role: string }) {
-  const plan = await prisma.routinePlan.findUnique({
-    where: { id: planId },
-    select: { userId: true },
-  })
-  if (!plan) return false
-  return plan.userId === user.id || user.role === "SUPER_ADMIN"
-}
-
 export async function GET() {
   const session = await auth()
   if (!session?.user?.email) {
@@ -31,14 +22,18 @@ export async function GET() {
 
   const plans = await prisma.routinePlan.findMany({
     where: {
-      OR: [
-        { userId: user.id },
-        { user: { role: "SUPER_ADMIN" } },
-      ],
+      OR: [{ userId: user.id }, { user: { role: "SUPER_ADMIN" } }],
     },
     include: {
       splits: {
-        include: { exercises: { include: { exercise: { include: { creator: { select: { id: true, name: true, role: true } } } } }, orderBy: { order: "asc" } } },
+        include: {
+          exercises: {
+            include: {
+              exercise: { include: { creator: { select: { id: true, name: true, role: true } } } },
+            },
+            orderBy: { order: "asc" },
+          },
+        },
         orderBy: { order: "asc" },
       },
       user: { select: { id: true, name: true, email: true, role: true } },
@@ -67,7 +62,14 @@ export async function POST(request: Request) {
     objective?: string
     frequency?: number
     difficulty?: string
-    exercises?: { exerciseId: string; sets: number; reps: string; weight: number; restSeconds: number; order: number }[]
+    exercises?: {
+      exerciseId: string
+      sets: number
+      reps: string
+      weight: number
+      restSeconds: number
+      order: number
+    }[]
   }
 
   if (!name) {
@@ -84,23 +86,25 @@ export async function POST(request: Request) {
       difficulty: difficulty ?? null,
       userId: user.id,
       splits: {
-        create: [{
-          label: "A",
-          name,
-          muscleGroups: [],
-          exercises: exercises
-            ? {
-                create: exercises.map((e) => ({
-                  exerciseId: e.exerciseId,
-                  sets: e.sets,
-                  reps: String(e.reps),
-                  weight: e.weight,
-                  restSeconds: e.restSeconds,
-                  order: e.order,
-                })),
-              }
-            : undefined,
-        }],
+        create: [
+          {
+            label: "A",
+            name,
+            muscleGroups: [],
+            exercises: exercises
+              ? {
+                  create: exercises.map((e) => ({
+                    exerciseId: e.exerciseId,
+                    sets: e.sets,
+                    reps: String(e.reps),
+                    weight: e.weight,
+                    restSeconds: e.restSeconds,
+                    order: e.order,
+                  })),
+                }
+              : undefined,
+          },
+        ],
       },
     },
     include: {

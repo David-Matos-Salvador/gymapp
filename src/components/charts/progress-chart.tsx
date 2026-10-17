@@ -47,7 +47,14 @@ function toNumber(value: unknown): number | null {
   return Number.isNaN(n) ? null : n
 }
 
-function ChartTooltip<T extends object>({ active, payload, label, data, xKey, series }: ChartTooltipProps<T>) {
+function ChartTooltip<T extends object>({
+  active,
+  payload,
+  label,
+  data,
+  xKey,
+  series,
+}: ChartTooltipProps<T>) {
   if (!active || !payload?.length || label == null) return null
   const idx = data.findIndex((d) => String((d as Record<string, unknown>)[xKey]) === String(label))
   const prev = idx > 0 ? data[idx - 1] : undefined
@@ -106,14 +113,26 @@ export function ProgressChart<T extends object>({
   return (
     <div style={{ height }} className="w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={data} margin={{ top: 8, right: rightSeries.length > 0 ? 8 : 16, bottom: 4, left: 0 }}>
+        <ComposedChart
+          data={data}
+          margin={{ top: 8, right: rightSeries.length > 0 ? 8 : 16, bottom: 4, left: 0 }}
+        >
           <defs>
-            {series.filter((s) => s.showArea).map((s) => (
-              <linearGradient key={s.key} id={`${gradientId}-${s.key}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={s.color} stopOpacity={0.22} />
-                <stop offset="100%" stopColor={s.color} stopOpacity={0} />
-              </linearGradient>
-            ))}
+            {series
+              .filter((s) => s.showArea)
+              .map((s) => (
+                <linearGradient
+                  key={s.key}
+                  id={`${gradientId}-${s.key}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor={s.color} stopOpacity={0.22} />
+                  <stop offset="100%" stopColor={s.color} stopOpacity={0} />
+                </linearGradient>
+              ))}
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--chart-grid)" vertical={false} />
           <XAxis

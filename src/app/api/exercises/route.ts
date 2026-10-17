@@ -7,8 +7,37 @@ const exerciseCreateSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
   description: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
-  muscleGroup: z.enum(["CHEST","BACK","SHOULDERS","BICEPS","TRICEPS","LEGS","GLUTES","ABS","CALVES","FOREARMS","TRAPS","FULL_BODY","CARDIO"]),
-  equipment: z.enum(["BARBELL","DUMBBELL","MACHINE","CABLE","BODYWEIGHT","KETTLEBELL","BAND","SMITH_MACHINE","EZ_BAR","BENCH","PLATE","OTHER"]).default("OTHER"),
+  muscleGroup: z.enum([
+    "CHEST",
+    "BACK",
+    "SHOULDERS",
+    "BICEPS",
+    "TRICEPS",
+    "LEGS",
+    "GLUTES",
+    "ABS",
+    "CALVES",
+    "FOREARMS",
+    "TRAPS",
+    "FULL_BODY",
+    "CARDIO",
+  ]),
+  equipment: z
+    .enum([
+      "BARBELL",
+      "DUMBBELL",
+      "MACHINE",
+      "CABLE",
+      "BODYWEIGHT",
+      "KETTLEBELL",
+      "BAND",
+      "SMITH_MACHINE",
+      "EZ_BAR",
+      "BENCH",
+      "PLATE",
+      "OTHER",
+    ])
+    .default("OTHER"),
   imageUrl: z.string().nullable().optional(),
   videoUrl: z.string().nullable().optional(),
 })
@@ -32,8 +61,14 @@ export async function POST(request: Request) {
     }
 
     const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-    if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && user.role !== "TRAINER")) {
-      return NextResponse.json({ error: "No tienes permisos para crear ejercicios" }, { status: 403 })
+    if (
+      !user ||
+      (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && user.role !== "TRAINER")
+    ) {
+      return NextResponse.json(
+        { error: "No tienes permisos para crear ejercicios" },
+        { status: 403 }
+      )
     }
 
     const body = await request.json()

@@ -19,7 +19,7 @@ describe("Card", () => {
 
   it("renders a div with card data-slot", () => {
     const html = renderToString(React.createElement(Card, null, "Content"))
-    expect(html).toContain('<div')
+    expect(html).toContain("<div")
     expect(html).toContain('data-slot="card"')
     expect(html).toContain('data-size="default"')
     expect(html).toContain("Content")
@@ -31,15 +31,15 @@ describe("Card", () => {
   })
 
   it("applies custom className", () => {
-    const html = renderToString(
-      React.createElement(Card, { className: "custom-card" }, "Test"),
-    )
+    const html = renderToString(React.createElement(Card, { className: "custom-card" }, "Test"))
     expect(html).toContain("custom-card")
   })
 
   it("passes additional props", () => {
     const html = renderToString(
-      React.createElement(Card, { id: "my-card", "data-testid": "card-1" }, "Test"),
+      <Card id="my-card" data-testid="card-1">
+        Test
+      </Card>
     )
     expect(html).toContain('id="my-card"')
     expect(html).toContain('data-testid="card-1"')
@@ -79,9 +79,7 @@ describe("CardDescription", () => {
   })
 
   it("renders with card-description data-slot", () => {
-    const html = renderToString(
-      React.createElement(CardDescription, null, "Description"),
-    )
+    const html = renderToString(React.createElement(CardDescription, null, "Description"))
     expect(html).toContain('data-slot="card-description"')
     expect(html).toContain("Description")
   })
@@ -134,8 +132,8 @@ describe("Card composition", () => {
         null,
         React.createElement(CardHeader, null, React.createElement(CardTitle, null, "Rutina A")),
         React.createElement(CardContent, null, "3 ejercicios"),
-        React.createElement(CardFooter, null, "Iniciar"),
-      ),
+        React.createElement(CardFooter, null, "Iniciar")
+      )
     )
     expect(html).toContain("Rutina A")
     expect(html).toContain("3 ejercicios")

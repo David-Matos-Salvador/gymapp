@@ -9,7 +9,10 @@ const stripe = stripeSecret ? new Stripe(stripeSecret, { apiVersion: "2025-04-30
 
 export async function POST() {
   if (!stripe) {
-    return NextResponse.json({ error: "Stripe no está configurado. Agrega STRIPE_SECRET_KEY al .env" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Stripe no está configurado. Agrega STRIPE_SECRET_KEY al .env" },
+      { status: 500 }
+    )
   }
 
   const session = await auth()

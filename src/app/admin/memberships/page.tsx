@@ -32,9 +32,7 @@ export default async function AdminMembershipsPage() {
       <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Membresías</h1>
-          <p className="text-muted-foreground">
-            Gestión de pagos y estados de membresías
-          </p>
+          <p className="text-muted-foreground">Gestión de pagos y estados de membresías</p>
         </div>
         <MembershipPanel memberships={serialized} />
       </div>

@@ -33,14 +33,25 @@ interface ClassesViewProps {
 }
 
 const daysOfWeek: Record<string, string> = {
-  MONDAY: "lunes", TUESDAY: "martes", WEDNESDAY: "miércoles",
-  THURSDAY: "jueves", FRIDAY: "viernes", SATURDAY: "sábado", SUNDAY: "domingo",
+  MONDAY: "lunes",
+  TUESDAY: "martes",
+  WEDNESDAY: "miércoles",
+  THURSDAY: "jueves",
+  FRIDAY: "viernes",
+  SATURDAY: "sábado",
+  SUNDAY: "domingo",
 }
 
 const dayOrder = ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
 
 const dayToIndex: Record<string, number> = {
-  SUNDAY: 0, MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4, FRIDAY: 5, SATURDAY: 6,
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
 }
 
 function nextOccurrence(dayOfWeek: string, startTime: string): Date {
@@ -172,8 +183,8 @@ export function ClassesView({ classes, bookings, userRole }: ClassesViewProps) {
                   </span>
                 </div>
 
-                {(userRole === "MEMBER" || userRole === "TRAINER") && (
-                  booked ? (
+                {(userRole === "MEMBER" || userRole === "TRAINER") &&
+                  (booked ? (
                     <div className="space-y-2">
                       <Button
                         variant="outline"
@@ -201,8 +212,7 @@ export function ClassesView({ classes, bookings, userRole }: ClassesViewProps) {
                     >
                       {isFull ? "Clase llena" : "Reservar lugar"}
                     </Button>
-                  )
-                )}
+                  ))}
               </CardContent>
             </Card>
           </motion.div>

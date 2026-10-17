@@ -42,7 +42,11 @@ export async function POST(request: Request) {
   }
 
   const { name, address, phone, email, logoUrl, showMachineNumbers } = parsed.data
-  const slug = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "").slice(0, 50)
+  const slug = name
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .slice(0, 50)
 
   const gym = await prisma.gym.create({
     data: { name, slug, address, phone, email, logoUrl, showMachineNumbers },

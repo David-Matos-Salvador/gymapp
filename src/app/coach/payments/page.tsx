@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { AppShell } from "@/components/layout/shell"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
 import { CreditCard, Check, X, Loader2, Mail, Clock, Eye } from "lucide-react"
@@ -34,8 +34,11 @@ export default function CoachPaymentsPage() {
         if (!res.ok) throw new Error("Error")
         const data = await res.json()
         setPayments(data.payments || [])
-      } catch { toast.error("Error al cargar pagos") }
-      finally { setLoading(false) }
+      } catch {
+        toast.error("Error al cargar pagos")
+      } finally {
+        setLoading(false)
+      }
     }
     fetchPayments()
   }, [])
@@ -48,11 +51,17 @@ export default function CoachPaymentsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "CONFIRM" }),
       })
-      if (!res.ok) { toast.error("Error al confirmar"); return }
+      if (!res.ok) {
+        toast.error("Error al confirmar")
+        return
+      }
       toast.success("Pago confirmado")
       setPayments((prev) => prev.filter((p) => p.id !== paymentId))
-    } catch { toast.error("Error de conexion") }
-    finally { setProcessing(null) }
+    } catch {
+      toast.error("Error de conexion")
+    } finally {
+      setProcessing(null)
+    }
   }, [])
 
   const handleReject = useCallback(async (paymentId: string) => {
@@ -61,13 +70,22 @@ export default function CoachPaymentsPage() {
       const res = await fetch(`/api/payments/${paymentId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "REJECT", notes: "Comprobante rechazado por el entrenador" }),
+        body: JSON.stringify({
+          action: "REJECT",
+          notes: "Comprobante rechazado por el entrenador",
+        }),
       })
-      if (!res.ok) { toast.error("Error al rechazar"); return }
+      if (!res.ok) {
+        toast.error("Error al rechazar")
+        return
+      }
       toast.success("Pago rechazado")
       setPayments((prev) => prev.filter((p) => p.id !== paymentId))
-    } catch { toast.error("Error de conexion") }
-    finally { setProcessing(null) }
+    } catch {
+      toast.error("Error de conexion")
+    } finally {
+      setProcessing(null)
+    }
   }, [])
 
   if (loading) {
@@ -85,7 +103,9 @@ export default function CoachPaymentsPage() {
       <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pagos pendientes</h1>
-          <p className="text-muted-foreground">Revisa y confirma los comprobantes de pago de tus clientes</p>
+          <p className="text-muted-foreground">
+            Revisa y confirma los comprobantes de pago de tus clientes
+          </p>
         </div>
 
         {payments.length === 0 ? (
@@ -103,7 +123,11 @@ export default function CoachPaymentsPage() {
         ) : (
           <div className="space-y-4">
             {payments.map((payment) => (
-              <motion.div key={payment.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+              <motion.div
+                key={payment.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
                 <Card>
                   <CardContent className="pt-6 space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-start gap-4">
@@ -115,7 +139,8 @@ export default function CoachPaymentsPage() {
                           <div>
                             <p className="font-semibold">{payment.user.name || "Sin nombre"}</p>
                             <p className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Mail className="h-3 w-3" />{payment.user.email}
+                              <Mail className="h-3 w-3" />
+                              {payment.user.email}
                             </p>
                           </div>
                         </div>
@@ -123,10 +148,18 @@ export default function CoachPaymentsPage() {
                           <span className="font-semibold text-accent-yellow">
                             {formatCurrency(payment.amount, payment.currency)}
                           </span>
-                          <Badge variant="outline" className="text-xs">{payment.method}</Badge>
+                          <Badge variant="outline" className="text-xs">
+                            {payment.method}
+                          </Badge>
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Clock className="h-3 w-3" />
-                            {new Date(payment.createdAt).toLocaleDateString("es-PE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            {new Date(payment.createdAt).toLocaleDateString("es-PE", {
+                              day: "2-digit",
+                              month: "2-digit",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
                           </span>
                         </div>
                       </div>
@@ -164,7 +197,11 @@ export default function CoachPaymentsPage() {
                         onClick={() => handleReject(payment.id)}
                         disabled={processing === payment.id}
                       >
-                        {processing === payment.id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <X className="h-3 w-3 mr-1" />}
+                        {processing === payment.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                        ) : (
+                          <X className="h-3 w-3 mr-1" />
+                        )}
                         Rechazar
                       </Button>
                       <Button
@@ -172,7 +209,11 @@ export default function CoachPaymentsPage() {
                         onClick={() => handleConfirm(payment.id)}
                         disabled={processing === payment.id}
                       >
-                        {processing === payment.id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Check className="h-3 w-3 mr-1" />}
+                        {processing === payment.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                        ) : (
+                          <Check className="h-3 w-3 mr-1" />
+                        )}
                         Confirmar pago
                       </Button>
                     </div>

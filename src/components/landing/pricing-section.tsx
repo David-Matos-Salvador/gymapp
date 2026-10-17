@@ -46,9 +46,7 @@ export function PricingSection({ plans }: PricingSectionProps) {
               transition={{ duration: 0.5, delay: i * 0.1 }}
               whileHover={{ y: -4 }}
               className={`relative rounded-2xl border p-6 md:p-8 flex flex-col transition-shadow hover:shadow-lg ${
-                plan.highlighted
-                  ? "border-primary/50 bg-primary/5 shadow-md"
-                  : "bg-card"
+                plan.highlighted ? "border-primary/50 bg-primary/5 shadow-md" : "bg-card"
               }`}
             >
               {plan.highlighted && (

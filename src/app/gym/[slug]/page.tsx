@@ -33,7 +33,9 @@ export default async function GymPage({ params }: GymPageParams) {
           <span className="font-semibold">GymApp</span>
           <div className="ml-auto flex items-center gap-2">
             <Link href="/login">
-              <Button variant="ghost" size="sm">Ingresar</Button>
+              <Button variant="ghost" size="sm">
+                Ingresar
+              </Button>
             </Link>
             <Link href="/register">
               <Button size="sm">Registrarse</Button>
@@ -91,7 +93,9 @@ export default async function GymPage({ params }: GymPageParams) {
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Planes disponibles</h2>
           {plans.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No hay planes disponibles en este momento.</p>
+            <p className="text-sm text-muted-foreground">
+              No hay planes disponibles en este momento.
+            </p>
           ) : (
             <div className="space-y-3">
               {plans.map((plan) => (

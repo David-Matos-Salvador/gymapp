@@ -24,7 +24,9 @@ export function CTASection() {
             <div className="relative z-10">
               <Trophy className="h-12 w-12 text-accent-yellow mx-auto mb-4" />
               <p className="text-3xl font-bold mb-2">Empieza gratis</p>
-              <p className="text-muted-foreground mb-8">Sin tarjeta de crédito. Acceso completo por 7 días.</p>
+              <p className="text-muted-foreground mb-8">
+                Sin tarjeta de crédito. Acceso completo por 7 días.
+              </p>
               <Button
                 size="lg"
                 asChild

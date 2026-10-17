@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
   type UsualSchedule,
   type OnboardingData,
   type GeneratedPlanData,
+  type MeasurementsInput,
   TOTAL_STEPS,
   STEPS,
   STEP_BEHAVIOR,
@@ -29,6 +30,8 @@ import {
   trainingHistoryLabelMap,
   experienceLabelMap,
   scheduleLabelMap,
+  emptyMeasurements,
+  measurementFields,
 } from "./constants"
 import {
   ChevronLeft,
@@ -40,6 +43,7 @@ import {
   Zap,
   LogOut,
   UserRound,
+  X,
 } from "lucide-react"
 
 interface CoachPlanData {
@@ -68,9 +72,14 @@ interface CoachPlanData {
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { update: updateSession, data: session, status } = useSession()
   const { play } = useSound()
   const verifiedRef = useRef(false)
+
+  const memberId = searchParams.get("memberId")
+  const [assisted, setAssisted] = useState(false)
+  const [memberName, setMemberName] = useState<string | null>(null)
 
   const [step, setStep] = useState(1)
   const [direction, setDirection] = useState(0)
@@ -93,31 +102,36 @@ export default function OnboardingPage() {
     weight: null,
     height: null,
     usualSchedule: null,
+    measurements: { ...emptyMeasurements },
   })
 
-  const fetchGeneratedPlans = useCallback(async (freq: number): Promise<GeneratedPlanData[] | null> => {
-    try {
-      const res = await fetch("/api/fitness-coach", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          objective: data.objective ?? "UNSURE",
-          experienceLevel: data.experienceLevel ?? "BEGINNER",
-          trainingFrequency: freq,
-        }),
-      })
-      if (res.ok) {
-        const result = await res.json()
-        if (result.plans?.length > 0) {
-          setGeneratedPlans(result.plans)
-          return result.plans
+  const fetchGeneratedPlans = useCallback(
+    async (freq: number): Promise<GeneratedPlanData[] | null> => {
+      try {
+        const res = await fetch("/api/fitness-coach", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            objective: data.objective ?? "UNSURE",
+            experienceLevel: data.experienceLevel ?? "BEGINNER",
+            trainingFrequency: freq,
+            memberId: memberId ?? undefined,
+          }),
+        })
+        if (res.ok) {
+          const result = await res.json()
+          if (result.plans?.length > 0) {
+            setGeneratedPlans(result.plans)
+            return result.plans
+          }
         }
+      } catch {
+        // silent
       }
-    } catch {
-      // silent
-    }
-    return null
-  }, [data.objective, data.experienceLevel])
+      return null
+    },
+    [data.objective, data.experienceLevel, memberId]
+  )
 
   useEffect(() => {
     if (status === "loading") return
@@ -129,6 +143,35 @@ export default function OnboardingPage() {
     if (status === "authenticated") {
       verifiedRef.current = true
       const s = session as { user?: { role?: string; onboardingCompleted?: boolean } }
+
+      if (memberId) {
+        fetch(`/api/onboarding?memberId=${encodeURIComponent(memberId)}`)
+          .then((r) => {
+            if (r.status === 401 || r.status === 403) {
+              router.push("/coach")
+              return null
+            }
+            return r.json()
+          })
+          .then((d) => {
+            if (!d) return
+            if (d.onboardingCompleted) {
+              router.push("/coach")
+              return
+            }
+            setAssisted(true)
+            if (d.memberName) setMemberName(d.memberName)
+            if (d.trainingFrequency) {
+              setData((prev) => ({ ...prev, trainingFrequency: d.trainingFrequency }))
+            }
+            if (d.coachPlan) {
+              setCoachPlan(d.coachPlan)
+            }
+          })
+          .catch(() => {})
+        return
+      }
+
       if (s?.user?.role !== "MEMBER") {
         const role = s?.user?.role
         if (role === "ADMIN" || role === "SUPER_ADMIN") router.push("/admin")
@@ -150,17 +193,18 @@ export default function OnboardingPage() {
         })
         .catch(() => {})
     }
-  }, [status, session, router])
+  }, [status, session, router, memberId])
 
   const [weightInput, setWeightInput] = useState("")
   const [heightInput, setHeightInput] = useState("")
   const [weightError, setWeightError] = useState("")
   const [heightError, setHeightError] = useState("")
+  const [measurementInputs, setMeasurementInputs] = useState<Record<string, string>>({})
 
   const goNext = useCallback(() => {
     if (editingStep !== null) {
       setDirection(-1)
-      setStep(8)
+      setStep(9)
       setEditingStep(null)
       return
     }
@@ -177,14 +221,11 @@ export default function OnboardingPage() {
     setStep((s) => s - 1)
   }, [step, play])
 
-  const jumpToEditStep = useCallback(
-    (targetStep: number) => {
-      setEditingStep(targetStep)
-      setDirection(1)
-      setStep(targetStep)
-    },
-    []
-  )
+  const jumpToEditStep = useCallback((targetStep: number) => {
+    setEditingStep(targetStep)
+    setDirection(1)
+    setStep(targetStep)
+  }, [])
 
   const updateData = useCallback(
     <K extends keyof OnboardingData>(key: K, value: OnboardingData[K]) => {
@@ -192,6 +233,28 @@ export default function OnboardingPage() {
       setError("")
     },
     []
+  )
+
+  const updateMeasurement = useCallback(
+    <K extends keyof MeasurementsInput>(key: K, value: MeasurementsInput[K]) => {
+      setData((prev) => ({
+        ...prev,
+        measurements: { ...prev.measurements, [key]: value },
+      }))
+      setError("")
+    },
+    []
+  )
+
+  const handleMeasurementChange = useCallback(
+    (key: Exclude<keyof MeasurementsInput, "notes">, value: string) => {
+      const cleaned = value.replace(/[^0-9.]/g, "")
+      if (cleaned.split(".").length > 2) return
+      setMeasurementInputs((prev) => ({ ...prev, [key]: cleaned }))
+      const num = parseFloat(cleaned)
+      updateMeasurement(key, cleaned === "" || isNaN(num) || num <= 0 ? null : num)
+    },
+    [updateMeasurement]
   )
 
   const handleScheduleSelect = useCallback(
@@ -214,7 +277,7 @@ export default function OnboardingPage() {
         const res = await fetch("/api/onboarding", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
+          body: JSON.stringify({ ...data, memberId: memberId ?? undefined }),
         })
 
         let errorMsg = "Error al guardar"
@@ -266,8 +329,8 @@ export default function OnboardingPage() {
     play("success")
 
     setDirection(1)
-    setStep(9)
-  }, [data, play, fetchGeneratedPlans])
+    setStep(10)
+  }, [data, play, fetchGeneratedPlans, memberId])
 
   const assignPlan = useCallback(
     async (planId: string) => {
@@ -277,13 +340,13 @@ export default function OnboardingPage() {
       await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, memberId: memberId ?? undefined }),
       })
 
       const res = await fetch("/api/onboarding/assign-routine", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId }),
+        body: JSON.stringify({ planId, memberId: memberId ?? undefined }),
       })
       if (!res.ok) {
         setError("Error al asignar la rutina")
@@ -291,8 +354,17 @@ export default function OnboardingPage() {
         return
       }
       play("success")
+      if (assisted) {
+        await new Promise((r) => setTimeout(r, 600))
+        router.push("/coach")
+        router.refresh()
+        return
+      }
       try {
-        await updateSession({ onboardingCompleted: true, onboardingCompletedAt: new Date().toISOString() })
+        await updateSession({
+          onboardingCompleted: true,
+          onboardingCompletedAt: new Date().toISOString(),
+        })
       } catch {
         // silent
       }
@@ -300,7 +372,7 @@ export default function OnboardingPage() {
       router.push("/dashboard")
       router.refresh()
     },
-    [play, router, updateSession, data]
+    [play, router, updateSession, data, memberId, assisted]
   )
 
   // Completa el onboarding manteniendo la rutina que ya asignó el coach
@@ -312,7 +384,7 @@ export default function OnboardingPage() {
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, memberId: memberId ?? undefined }),
       })
       if (!res.ok) {
         let errorMsg = "Error al guardar"
@@ -325,8 +397,17 @@ export default function OnboardingPage() {
         throw new Error(errorMsg)
       }
       play("success")
+      if (assisted) {
+        await new Promise((r) => setTimeout(r, 600))
+        router.push("/coach")
+        router.refresh()
+        return
+      }
       try {
-        await updateSession({ onboardingCompleted: true, onboardingCompletedAt: new Date().toISOString() })
+        await updateSession({
+          onboardingCompleted: true,
+          onboardingCompletedAt: new Date().toISOString(),
+        })
       } catch {
         // silent
       }
@@ -337,7 +418,7 @@ export default function OnboardingPage() {
       setError(err instanceof Error ? err.message : "Error al guardar los datos")
       setIsSubmitting(false)
     }
-  }, [data, play, router, updateSession])
+  }, [data, play, router, updateSession, memberId, assisted])
 
   const handlePlanClick = useCallback(
     (plan: GeneratedPlanData) => {
@@ -413,8 +494,10 @@ export default function OnboardingPage() {
   const canProceedStep3 = data.experienceLevel !== null
   const canProceedStep4 = data.trainingFrequency !== null
   const canProceedStep5 = data.physicalConditions.length > 0
-  const canProceedStep6 = data.weight !== null && data.height !== null && !weightError && !heightError
-  const canProceedStep7 = data.usualSchedule !== null
+  const canProceedStep6 =
+    data.weight !== null && data.height !== null && !weightError && !heightError
+  const canProceedStep7 = true
+  const canProceedStep8 = data.usualSchedule !== null
 
   const canProceedMap: Record<number, boolean> = {
     1: canProceedStep1,
@@ -424,13 +507,25 @@ export default function OnboardingPage() {
     5: canProceedStep5,
     6: canProceedStep6,
     7: canProceedStep7,
-    8: true,
+    8: canProceedStep8,
     9: true,
+    10: true,
   }
 
   const showNextButton = STEP_BEHAVIOR[step] === "manual"
 
   const bmi = data.weight && data.height ? calculateBMI(data.weight, data.height) : null
+
+  const filledMeasurements = measurementFields.filter((f) => data.measurements[f.key] !== null)
+  const measurementsSummary =
+    filledMeasurements.length > 0
+      ? filledMeasurements
+          .slice(0, 3)
+          .map((f) => `${f.label}: ${data.measurements[f.key]}${f.unit}`)
+          .join(" · ") + (filledMeasurements.length > 3 ? ` +${filledMeasurements.length - 3}` : "")
+      : data.measurements.notes.trim()
+        ? `Notas: ${data.measurements.notes.trim()}`
+        : "Sin medidas"
 
   const stepInfo = STEPS[step - 1]
 
@@ -441,7 +536,9 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
               <h2 className="text-2xl font-bold tracking-tight">¿Cuál es tu objetivo?</h2>
-              <p className="text-muted-foreground">Selecciona lo que quieres lograr con tu entrenamiento</p>
+              <p className="text-muted-foreground">
+                Selecciona lo que quieres lograr con tu entrenamiento
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               {objectiveOptions.map((opt) => {
@@ -463,7 +560,9 @@ export default function OnboardingPage() {
                   >
                     <div
                       className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-all ${
-                        isSelected ? "bg-primary text-primary-foreground shadow-md" : "bg-primary/10 text-primary"
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "bg-primary/10 text-primary"
                       }`}
                     >
                       <opt.icon className="h-7 w-7" />
@@ -484,7 +583,9 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
               <h2 className="text-2xl font-bold tracking-tight">Historial de entrenamiento</h2>
-              <p className="text-muted-foreground">¿Con qué frecuencia has entrenado hasta ahora?</p>
+              <p className="text-muted-foreground">
+                ¿Con qué frecuencia has entrenado hasta ahora?
+              </p>
             </div>
             <div className="space-y-3">
               {trainingHistoryOptions.map((opt) => {
@@ -549,7 +650,9 @@ export default function OnboardingPage() {
                   >
                     <div
                       className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all ${
-                        isSelected ? "bg-primary text-primary-foreground shadow-md" : "bg-muted text-muted-foreground"
+                        isSelected
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
                       <opt.icon className="h-6 w-6" />
@@ -629,10 +732,7 @@ export default function OnboardingPage() {
                     onClick={() => {
                       play("click")
                       if (isNoPoseo) {
-                        updateData(
-                          "physicalConditions",
-                          isSelected ? [] : ["No poseo"]
-                        )
+                        updateData("physicalConditions", isSelected ? [] : ["No poseo"])
                       } else {
                         let newConditions: string[]
                         if (isSelected) {
@@ -668,12 +768,16 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
               <h2 className="text-2xl font-bold tracking-tight">Peso y altura</h2>
-              <p className="text-muted-foreground">Estos datos nos ayudan a personalizar tu rutina</p>
+              <p className="text-muted-foreground">
+                Estos datos nos ayudan a personalizar tu rutina
+              </p>
             </div>
 
             <div className="space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-muted-foreground">¿Cuánto pesas?</label>
+                <label className="text-sm font-semibold text-muted-foreground">
+                  ¿Cuánto pesas?
+                </label>
                 <div className="relative">
                   <input
                     type="text"
@@ -691,7 +795,9 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-muted-foreground">¿Cuánto mides?</label>
+                <label className="text-sm font-semibold text-muted-foreground">
+                  ¿Cuánto mides?
+                </label>
                 <div className="relative">
                   <input
                     type="text"
@@ -714,8 +820,12 @@ export default function OnboardingPage() {
                   animate={{ scale: 1, opacity: 1 }}
                   className={`rounded-2xl ${getBMICategory(bmi).bgColor} border p-5 text-center`}
                 >
-                  <p className="text-sm font-medium text-muted-foreground">Tu Índice de Masa Corporal</p>
-                  <p className={`text-4xl font-bold mt-1 ${getBMICategory(bmi).color}`}>{bmi.toFixed(1)}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Tu Índice de Masa Corporal
+                  </p>
+                  <p className={`text-4xl font-bold mt-1 ${getBMICategory(bmi).color}`}>
+                    {bmi.toFixed(1)}
+                  </p>
                   <p className={`text-sm font-semibold mt-0.5 ${getBMICategory(bmi).color}`}>
                     {getBMICategory(bmi).label}
                   </p>
@@ -729,8 +839,57 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
+              <h2 className="text-2xl font-bold tracking-tight">Medidas corporales</h2>
+              <p className="text-muted-foreground">
+                {assisted
+                  ? "Tomá las medidas del cliente — todas son opcionales"
+                  : "Todas las medidas son opcionales, tu coach puede completarlas más tarde"}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {measurementFields.map((f) => (
+                <div key={f.key} className="space-y-1.5">
+                  <label className="text-xs font-semibold text-muted-foreground">
+                    {f.label} ({f.unit})
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={measurementInputs[f.key] ?? ""}
+                    onChange={(e) => handleMeasurementChange(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                    className="w-full h-12 rounded-xl border-2 border-border bg-card px-4 text-base font-semibold placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-muted-foreground">
+                Notas (opcional)
+              </label>
+              <textarea
+                value={data.measurements.notes}
+                onChange={(e) => updateMeasurement("notes", e.target.value)}
+                placeholder="Observaciones, lesiones, postura..."
+                rows={2}
+                className="w-full rounded-xl border-2 border-border bg-card px-4 py-3 text-sm placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+              />
+            </div>
+
+            <p className="text-center text-xs text-muted-foreground">
+              Podés saltear este paso: las medidas se podrán registrar después.
+            </p>
+          </div>
+        )
+
+      case 8:
+        return (
+          <div className="flex flex-col gap-5">
+            <div className="text-center space-y-2 pb-1">
               <h2 className="text-2xl font-bold tracking-tight">Horario habitual</h2>
-              <p className="text-muted-foreground">¿A qué hora sueles entrenar?</p>
+              <p className="text-muted-foreground">¿A qué hora suele entrenar?</p>
             </div>
             <div className="space-y-2.5">
               {scheduleOptions.map((opt) => {
@@ -769,7 +928,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 8:
+      case 9:
         if (isGenerating) {
           return (
             <div className="flex flex-col items-center justify-center gap-8 py-16">
@@ -829,21 +988,56 @@ export default function OnboardingPage() {
             )}
 
             <div className="space-y-2">
-              <SummaryRow label="Objetivo" value={objectiveLabelMap[data.objective!]} onEdit={() => jumpToEditStep(1)} />
-              <SummaryRow label="Historial" value={trainingHistoryLabelMap[data.trainingHistory!]} onEdit={() => jumpToEditStep(2)} />
-              <SummaryRow label="Experiencia" value={experienceLabelMap[data.experienceLevel!]} onEdit={() => jumpToEditStep(3)} />
-              <SummaryRow label="Frecuencia" value={`${data.trainingFrequency} días por semana`} onEdit={() => jumpToEditStep(4)} />
-              <SummaryRow label="Condiciones" value={data.physicalConditions.join(", ")} onEdit={() => jumpToEditStep(5)} />
-              <SummaryRow label="Peso / Altura" value={`${data.weight} kg / ${data.height} cm`} onEdit={() => jumpToEditStep(6)} />
+              <SummaryRow
+                label="Objetivo"
+                value={objectiveLabelMap[data.objective!]}
+                onEdit={() => jumpToEditStep(1)}
+              />
+              <SummaryRow
+                label="Historial"
+                value={trainingHistoryLabelMap[data.trainingHistory!]}
+                onEdit={() => jumpToEditStep(2)}
+              />
+              <SummaryRow
+                label="Experiencia"
+                value={experienceLabelMap[data.experienceLevel!]}
+                onEdit={() => jumpToEditStep(3)}
+              />
+              <SummaryRow
+                label="Frecuencia"
+                value={`${data.trainingFrequency} días por semana`}
+                onEdit={() => jumpToEditStep(4)}
+              />
+              <SummaryRow
+                label="Condiciones"
+                value={data.physicalConditions.join(", ")}
+                onEdit={() => jumpToEditStep(5)}
+              />
+              <SummaryRow
+                label="Peso / Altura"
+                value={`${data.weight} kg / ${data.height} cm`}
+                onEdit={() => jumpToEditStep(6)}
+              />
               {bmi !== null && (
-                <div className={`flex items-center justify-between ${getBMICategory(bmi).bgColor} rounded-xl px-4 py-3`}>
+                <div
+                  className={`flex items-center justify-between ${getBMICategory(bmi).bgColor} rounded-xl px-4 py-3`}
+                >
                   <span className="text-sm font-medium">IMC</span>
                   <span className={`text-sm font-bold ${getBMICategory(bmi).color}`}>
                     {bmi.toFixed(1)} ({getBMICategory(bmi).label})
                   </span>
                 </div>
               )}
-              <SummaryRow label="Horario" value={scheduleLabelMap[data.usualSchedule!]} onEdit={() => jumpToEditStep(7)} />
+              <SummaryRow
+                label="Medidas"
+                value={measurementsSummary}
+                onEdit={() => jumpToEditStep(7)}
+              />
+              <SummaryRow
+                label="Horario"
+                value={scheduleLabelMap[data.usualSchedule!]}
+                onEdit={() => jumpToEditStep(8)}
+              />
             </div>
 
             {coachPlan && (
@@ -851,16 +1045,20 @@ export default function OnboardingPage() {
                 <div className="flex items-center gap-2">
                   <UserRound className="h-4 w-4 text-accent-yellow" />
                   <p className="text-sm font-semibold text-accent-yellow">
-                    Tu coach{coachPlan.coachName ? ` ${coachPlan.coachName}` : ""} ya te asignó una rutina
+                    Tu coach{coachPlan.coachName ? ` ${coachPlan.coachName}` : ""} ya te asignó una
+                    rutina
                   </p>
                 </div>
                 <div className="rounded-xl border bg-card p-3">
                   <p className="font-bold text-base">{coachPlan.name}</p>
                   {coachPlan.description && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{coachPlan.description}</p>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {coachPlan.description}
+                    </p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    {coachPlan.splits.length} divisiones · {coachPlan.splits.reduce((s, sp) => s + sp.exercises.length, 0)} ejercicios
+                    {coachPlan.splits.length} divisiones ·{" "}
+                    {coachPlan.splits.reduce((s, sp) => s + sp.exercises.length, 0)} ejercicios
                   </p>
                 </div>
                 <Button
@@ -885,11 +1083,7 @@ export default function OnboardingPage() {
             )}
 
             <div className="flex gap-3 pt-2">
-              <Button
-                variant="outline"
-                className="flex-1 h-12 rounded-xl"
-                onClick={goBack}
-              >
+              <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={goBack}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
                 Editar
               </Button>
@@ -914,12 +1108,14 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 9:
+      case 10:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
               <h2 className="text-2xl font-bold tracking-tight">Tu rutina personalizada</h2>
-              <p className="text-muted-foreground">Toc\u00e1 para ver detalles \u00b7 doble toque para elegir</p>
+              <p className="text-muted-foreground">
+                Toc\u00e1 para ver detalles \u00b7 doble toque para elegir
+              </p>
             </div>
 
             {error && (
@@ -947,22 +1143,40 @@ export default function OnboardingPage() {
                         <div className="flex items-center gap-2.5 flex-wrap">
                           <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-accent-yellow/10 text-accent-yellow flex items-center gap-1">
                             <UserRound className="h-3 w-3" />
-                            Asignada por tu coach{coachPlan.coachName ? ` · ${coachPlan.coachName}` : ""}
+                            Asignada por tu coach
+                            {coachPlan.coachName ? ` · ${coachPlan.coachName}` : ""}
                           </span>
                         </div>
                         <h3 className="font-bold text-base mt-1.5">{coachPlan.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{coachPlan.description}</p>
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {coachPlan.description}
+                        </p>
                         <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-                          <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" />{coachPlan.splits.length} divisiones</span>
-                          <span>{coachPlan.splits.reduce((sum, s) => sum + s.exercises.length, 0)} ejercicios</span>
+                          <span className="flex items-center gap-1">
+                            <Dumbbell className="h-3 w-3" />
+                            {coachPlan.splits.length} divisiones
+                          </span>
+                          <span>
+                            {coachPlan.splits.reduce((sum, s) => sum + s.exercises.length, 0)}{" "}
+                            ejercicios
+                          </span>
                         </div>
                       </div>
-                      <ChevronRight className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${expandedPlanId === `coach-${coachPlan.id}` ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`} />
+                      <ChevronRight
+                        className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${expandedPlanId === `coach-${coachPlan.id}` ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`}
+                      />
                     </div>
                     {expandedPlanId === `coach-${coachPlan.id}` && (
-                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="mt-4 pt-4 border-t">
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        className="mt-4 pt-4 border-t"
+                      >
                         <p className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
-                          Grupos musculares: {[...new Set(coachPlan.splits.flatMap((s) => s.muscleGroups))].join(", ").toLowerCase()}
+                          Grupos musculares:{" "}
+                          {[...new Set(coachPlan.splits.flatMap((s) => s.muscleGroups))]
+                            .join(", ")
+                            .toLowerCase()}
                         </p>
                         <div className="space-y-2.5 mb-3">
                           {coachPlan.splits.map((split) => (
@@ -973,26 +1187,36 @@ export default function OnboardingPage() {
                                 </span>
                                 <span className="text-xs font-semibold">{split.name}</span>
                                 {split.estimatedDuration && (
-                                  <span className="text-[10px] text-muted-foreground ml-auto">~{split.estimatedDuration} min</span>
+                                  <span className="text-[10px] text-muted-foreground ml-auto">
+                                    ~{split.estimatedDuration} min
+                                  </span>
                                 )}
                               </div>
-                              <p className="text-[10px] text-muted-foreground mb-1.5">{split.muscleGroups.join(" \u00b7 ")}</p>
+                              <p className="text-[10px] text-muted-foreground mb-1.5">
+                                {split.muscleGroups.join(" \u00b7 ")}
+                              </p>
                               <div className="space-y-0.5">
                                 {split.exercises.slice(0, 4).map((ex) => (
                                   <div key={ex.id} className="flex items-center gap-2 text-[10px]">
                                     <span className="text-muted-foreground">\u00b7</span>
                                     <span className="truncate">{ex.name}</span>
-                                    <span className="text-muted-foreground ml-auto">{ex.sets}\u00d7{ex.reps}</span>
+                                    <span className="text-muted-foreground ml-auto">
+                                      {ex.sets}\u00d7{ex.reps}
+                                    </span>
                                   </div>
                                 ))}
                                 {split.exercises.length > 4 && (
-                                  <p className="text-[10px] text-muted-foreground pl-3">+{split.exercises.length - 4} m\u00e1s</p>
+                                  <p className="text-[10px] text-muted-foreground pl-3">
+                                    +{split.exercises.length - 4} m\u00e1s
+                                  </p>
                                 )}
                               </div>
                             </div>
                           ))}
                         </div>
-                        <p className="text-xs text-accent-yellow font-medium mt-3 text-center">Doble toque para usar esta rutina</p>
+                        <p className="text-xs text-accent-yellow font-medium mt-3 text-center">
+                          Doble toque para usar esta rutina
+                        </p>
                       </motion.div>
                     )}
                   </motion.button>
@@ -1025,26 +1249,44 @@ export default function OnboardingPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2.5 flex-wrap">
                             <h3 className="font-bold text-base">{plan.name}</h3>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                              plan.difficulty === "ADVANCED" || plan.difficulty === "ELITE"
-                                ? "bg-violet-100 text-violet-700"
-                                : "bg-accent-yellow/10 text-accent-yellow"
-                            }`}>
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                                plan.difficulty === "ADVANCED" || plan.difficulty === "ELITE"
+                                  ? "bg-violet-100 text-violet-700"
+                                  : "bg-accent-yellow/10 text-accent-yellow"
+                              }`}
+                            >
                               {plan.difficulty}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{plan.description}</p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {plan.description}
+                          </p>
                           <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-                            <span className="flex items-center gap-1"><Dumbbell className="h-3 w-3" />{plan.splits.length} divisiones</span>
-                            <span className="flex items-center gap-1"><Zap className="h-3 w-3" />{plan.focus}</span>
+                            <span className="flex items-center gap-1">
+                              <Dumbbell className="h-3 w-3" />
+                              {plan.splits.length} divisiones
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Zap className="h-3 w-3" />
+                              {plan.focus}
+                            </span>
                             <span>{totalExercises} ejercicios</span>
                           </div>
                         </div>
-                        <ChevronRight className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${isExpanded ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`} />
+                        <ChevronRight
+                          className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${isExpanded ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`}
+                        />
                       </div>
                       {isExpanded && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} className="mt-4 pt-4 border-t">
-                          <p className="text-xs font-semibold text-muted-foreground mb-2 capitalize">Grupos musculares: {allMuscleGroups.join(", ").toLowerCase()}</p>
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          className="mt-4 pt-4 border-t"
+                        >
+                          <p className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
+                            Grupos musculares: {allMuscleGroups.join(", ").toLowerCase()}
+                          </p>
                           <div className="space-y-2.5 mb-3">
                             {plan.splits.map((split) => (
                               <div key={split.id} className="rounded-lg border bg-muted/30 p-3">
@@ -1054,26 +1296,39 @@ export default function OnboardingPage() {
                                   </span>
                                   <span className="text-xs font-semibold">{split.name}</span>
                                   {split.estimatedDuration && (
-                                    <span className="text-[10px] text-muted-foreground ml-auto">~{split.estimatedDuration} min</span>
+                                    <span className="text-[10px] text-muted-foreground ml-auto">
+                                      ~{split.estimatedDuration} min
+                                    </span>
                                   )}
                                 </div>
-                                <p className="text-[10px] text-muted-foreground mb-1.5">{split.muscleGroups.join(" \u00b7 ")}</p>
+                                <p className="text-[10px] text-muted-foreground mb-1.5">
+                                  {split.muscleGroups.join(" \u00b7 ")}
+                                </p>
                                 <div className="space-y-0.5">
                                   {split.exercises.slice(0, 4).map((ex) => (
-                                    <div key={ex.id} className="flex items-center gap-2 text-[10px]">
+                                    <div
+                                      key={ex.id}
+                                      className="flex items-center gap-2 text-[10px]"
+                                    >
                                       <span className="text-muted-foreground">\u00b7</span>
                                       <span className="truncate">{ex.name}</span>
-                                      <span className="text-muted-foreground ml-auto">{ex.sets}\u00d7{ex.reps}</span>
+                                      <span className="text-muted-foreground ml-auto">
+                                        {ex.sets}\u00d7{ex.reps}
+                                      </span>
                                     </div>
                                   ))}
                                   {split.exercises.length > 4 && (
-                                    <p className="text-[10px] text-muted-foreground pl-3">+{split.exercises.length - 4} m\u00e1s</p>
+                                    <p className="text-[10px] text-muted-foreground pl-3">
+                                      +{split.exercises.length - 4} m\u00e1s
+                                    </p>
                                   )}
                                 </div>
                               </div>
                             ))}
                           </div>
-                          <p className="text-xs text-accent-yellow font-medium mt-3 text-center">Doble toque para elegir esta rutina</p>
+                          <p className="text-xs text-accent-yellow font-medium mt-3 text-center">
+                            Doble toque para elegir esta rutina
+                          </p>
                         </motion.div>
                       )}
                     </motion.button>
@@ -1117,6 +1372,11 @@ export default function OnboardingPage() {
           </button>
 
           <div className="flex items-center gap-3">
+            {assisted && memberName && (
+              <span className="max-w-[140px] truncate rounded-full bg-accent-yellow/10 px-2.5 py-0.5 text-xs font-semibold text-accent-yellow">
+                {memberName}
+              </span>
+            )}
             <span className="text-sm font-semibold text-muted-foreground">
               {isGenerating ? "..." : `${stepInfo.num}/${TOTAL_STEPS}`}
             </span>
@@ -1125,13 +1385,24 @@ export default function OnboardingPage() {
             </span>
           </div>
 
-          <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
-            className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
-            disabled={isGenerating}
-          >
-            <LogOut className="h-4 w-4 text-muted-foreground" />
-          </button>
+          {assisted ? (
+            <button
+              onClick={() => router.push("/coach")}
+              className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
+              disabled={isGenerating}
+              title="Salir del onboarding asistido"
+            >
+              <X className="h-4 w-4 text-muted-foreground" />
+            </button>
+          ) : (
+            <button
+              onClick={() => signOut({ callbackUrl: "/login" })}
+              className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
+              disabled={isGenerating}
+            >
+              <LogOut className="h-4 w-4 text-muted-foreground" />
+            </button>
+          )}
         </div>
 
         <div className="mx-auto max-w-lg px-5 pb-2">

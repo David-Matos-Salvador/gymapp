@@ -25,9 +25,7 @@ interface ShareProgressProps {
 }
 
 function buildSummary(workout: WorkoutSummary): string {
-  const lines = [
-    `Hoy completé ${workout.exerciseCount} ejercicios en ${workout.duration} minutos.`,
-  ]
+  const lines = [`Hoy completé ${workout.exerciseCount} ejercicios en ${workout.duration} minutos.`]
   if (workout.totalWeight > 0) {
     lines.push(`Peso total levantado: ${workout.totalWeight} kg.`)
   }
@@ -68,7 +66,12 @@ export function ShareProgress({ workout, open, onClose }: ShareProgressProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose() }}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose()
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
@@ -82,16 +85,10 @@ export function ShareProgress({ workout, open, onClose }: ShareProgressProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="rounded-xl bg-muted/50 p-4 text-sm leading-relaxed">
-          {summary}
-        </div>
+        <div className="rounded-xl bg-muted/50 p-4 text-sm leading-relaxed">{summary}</div>
 
         <div className="flex gap-3">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={handleCopy}
-          >
+          <Button variant="outline" className="flex-1" onClick={handleCopy}>
             {copied ? (
               <>
                 <Check className="mr-2 h-4 w-4 text-green-600" />
@@ -106,11 +103,7 @@ export function ShareProgress({ workout, open, onClose }: ShareProgressProps) {
           </Button>
 
           {typeof navigator !== "undefined" && "share" in navigator && (
-            <Button
-              variant="default"
-              className="flex-1"
-              onClick={handleShare}
-            >
+            <Button variant="default" className="flex-1" onClick={handleShare}>
               <Share2 className="mr-2 h-4 w-4" />
               Compartir
             </Button>

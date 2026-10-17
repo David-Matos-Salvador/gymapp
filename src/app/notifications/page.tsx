@@ -28,16 +28,12 @@ export default function NotificationsPage() {
   }, [])
 
   const handleMarkRead = useCallback(async (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
     try {
       await fetch(`/api/notifications/${id}`, { method: "PATCH" })
     } catch {
       toast.error("Error al marcar como leída")
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: false } : n))
-      )
+      setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: false } : n)))
     }
   }, [])
 
@@ -45,7 +41,9 @@ export default function NotificationsPage() {
     const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id)
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
     try {
-      await Promise.all(unreadIds.map((id) => fetch(`/api/notifications/${id}`, { method: "PATCH" })))
+      await Promise.all(
+        unreadIds.map((id) => fetch(`/api/notifications/${id}`, { method: "PATCH" }))
+      )
     } catch {
       toast.error("Error al marcar todas como leídas")
       setNotifications((prev) =>
@@ -66,9 +64,7 @@ export default function NotificationsPage() {
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Notificaciones</h1>
             {unreadCount > 0 && (
-              <p className="text-sm text-muted-foreground">
-                {unreadCount} sin leer
-              </p>
+              <p className="text-sm text-muted-foreground">{unreadCount} sin leer</p>
             )}
           </div>
         </div>

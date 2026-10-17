@@ -23,9 +23,7 @@ type SplitCardProps = {
 } & SplitVariant
 
 export function SplitCard(props: SplitCardProps) {
-  const {
-    label, name, muscleGroups, exerciseCount, estimatedDuration, onClick,
-  } = props
+  const { label, name, muscleGroups, exerciseCount, estimatedDuration, onClick } = props
 
   const variant = props.variant
   const isLocked = variant === "locked"
@@ -65,7 +63,13 @@ export function SplitCard(props: SplitCardProps) {
             isDefault && "bg-accent-yellow/10 text-accent-yellow"
           )}
         >
-          {isCompleted ? <CheckCircle className="h-5 w-5" /> : isLocked ? <Lock className="h-4 w-4" /> : label}
+          {isCompleted ? (
+            <CheckCircle className="h-5 w-5" />
+          ) : isLocked ? (
+            <Lock className="h-4 w-4" />
+          ) : (
+            label
+          )}
         </span>
 
         <div className="flex-1 min-w-0">
@@ -115,7 +119,13 @@ export function SplitCard(props: SplitCardProps) {
         <div
           className={cn(
             "h-full rounded-full transition-all duration-500 ease-out",
-            isCompleted ? "bg-accent-yellow" : isInProgress ? "bg-blue-400" : isLocked ? "bg-muted-foreground/30" : "bg-accent-yellow/40"
+            isCompleted
+              ? "bg-accent-yellow"
+              : isInProgress
+                ? "bg-blue-400"
+                : isLocked
+                  ? "bg-muted-foreground/30"
+                  : "bg-accent-yellow/40"
           )}
           style={{ width: `${progressPct}%` }}
         />

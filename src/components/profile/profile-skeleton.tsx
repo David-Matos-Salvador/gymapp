@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from "framer-motion"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -36,7 +35,10 @@ export function ProfileSkeleton() {
         </CardHeader>
         <CardContent className="p-0">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0">
+            <div
+              key={i}
+              className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0"
+            >
               <Skeleton className="h-9 w-9 rounded-lg" />
               <div className="flex-1 space-y-1">
                 <Skeleton className="h-3 w-16" />

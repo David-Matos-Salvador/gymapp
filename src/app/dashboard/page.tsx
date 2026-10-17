@@ -107,20 +107,21 @@ export default async function DashboardPage() {
 
     const membershipEndDate = membership ? new Date(membership.endDate) : null
     const nowTime = now.getTime()
-    const daysRemaining =
-      membershipEndDate ? Math.ceil((membershipEndDate.getTime() - nowTime) / 86400000) : null
+    const daysRemaining = membershipEndDate
+      ? Math.ceil((membershipEndDate.getTime() - nowTime) / 86400000)
+      : null
 
-    const isExpiredMembership =
-      membership
-        ? membership.status === "EXPIRED" ||
-          (membership.status === "ACTIVE" && membershipEndDate !== null && membershipEndDate < new Date())
-        : false
+    const isExpiredMembership = membership
+      ? membership.status === "EXPIRED" ||
+        (membership.status === "ACTIVE" &&
+          membershipEndDate !== null &&
+          membershipEndDate < new Date())
+      : false
 
     const effectiveStatus = isExpiredMembership ? "EXPIRED" : (membership?.status ?? "ACTIVE")
 
     const hasCoach = !!trainerRequest?.trainer || !!assignedTrainer
-    const coachName =
-      trainerRequest?.trainer?.name ?? assignedTrainer?.name ?? null
+    const coachName = trainerRequest?.trainer?.name ?? assignedTrainer?.name ?? null
 
     return (
       <AppShell>
@@ -133,7 +134,11 @@ export default async function DashboardPage() {
                   planName: membership.plan.name,
                   endDate: membership.endDate.toISOString(),
                   daysRemaining,
-                  isExpiring: daysRemaining !== null && daysRemaining <= 7 && daysRemaining > 0 && effectiveStatus === "ACTIVE",
+                  isExpiring:
+                    daysRemaining !== null &&
+                    daysRemaining <= 7 &&
+                    daysRemaining > 0 &&
+                    effectiveStatus === "ACTIVE",
                 }
               : null
           }
@@ -259,8 +264,16 @@ export default async function DashboardPage() {
     const nextWeek = new Date(now)
     nextWeek.setDate(now.getDate() + 7)
 
-    const [totalActiveMemberships, monthMemberships, newMembersThisMonth, weeklyCheckIns,
-      expiringMemberships, recentCheckIns, gymData, recentWorkouts] = await Promise.all([
+    const [
+      totalActiveMemberships,
+      monthMemberships,
+      newMembersThisMonth,
+      weeklyCheckIns,
+      expiringMemberships,
+      recentCheckIns,
+      gymData,
+      recentWorkouts,
+    ] = await Promise.all([
       prisma.membership.count({
         where: { status: "ACTIVE", endDate: { gt: now } },
       }),
@@ -341,9 +354,7 @@ export default async function DashboardPage() {
         })
       : 0
 
-    const totalMembers = user.gymId
-      ? await prisma.user.count({ where: { gymId: user.gymId } })
-      : 0
+    const totalMembers = user.gymId ? await prisma.user.count({ where: { gymId: user.gymId } }) : 0
 
     const pendingPayments = user.gymId
       ? await prisma.payment.count({
@@ -391,8 +402,16 @@ export default async function DashboardPage() {
     const now = new Date()
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
 
-    const [totalGyms, totalUsers, activeMemberships, totalTrainers, todayCheckins,
-      revenueAgg, gyms, recentUsers] = await Promise.all([
+    const [
+      totalGyms,
+      totalUsers,
+      activeMemberships,
+      totalTrainers,
+      todayCheckins,
+      revenueAgg,
+      gyms,
+      recentUsers,
+    ] = await Promise.all([
       prisma.gym.count(),
       prisma.user.count(),
       prisma.membership.count({ where: { status: "ACTIVE", endDate: { gt: now } } }),

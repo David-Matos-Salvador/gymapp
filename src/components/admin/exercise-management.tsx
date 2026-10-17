@@ -24,7 +24,7 @@ import {
 import { toast } from "sonner"
 import { EQUIPMENT_LABELS } from "@/constants/ui"
 import { MUSCLE_LABELS } from "@/constants/user"
-import { Plus, Pencil, Trash2, Upload, ExternalLink, ImageIcon, Dumbbell, Power, PowerOff } from "lucide-react"
+import { Plus, Pencil, Trash2, Upload, ExternalLink, Dumbbell, Power, PowerOff } from "lucide-react"
 
 export interface Exercise {
   id: string
@@ -99,7 +99,13 @@ interface ExerciseManagementProps {
   onToggleExercise?: (exerciseId: string, active: boolean) => void
 }
 
-export function ExerciseManagement({ exercises, gymExerciseMap = {}, canEditExercise, onExercisesChange, onToggleExercise }: ExerciseManagementProps) {
+export function ExerciseManagement({
+  exercises,
+  gymExerciseMap = {},
+  canEditExercise,
+  onExercisesChange,
+  onToggleExercise,
+}: ExerciseManagementProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<ExerciseForm>(emptyForm)
@@ -255,7 +261,10 @@ export function ExerciseManagement({ exercises, gymExerciseMap = {}, canEditExer
       ) : (
         <div className="border rounded-xl divide-y overflow-hidden">
           {exercises.map((ex) => (
-            <div key={ex.id} className="flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors">
+            <div
+              key={ex.id}
+              className="flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors"
+            >
               <div className="size-12 rounded-lg bg-muted flex items-center justify-center shrink-0 overflow-hidden">
                 {ex.imageUrl ? (
                   <img
@@ -264,7 +273,9 @@ export function ExerciseManagement({ exercises, gymExerciseMap = {}, canEditExer
                     className="size-full object-cover"
                     onError={(e) => {
                       ;(e.target as HTMLImageElement).style.display = "none"
-                      ;((e.target as HTMLImageElement).nextElementSibling as HTMLElement).style.display = "flex"
+                      ;(
+                        (e.target as HTMLImageElement).nextElementSibling as HTMLElement
+                      ).style.display = "flex"
                     }}
                   />
                 ) : null}
@@ -303,7 +314,9 @@ export function ExerciseManagement({ exercises, gymExerciseMap = {}, canEditExer
                   )}
                 </div>
                 {ex.description && (
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{ex.description}</p>
+                  <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
+                    {ex.description}
+                  </p>
                 )}
               </div>
 
@@ -312,9 +325,15 @@ export function ExerciseManagement({ exercises, gymExerciseMap = {}, canEditExer
                   <Button
                     variant={gymExerciseMap[ex.id] !== false ? "default" : "outline"}
                     size="icon-sm"
-                    className={gymExerciseMap[ex.id] !== false ? "bg-accent-yellow text-black hover:bg-accent-yellow/80" : "text-muted-foreground"}
+                    className={
+                      gymExerciseMap[ex.id] !== false
+                        ? "bg-accent-yellow text-black hover:bg-accent-yellow/80"
+                        : "text-muted-foreground"
+                    }
                     onClick={() => onToggleExercise(ex.id, gymExerciseMap[ex.id] === false)}
-                    title={gymExerciseMap[ex.id] !== false ? "Desactivar ejercicio" : "Activar ejercicio"}
+                    title={
+                      gymExerciseMap[ex.id] !== false ? "Desactivar ejercicio" : "Activar ejercicio"
+                    }
                   >
                     {gymExerciseMap[ex.id] !== false ? (
                       <Power className="size-4" />
@@ -353,7 +372,9 @@ export function ExerciseManagement({ exercises, gymExerciseMap = {}, canEditExer
           <DialogHeader>
             <DialogTitle>{editingId ? "Editar ejercicio" : "Nuevo ejercicio"}</DialogTitle>
             <DialogDescription>
-              {editingId ? "Modifica los datos del ejercicio." : "Crea un nuevo ejercicio para tu gimnasio."}
+              {editingId
+                ? "Modifica los datos del ejercicio."
+                : "Crea un nuevo ejercicio para tu gimnasio."}
             </DialogDescription>
           </DialogHeader>
 
@@ -488,7 +509,8 @@ export function ExerciseManagement({ exercises, gymExerciseMap = {}, canEditExer
               />
               {form.videoUrl && (
                 <p className="text-xs text-muted-foreground">
-                  Se detecta como: {formatYoutubeUrl(form.videoUrl) ?? "URL no reconocida como YouTube"}
+                  Se detecta como:{" "}
+                  {formatYoutubeUrl(form.videoUrl) ?? "URL no reconocida como YouTube"}
                 </p>
               )}
             </div>
@@ -511,7 +533,10 @@ export function ExerciseManagement({ exercises, gymExerciseMap = {}, canEditExer
             </DialogDescription>
           </DialogHeader>
           <DialogFooter showCloseButton>
-            <Button variant="destructive" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
+            <Button
+              variant="destructive"
+              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+            >
               Eliminar
             </Button>
           </DialogFooter>

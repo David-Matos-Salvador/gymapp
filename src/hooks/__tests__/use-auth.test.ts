@@ -18,7 +18,7 @@ describe("useAuth", () => {
       },
       status: "authenticated",
       update: vi.fn(),
-    } as ReturnType<typeof useSession>)
+    } as unknown as ReturnType<typeof useSession>)
 
     const result = useAuth()
 
@@ -35,7 +35,7 @@ describe("useAuth", () => {
       data: null,
       status: "unauthenticated",
       update: vi.fn(),
-    } as ReturnType<typeof useSession>)
+    } as unknown as ReturnType<typeof useSession>)
 
     const result = useAuth()
 
@@ -49,7 +49,7 @@ describe("useAuth", () => {
       data: null,
       status: "loading",
       update: vi.fn(),
-    } as ReturnType<typeof useSession>)
+    } as unknown as ReturnType<typeof useSession>)
 
     const result = useAuth()
 
@@ -64,7 +64,7 @@ describe("useAuth", () => {
       },
       status: "authenticated",
       update: vi.fn(),
-    } as ReturnType<typeof useSession>)
+    } as unknown as ReturnType<typeof useSession>)
 
     const result = useAuth()
 
@@ -80,7 +80,7 @@ describe("useAuth", () => {
       },
       status: "authenticated",
       update: vi.fn(),
-    } as ReturnType<typeof useSession>)
+    } as unknown as ReturnType<typeof useSession>)
 
     const result = useAuth()
 
@@ -96,7 +96,7 @@ describe("useAuth", () => {
       },
       status: "authenticated",
       update: vi.fn(),
-    } as ReturnType<typeof useSession>)
+    } as unknown as ReturnType<typeof useSession>)
 
     const result = useAuth()
 
@@ -110,7 +110,7 @@ describe("useAuth", () => {
       data: null,
       status: "authenticated",
       update: vi.fn(),
-    } as ReturnType<typeof useSession>)
+    } as unknown as ReturnType<typeof useSession>)
 
     const result = useAuth()
 
@@ -124,7 +124,7 @@ describe("useAuth", () => {
       data: { user: { name: "Test" } },
       status: "authenticated",
       update: updateFn,
-    } as ReturnType<typeof useSession>)
+    } as unknown as ReturnType<typeof useSession>)
 
     const result = useAuth()
 

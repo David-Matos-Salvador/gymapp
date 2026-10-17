@@ -70,8 +70,9 @@ export function MiniProgressSection() {
 
   if (loading) return LOADING_SKELETON
 
-  const lastWeight = measurements.length > 0 ? measurements[measurements.length - 1]?.weight ?? null : null
-  const firstWeight = measurements.length > 0 ? measurements[0]?.weight ?? null : null
+  const lastWeight =
+    measurements.length > 0 ? (measurements[measurements.length - 1]?.weight ?? null) : null
+  const firstWeight = measurements.length > 0 ? (measurements[0]?.weight ?? null) : null
   const weightChange = lastWeight !== null && firstWeight !== null ? lastWeight - firstWeight : null
 
   return (
@@ -86,10 +87,7 @@ export function MiniProgressSection() {
             <TrendingUp className="h-5 w-5 text-accent-yellow" />
             Progreso
           </CardTitle>
-          <Link
-            href="/progress"
-            className="text-xs font-medium text-accent-yellow hover:underline"
-          >
+          <Link href="/progress" className="text-xs font-medium text-accent-yellow hover:underline">
             Ver todo →
           </Link>
         </CardHeader>

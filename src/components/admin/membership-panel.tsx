@@ -7,7 +7,15 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Search, CheckCircle2, RefreshCw, Clock, AlertCircle, User, CalendarDays, Banknote, Loader2 } from "lucide-react"
+import {
+  Search,
+  CheckCircle2,
+  RefreshCw,
+  Clock,
+  CalendarDays,
+  Banknote,
+  Loader2,
+} from "lucide-react"
 import { toast } from "sonner"
 import { formatDate } from "@/lib/utils"
 
@@ -55,31 +63,14 @@ const paymentMethodLabels: Record<string, string> = {
   OTHER: "Otro",
 }
 
-function getStatusBadge(status: string) {
-  switch (status) {
-    case "PENDING":
-      return { label: "Pendiente", className: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400" }
-    case "COMPLETED":
-      return { label: "Completado", className: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400" }
-    case "FAILED":
-      return { label: "Fallido", className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400" }
-    default:
-      return { label: status, className: "bg-muted text-muted-foreground" }
-  }
-}
-
 export function MembershipPanel({ memberships }: MembershipPanelProps) {
   const { play } = useSound()
   const [data, setData] = useState<Membership[]>(memberships)
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState<string | null>(null)
 
-  const pending = data.filter(
-    (m) => m.status === "ACTIVE" && !m.paymentConfirmed
-  )
-  const active = data.filter(
-    (m) => m.status === "ACTIVE" && m.paymentConfirmed
-  )
+  const pending = data.filter((m) => m.status === "ACTIVE" && !m.paymentConfirmed)
+  const active = data.filter((m) => m.status === "ACTIVE" && m.paymentConfirmed)
   const expired = data.filter(
     (m) => m.status === "EXPIRED" || (m.status === "ACTIVE" && new Date(m.endDate) < new Date())
   )
@@ -106,7 +97,9 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
     if (res.ok) {
       const json = await res.json()
       setData((prev) =>
-        prev.map((m) => (m.id === id ? { ...m, paymentConfirmed: true, updatedAt: json.membership.updatedAt } : m))
+        prev.map((m) =>
+          m.id === id ? { ...m, paymentConfirmed: true, updatedAt: json.membership.updatedAt } : m
+        )
       )
       play("success")
       toast.success("Pago confirmado correctamente")
@@ -193,12 +186,8 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
                       {m.user.name?.[0] ?? m.user.email[0].toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {m.user.name ?? "Sin nombre"}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {m.user.email}
-                      </p>
+                      <p className="text-sm font-medium truncate">{m.user.name ?? "Sin nombre"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{m.user.email}</p>
                     </div>
                   </div>
                   <span className="shrink-0 inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
@@ -243,7 +232,8 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
                     </span>
                   ) : null}
 
-                  {(m.status === "EXPIRED" || (m.status === "ACTIVE" && new Date(m.endDate) < new Date())) && (
+                  {(m.status === "EXPIRED" ||
+                    (m.status === "ACTIVE" && new Date(m.endDate) < new Date())) && (
                     <Button
                       size="xs"
                       variant="outline"
@@ -262,15 +252,9 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
                 </div>
 
                 {m.paymentRef && (
-                  <p className="text-[10px] text-muted-foreground">
-                    Ref: {m.paymentRef}
-                  </p>
+                  <p className="text-[10px] text-muted-foreground">Ref: {m.paymentRef}</p>
                 )}
-                {m.notes && (
-                  <p className="text-[10px] text-muted-foreground italic">
-                    {m.notes}
-                  </p>
-                )}
+                {m.notes && <p className="text-[10px] text-muted-foreground italic">{m.notes}</p>}
               </CardContent>
             </Card>
           </motion.div>
@@ -293,15 +277,9 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
 
       <Tabs defaultValue="pending">
         <TabsList>
-          <TabsTrigger value="pending">
-            Pendientes ({pending.length})
-          </TabsTrigger>
-          <TabsTrigger value="active">
-            Activas ({active.length})
-          </TabsTrigger>
-          <TabsTrigger value="expired">
-            Vencidas ({expired.length})
-          </TabsTrigger>
+          <TabsTrigger value="pending">Pendientes ({pending.length})</TabsTrigger>
+          <TabsTrigger value="active">Activas ({active.length})</TabsTrigger>
+          <TabsTrigger value="expired">Vencidas ({expired.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="pending" className="mt-4">

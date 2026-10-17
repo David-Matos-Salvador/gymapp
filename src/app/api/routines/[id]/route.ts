@@ -27,7 +27,14 @@ export async function GET(request: Request, { params }: RouteParams) {
     where: { id },
     include: {
       splits: {
-        include: { exercises: { include: { exercise: { include: { creator: { select: { id: true, name: true, role: true } } } } }, orderBy: { order: "asc" } } },
+        include: {
+          exercises: {
+            include: {
+              exercise: { include: { creator: { select: { id: true, name: true, role: true } } } },
+            },
+            orderBy: { order: "asc" },
+          },
+        },
         orderBy: { order: "asc" },
       },
       user: { select: { id: true, name: true, email: true, role: true } },
@@ -55,7 +62,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   const { id } = await params
 
   if (!(await canEditPlan(id, user))) {
-    return NextResponse.json({ error: "No tienes permisos para modificar esta rutina" }, { status: 403 })
+    return NextResponse.json(
+      { error: "No tienes permisos para modificar esta rutina" },
+      { status: 403 }
+    )
   }
 
   const body = await request.json()
@@ -96,7 +106,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   const { id } = await params
 
   if (!(await canEditPlan(id, user))) {
-    return NextResponse.json({ error: "No tienes permisos para eliminar esta rutina" }, { status: 403 })
+    return NextResponse.json(
+      { error: "No tienes permisos para eliminar esta rutina" },
+      { status: 403 }
+    )
   }
 
   await prisma.routinePlan.delete({ where: { id } })

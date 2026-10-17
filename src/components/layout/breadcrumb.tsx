@@ -9,13 +9,7 @@ export interface BreadcrumbItem {
   href?: string
 }
 
-export function Breadcrumb({
-  items,
-  className,
-}: {
-  items: BreadcrumbItem[]
-  className?: string
-}) {
+export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; className?: string }) {
   if (items.length === 0) return null
 
   return (

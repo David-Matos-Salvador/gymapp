@@ -46,7 +46,10 @@ export default function LogWorkoutPage() {
   const [notes, setNotes] = useState("")
   const [showCelebration, setShowCelebration] = useState(false)
   const [celebrationData, setCelebrationData] = useState({
-    weeklyCompleted: 0, weeklyTarget: 0, weeklyStreak: 0, bestStreak: 0,
+    weeklyCompleted: 0,
+    weeklyTarget: 0,
+    weeklyStreak: 0,
+    bestStreak: 0,
   })
   const [exerciseOrder, setExerciseOrder] = useState<string[]>([])
   const dragIdx = useRef<number | null>(null)
@@ -56,13 +59,25 @@ export default function LogWorkoutPage() {
 
   const currentRestSeconds = useMemo(() => {
     if (!split || split.exercises.length === 0) return undefined
-    return split.exercises[Math.min(storeCurrentExerciseIdx, split.exercises.length - 1)]?.restSeconds
+    return split.exercises[Math.min(storeCurrentExerciseIdx, split.exercises.length - 1)]
+      ?.restSeconds
   }, [split, storeCurrentExerciseIdx])
 
   const {
-    phase, currentExerciseIdx, completedExercises, elapsedSeconds, elapsedFormatted,
-    restRemaining, isResting, isRestPaused,
-    startWorkout, markExerciseComplete, finishWorkout, skipRest, pauseRest, resumeRest,
+    phase,
+    currentExerciseIdx,
+    completedExercises,
+    elapsedSeconds,
+    elapsedFormatted,
+    restRemaining,
+    isResting,
+    isRestPaused,
+    startWorkout,
+    markExerciseComplete,
+    finishWorkout,
+    skipRest,
+    pauseRest,
+    resumeRest,
   } = useWorkoutSession({
     totalExercises: split?.exercises.length ?? 0,
     restSeconds: currentRestSeconds,
@@ -84,11 +99,13 @@ export default function LogWorkoutPage() {
         const snapshot = useWorkoutStore.getState()
         const exerciseIdSet = new Set(s.exercises.map((e) => e.exerciseId))
         const completedMatch = snapshot.completedExerciseIds.every((id) => exerciseIdSet.has(id))
-        const validResume = snapshot.phase !== "prepare" && snapshot.phase !== "done"
-          && snapshot.splitId === splitId
-          && snapshot.totalExercises === s.exercises.length
-          && snapshot.currentExerciseIdx < s.exercises.length
-          && completedMatch
+        const validResume =
+          snapshot.phase !== "prepare" &&
+          snapshot.phase !== "done" &&
+          snapshot.splitId === splitId &&
+          snapshot.totalExercises === s.exercises.length &&
+          snapshot.currentExerciseIdx < s.exercises.length &&
+          completedMatch
 
         if (validResume) {
           setExerciseOrder(s.exercises.map((e) => e.exerciseId))
@@ -103,8 +120,13 @@ export default function LogWorkoutPage() {
           const defaultReps = parseInt(se.reps) || 0
           const defaultWeight = se.weight
           initialSets[se.exerciseId] = Array.from({ length: se.sets }, (_, i) => ({
-            exerciseId: se.exerciseId, exerciseName: se.exercise.name,
-            setNumber: i + 1, reps: defaultReps, weight: defaultWeight, restSeconds: se.restSeconds, completed: false,
+            exerciseId: se.exerciseId,
+            exerciseName: se.exercise.name,
+            setNumber: i + 1,
+            reps: defaultReps,
+            weight: defaultWeight,
+            restSeconds: se.restSeconds,
+            completed: false,
           }))
         })
         setExerciseOrder(s.exercises.map((e) => e.exerciseId))
@@ -128,19 +150,33 @@ export default function LogWorkoutPage() {
 
   const handleSubmit = useCallback(async () => {
     if (saving) return
-    const allSets = Object.values(store.setsData).flat().filter((s) => s.completed)
-    if (allSets.length === 0) { toast.error("Completa al menos una serie"); return }
+    const allSets = Object.values(store.setsData)
+      .flat()
+      .filter((s) => s.completed)
+    if (allSets.length === 0) {
+      toast.error("Completa al menos una serie")
+      return
+    }
     setSaving(true)
     const body = {
       splitId,
       duration: Math.max(1, Math.round(elapsedSeconds / 60)),
       notes: notes.trim() || undefined,
       sets: allSets.map((s) => ({
-        exerciseId: s.exerciseId, exerciseName: s.exerciseName,
-        setNumber: s.setNumber, reps: s.reps, weight: s.weight, restSeconds: s.restSeconds, completed: s.completed,
+        exerciseId: s.exerciseId,
+        exerciseName: s.exerciseName,
+        setNumber: s.setNumber,
+        reps: s.reps,
+        weight: s.weight,
+        restSeconds: s.restSeconds,
+        completed: s.completed,
       })),
     }
-    const res = await fetch("/api/workout-logs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    const res = await fetch("/api/workout-logs", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    })
     if (res.ok) {
       finishWorkout()
       toast.success("Entrenamiento registrado")
@@ -174,7 +210,12 @@ export default function LogWorkoutPage() {
         bestStreak: data.bestStreak ?? 0,
       })
     } catch {
-      setCelebrationData({ weeklyCompleted: completedExercises, weeklyTarget: 3, weeklyStreak: 0, bestStreak: 0 })
+      setCelebrationData({
+        weeklyCompleted: completedExercises,
+        weeklyTarget: 3,
+        weeklyStreak: 0,
+        bestStreak: 0,
+      })
     }
   }
 
@@ -203,18 +244,21 @@ export default function LogWorkoutPage() {
     return { activeExercises: active, doneExercises: done }
   }, [exerciseOrder, exerciseMap, completedIdSet])
 
-  const handleContinueExercise = useCallback((exerciseId: string) => {
-    const entry = exerciseMap.get(exerciseId)
-    if (!entry) return
-    store.addCompletedExercise(exerciseId)
-    if (entry.origIdx === currentExerciseIdx) {
-      setTimeout(() => {
-        const { phase: p } = useWorkoutStore.getState()
-        if (p === "done") return
-        markExerciseComplete(entry.origIdx)
-      }, 50)
-    }
-  }, [exerciseMap, currentExerciseIdx, store, markExerciseComplete])
+  const handleContinueExercise = useCallback(
+    (exerciseId: string) => {
+      const entry = exerciseMap.get(exerciseId)
+      if (!entry) return
+      store.addCompletedExercise(exerciseId)
+      if (entry.origIdx === currentExerciseIdx) {
+        setTimeout(() => {
+          const { phase: p } = useWorkoutStore.getState()
+          if (p === "done") return
+          markExerciseComplete(entry.origIdx)
+        }, 50)
+      }
+    },
+    [exerciseMap, currentExerciseIdx, store, markExerciseComplete]
+  )
 
   const handleDragStart = useCallback((e: React.DragEvent, idx: number) => {
     dragIdx.current = idx
@@ -244,10 +288,13 @@ export default function LogWorkoutPage() {
   const totalExercises = split?.exercises.length ?? 0
   const setsData = store.setsData
 
-  const breadcrumbItems = useMemo(() => [
-    { label: split?.plan?.name ?? "Rutina", href: `/rutinas/${planId}` },
-    { label: "Entrenar" },
-  ], [split, planId])
+  const breadcrumbItems = useMemo(
+    () => [
+      { label: split?.plan?.name ?? "Rutina", href: `/rutinas/${planId}` },
+      { label: "Entrenar" },
+    ],
+    [split, planId]
+  )
 
   if (loading) return LOADING_SKELETON
 
@@ -256,7 +303,9 @@ export default function LogWorkoutPage() {
       <AppShell>
         <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl text-center">
           <p className="text-muted-foreground py-12">Entrenamiento no encontrado</p>
-          <Button variant="outline" onClick={() => router.push(`/rutinas/${planId}`)}>Volver</Button>
+          <Button variant="outline" onClick={() => router.push(`/rutinas/${planId}`)}>
+            Volver
+          </Button>
         </div>
       </AppShell>
     )
@@ -281,10 +330,20 @@ export default function LogWorkoutPage() {
         }}
       />
 
-      <div className={cn("container mx-auto px-4 py-6 md:py-8 max-w-2xl space-y-5", showCelebration && "hidden")}>
+      <div
+        className={cn(
+          "container mx-auto px-4 py-6 md:py-8 max-w-2xl space-y-5",
+          showCelebration && "hidden"
+        )}
+      >
         <Breadcrumb items={breadcrumbItems} className="px-0 pb-1" />
 
-        <button onClick={() => { router.push(`/rutinas/${planId}`) }} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <button
+          onClick={() => {
+            router.push(`/rutinas/${planId}`)
+          }}
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
           <ArrowLeft className="h-4 w-4" /> Volver
         </button>
 
@@ -294,10 +353,14 @@ export default function LogWorkoutPage() {
               <Dumbbell className="h-6 w-6 text-accent-yellow" /> {split.name}
             </h1>
             {isActive && phaseColor && (
-              <span className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border",
-                phaseColor.bg, phaseColor.border, phaseColor.text,
-              )}>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border",
+                  phaseColor.bg,
+                  phaseColor.border,
+                  phaseColor.text
+                )}
+              >
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-current" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-current" />
@@ -320,7 +383,8 @@ export default function LogWorkoutPage() {
         {phase === "prepare" && (
           <div className="flex flex-col items-center gap-3 py-6 px-4 rounded-xl bg-accent-yellow/5 border border-accent-yellow/30">
             <p className="text-sm text-muted-foreground">
-              {totalExercises} ejercicios · ~{split.estimatedDuration ?? Math.round(totalExercises * 2.5)} min estimados
+              {totalExercises} ejercicios · ~
+              {split.estimatedDuration ?? Math.round(totalExercises * 2.5)} min estimados
             </p>
             <Button onClick={startWorkout} className="gap-2">
               <Play className="h-4 w-4" /> Iniciar entrenamiento
@@ -345,7 +409,8 @@ export default function LogWorkoutPage() {
               const exerciseSets = setsData[se.exerciseId] ?? []
               const allCompleted = exerciseSets.length > 0 && exerciseSets.every((s) => s.completed)
               const entry = exerciseMap.get(se.exerciseId)
-              const appearance = entry?.origIdx === currentExerciseIdx ? "current" as const : "pending" as const
+              const appearance =
+                entry?.origIdx === currentExerciseIdx ? ("current" as const) : ("pending" as const)
 
               return (
                 <div
@@ -355,7 +420,7 @@ export default function LogWorkoutPage() {
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, idx)}
                 >
-                    <ExerciseCard
+                  <ExerciseCard
                     se={se}
                     setsData={exerciseSets}
                     appearance={appearance}
@@ -422,7 +487,7 @@ export default function LogWorkoutPage() {
                     userGymId={gym?.id}
                     showMachineNumbers={gym?.showMachineNumbers ?? false}
                     onSetComplete={(setIdx) => {
-                      const sets = [ ...(store.setsData[se.exerciseId] ?? []) ]
+                      const sets = [...(store.setsData[se.exerciseId] ?? [])]
                       sets[setIdx] = { ...sets[setIdx], completed: true }
                       store.setSetsData({ ...store.setsData, [se.exerciseId]: sets })
                     }}
@@ -443,7 +508,11 @@ export default function LogWorkoutPage() {
               </p>
               <div className="flex justify-center gap-1 py-2">
                 {["🎉", "💪", "🔥", "⚡"].map((emoji, i) => (
-                  <span key={i} className="text-2xl animate-bounce" style={{ animationDelay: `${i * 0.15}s` }}>
+                  <span
+                    key={i}
+                    className="text-2xl animate-bounce"
+                    style={{ animationDelay: `${i * 0.15}s` }}
+                  >
                     {emoji}
                   </span>
                 ))}
@@ -468,7 +537,15 @@ export default function LogWorkoutPage() {
 
         {isActive && (
           <div className="flex gap-3 justify-end pb-20">
-            <Button variant="outline" onClick={() => { store.resetWorkout(); router.push(`/rutinas/${planId}`) }}>Cancelar</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                store.resetWorkout()
+                router.push(`/rutinas/${planId}`)
+              }}
+            >
+              Cancelar
+            </Button>
             <Button onClick={handleSubmit} disabled={saving} className="gap-2">
               <Save className="h-4 w-4" /> {saving ? "Guardando..." : "Finalizar entrenamiento"}
             </Button>
@@ -477,13 +554,27 @@ export default function LogWorkoutPage() {
 
         {phase === "prepare" && (
           <div className="flex gap-3 justify-end pb-20">
-            <Button variant="outline" onClick={() => { router.push(`/rutinas/${planId}`) }}>Volver</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                router.push(`/rutinas/${planId}`)
+              }}
+            >
+              Volver
+            </Button>
           </div>
         )}
 
         {phase === "done" && !showCelebration && (
           <div className="flex gap-3 justify-end pb-20">
-            <Button variant="outline" onClick={() => { store.resetWorkout(); router.push(`/rutinas/${planId}`); router.refresh() }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                store.resetWorkout()
+                router.push(`/rutinas/${planId}`)
+                router.refresh()
+              }}
+            >
               Ir al inicio
             </Button>
           </div>

@@ -6,7 +6,15 @@ import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 
 const UPLOAD_DIR = join(process.cwd(), "public", "uploads", "receipts")
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif", "image/jpg"]
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/heic",
+  "image/heif",
+  "image/jpg",
+]
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"]
 const MAX_SIZE = 5 * 1024 * 1024
 
@@ -50,7 +58,10 @@ export async function POST(request: Request) {
     const mimeValid = file.type === "" || ALLOWED_TYPES.includes(file.type)
     const extValid = ALLOWED_EXTENSIONS.includes(ext)
     if (!mimeValid && !extValid) {
-      return NextResponse.json({ error: "Formato no permitido. Usa JPEG, PNG, WebP o GIF" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Formato no permitido. Usa JPEG, PNG, WebP o GIF" },
+        { status: 400 }
+      )
     }
     if (file.size > MAX_SIZE) {
       return NextResponse.json({ error: "Archivo muy grande. Máximo 5MB" }, { status: 400 })

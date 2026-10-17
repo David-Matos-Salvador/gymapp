@@ -32,8 +32,14 @@ const createRoutineSchema = z.object({
   description: z.string().optional(),
   objective: z
     .enum([
-      "WEIGHT_LOSS", "MUSCLE_GAIN", "TONING", "STRENGTH",
-      "ENDURANCE", "GENERAL_FITNESS", "REHABILITATION", "COMPETITION",
+      "WEIGHT_LOSS",
+      "MUSCLE_GAIN",
+      "TONING",
+      "STRENGTH",
+      "ENDURANCE",
+      "GENERAL_FITNESS",
+      "REHABILITATION",
+      "COMPETITION",
     ])
     .optional(),
   frequency: z.coerce.number().int().positive().optional(),
@@ -46,8 +52,14 @@ const updateRoutineSchema = z.object({
   description: z.string().optional(),
   objective: z
     .enum([
-      "WEIGHT_LOSS", "MUSCLE_GAIN", "TONING", "STRENGTH",
-      "ENDURANCE", "GENERAL_FITNESS", "REHABILITATION", "COMPETITION",
+      "WEIGHT_LOSS",
+      "MUSCLE_GAIN",
+      "TONING",
+      "STRENGTH",
+      "ENDURANCE",
+      "GENERAL_FITNESS",
+      "REHABILITATION",
+      "COMPETITION",
     ])
     .optional(),
   frequency: z.coerce.number().int().positive().optional(),
@@ -107,32 +119,34 @@ export async function createRoutine(prevState: unknown, formData: FormData) {
         objective,
         frequency,
         difficulty,
-        splits: splits.length > 0
-          ? {
-              create: splits.map((s) => ({
-                label: s.label,
-                name: s.name,
-                description: s.description,
-                muscleGroups: s.muscleGroups,
-                estimatedDuration: s.estimatedDuration,
-                difficulty: s.difficulty,
-                order: s.order,
-                exercises: s.exercises.length > 0
-                  ? {
-                      create: s.exercises.map((e) => ({
-                        exerciseId: e.exerciseId,
-                        sets: e.sets,
-                        reps: e.reps,
-                        weight: e.weight,
-                        restSeconds: e.restSeconds,
-                        order: e.order,
-                        notes: e.notes,
-                      })),
-                    }
-                  : undefined,
-              })),
-            }
-          : undefined,
+        splits:
+          splits.length > 0
+            ? {
+                create: splits.map((s) => ({
+                  label: s.label,
+                  name: s.name,
+                  description: s.description,
+                  muscleGroups: s.muscleGroups,
+                  estimatedDuration: s.estimatedDuration,
+                  difficulty: s.difficulty,
+                  order: s.order,
+                  exercises:
+                    s.exercises.length > 0
+                      ? {
+                          create: s.exercises.map((e) => ({
+                            exerciseId: e.exerciseId,
+                            sets: e.sets,
+                            reps: e.reps,
+                            weight: e.weight,
+                            restSeconds: e.restSeconds,
+                            order: e.order,
+                            notes: e.notes,
+                          })),
+                        }
+                      : undefined,
+                })),
+              }
+            : undefined,
       },
       include: {
         splits: {
@@ -202,19 +216,20 @@ export async function updateRoutine(planId: string, prevState: unknown, formData
               estimatedDuration: s.estimatedDuration,
               difficulty: s.difficulty,
               order: s.order,
-              exercises: s.exercises.length > 0
-                ? {
-                    create: s.exercises.map((e) => ({
-                      exerciseId: e.exerciseId,
-                      sets: e.sets,
-                      reps: e.reps,
-                      weight: e.weight,
-                      restSeconds: e.restSeconds,
-                      order: e.order,
-                      notes: e.notes,
-                    })),
-                  }
-                : undefined,
+              exercises:
+                s.exercises.length > 0
+                  ? {
+                      create: s.exercises.map((e) => ({
+                        exerciseId: e.exerciseId,
+                        sets: e.sets,
+                        reps: e.reps,
+                        weight: e.weight,
+                        restSeconds: e.restSeconds,
+                        order: e.order,
+                        notes: e.notes,
+                      })),
+                    }
+                  : undefined,
             })),
           },
         }),

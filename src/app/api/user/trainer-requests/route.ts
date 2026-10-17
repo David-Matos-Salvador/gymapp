@@ -16,7 +16,16 @@ export async function GET() {
   const requests = await prisma.trainerRequest.findMany({
     where: { clientId: user.id },
     include: {
-      trainer: { select: { id: true, name: true, email: true, bio: true, specialties: true, yearsExperience: true } },
+      trainer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          bio: true,
+          specialties: true,
+          yearsExperience: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   })

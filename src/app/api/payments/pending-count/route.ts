@@ -28,7 +28,10 @@ export async function GET() {
       where: { assignedTrainerId: user.id },
       select: { id: true },
     })
-    const idSet = new Set([...trainerRequests.map((tr) => tr.clientId), ...assignedClients.map((c) => c.id)])
+    const idSet = new Set([
+      ...trainerRequests.map((tr) => tr.clientId),
+      ...assignedClients.map((c) => c.id),
+    ])
     clientIds = Array.from(idSet)
     if (clientIds.length === 0) return NextResponse.json({ count: 0 })
   }

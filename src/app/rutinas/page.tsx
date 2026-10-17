@@ -95,8 +95,8 @@ export default async function RutinasPage() {
   }))
 
   const isExpiringSoon = assignment.expiresAt
-    // eslint-disable-next-line react-hooks/purity
-    ? new Date(assignment.expiresAt).getTime() - Date.now() < 7 * 86400000
+    ? // eslint-disable-next-line react-hooks/purity
+      new Date(assignment.expiresAt).getTime() - Date.now() < 7 * 86400000
     : false
 
   return (

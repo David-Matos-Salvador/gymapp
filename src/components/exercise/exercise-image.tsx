@@ -35,7 +35,7 @@ export function ExerciseImage({ imageUrl, alt, className, size = "sm" }: Exercis
         className={cn(
           "flex items-center justify-center rounded-lg bg-muted shrink-0",
           sizeClasses[size],
-          className,
+          className
         )}
       >
         <Dumbbell className={cn("text-muted-foreground/40", iconSizes[size])} />
@@ -44,7 +44,13 @@ export function ExerciseImage({ imageUrl, alt, className, size = "sm" }: Exercis
   }
 
   return (
-    <div className={cn("relative shrink-0 overflow-hidden rounded-lg bg-muted", sizeClasses[size], className)}>
+    <div
+      className={cn(
+        "relative shrink-0 overflow-hidden rounded-lg bg-muted",
+        sizeClasses[size],
+        className
+      )}
+    >
       <Image
         src={imageUrl}
         alt={alt}

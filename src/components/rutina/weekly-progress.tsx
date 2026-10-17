@@ -15,10 +15,12 @@ export function WeeklyProgress({ completed, target }: WeeklyProgressProps) {
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium text-muted-foreground">Progreso semanal</span>
-        <span className={cn(
-          "text-sm font-bold tabular-nums",
-          isComplete ? "text-accent-yellow" : "text-foreground"
-        )}>
+        <span
+          className={cn(
+            "text-sm font-bold tabular-nums",
+            isComplete ? "text-accent-yellow" : "text-foreground"
+          )}
+        >
           {completed} de {target} día{target !== 1 ? "s" : ""}
         </span>
       </div>

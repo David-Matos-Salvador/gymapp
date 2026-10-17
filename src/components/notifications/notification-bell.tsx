@@ -11,11 +11,7 @@ interface NotificationBellProps {
   children?: React.ReactNode
 }
 
-export function NotificationBell({
-  unreadCount,
-  onOpen,
-  children,
-}: NotificationBellProps) {
+export function NotificationBell({ unreadCount, onOpen, children }: NotificationBellProps) {
   const [open, setOpen] = useState(false)
 
   const handleOpenChange = useCallback(
@@ -23,7 +19,7 @@ export function NotificationBell({
       setOpen(next)
       if (next && onOpen) onOpen()
     },
-    [onOpen],
+    [onOpen]
   )
 
   return (
@@ -32,7 +28,7 @@ export function NotificationBell({
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          "relative inline-flex items-center justify-center size-9 rounded-lg transition-colors hover:bg-muted",
+          "relative inline-flex items-center justify-center size-9 rounded-lg transition-colors hover:bg-muted"
         )}
         aria-label="Notificaciones"
       >
@@ -42,7 +38,7 @@ export function NotificationBell({
             className={cn(
               "absolute -top-0.5 -right-0.5 flex items-center justify-center",
               "size-4.5 rounded-full bg-destructive text-[10px] font-bold leading-none text-white",
-              unreadCount > 9 ? "px-0.5 size-fit min-w-[18px]" : "",
+              unreadCount > 9 ? "px-0.5 size-fit min-w-[18px]" : ""
             )}
           >
             {unreadCount > 99 ? "99+" : unreadCount}

@@ -3,7 +3,9 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 
-interface RouteParams { params: Promise<{ id: string }> }
+interface RouteParams {
+  params: Promise<{ id: string }>
+}
 
 const updateSplitSchema = z.object({
   label: z.string().min(1).optional(),
@@ -40,7 +42,14 @@ export async function GET(request: Request, { params }: RouteParams) {
           exercise: {
             include: {
               gymEquipments: {
-                select: { id: true, name: true, machineNumber: true, location: true, gymId: true, imageUrl: true },
+                select: {
+                  id: true,
+                  name: true,
+                  machineNumber: true,
+                  location: true,
+                  gymId: true,
+                  imageUrl: true,
+                },
               },
             },
           },
@@ -118,7 +127,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const { id } = await params
 
     if (!(await canEditSplit(id, user))) {
-      return NextResponse.json({ error: "No tienes permisos para modificar este split" }, { status: 403 })
+      return NextResponse.json(
+        { error: "No tienes permisos para modificar este split" },
+        { status: 403 }
+      )
     }
 
     const body = await request.json()
@@ -139,7 +151,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
             exercise: {
               include: {
                 gymEquipments: {
-                  select: { id: true, name: true, machineNumber: true, location: true, gymId: true },
+                  select: {
+                    id: true,
+                    name: true,
+                    machineNumber: true,
+                    location: true,
+                    gymId: true,
+                  },
                 },
               },
             },
@@ -171,7 +189,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     const { id } = await params
 
     if (!(await canEditSplit(id, user))) {
-      return NextResponse.json({ error: "No tienes permisos para eliminar este split" }, { status: 403 })
+      return NextResponse.json(
+        { error: "No tienes permisos para eliminar este split" },
+        { status: 403 }
+      )
     }
 
     await prisma.routineSplit.delete({ where: { id } })

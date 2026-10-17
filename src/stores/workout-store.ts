@@ -83,7 +83,8 @@ export const useWorkoutStore = create<WorkoutStore>()(
       setTotalExercises: (n) => set({ totalExercises: n }),
       setPhase: (phase) => set({ phase }),
       setElapsedSeconds: (s) => set({ elapsedSeconds: s, savedAt: Date.now() }),
-      incrementElapsed: () => set((s) => ({ elapsedSeconds: s.elapsedSeconds + 1, savedAt: Date.now() })),
+      incrementElapsed: () =>
+        set((s) => ({ elapsedSeconds: s.elapsedSeconds + 1, savedAt: Date.now() })),
       setCurrentExerciseIdx: (idx) => set({ currentExerciseIdx: idx }),
       addCompletedExercise: (id) =>
         set((s) => ({

@@ -7,7 +7,14 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { useSound } from "@/hooks/use-sound"
 import { Dumbbell, Check, X, Loader2, Clock, CheckCircle, Building2 } from "lucide-react"
 
@@ -32,7 +39,13 @@ export default function InvitePage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
-  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "", confirmPassword: "" })
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+  })
 
   useEffect(() => {
     fetch(`/api/trainer/invites/${token}`)
@@ -103,7 +116,9 @@ export default function InvitePage() {
       })
 
       if (result?.error) {
-        setError("Cuenta creada pero falló el inicio de sesión automático. Inicia sesión manualmente.")
+        setError(
+          "Cuenta creada pero falló el inicio de sesión automático. Inicia sesión manualmente."
+        )
         setSuccess(false)
         return
       }
@@ -162,7 +177,9 @@ export default function InvitePage() {
               <CheckCircle className="h-10 w-10 text-accent-yellow" />
             </motion.div>
             <CardTitle className="text-xl">Cuenta creada</CardTitle>
-            <CardDescription>Ya eres cliente de tu coach. Vamos a configurar tu perfil...</CardDescription>
+            <CardDescription>
+              Ya eres cliente de tu coach. Vamos a configurar tu perfil...
+            </CardDescription>
           </CardContent>
         </Card>
       </div>

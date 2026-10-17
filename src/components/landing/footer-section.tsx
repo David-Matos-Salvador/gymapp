@@ -10,8 +10,12 @@ export function FooterSection() {
           GymApp &copy; {new Date().getFullYear()}
         </div>
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
-          <Link href="/login" className="hover:text-foreground transition-colors">Iniciar sesión</Link>
-          <Link href="/register" className="hover:text-foreground transition-colors">Registrarse</Link>
+          <Link href="/login" className="hover:text-foreground transition-colors">
+            Iniciar sesión
+          </Link>
+          <Link href="/register" className="hover:text-foreground transition-colors">
+            Registrarse
+          </Link>
         </div>
       </div>
     </footer>

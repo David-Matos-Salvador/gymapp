@@ -65,8 +65,16 @@ export async function GET() {
     if (acceptedDifficulty.includes(p.difficulty ?? "")) score += 3
     if (p.frequency === (data.trainingFrequency as number)) score += 2
 
-    if (targetObjective === "WEIGHT_LOSS" && (desc.includes("quema") || desc.includes("metabólico"))) score += 2
-    if (targetObjective === "MUSCLE_GAIN" && (desc.includes("hipertrofia") || desc.includes("masa") || desc.includes("push-pull"))) score += 2
+    if (
+      targetObjective === "WEIGHT_LOSS" &&
+      (desc.includes("quema") || desc.includes("metabólico"))
+    )
+      score += 2
+    if (
+      targetObjective === "MUSCLE_GAIN" &&
+      (desc.includes("hipertrofia") || desc.includes("masa") || desc.includes("push-pull"))
+    )
+      score += 2
 
     return { plan: p, score }
   })

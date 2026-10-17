@@ -90,9 +90,7 @@ export function MemberDashboard({
   return (
     <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
-          Hola, {userName}
-        </h1>
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Hola, {userName}</h1>
         <p className="text-muted-foreground">Resumen de tu actividad</p>
       </div>
 
@@ -100,15 +98,21 @@ export function MemberDashboard({
         <StatCard label="Racha semanal" icon={Flame} delay={0}>
           <p className="mt-1 text-2xl md:text-3xl font-bold tracking-tight tabular-nums leading-none">
             {weeklyStreak.streak}
-            <span className="ml-1.5 text-xs md:text-sm font-normal text-muted-foreground">semanas</span>
+            <span className="ml-1.5 text-xs md:text-sm font-normal text-muted-foreground">
+              semanas
+            </span>
           </p>
-          <p className="mt-1.5 text-xs text-muted-foreground">Mejor: {weeklyStreak.bestStreak} semanas</p>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Mejor: {weeklyStreak.bestStreak} semanas
+          </p>
         </StatCard>
 
         <StatCard label="Esta semana" icon={Dumbbell} href="/rutinas" delay={0.05}>
           <p className="mt-1 text-2xl md:text-3xl font-bold tracking-tight tabular-nums leading-none">
             {weeklyProgress.completed}
-            <span className="ml-1.5 text-xs md:text-sm font-normal text-muted-foreground">/ {weeklyProgress.target}</span>
+            <span className="ml-1.5 text-xs md:text-sm font-normal text-muted-foreground">
+              / {weeklyProgress.target}
+            </span>
           </p>
           <div className="mt-2 h-1.5 w-full rounded-full bg-muted">
             <div
@@ -133,15 +137,25 @@ export function MemberDashboard({
               <>
                 <Badge
                   variant={membershipActive ? "default" : "destructive"}
-                  className={membershipActive ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : ""}
+                  className={
+                    membershipActive
+                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      : ""
+                  }
                 >
-                  {membershipActive ? "Activa" : membership.status === "EXPIRED" ? "Expirada" : membership.status}
+                  {membershipActive
+                    ? "Activa"
+                    : membership.status === "EXPIRED"
+                      ? "Expirada"
+                      : membership.status}
                 </Badge>
                 <p className="text-xs text-muted-foreground mt-1.5">{membership.planName}</p>
                 {membership.daysRemaining !== null && membership.daysRemaining > 0 && (
                   <p className="text-xs text-muted-foreground">
                     {membership.isExpiring ? "Vence en " : "Restan "}
-                    <span className="font-medium text-accent-yellow">{membership.daysRemaining} días</span>
+                    <span className="font-medium text-accent-yellow">
+                      {membership.daysRemaining} días
+                    </span>
                   </p>
                 )}
               </>
@@ -161,7 +175,8 @@ export function MemberDashboard({
             ) : coach.hasPendingRequest ? (
               <>
                 <Badge variant="outline" className="text-xs gap-1">
-                  <Clock className="h-3 w-3" /> {coach.requestStatus === "PENDING" ? "Pendiente" : coach.requestStatus}
+                  <Clock className="h-3 w-3" />{" "}
+                  {coach.requestStatus === "PENDING" ? "Pendiente" : coach.requestStatus}
                 </Badge>
                 <p className="text-xs text-muted-foreground mt-1">Solicitud enviada</p>
               </>
@@ -173,7 +188,11 @@ export function MemberDashboard({
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
@@ -198,7 +217,9 @@ export function MemberDashboard({
                       <span className="font-medium">{nextWorkout.splitName}</span>
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground">Rutina asignada — sin splits definidos</p>
+                    <p className="text-sm text-muted-foreground">
+                      Rutina asignada — sin splits definidos
+                    </p>
                   )}
                   <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                     <Target className="h-3.5 w-3.5" />
@@ -216,7 +237,11 @@ export function MemberDashboard({
           </Card>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
@@ -246,10 +271,14 @@ export function MemberDashboard({
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{booking.className}</p>
                         <p className="text-xs text-muted-foreground">
-                          {DAY_LABELS[booking.dayOfWeek] ?? booking.dayOfWeek} · {booking.startTime} · {booking.duration}min · {booking.trainerName ?? "Coach"}
+                          {DAY_LABELS[booking.dayOfWeek] ?? booking.dayOfWeek} · {booking.startTime}{" "}
+                          · {booking.duration}min · {booking.trainerName ?? "Coach"}
                         </p>
                       </div>
-                      <Badge variant="outline" className="text-xs text-emerald-500 border-emerald-500/20 bg-emerald-500/5 shrink-0">
+                      <Badge
+                        variant="outline"
+                        className="text-xs text-emerald-500 border-emerald-500/20 bg-emerald-500/5 shrink-0"
+                      >
                         Confirmada
                       </Badge>
                     </div>

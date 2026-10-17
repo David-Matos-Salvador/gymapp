@@ -51,7 +51,10 @@ export async function POST(request: Request) {
   }
 
   if (user.role !== "TRAINER" && user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Solo entrenadores pueden actualizar su perfil profesional" }, { status: 403 })
+    return NextResponse.json(
+      { error: "Solo entrenadores pueden actualizar su perfil profesional" },
+      { status: 403 }
+    )
   }
 
   const body = await request.json()
@@ -67,8 +70,10 @@ export async function POST(request: Request) {
     where: { id: user.id },
     data: {
       bio: parsed.data.bio ?? user.bio,
-      specialties: (parsed.data.specialties ?? user.specialties) as unknown as Prisma.InputJsonValue,
-      certifications: (parsed.data.certifications ?? user.certifications) as unknown as Prisma.InputJsonValue,
+      specialties: (parsed.data.specialties ??
+        user.specialties) as unknown as Prisma.InputJsonValue,
+      certifications: (parsed.data.certifications ??
+        user.certifications) as unknown as Prisma.InputJsonValue,
       yearsExperience: parsed.data.yearsExperience ?? user.yearsExperience,
     },
     select: {

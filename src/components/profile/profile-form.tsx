@@ -27,7 +27,13 @@ import {
   Ruler,
   Weight,
 } from "lucide-react"
-import { ROLE_LABELS, SEX_LABELS, OBJECTIVE_LABELS, EXPERIENCE_LABELS, calculateAge } from "@/constants/user"
+import {
+  ROLE_LABELS,
+  SEX_LABELS,
+  OBJECTIVE_LABELS,
+  EXPERIENCE_LABELS,
+  calculateAge,
+} from "@/constants/user"
 
 interface User {
   id: string
@@ -62,12 +68,10 @@ function InfoItem({
   icon: Icon,
   label,
   value,
-  missing,
 }: {
   icon: React.ComponentType<{ className?: string }>
   label: string
   value: string | null
-  missing?: boolean
 }) {
   return (
     <div className="flex items-start gap-3 py-2.5 px-3 rounded-lg hover:bg-muted/50 transition-colors">
@@ -85,9 +89,7 @@ function InfoItem({
           </p>
         )}
       </div>
-      {value && (
-        <CheckCircle2 className="h-4 w-4 text-accent-yellow/60 shrink-0 mt-1" />
-      )}
+      {value && <CheckCircle2 className="h-4 w-4 text-accent-yellow/60 shrink-0 mt-1" />}
     </div>
   )
 }
@@ -193,9 +195,7 @@ export function ProfileForm({ user }: { user: User }) {
             <UserIcon className="h-5 w-5 text-accent-yellow" />
             Información personal
           </CardTitle>
-          <CardDescription>
-            Datos básicos de tu cuenta
-          </CardDescription>
+          <CardDescription>Datos básicos de tu cuenta</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-border">
@@ -206,16 +206,8 @@ export function ProfileForm({ user }: { user: User }) {
               label="Sexo"
               value={user.sex ? (SEX_LABELS[user.sex] ?? user.sex) : null}
             />
-            <InfoItem
-              icon={Calendar}
-              label="Fecha de nacimiento"
-              value={birthDateFormatted}
-            />
-            <InfoItem
-              icon={Calendar}
-              label="Edad"
-              value={age}
-            />
+            <InfoItem icon={Calendar} label="Fecha de nacimiento" value={birthDateFormatted} />
+            <InfoItem icon={Calendar} label="Edad" value={age} />
           </div>
         </CardContent>
       </Card>
@@ -227,9 +219,7 @@ export function ProfileForm({ user }: { user: User }) {
             <Activity className="h-5 w-5 text-accent-yellow" />
             Perfil de gimnasio
           </CardTitle>
-          <CardDescription>
-            Tu configuración de entrenamiento
-          </CardDescription>
+          <CardDescription>Tu configuración de entrenamiento</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-border">
@@ -243,26 +233,18 @@ export function ProfileForm({ user }: { user: User }) {
               label="Altura"
               value={user.height ? `${user.height} cm` : null}
             />
-            <InfoItem
-              icon={Weight}
-              label="Peso"
-              value={user.weight ? `${user.weight} kg` : null}
-            />
+            <InfoItem icon={Weight} label="Peso" value={user.weight ? `${user.weight} kg` : null} />
             <InfoItem
               icon={Activity}
               label="Nivel de experiencia"
-              value={user.experienceLevel ? (EXPERIENCE_LABELS[user.experienceLevel] ?? user.experienceLevel) : null}
+              value={
+                user.experienceLevel
+                  ? (EXPERIENCE_LABELS[user.experienceLevel] ?? user.experienceLevel)
+                  : null
+              }
             />
-            <InfoItem
-              icon={Heart}
-              label="Contacto de emergencia"
-              value={user.emergencyContact}
-            />
-            <InfoItem
-              icon={Phone}
-              label="Teléfono de emergencia"
-              value={user.emergencyPhone}
-            />
+            <InfoItem icon={Heart} label="Contacto de emergencia" value={user.emergencyContact} />
+            <InfoItem icon={Phone} label="Teléfono de emergencia" value={user.emergencyPhone} />
           </div>
         </CardContent>
       </Card>
@@ -288,9 +270,7 @@ export function ProfileForm({ user }: { user: User }) {
       <Card>
         <CardHeader className="border-b">
           <CardTitle className="text-lg">Editar información</CardTitle>
-          <CardDescription>
-            Actualizá tu nombre y teléfono
-          </CardDescription>
+          <CardDescription>Actualizá tu nombre y teléfono</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-4">
           <div className="flex items-center gap-4">
@@ -308,11 +288,7 @@ export function ProfileForm({ user }: { user: User }) {
               className="relative flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-muted ring-2 ring-accent-yellow/30 ring-offset-2 ring-offset-background overflow-hidden group cursor-pointer hover:ring-accent-yellow/60 transition-all"
             >
               {avatarPreview ? (
-                <img
-                  src={avatarPreview}
-                  alt="Avatar"
-                  className="h-full w-full object-cover"
-                />
+                <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
               ) : (
                 <span className="text-2xl font-bold text-accent-yellow">
                   {(user.name ?? user.email).charAt(0).toUpperCase()}
@@ -328,9 +304,7 @@ export function ProfileForm({ user }: { user: User }) {
             </button>
             <div>
               <p className="text-sm font-medium">Foto de perfil</p>
-              <p className="text-xs text-muted-foreground">
-                JPEG, PNG, WebP o GIF (m\u00e1x. 5MB)
-              </p>
+              <p className="text-xs text-muted-foreground">JPEG, PNG, WebP o GIF (m\u00e1x. 5MB)</p>
             </div>
           </div>
           <Separator />
@@ -374,9 +348,7 @@ export function ProfileForm({ user }: { user: User }) {
           <Separator />
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
-              {hasChanges
-                ? "Tenés cambios sin guardar"
-                : "No hay cambios pendientes"}
+              {hasChanges ? "Tenés cambios sin guardar" : "No hay cambios pendientes"}
             </p>
             <Button
               onClick={handleSave}

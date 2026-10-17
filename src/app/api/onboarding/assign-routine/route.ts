@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTrainerClientIds } from "@/lib/trainer-client"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
@@ -8,18 +9,35 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({
+  const caller = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: { id: true, role: true },
   })
 
-  if (!user || user.role !== "MEMBER") {
+  if (!caller) {
     return NextResponse.json({ error: "No autorizado" }, { status: 403 })
   }
 
-  const { planId } = await request.json() as { planId: string }
+  const body = (await request.json()) as { planId: string; memberId?: string }
+  const { planId } = body
   if (!planId) {
     return NextResponse.json({ error: "planId requerido" }, { status: 400 })
+  }
+
+  let targetUserId = caller.id
+  if (body.memberId) {
+    if (caller.role !== "TRAINER" && caller.role !== "ADMIN") {
+      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+    }
+    if (caller.role === "TRAINER") {
+      const clientIds = await getTrainerClientIds(caller.id)
+      if (!clientIds.includes(body.memberId)) {
+        return NextResponse.json({ error: "El miembro no es tu cliente" }, { status: 403 })
+      }
+    }
+    targetUserId = body.memberId
+  } else if (caller.role !== "MEMBER") {
+    return NextResponse.json({ error: "No autorizado" }, { status: 403 })
   }
 
   const plan = await prisma.routinePlan.findUnique({
@@ -33,13 +51,13 @@ export async function POST(request: Request) {
 
   // Deactivate previous assignments
   await prisma.assignedRoutinePlan.updateMany({
-    where: { userId: user.id, active: true },
+    where: { userId: targetUserId, active: true },
     data: { active: false },
   })
 
   // Create new assignment
   await prisma.assignedRoutinePlan.create({
-    data: { userId: user.id, planId: plan.id },
+    data: { userId: targetUserId, planId: plan.id },
   })
 
   const serialize = {

@@ -4,7 +4,75 @@ import type { LucideIcon } from "lucide-react"
 export type Objective = "WEIGHT_LOSS" | "MUSCLE_GAIN" | "GENERAL_FITNESS" | "UNSURE"
 export type TrainingHistory = "NONE" | "ONCE" | "TWO_TO_THREE" | "FOUR_PLUS"
 export type ExperienceLevelStep = "BEGINNER" | "INTERMEDIATE" | "ADVANCED" | "ELITE"
-export type UsualSchedule = "BEFORE_8AM" | "8AM_11AM" | "11AM_2PM" | "2PM_5PM" | "5PM_7PM" | "7PM_9PM" | "AFTER_9PM"
+export type UsualSchedule =
+  | "BEFORE_8AM"
+  | "8AM_11AM"
+  | "11AM_2PM"
+  | "2PM_5PM"
+  | "5PM_7PM"
+  | "7PM_9PM"
+  | "AFTER_9PM"
+
+export interface MeasurementsInput {
+  bodyFat: number | null
+  muscleMass: number | null
+  neck: number | null
+  shoulders: number | null
+  chest: number | null
+  waist: number | null
+  hips: number | null
+  leftArm: number | null
+  rightArm: number | null
+  leftForearm: number | null
+  rightForearm: number | null
+  leftThigh: number | null
+  rightThigh: number | null
+  leftCalf: number | null
+  rightCalf: number | null
+  notes: string
+}
+
+export const emptyMeasurements: MeasurementsInput = {
+  bodyFat: null,
+  muscleMass: null,
+  neck: null,
+  shoulders: null,
+  chest: null,
+  waist: null,
+  hips: null,
+  leftArm: null,
+  rightArm: null,
+  leftForearm: null,
+  rightForearm: null,
+  leftThigh: null,
+  rightThigh: null,
+  leftCalf: null,
+  rightCalf: null,
+  notes: "",
+}
+
+export const measurementFields: {
+  key: Exclude<keyof MeasurementsInput, "notes">
+  label: string
+  unit: string
+  placeholder: string
+}[] = [
+  { key: "bodyFat", label: "% Grasa", unit: "%", placeholder: "Ej: 18" },
+  { key: "muscleMass", label: "Masa muscular", unit: "kg", placeholder: "Ej: 35" },
+  { key: "neck", label: "Cuello", unit: "cm", placeholder: "Ej: 38" },
+  { key: "shoulders", label: "Hombros", unit: "cm", placeholder: "Ej: 115" },
+  { key: "chest", label: "Pecho", unit: "cm", placeholder: "Ej: 100" },
+  { key: "waist", label: "Cintura", unit: "cm", placeholder: "Ej: 80" },
+  { key: "hips", label: "Cadera", unit: "cm", placeholder: "Ej: 95" },
+  { key: "leftArm", label: "Brazo izq.", unit: "cm", placeholder: "Ej: 34" },
+  { key: "rightArm", label: "Brazo der.", unit: "cm", placeholder: "Ej: 35" },
+  { key: "leftForearm", label: "Antebrazo izq.", unit: "cm", placeholder: "Ej: 28" },
+  { key: "rightForearm", label: "Antebrazo der.", unit: "cm", placeholder: "Ej: 29" },
+  { key: "leftThigh", label: "Muslo izq.", unit: "cm", placeholder: "Ej: 58" },
+  { key: "rightThigh", label: "Muslo der.", unit: "cm", placeholder: "Ej: 59" },
+  { key: "leftCalf", label: "Pantorrilla izq.", unit: "cm", placeholder: "Ej: 37" },
+  { key: "rightCalf", label: "Pantorrilla der.", unit: "cm", placeholder: "Ej: 38" },
+]
 
 export interface OnboardingData {
   objective: Objective | null
@@ -15,6 +83,7 @@ export interface OnboardingData {
   weight: number | null
   height: number | null
   usualSchedule: UsualSchedule | null
+  measurements: MeasurementsInput
 }
 
 export interface GeneratedPlanData {
@@ -44,7 +113,7 @@ export interface GeneratedPlanData {
   }[]
 }
 
-export const TOTAL_STEPS = 9
+export const TOTAL_STEPS = 10
 
 export const STEPS = [
   { num: 1, title: "Objetivo" },
@@ -53,9 +122,10 @@ export const STEPS = [
   { num: 4, title: "Frecuencia" },
   { num: 5, title: "Condiciones" },
   { num: 6, title: "Peso y altura" },
-  { num: 7, title: "Horario" },
-  { num: 8, title: "Confirmación" },
-  { num: 9, title: "Tu rutina" },
+  { num: 7, title: "Medidas" },
+  { num: 8, title: "Horario" },
+  { num: 9, title: "Confirmación" },
+  { num: 10, title: "Tu rutina" },
 ]
 
 export type StepBehavior = "auto-advance" | "manual" | "custom-button" | "system-auto" | "final"
@@ -67,9 +137,10 @@ export const STEP_BEHAVIOR: Record<number, StepBehavior> = {
   4: "auto-advance",
   5: "manual",
   6: "manual",
-  7: "auto-advance",
-  8: "custom-button",
+  7: "manual",
+  8: "auto-advance",
   9: "custom-button",
+  10: "custom-button",
 }
 
 export const objectiveOptions: {
@@ -78,10 +149,30 @@ export const objectiveOptions: {
   description: string
   icon: LucideIcon
 }[] = [
-  { value: "WEIGHT_LOSS", label: "Perder peso", description: "Quemar grasa y definir", icon: Flame },
-  { value: "MUSCLE_GAIN", label: "Ganar masa muscular", description: "Fuerza e hipertrofia", icon: Dumbbell },
-  { value: "GENERAL_FITNESS", label: "Mejorar forma física", description: "Salud y bienestar general", icon: Heart },
-  { value: "UNSURE", label: "Necesito ayuda", description: "No estoy seguro de mi objetivo", icon: HelpCircle },
+  {
+    value: "WEIGHT_LOSS",
+    label: "Perder peso",
+    description: "Quemar grasa y definir",
+    icon: Flame,
+  },
+  {
+    value: "MUSCLE_GAIN",
+    label: "Ganar masa muscular",
+    description: "Fuerza e hipertrofia",
+    icon: Dumbbell,
+  },
+  {
+    value: "GENERAL_FITNESS",
+    label: "Mejorar forma física",
+    description: "Salud y bienestar general",
+    icon: Heart,
+  },
+  {
+    value: "UNSURE",
+    label: "Necesito ayuda",
+    description: "No estoy seguro de mi objetivo",
+    icon: HelpCircle,
+  },
 ]
 
 export const trainingHistoryOptions = [
@@ -92,14 +183,28 @@ export const trainingHistoryOptions = [
 ]
 
 export const experienceOptions = [
-  { value: "BEGINNER", label: "Principiante", icon: HelpCircle, description: "Nunca he entrenado antes" },
+  {
+    value: "BEGINNER",
+    label: "Principiante",
+    icon: HelpCircle,
+    description: "Nunca he entrenado antes",
+  },
   { value: "INTERMEDIATE", label: "Intermedio", icon: Dumbbell, description: "Conozco lo básico" },
-  { value: "ADVANCED", label: "Avanzado", icon: Star, description: "Buen dominio de técnica y rutinas" },
+  {
+    value: "ADVANCED",
+    label: "Avanzado",
+    icon: Star,
+    description: "Buen dominio de técnica y rutinas",
+  },
   { value: "ELITE", label: "Élite", icon: Trophy, description: "Entreno de forma autónoma" },
 ]
 
 export const trainingFrequencyOptions = [
-  { value: 3, label: "3 días por semana", description: "Ideal para principiantes — volumen equilibrado" },
+  {
+    value: 3,
+    label: "3 días por semana",
+    description: "Ideal para principiantes — volumen equilibrado",
+  },
   { value: 4, label: "4 días por semana", description: "Balance óptimo — 4 días de entrenamiento" },
   { value: 5, label: "5 días por semana", description: "Máximo rendimiento — 5 días intensivos" },
 ]

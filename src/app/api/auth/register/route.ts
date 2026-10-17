@@ -35,10 +35,7 @@ export async function POST(request: Request) {
     })
 
     if (existingUser) {
-      return NextResponse.json(
-        { error: "El email ya esta registrado" },
-        { status: 409 }
-      )
+      return NextResponse.json({ error: "El email ya esta registrado" }, { status: 409 })
     }
 
     const passwordHash = await bcrypt.hash(password, 10)
@@ -115,9 +112,6 @@ export async function POST(request: Request) {
     )
   } catch (error) {
     console.error("Register error:", error)
-    return NextResponse.json(
-      { error: "Error interno del servidor" },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }

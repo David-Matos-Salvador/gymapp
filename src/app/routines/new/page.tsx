@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Trash2, GripVertical, Dumbbell } from "lucide-react"
+import { Plus, Trash2, GripVertical } from "lucide-react"
 import { toast } from "sonner"
 
 interface Exercise {
@@ -109,11 +109,13 @@ export default function NewRoutinePage() {
     setSaving(false)
   }
 
-  const filteredExercises = allExercises.filter(
-    (e) =>
-      e.name.toLowerCase().includes(search.toLowerCase()) ||
-      e.muscleGroup.toLowerCase().includes(search.toLowerCase())
-  ).slice(0, 15)
+  const filteredExercises = allExercises
+    .filter(
+      (e) =>
+        e.name.toLowerCase().includes(search.toLowerCase()) ||
+        e.muscleGroup.toLowerCase().includes(search.toLowerCase())
+    )
+    .slice(0, 15)
 
   const muscleGroups = [...new Set(allExercises.map((e) => e.muscleGroup))]
 
@@ -163,10 +165,7 @@ export default function NewRoutinePage() {
             ) : (
               <div className="space-y-3">
                 {selected.map((ex, index) => (
-                  <div
-                    key={ex.exerciseId + index}
-                    className="rounded-lg border p-4 space-y-3"
-                  >
+                  <div key={ex.exerciseId + index} className="rounded-lg border p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <GripVertical className="h-4 w-4 text-muted-foreground" />
@@ -220,7 +219,9 @@ export default function NewRoutinePage() {
                           min={0}
                           step={15}
                           value={ex.restSeconds}
-                          onChange={(e) => updateExercise(index, "restSeconds", Number(e.target.value))}
+                          onChange={(e) =>
+                            updateExercise(index, "restSeconds", Number(e.target.value))
+                          }
                           className="h-8 text-sm"
                         />
                       </div>
@@ -283,7 +284,11 @@ export default function NewRoutinePage() {
         </Card>
 
         <div className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={() => router.back()} onClickCapture={() => play("click")}>
+          <Button
+            variant="outline"
+            onClick={() => router.back()}
+            onClickCapture={() => play("click")}
+          >
             Cancelar
           </Button>
           <Button onClick={handleSave} disabled={saving}>

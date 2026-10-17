@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
@@ -7,8 +7,39 @@ const exerciseUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
   category: z.string().nullable().optional(),
-  muscleGroup: z.enum(["CHEST","BACK","SHOULDERS","BICEPS","TRICEPS","LEGS","GLUTES","ABS","CALVES","FOREARMS","TRAPS","FULL_BODY","CARDIO"]).optional(),
-  equipment: z.enum(["BARBELL","DUMBBELL","MACHINE","CABLE","BODYWEIGHT","KETTLEBELL","BAND","SMITH_MACHINE","EZ_BAR","BENCH","PLATE","OTHER"]).optional(),
+  muscleGroup: z
+    .enum([
+      "CHEST",
+      "BACK",
+      "SHOULDERS",
+      "BICEPS",
+      "TRICEPS",
+      "LEGS",
+      "GLUTES",
+      "ABS",
+      "CALVES",
+      "FOREARMS",
+      "TRAPS",
+      "FULL_BODY",
+      "CARDIO",
+    ])
+    .optional(),
+  equipment: z
+    .enum([
+      "BARBELL",
+      "DUMBBELL",
+      "MACHINE",
+      "CABLE",
+      "BODYWEIGHT",
+      "KETTLEBELL",
+      "BAND",
+      "SMITH_MACHINE",
+      "EZ_BAR",
+      "BENCH",
+      "PLATE",
+      "OTHER",
+    ])
+    .optional(),
   imageUrl: z.string().nullable().optional(),
   videoUrl: z.string().nullable().optional(),
   animationData: z.any().nullable().optional(),
@@ -29,13 +60,10 @@ async function checkExerciseOwnership(exerciseId: string, user: { id: string; ro
   return { exists: true, canEdit }
 }
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
-    
+
     const exercise = await prisma.exercise.findUnique({
       where: { id },
       include: {
@@ -43,10 +71,10 @@ export async function GET(
           include: {
             split: {
               include: {
-                plan: true
-              }
-            }
-          }
+                plan: true,
+              },
+            },
+          },
         },
         gymEquipments: true,
         creator: { select: { id: true, name: true, role: true } },
@@ -64,10 +92,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth()
     if (!session?.user?.email) {
@@ -87,11 +112,14 @@ export async function PATCH(
     }
 
     if (!canEdit) {
-      return NextResponse.json({ error: "No tienes permisos para modificar este ejercicio" }, { status: 403 })
+      return NextResponse.json(
+        { error: "No tienes permisos para modificar este ejercicio" },
+        { status: 403 }
+      )
     }
 
     const body = await request.json()
-    
+
     const parsed = exerciseUpdateSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
@@ -112,10 +140,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await auth()
     if (!session?.user?.email) {
@@ -135,7 +160,10 @@ export async function DELETE(
     }
 
     if (!canEdit) {
-      return NextResponse.json({ error: "No tienes permisos para eliminar este ejercicio" }, { status: 403 })
+      return NextResponse.json(
+        { error: "No tienes permisos para eliminar este ejercicio" },
+        { status: 403 }
+      )
     }
 
     await prisma.exercise.delete({ where: { id } })

@@ -31,7 +31,13 @@ const userRoleChip: Record<string, { label: string; className: string }> = {
   SUPER_ADMIN: { label: "Súper Admin", className: "text-destructive bg-destructive/10" },
 }
 
-export function AppBottomNav({ className, pendingCount = 0 }: { className?: string; pendingCount?: number }) {
+export function AppBottomNav({
+  className,
+  pendingCount = 0,
+}: {
+  className?: string
+  pendingCount?: number
+}) {
   const pathname = usePathname()
   const { isAdmin, isTrainer, isSuperAdmin, isMember, isGymOwner } = useAuth()
   const { play } = useSound()
@@ -91,17 +97,12 @@ export function AppBottomNav({ className, pendingCount = 0 }: { className?: stri
               href={item.href}
               onClick={() => play("click")}
               className={cn(
-                  "relative flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] py-1 text-xs font-medium transition-colors",
-                  isActive
-                    ? "text-accent-yellow"
-                    : "text-muted-foreground hover:text-foreground"
+                "relative flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] py-1 text-xs font-medium transition-colors",
+                isActive ? "text-accent-yellow" : "text-muted-foreground hover:text-foreground"
               )}
             >
               <item.icon
-                className={cn(
-                  "h-5 w-5 transition-transform duration-200",
-                  isActive && "scale-110"
-                )}
+                className={cn("h-5 w-5 transition-transform duration-200", isActive && "scale-110")}
               />
               <span className="text-[11px] leading-none">{item.label}</span>
               {isActive && (
@@ -158,9 +159,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [pathname])
 
   const handleMarkRead = useCallback(async (id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)))
     setUnreadCount((prev) => Math.max(0, prev - 1))
     try {
       await fetch(`/api/notifications/${id}`, { method: "PATCH" })
@@ -174,24 +173,29 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
     setUnreadCount(0)
     try {
-      await Promise.all(unreadIds.map((id) => fetch(`/api/notifications/${id}`, { method: "PATCH" })))
+      await Promise.all(
+        unreadIds.map((id) => fetch(`/api/notifications/${id}`, { method: "PATCH" }))
+      )
     } catch {
       toast.error("Error al marcar todas como leídas")
     }
   }, [notifications])
 
-  const handleNavigate = useCallback((notification: MockNotification) => {
-    if (notification.type === "TRAINER_REQUEST") {
-      const requestId = notification.metadata?.requestId
-      if (requestId) {
-        setSelectedRequestId(requestId)
-        return
+  const handleNavigate = useCallback(
+    (notification: MockNotification) => {
+      if (notification.type === "TRAINER_REQUEST") {
+        const requestId = notification.metadata?.requestId
+        if (requestId) {
+          setSelectedRequestId(requestId)
+          return
+        }
       }
-    }
-    if (notification.type === "PAYMENT") {
-      router.push("/coach/payments")
-    }
-  }, [router])
+      if (notification.type === "PAYMENT") {
+        router.push("/coach/payments")
+      }
+    },
+    [router]
+  )
 
   const refreshNotifications = useCallback(() => {
     fetch("/api/notifications")
@@ -237,9 +241,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <Sparkles className="h-4 w-4 text-accent-yellow shrink-0" />
         <span className="font-semibold">GymApp</span>
         <div className="ml-auto flex items-center gap-1">
-          <NotificationBell
-            unreadCount={unreadCount}
-          >
+          <NotificationBell unreadCount={unreadCount}>
             <NotificationList
               notifications={notifications}
               onMarkRead={handleMarkRead}

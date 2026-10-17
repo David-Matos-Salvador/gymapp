@@ -6,7 +6,19 @@ import { prisma } from "@/lib/prisma"
 const createNotificationSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
   message: z.string().min(1, "El mensaje es requerido"),
-  type: z.enum(["INFO", "WARNING", "REMINDER", "PAYMENT", "MEMBERSHIP", "CLASS", "CHECK_IN", "GOAL", "SYSTEM"]).default("INFO"),
+  type: z
+    .enum([
+      "INFO",
+      "WARNING",
+      "REMINDER",
+      "PAYMENT",
+      "MEMBERSHIP",
+      "CLASS",
+      "CHECK_IN",
+      "GOAL",
+      "SYSTEM",
+    ])
+    .default("INFO"),
   userId: z.string().min(1, "El userId es requerido"),
 })
 

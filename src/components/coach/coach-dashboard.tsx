@@ -11,24 +11,115 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { StatCard } from "@/components/ui/stat-card"
 import { EmptyState } from "@/components/ui/empty-state"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Users, CalendarDays, Dumbbell, Plus, ArrowRight, Search, UserPlus, Mail, Phone, Target, Award, BadgeCheck, Loader2, Send, Clock, Link2, Copy, CheckCircle, Check } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Users,
+  CalendarDays,
+  Dumbbell,
+  Plus,
+  ArrowRight,
+  Search,
+  UserPlus,
+  Mail,
+  Phone,
+  Target,
+  Award,
+  BadgeCheck,
+  Loader2,
+  Send,
+  Clock,
+  Link2,
+  Copy,
+  CheckCircle,
+  Check,
+  Sparkles,
+} from "lucide-react"
 import { toast } from "sonner"
 import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
 import { DAY_OF_WEEK_LABELS } from "@/constants/ui"
 
-interface ClientData { id: string; name: string | null; email: string; phone: string | null; objective: string | null; experienceLevel: string | null; hasActiveMembership: boolean; membershipPlan: string | null; onboardingCompleted: boolean }
-interface RoutineData { id: string; name: string; exerciseCount: number }
-interface ClassData { id: string; name: string; dayOfWeek: string; startTime: string; duration: number; capacity: number; bookingsCount: number }
-interface Stats { totalClients: number; activeMemberships: number; upcomingClasses: number; totalRoutines: number }
-interface SearchMember { id: string; name: string | null; email: string; assignedTrainerId: string | null; hasTrainer: boolean }
-interface TrainerRequest { id: string; clientId: string; status: string; createdAt: string; client: { id: string; name: string | null; email: string } }
-interface InviteData { id: string; token: string; name: string | null; email: string | null; phone: string | null; status: string; expiresAt: string; createdAt: string; usedBy: { name: string | null; email: string } | null }
+interface ClientData {
+  id: string
+  name: string | null
+  email: string
+  phone: string | null
+  objective: string | null
+  experienceLevel: string | null
+  hasActiveMembership: boolean
+  membershipPlan: string | null
+  onboardingCompleted: boolean
+}
+interface RoutineData {
+  id: string
+  name: string
+  exerciseCount: number
+}
+interface ClassData {
+  id: string
+  name: string
+  dayOfWeek: string
+  startTime: string
+  duration: number
+  capacity: number
+  bookingsCount: number
+}
+interface Stats {
+  totalClients: number
+  activeMemberships: number
+  upcomingClasses: number
+  totalRoutines: number
+}
+interface SearchMember {
+  id: string
+  name: string | null
+  email: string
+  assignedTrainerId: string | null
+  hasTrainer: boolean
+}
+interface TrainerRequest {
+  id: string
+  clientId: string
+  status: string
+  createdAt: string
+  client: { id: string; name: string | null; email: string }
+}
+interface InviteData {
+  id: string
+  token: string
+  name: string | null
+  email: string | null
+  phone: string | null
+  status: string
+  expiresAt: string
+  createdAt: string
+  usedBy: { name: string | null; email: string } | null
+}
 
-export function CoachDashboard({ clients, routines, classes, stats }: {
-  clients: ClientData[]; routines: RoutineData[]; classes: ClassData[]; stats: Stats
+export function CoachDashboard({
+  clients,
+  routines,
+  classes,
+  stats,
+}: {
+  clients: ClientData[]
+  routines: RoutineData[]
+  classes: ClassData[]
+  stats: Stats
 }) {
   const { play } = useSound()
   const router = useRouter()
@@ -43,7 +134,14 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
   const [classList, setClassList] = useState<ClassData[]>(classes)
   const [classDialogOpen, setClassDialogOpen] = useState(false)
   const [classSaving, setClassSaving] = useState(false)
-  const [classForm, setClassForm] = useState({ name: "", description: "", dayOfWeek: "", startTime: "", duration: "60", capacity: "15" })
+  const [classForm, setClassForm] = useState({
+    name: "",
+    description: "",
+    dayOfWeek: "",
+    startTime: "",
+    duration: "60",
+    capacity: "15",
+  })
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
   const [inviteMode, setInviteMode] = useState<"register" | "link">("register")
   const [inviteSaving, setInviteSaving] = useState(false)
@@ -51,6 +149,7 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
   const [inviteUrl, setInviteUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [invites, setInvites] = useState<InviteData[]>([])
+  const [createdMember, setCreatedMember] = useState<{ id: string; name: string } | null>(null)
   const searchRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -92,38 +191,67 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
       try {
         const res = await fetch(`/api/members/search?q=${encodeURIComponent(query.trim())}`)
         const data = await res.json()
-        if (!res.ok) { setSearchError(data.error || "Error al buscar"); setSearchResults([]); return }
-        if (!data.members?.length) { setSearchError("No se encontraron miembros"); setSearchResults([]); setShowResults(true); return }
+        if (!res.ok) {
+          setSearchError(data.error || "Error al buscar")
+          setSearchResults([])
+          return
+        }
+        if (!data.members?.length) {
+          setSearchError("No se encontraron miembros")
+          setSearchResults([])
+          setShowResults(true)
+          return
+        }
         setSearchResults(data.members)
         setShowResults(true)
-      } catch { setSearchError("Error de conexion") }
-      finally { setSearchLoading(false) }
+      } catch {
+        setSearchError("Error de conexion")
+      } finally {
+        setSearchLoading(false)
+      }
     }, 300)
   }, [])
 
-  const handleSendRequest = useCallback(async (clientId: string) => {
-    setAssignLoading(clientId)
-    setAssignSuccess("")
-    setSearchError("")
-    try {
-      const res = await fetch("/api/trainer/clients", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId }) })
-      const data = await res.json()
-      if (!res.ok) { toast.error(data.error || "Error al enviar solicitud"); return }
-      play("success")
-      setAssignSuccess(`Solicitud enviada correctamente`)
-      setSearchResults((prev) => prev.filter((m) => m.id !== clientId))
-      const newRequest: TrainerRequest = {
-        id: data.request.id,
-        clientId,
-        status: "PENDING",
-        createdAt: data.request.createdAt,
-        client: searchResults.find((m) => m.id === clientId) || { id: clientId, name: null, email: "" },
+  const handleSendRequest = useCallback(
+    async (clientId: string) => {
+      setAssignLoading(clientId)
+      setAssignSuccess("")
+      setSearchError("")
+      try {
+        const res = await fetch("/api/trainer/clients", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clientId }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          toast.error(data.error || "Error al enviar solicitud")
+          return
+        }
+        play("success")
+        setAssignSuccess(`Solicitud enviada correctamente`)
+        setSearchResults((prev) => prev.filter((m) => m.id !== clientId))
+        const newRequest: TrainerRequest = {
+          id: data.request.id,
+          clientId,
+          status: "PENDING",
+          createdAt: data.request.createdAt,
+          client: searchResults.find((m) => m.id === clientId) || {
+            id: clientId,
+            name: null,
+            email: "",
+          },
+        }
+        setSentRequests((prev) => [newRequest, ...prev])
+        toast.success("Solicitud enviada al miembro")
+      } catch {
+        toast.error("Error de conexion")
+      } finally {
+        setAssignLoading(null)
       }
-      setSentRequests((prev) => [newRequest, ...prev])
-      toast.success("Solicitud enviada al miembro")
-    } catch { toast.error("Error de conexion") }
-    finally { setAssignLoading(null) }
-  }, [searchResults, play])
+    },
+    [searchResults, play]
+  )
 
   function openInviteDialog() {
     play("click")
@@ -131,6 +259,7 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
     setInviteForm({ name: "", email: "", phone: "", password: "" })
     setInviteUrl(null)
     setCopied(false)
+    setCreatedMember(null)
     setInviteDialogOpen(true)
   }
 
@@ -157,8 +286,7 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
         return
       }
       play("success")
-      toast.success(`${data.user.name} creado como tu cliente`)
-      setInviteDialogOpen(false)
+      setCreatedMember({ id: data.user.id, name: data.user.name })
       router.refresh()
     } catch {
       toast.error("Error de conexión")
@@ -241,7 +369,14 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
         },
       ])
       setClassDialogOpen(false)
-      setClassForm({ name: "", description: "", dayOfWeek: "", startTime: "", duration: "60", capacity: "15" })
+      setClassForm({
+        name: "",
+        description: "",
+        dayOfWeek: "",
+        startTime: "",
+        duration: "60",
+        capacity: "15",
+      })
     } else {
       toast.error(data.error ?? "Error al crear clase")
     }
@@ -257,16 +392,38 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
 
       <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
         <StatCard label="Clientes" value={stats.totalClients} icon={Users} delay={0} />
-        <StatCard label="Membresías activas" value={stats.activeMemberships} icon={BadgeCheck} delay={0.05} />
-        <StatCard label="Clases próximas" value={stats.upcomingClasses} icon={CalendarDays} delay={0.1} />
-        <StatCard label="Rutinas" value={stats.totalRoutines} icon={Dumbbell} iconColor="text-primary" borderColor="border-t-primary" delay={0.15} />
+        <StatCard
+          label="Membresías activas"
+          value={stats.activeMemberships}
+          icon={BadgeCheck}
+          delay={0.05}
+        />
+        <StatCard
+          label="Clases próximas"
+          value={stats.upcomingClasses}
+          icon={CalendarDays}
+          delay={0.1}
+        />
+        <StatCard
+          label="Rutinas"
+          value={stats.totalRoutines}
+          icon={Dumbbell}
+          iconColor="text-primary"
+          borderColor="border-t-primary"
+          delay={0.15}
+        />
       </div>
 
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-accent-yellow" /><CardTitle>Buscar y enviar solicitud</CardTitle>
+              <UserPlus className="h-5 w-5 text-accent-yellow" />
+              <CardTitle>Buscar y enviar solicitud</CardTitle>
             </div>
             <Button size="sm" onClick={openInviteDialog}>
               <Plus className="mr-1 h-4 w-4" /> Nuevo cliente
@@ -281,7 +438,10 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
                     type="text"
                     placeholder="Buscar miembro por nombre o email..."
                     value={searchQuery}
-                    onChange={(e) => { setSearchQuery(e.target.value); handleSearch(e.target.value) }}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value)
+                      handleSearch(e.target.value)
+                    }}
                     className="pl-9"
                   />
                 </div>
@@ -294,24 +454,44 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
               {showResults && !searchLoading && searchResults.length > 0 && (
                 <div className="absolute z-10 w-full mt-1 rounded-lg border bg-card shadow-lg max-h-64 overflow-y-auto">
                   {searchResults.map((member) => {
-                    const hasPending = sentRequests.some((r) => r.clientId === member.id && r.status === "PENDING")
+                    const hasPending = sentRequests.some(
+                      (r) => r.clientId === member.id && r.status === "PENDING"
+                    )
                     const hasTrainer = member.hasTrainer
                     return (
-                      <div key={member.id} className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 border-b last:border-b-0">
+                      <div
+                        key={member.id}
+                        className="flex items-center justify-between px-4 py-3 hover:bg-muted/50 border-b last:border-b-0"
+                      >
                         <div className="flex items-center gap-3">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10"><Users className="h-4 w-4 text-accent-yellow" /></div>
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
+                            <Users className="h-4 w-4 text-accent-yellow" />
+                          </div>
                           <div>
                             <p className="text-sm font-medium">{member.name || "Sin nombre"}</p>
                             <p className="text-xs text-muted-foreground">{member.email}</p>
                           </div>
                         </div>
                         {hasTrainer ? (
-                          <Badge variant="secondary" className="text-xs">Ya tiene coach</Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            Ya tiene coach
+                          </Badge>
                         ) : hasPending ? (
-                          <Badge variant="outline" className="text-xs gap-1"><Clock className="h-3 w-3" /> Pendiente</Badge>
+                          <Badge variant="outline" className="text-xs gap-1">
+                            <Clock className="h-3 w-3" /> Pendiente
+                          </Badge>
                         ) : (
-                          <Button size="sm" onClick={() => handleSendRequest(member.id)} disabled={assignLoading === member.id}>
-                            {assignLoading === member.id ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Send className="h-3 w-3 mr-1" />} Enviar solicitud
+                          <Button
+                            size="sm"
+                            onClick={() => handleSendRequest(member.id)}
+                            disabled={assignLoading === member.id}
+                          >
+                            {assignLoading === member.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                            ) : (
+                              <Send className="h-3 w-3 mr-1" />
+                            )}{" "}
+                            Enviar solicitud
                           </Button>
                         )}
                       </div>
@@ -319,29 +499,43 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
                   })}
                 </div>
               )}
-              {showResults && !searchLoading && searchResults.length === 0 && searchQuery.length >= 2 && (
-                <div className="absolute z-10 w-full mt-1 rounded-lg border bg-card shadow-lg p-4 text-sm text-muted-foreground">
-                  No se encontraron miembros con &quot;{searchQuery}&quot;
-                </div>
-              )}
+              {showResults &&
+                !searchLoading &&
+                searchResults.length === 0 &&
+                searchQuery.length >= 2 && (
+                  <div className="absolute z-10 w-full mt-1 rounded-lg border bg-card shadow-lg p-4 text-sm text-muted-foreground">
+                    No se encontraron miembros con &quot;{searchQuery}&quot;
+                  </div>
+                )}
             </div>
             {searchError && <p className="text-sm text-destructive">{searchError}</p>}
-            {assignSuccess && <p className="text-sm text-accent-yellow font-medium">{assignSuccess}</p>}
+            {assignSuccess && (
+              <p className="text-sm text-accent-yellow font-medium">{assignSuccess}</p>
+            )}
 
             {sentRequests.length > 0 && (
               <div className="mt-4">
-                <p className="text-sm font-medium text-muted-foreground mb-2">Solicitudes pendientes</p>
+                <p className="text-sm font-medium text-muted-foreground mb-2">
+                  Solicitudes pendientes
+                </p>
                 <div className="space-y-2">
                   {sentRequests.map((req) => (
-                    <div key={req.id} className="flex items-center justify-between rounded-lg border p-3 bg-muted/30">
+                    <div
+                      key={req.id}
+                      className="flex items-center justify-between rounded-lg border p-3 bg-muted/30"
+                    >
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10"><Clock className="h-4 w-4 text-accent-yellow" /></div>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
+                          <Clock className="h-4 w-4 text-accent-yellow" />
+                        </div>
                         <div>
                           <p className="text-sm font-medium">{req.client.name || "Sin nombre"}</p>
                           <p className="text-xs text-muted-foreground">{req.client.email}</p>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-xs">Pendiente</Badge>
+                      <Badge variant="outline" className="text-xs">
+                        Pendiente
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -353,28 +547,44 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
                 <p className="text-sm font-medium text-muted-foreground mb-2">Invitaciones</p>
                 <div className="space-y-2">
                   {invites.map((inv) => (
-                    <div key={inv.id} className="flex items-center justify-between rounded-lg border p-3 bg-muted/30 gap-2">
+                    <div
+                      key={inv.id}
+                      className="flex items-center justify-between rounded-lg border p-3 bg-muted/30 gap-2"
+                    >
                       <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10"><Link2 className="h-4 w-4 text-accent-yellow" /></div>
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10">
+                          <Link2 className="h-4 w-4 text-accent-yellow" />
+                        </div>
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {inv.usedBy ? (inv.usedBy.name || inv.usedBy.email) : (inv.name || inv.email || "Invitación sin datos")}
+                            {inv.usedBy
+                              ? inv.usedBy.name || inv.usedBy.email
+                              : inv.name || inv.email || "Invitación sin datos"}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {inv.email || "Sin email"} · expira {new Date(inv.expiresAt).toLocaleDateString("es")}
+                            {inv.email || "Sin email"} · expira{" "}
+                            {new Date(inv.expiresAt).toLocaleDateString("es")}
                           </p>
                         </div>
                       </div>
                       {inv.status === "COMPLETED" ? (
-                        <Badge variant="secondary" className="text-xs shrink-0 gap-1"><CheckCircle className="h-3 w-3" /> Aceptada</Badge>
+                        <Badge variant="secondary" className="text-xs shrink-0 gap-1">
+                          <CheckCircle className="h-3 w-3" /> Aceptada
+                        </Badge>
                       ) : (
                         <Button
                           size="sm"
                           variant="outline"
                           className="shrink-0"
-                          onClick={() => copyInviteLink(`${window.location.origin}/invite/${inv.token}`)}
+                          onClick={() =>
+                            copyInviteLink(`${window.location.origin}/invite/${inv.token}`)
+                          }
                         >
-                          {copied ? <Check className="mr-1 h-3 w-3" /> : <Copy className="mr-1 h-3 w-3" />}
+                          {copied ? (
+                            <Check className="mr-1 h-3 w-3" />
+                          ) : (
+                            <Copy className="mr-1 h-3 w-3" />
+                          )}
                           {copied ? "Copiado" : "Copiar link"}
                         </Button>
                       )}
@@ -388,7 +598,11 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
       </motion.div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+        >
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base">Mis clientes</CardTitle>
@@ -401,29 +615,87 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
             <CardContent className="space-y-3">
               {clients.length === 0 ? (
                 <EmptyState message="No tienes clientes asignados aún" className="py-4" />
-              ) : clients.slice(0, 5).map((client, i) => (
-                <motion.div key={client.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 + i * 0.04 }}>
-                  <Link href={`/coach/clients/${client.id}`} className="flex items-start gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group" onClick={() => play("select")}>
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/10"><Users className="h-5 w-5 text-accent-yellow" /></div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium truncate">{client.name || "Sin nombre"}</p>
-                        {client.hasActiveMembership && <span className="inline-flex items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-accent-yellow">Activo</span>}
-                        {!client.onboardingCompleted && <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">Pendiente de onboarding</span>}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
-                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Mail className="h-3 w-3" />{client.email}</span>
-                        {client.phone && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Phone className="h-3 w-3" />{client.phone}</span>}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                        {client.objective && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Target className="h-3 w-3" />{OBJECTIVE_LABELS[client.objective] || client.objective}</span>}
-                        {client.experienceLevel && <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Award className="h-3 w-3" />{EXPERIENCE_LABELS[client.experienceLevel] || client.experienceLevel}</span>}
-                      </div>
+              ) : (
+                clients.slice(0, 5).map((client, i) => (
+                  <motion.div
+                    key={client.id}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.04 }}
+                  >
+                    <div className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group">
+                      <Link
+                        href={`/coach/clients/${client.id}`}
+                        className="flex flex-1 min-w-0 items-start gap-3"
+                        onClick={() => play("select")}
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/10">
+                          <Users className="h-5 w-5 text-accent-yellow" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-medium truncate">
+                              {client.name || "Sin nombre"}
+                            </p>
+                            {client.hasActiveMembership && (
+                              <span className="inline-flex items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-accent-yellow">
+                                Activo
+                              </span>
+                            )}
+                            {!client.onboardingCompleted && (
+                              <span className="inline-flex items-center rounded-full bg-muted px-1.5 py-0.5 text-xs font-medium text-muted-foreground">
+                                Pendiente de onboarding
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1">
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                              <Mail className="h-3 w-3" />
+                              {client.email}
+                            </span>
+                            {client.phone && (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                <Phone className="h-3 w-3" />
+                                {client.phone}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            {client.objective && (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                <Target className="h-3 w-3" />
+                                {OBJECTIVE_LABELS[client.objective] || client.objective}
+                              </span>
+                            )}
+                            {client.experienceLevel && (
+                              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                <Award className="h-3 w-3" />
+                                {EXPERIENCE_LABELS[client.experienceLevel] ||
+                                  client.experienceLevel}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                      {!client.onboardingCompleted ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="shrink-0"
+                          onClick={() => {
+                            play("click")
+                            router.push(`/onboarding?memberId=${client.id}`)
+                          }}
+                        >
+                          Completar onboarding
+                        </Button>
+                      ) : (
+                        <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0 mt-1" />
+                      )}
                     </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors shrink-0 mt-1" />
-                  </Link>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))
+              )}
               {clients.length > 5 && (
                 <div className="text-center pt-1">
                   <Button variant="link" size="sm" asChild onClick={() => play("click")}>
@@ -438,11 +710,19 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
         </motion.div>
 
         <div className="space-y-6">
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+          >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base">Rutinas creadas</CardTitle>
-                <Button size="sm" asChild onClick={() => play("click")}><Link href="/routines/new"><Plus className="mr-1 h-4 w-4" /> Nueva rutina</Link></Button>
+                <Button size="sm" asChild onClick={() => play("click")}>
+                  <Link href="/routines/new">
+                    <Plus className="mr-1 h-4 w-4" /> Nueva rutina
+                  </Link>
+                </Button>
               </CardHeader>
               <CardContent>
                 {routines.length === 0 ? (
@@ -450,9 +730,21 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
                 ) : (
                   <div className="space-y-2">
                     {routines.map((r) => (
-                      <Link key={r.id} href={`/routines/${r.id}`} className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group" onClick={() => play("select")}>
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10"><Dumbbell className="h-4 w-4 text-accent-yellow" /></div>
-                        <div><p className="text-sm font-medium">{r.name}</p><p className="text-xs text-muted-foreground">{r.exerciseCount} ejercicios</p></div>
+                      <Link
+                        key={r.id}
+                        href={`/routines/${r.id}`}
+                        className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group"
+                        onClick={() => play("select")}
+                      >
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10">
+                          <Dumbbell className="h-4 w-4 text-accent-yellow" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">{r.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {r.exerciseCount} ejercicios
+                          </p>
+                        </div>
                       </Link>
                     ))}
                   </div>
@@ -461,11 +753,21 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
             </Card>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base">Mis clases</CardTitle>
-                <Button size="sm" onClick={() => { play("click"); setClassDialogOpen(true) }}>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    play("click")
+                    setClassDialogOpen(true)
+                  }}
+                >
                   <Plus className="mr-1 h-4 w-4" /> Nueva clase
                 </Button>
               </CardHeader>
@@ -476,11 +778,14 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
                   <div className="space-y-2">
                     {classList.map((c) => (
                       <div key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10"><CalendarDays className="h-4 w-4 text-accent-yellow" /></div>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10">
+                          <CalendarDays className="h-4 w-4 text-accent-yellow" />
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{c.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {DAY_OF_WEEK_LABELS[c.dayOfWeek] || c.dayOfWeek} · {c.startTime} · {c.duration}min · {c.bookingsCount}/{c.capacity}
+                            {DAY_OF_WEEK_LABELS[c.dayOfWeek] || c.dayOfWeek} · {c.startTime} ·{" "}
+                            {c.duration}min · {c.bookingsCount}/{c.capacity}
                           </p>
                         </div>
                       </div>
@@ -521,13 +826,18 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Día</Label>
-                <Select value={classForm.dayOfWeek} onValueChange={(v) => setClassForm((f) => ({ ...f, dayOfWeek: v }))}>
+                <Select
+                  value={classForm.dayOfWeek}
+                  onValueChange={(v) => setClassForm((f) => ({ ...f, dayOfWeek: v }))}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Elige día" />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.entries(DAY_OF_WEEK_LABELS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -567,7 +877,9 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setClassDialogOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setClassDialogOpen(false)}>
+              Cancelar
+            </Button>
             <Button onClick={handleCreateClass} disabled={classSaving}>
               {classSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
               {classSaving ? "Creando..." : "Crear clase"}
@@ -580,116 +892,171 @@ export function CoachDashboard({ clients, routines, classes, stats }: {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Nuevo cliente</DialogTitle>
-            <DialogDescription>Registra a un miembro ahora o compártele un link para que se registre él mismo.</DialogDescription>
+            <DialogDescription>
+              Registra a un miembro ahora o compártele un link para que se registre él mismo.
+            </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              variant={inviteMode === "register" ? "default" : "outline"}
-              onClick={() => { play("click"); setInviteMode("register"); setInviteUrl(null) }}
-            >
-              <UserPlus className="mr-1 h-4 w-4" /> Registrar ahora
-            </Button>
-            <Button
-              variant={inviteMode === "link" ? "default" : "outline"}
-              onClick={() => { play("click"); setInviteMode("link"); setInviteUrl(null) }}
-            >
-              <Link2 className="mr-1 h-4 w-4" /> Enviar link
-            </Button>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="invName">Nombre{inviteMode === "register" ? "" : " (opcional)"}</Label>
-              <Input
-                id="invName"
-                value={inviteForm.name}
-                onChange={(e) => setInviteForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="Nombre completo"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-2">
-                <Label htmlFor="invEmail">Email{inviteMode === "register" ? "" : " (opcional)"}</Label>
-                <Input
-                  id="invEmail"
-                  type="email"
-                  value={inviteForm.email}
-                  onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
-                  placeholder="cliente@email.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="invPhone">Teléfono (opcional)</Label>
-                <Input
-                  id="invPhone"
-                  type="tel"
-                  value={inviteForm.phone}
-                  onChange={(e) => setInviteForm((f) => ({ ...f, phone: e.target.value }))}
-                  placeholder="+52 55 0000 0000"
-                />
-              </div>
-            </div>
-
-            {inviteMode === "register" ? (
-              <div className="space-y-2">
-                <Label htmlFor="invPassword">Contraseña inicial</Label>
-                <Input
-                  id="invPassword"
-                  type="text"
-                  value={inviteForm.password}
-                  onChange={(e) => setInviteForm((f) => ({ ...f, password: e.target.value }))}
-                  placeholder="Min. 8 caracteres, 1 mayuscula, 1 numero"
-                />
-                <p className="text-xs text-muted-foreground">
-                  Comparte esta contraseña con el cliente. Podrá cambiarla después.
+          {createdMember ? (
+            <div className="space-y-4">
+              <div className="flex flex-col items-center gap-2 py-4 text-center">
+                <CheckCircle className="h-10 w-10 text-emerald-500" />
+                <p className="font-semibold">{createdMember.name} creado como tu cliente</p>
+                <p className="text-sm text-muted-foreground">
+                  Podés completar su onboarding ahora (incluidas sus medidas corporales) o dejarlo
+                  para que lo haga al iniciar sesión.
                 </p>
               </div>
-            ) : (
-              <p className="text-xs text-muted-foreground rounded-lg bg-muted/50 p-3">
-                El link expira en 7 días. Si llenas nombre y email, el formulario del cliente ya vendrá
-                pre-cargado. Puede completarlo en el gimnasio o en su casa.
-              </p>
-            )}
-
-            {inviteUrl && (
-              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
-                <p className="text-xs font-medium">Link de invitación:</p>
-                <p className="text-xs break-all">{inviteUrl}</p>
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => copyInviteLink(inviteUrl)}>
-                    {copied ? <Check className="mr-1 h-3 w-3" /> : <Copy className="mr-1 h-3 w-3" />}
-                    {copied ? "Copiado" : "Copiar"}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      const msg = `Únete a la app de tu coach: ${inviteUrl}`
-                      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank")
-                    }}
-                  >
-                    <Send className="mr-1 h-3 w-3" /> WhatsApp
-                  </Button>
-                </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setInviteDialogOpen(false)
+                    setCreatedMember(null)
+                    router.refresh()
+                  }}
+                >
+                  Cerrar
+                </Button>
+                <Button
+                  onClick={() => {
+                    play("click")
+                    router.push(`/onboarding?memberId=${createdMember.id}`)
+                  }}
+                >
+                  <Sparkles className="mr-1 h-4 w-4" /> Completar onboarding ahora
+                </Button>
+              </DialogFooter>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant={inviteMode === "register" ? "default" : "outline"}
+                  onClick={() => {
+                    play("click")
+                    setInviteMode("register")
+                    setInviteUrl(null)
+                  }}
+                >
+                  <UserPlus className="mr-1 h-4 w-4" /> Registrar ahora
+                </Button>
+                <Button
+                  variant={inviteMode === "link" ? "default" : "outline"}
+                  onClick={() => {
+                    play("click")
+                    setInviteMode("link")
+                    setInviteUrl(null)
+                  }}
+                >
+                  <Link2 className="mr-1 h-4 w-4" /> Enviar link
+                </Button>
               </div>
-            )}
-          </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>Cerrar</Button>
-            {inviteMode === "register" ? (
-              <Button onClick={handleRegisterMember} disabled={inviteSaving}>
-                {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-                {inviteSaving ? "Creando..." : "Crear miembro"}
-              </Button>
-            ) : (
-              <Button onClick={handleCreateInvite} disabled={inviteSaving}>
-                {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-                {inviteSaving ? "Creando..." : "Crear link"}
-              </Button>
-            )}
-          </DialogFooter>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="invName">
+                    Nombre{inviteMode === "register" ? "" : " (opcional)"}
+                  </Label>
+                  <Input
+                    id="invName"
+                    value={inviteForm.name}
+                    onChange={(e) => setInviteForm((f) => ({ ...f, name: e.target.value }))}
+                    placeholder="Nombre completo"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="invEmail">
+                      Email{inviteMode === "register" ? "" : " (opcional)"}
+                    </Label>
+                    <Input
+                      id="invEmail"
+                      type="email"
+                      value={inviteForm.email}
+                      onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
+                      placeholder="cliente@email.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="invPhone">Teléfono (opcional)</Label>
+                    <Input
+                      id="invPhone"
+                      type="tel"
+                      value={inviteForm.phone}
+                      onChange={(e) => setInviteForm((f) => ({ ...f, phone: e.target.value }))}
+                      placeholder="+52 55 0000 0000"
+                    />
+                  </div>
+                </div>
+
+                {inviteMode === "register" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="invPassword">Contraseña inicial</Label>
+                    <Input
+                      id="invPassword"
+                      type="text"
+                      value={inviteForm.password}
+                      onChange={(e) => setInviteForm((f) => ({ ...f, password: e.target.value }))}
+                      placeholder="Min. 8 caracteres, 1 mayuscula, 1 numero"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Comparte esta contraseña con el cliente. Podrá cambiarla después.
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground rounded-lg bg-muted/50 p-3">
+                    El link expira en 7 días. Si llenas nombre y email, el formulario del cliente ya
+                    vendrá pre-cargado. Puede completarlo en el gimnasio o en su casa.
+                  </p>
+                )}
+
+                {inviteUrl && (
+                  <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                    <p className="text-xs font-medium">Link de invitación:</p>
+                    <p className="text-xs break-all">{inviteUrl}</p>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline" onClick={() => copyInviteLink(inviteUrl)}>
+                        {copied ? (
+                          <Check className="mr-1 h-3 w-3" />
+                        ) : (
+                          <Copy className="mr-1 h-3 w-3" />
+                        )}
+                        {copied ? "Copiado" : "Copiar"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const msg = `Únete a la app de tu coach: ${inviteUrl}`
+                          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank")
+                        }}
+                      >
+                        <Send className="mr-1 h-3 w-3" /> WhatsApp
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+                  Cerrar
+                </Button>
+                {inviteMode === "register" ? (
+                  <Button onClick={handleRegisterMember} disabled={inviteSaving}>
+                    {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+                    {inviteSaving ? "Creando..." : "Crear miembro"}
+                  </Button>
+                ) : (
+                  <Button onClick={handleCreateInvite} disabled={inviteSaving}>
+                    {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+                    {inviteSaving ? "Creando..." : "Crear link"}
+                  </Button>
+                )}
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

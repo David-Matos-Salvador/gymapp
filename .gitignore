@@ -49,3 +49,10 @@ next-env.d.ts
 .engram/
 .playwright-cli/
 .playwright-mcp/
+
+# playwright reports
+/playwright-report/
+/test-results/
+
+# Local uploads
+public/uploads/

@@ -67,7 +67,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         token.role = (user as { role?: string }).role
         token.onboardingCompleted = (user as { onboardingCompleted?: boolean }).onboardingCompleted
-        token.onboardingCompletedAt = (user as { onboardingCompletedAt?: string | null }).onboardingCompletedAt ?? undefined
+        token.onboardingCompletedAt =
+          (user as { onboardingCompletedAt?: string | null }).onboardingCompletedAt ?? undefined
         token.isGymOwner = (user as { isGymOwner?: boolean }).isGymOwner
       }
       if (trigger === "update" && session) {
@@ -81,7 +82,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       if (session.user) {
-        const sessionUser = session.user as { role?: string; onboardingCompleted?: boolean; onboardingCompletedAt?: string; isGymOwner?: boolean }
+        const sessionUser = session.user as {
+          role?: string
+          onboardingCompleted?: boolean
+          onboardingCompletedAt?: string
+          isGymOwner?: boolean
+        }
         sessionUser.role = token.role as string
         sessionUser.onboardingCompleted = token.onboardingCompleted as boolean
         sessionUser.onboardingCompletedAt = token.onboardingCompletedAt as string | undefined

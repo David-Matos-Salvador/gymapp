@@ -41,7 +41,8 @@ export function MembresiaContent({ membership }: { membership: MembershipData | 
             <div className="space-y-1">
               <p className="font-semibold">Sin membresía</p>
               <p className="text-sm text-muted-foreground max-w-xs">
-                Adquirí un plan de membresía para desbloquear todas las funcionalidades del gimnasio.
+                Adquirí un plan de membresía para desbloquear todas las funcionalidades del
+                gimnasio.
               </p>
             </div>
           </CardContent>

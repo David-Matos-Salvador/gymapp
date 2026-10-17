@@ -14,7 +14,10 @@ export default function ProfilePaymentsPage() {
     <AppShell>
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-2xl space-y-6">
         <button
-          onClick={() => { play("click"); router.back() }}
+          onClick={() => {
+            play("click")
+            router.back()
+          }}
           className="inline-flex items-center gap-2 px-2 py-1.5 -ml-2 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50 min-h-[44px]"
         >
           <ArrowLeft className="h-4 w-4" />

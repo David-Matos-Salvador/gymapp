@@ -11,9 +11,7 @@ vi.mock("framer-motion", () => {
   }
 })
 
-import {
-  NotificationList,
-} from "@/components/notifications"
+import { NotificationList } from "@/components/notifications"
 import type { MockNotification } from "@/components/notifications"
 
 const mockNotification: MockNotification = {
@@ -104,4 +102,3 @@ describe("NotificationList", () => {
     expect(result).toBeDefined()
   })
 })
-

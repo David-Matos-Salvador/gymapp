@@ -3,7 +3,9 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { z } from "zod"
 
-interface RouteParams { params: Promise<{ id: string }> }
+interface RouteParams {
+  params: Promise<{ id: string }>
+}
 
 const updateSplitExerciseSchema = z.object({
   sets: z.number().int().optional(),
@@ -38,7 +40,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     const { id } = await params
 
     if (!(await canEditSplitExercise(id, user))) {
-      return NextResponse.json({ error: "No tienes permisos para modificar este ejercicio" }, { status: 403 })
+      return NextResponse.json(
+        { error: "No tienes permisos para modificar este ejercicio" },
+        { status: 403 }
+      )
     }
 
     const body = await request.json()
@@ -78,7 +83,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     const { id } = await params
 
     if (!(await canEditSplitExercise(id, user))) {
-      return NextResponse.json({ error: "No tienes permisos para eliminar este ejercicio" }, { status: 403 })
+      return NextResponse.json(
+        { error: "No tienes permisos para eliminar este ejercicio" },
+        { status: 403 }
+      )
     }
 
     await prisma.routineSplitExercise.delete({ where: { id } })

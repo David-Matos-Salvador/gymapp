@@ -60,12 +60,7 @@ export default function TimerPage() {
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background">
       <div className="absolute top-4 left-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => router.back()}
-          aria-label="Volver"
-        >
+        <Button variant="ghost" size="icon" onClick={() => router.back()} aria-label="Volver">
           <ArrowLeft className="h-5 w-5" />
         </Button>
       </div>
@@ -76,25 +71,33 @@ export default function TimerPage() {
         <div className="relative flex items-center justify-center">
           <svg width="240" height="240" viewBox="0 0 120 120" className="-rotate-90">
             <circle
-              cx="60" cy="60" r={54}
-              fill="none" strokeWidth="6"
+              cx="60"
+              cy="60"
+              r={54}
+              fill="none"
+              strokeWidth="6"
               stroke="currentColor"
               className="text-muted/20"
             />
             <circle
-              cx="60" cy="60" r={54}
-              fill="none" strokeWidth="6"
-              stroke="currentColor" strokeLinecap="round"
+              cx="60"
+              cy="60"
+              r={54}
+              fill="none"
+              strokeWidth="6"
+              stroke="currentColor"
+              strokeLinecap="round"
               className="transition-[stroke-dashoffset] duration-1000 ease-linear text-accent-yellow"
               style={{
                 strokeDasharray: 2 * Math.PI * 54,
-                strokeDashoffset: 2 * Math.PI * 54 * (1 - (remaining / total)),
+                strokeDashoffset: 2 * Math.PI * 54 * (1 - remaining / total),
               }}
             />
           </svg>
           <div className="absolute flex flex-col items-center">
             <span className="font-mono text-5xl font-bold tabular-nums">
-              {String(Math.floor(remaining / 60)).padStart(2, "0")}:{String(remaining % 60).padStart(2, "0")}
+              {String(Math.floor(remaining / 60)).padStart(2, "0")}:
+              {String(remaining % 60).padStart(2, "0")}
             </span>
             <span className="text-xs text-muted-foreground mt-1">segundos</span>
           </div>
@@ -102,11 +105,7 @@ export default function TimerPage() {
 
         <div className="flex items-center gap-2">
           {status === "paused" && remaining < total ? (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={resetTimer}
-            >
+            <Button variant="outline" size="sm" onClick={resetTimer}>
               Reiniciar
             </Button>
           ) : null}
@@ -114,9 +113,7 @@ export default function TimerPage() {
             size="lg"
             className="rounded-full px-8"
             onClick={() =>
-              remaining === 0
-                ? resetTimer()
-                : setStatus(status === "paused" ? "running" : "paused")
+              remaining === 0 ? resetTimer() : setStatus(status === "paused" ? "running" : "paused")
             }
           >
             {remaining === 0 ? "Reiniciar" : status === "paused" ? "Iniciar" : "Pausar"}

@@ -53,16 +53,14 @@ export const features = [
   {
     icon: CreditCard,
     title: "Gestión de membresías",
-    description:
-      "Administra pagos, renovaciones y vencimientos. Todo en un solo lugar.",
+    description: "Administra pagos, renovaciones y vencimientos. Todo en un solo lugar.",
     color: "text-accent-yellow",
     bg: "bg-accent-yellow/10",
   },
   {
     icon: Building2,
     title: "Multi-sucursal",
-    description:
-      "Administra múltiples ubicaciones desde una sola plataforma unificada.",
+    description: "Administra múltiples ubicaciones desde una sola plataforma unificada.",
     color: "text-accent-yellow",
     bg: "bg-accent-yellow/10",
   },
@@ -104,12 +102,7 @@ export const plans = [
     price: "$499",
     period: "/mes",
     description: "Ideal para gimnasios pequeños que inician su digitalización.",
-    features: [
-      "Hasta 50 clientes",
-      "2 entrenadores",
-      "Rutinas ilimitadas",
-      "Check-in QR",
-    ],
+    features: ["Hasta 50 clientes", "2 entrenadores", "Rutinas ilimitadas", "Check-in QR"],
     cta: "Comenzar",
     highlighted: false,
   },

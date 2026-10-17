@@ -45,7 +45,10 @@ export async function POST(request: Request) {
     }
 
     if (!(await canEditPlan(parsed.data.planId, user))) {
-      return NextResponse.json({ error: "No tienes permisos para modificar esta rutina" }, { status: 403 })
+      return NextResponse.json(
+        { error: "No tienes permisos para modificar esta rutina" },
+        { status: 403 }
+      )
     }
 
     const split = await prisma.routineSplit.create({

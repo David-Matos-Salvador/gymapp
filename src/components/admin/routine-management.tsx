@@ -22,18 +22,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  ChevronDown,
-  ChevronRight,
-  Dumbbell,
-  Users,
-  UserPlus,
-} from "lucide-react"
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Users, UserPlus } from "lucide-react"
 import { MUSCLE_LABELS, DIFFICULTIES } from "@/constants/user"
-import { EQUIPMENT_LABELS } from "@/constants/ui"
 import type { Exercise } from "./exercise-management"
 
 export interface SplitExercise {
@@ -98,7 +88,6 @@ interface RoutineManagementProps {
   members: Member[]
   canEditPlan: (plan: Plan) => boolean
   onPlansChange: (plans: Plan[]) => void
-  onExercisesChange: (exercises: Exercise[]) => void
 }
 
 export function RoutineManagement({
@@ -107,25 +96,43 @@ export function RoutineManagement({
   members,
   canEditPlan,
   onPlansChange,
-  onExercisesChange,
 }: RoutineManagementProps) {
   const [expandedPlans, setExpandedPlans] = useState<Set<string>>(new Set())
   const [expandedSplits, setExpandedSplits] = useState<Set<string>>(new Set())
 
   const [planDialogOpen, setPlanDialogOpen] = useState(false)
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null)
-  const [planForm, setPlanForm] = useState({ name: "", description: "", objective: "", frequency: "", difficulty: "" })
+  const [planForm, setPlanForm] = useState({
+    name: "",
+    description: "",
+    objective: "",
+    frequency: "",
+    difficulty: "",
+  })
   const [planSaving, setPlanSaving] = useState(false)
 
   const [splitDialogOpen, setSplitDialogOpen] = useState(false)
   const [editingSplitId, setEditingSplitId] = useState<string | null>(null)
-  const [splitForm, setSplitForm] = useState({ planId: "", label: "", name: "", description: "", difficulty: "", estimatedDuration: "", muscleGroups: "" })
+  const [splitForm, setSplitForm] = useState({
+    planId: "",
+    label: "",
+    name: "",
+    description: "",
+    difficulty: "",
+    estimatedDuration: "",
+    muscleGroups: "",
+  })
   const [splitSaving, setSplitSaving] = useState(false)
 
   const [addExerciseOpen, setAddExerciseOpen] = useState(false)
   const [addExerciseSplitId, setAddExerciseSplitId] = useState<string | null>(null)
   const [selectedExerciseId, setSelectedExerciseId] = useState("")
-  const [exerciseConfig, setExerciseConfig] = useState({ sets: 3, reps: "10", weight: 0, restSeconds: 60 })
+  const [exerciseConfig, setExerciseConfig] = useState({
+    sets: 3,
+    reps: "10",
+    weight: 0,
+    restSeconds: 60,
+  })
 
   const [deletePlanConfirm, setDeletePlanConfirm] = useState<string | null>(null)
   const [deleteSplitConfirm, setDeleteSplitConfirm] = useState<string | null>(null)
@@ -226,7 +233,15 @@ export function RoutineManagement({
 
   function openCreateSplit(planId: string) {
     setEditingSplitId(null)
-    setSplitForm({ planId, label: "", name: "", description: "", difficulty: "", estimatedDuration: "", muscleGroups: "" })
+    setSplitForm({
+      planId,
+      label: "",
+      name: "",
+      description: "",
+      difficulty: "",
+      estimatedDuration: "",
+      muscleGroups: "",
+    })
     setSplitDialogOpen(true)
   }
 
@@ -259,7 +274,10 @@ export function RoutineManagement({
         difficulty: splitForm.difficulty || null,
         estimatedDuration: splitForm.estimatedDuration ? Number(splitForm.estimatedDuration) : null,
         muscleGroups: splitForm.muscleGroups
-          ? splitForm.muscleGroups.split(",").map((s) => s.trim()).filter(Boolean)
+          ? splitForm.muscleGroups
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
           : [],
       }
 
@@ -288,9 +306,7 @@ export function RoutineManagement({
         const data = await res.json()
         onPlansChange(
           plans.map((p) =>
-            p.id === splitForm.planId
-              ? { ...p, splits: [...p.splits, data.split] }
-              : p
+            p.id === splitForm.planId ? { ...p, splits: [...p.splits, data.split] } : p
           )
         )
         toast.success("Split creado")
@@ -402,11 +418,12 @@ export function RoutineManagement({
   }
 
   const availableExercises = exercises.filter(
-    (ex) => !plans.some((p) =>
-      p.splits.some((s) =>
-        s.id === addExerciseSplitId && s.exercises.some((e) => e.exerciseId === ex.id)
+    (ex) =>
+      !plans.some((p) =>
+        p.splits.some(
+          (s) => s.id === addExerciseSplitId && s.exercises.some((e) => e.exerciseId === ex.id)
+        )
       )
-    )
   )
 
   return (
@@ -444,12 +461,14 @@ export function RoutineManagement({
                     <span className="font-medium text-sm">{plan.name}</span>
                     {plan.objective && (
                       <Badge variant="secondary" className="text-xs">
-                        {OBJECTIVES.find((o) => o.value === plan.objective)?.label ?? plan.objective}
+                        {OBJECTIVES.find((o) => o.value === plan.objective)?.label ??
+                          plan.objective}
                       </Badge>
                     )}
                     {plan.difficulty && (
                       <Badge variant="outline" className="text-xs">
-                        {DIFFICULTIES.find((d) => d.value === plan.difficulty)?.label ?? plan.difficulty}
+                        {DIFFICULTIES.find((d) => d.value === plan.difficulty)?.label ??
+                          plan.difficulty}
                       </Badge>
                     )}
                     {plan.frequency && (
@@ -463,8 +482,15 @@ export function RoutineManagement({
                     {plan.user.name && ` · Creado por ${plan.user.name}`}
                   </p>
                 </div>
-                <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon-sm" onClick={() => setAssignDialogOpen(plan.id)}>
+                <div
+                  className="flex items-center gap-1 shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setAssignDialogOpen(plan.id)}
+                  >
                     <UserPlus className="size-4" />
                   </Button>
                   {canEditPlan(plan) ? (
@@ -512,10 +538,18 @@ export function RoutineManagement({
                           <span className="text-xs text-muted-foreground ml-auto">
                             {split.exercises.length} ejercicios
                           </span>
-                          <div className="flex items-center gap-0.5 shrink-0 ml-1" onClick={(e) => e.stopPropagation()}>
+                          <div
+                            className="flex items-center gap-0.5 shrink-0 ml-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             {canEditPlan(plan) ? (
                               <>
-                                <Button variant="ghost" size="icon-sm" className="size-7" onClick={() => openEditSplit(split)}>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  className="size-7"
+                                  onClick={() => openEditSplit(split)}
+                                >
                                   <Pencil className="size-3" />
                                 </Button>
                                 <Button
@@ -545,7 +579,10 @@ export function RoutineManagement({
                             )}
                             <div className="divide-y">
                               {split.exercises.map((se) => (
-                                <div key={se.id} className="flex items-center gap-2 px-3 py-2 text-sm">
+                                <div
+                                  key={se.id}
+                                  className="flex items-center gap-2 px-3 py-2 text-sm"
+                                >
                                   <span className="flex-1 truncate">{se.exercise.name}</span>
                                   <span className="text-xs text-muted-foreground shrink-0">
                                     {se.sets}x{se.reps}
@@ -628,24 +665,42 @@ export function RoutineManagement({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Objetivo</Label>
-                <Select value={planForm.objective || "__none__"} onValueChange={(v) => setPlanForm((p) => ({ ...p, objective: v === "__none__" ? "" : v }))}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                <Select
+                  value={planForm.objective || "__none__"}
+                  onValueChange={(v) =>
+                    setPlanForm((p) => ({ ...p, objective: v === "__none__" ? "" : v }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">Ninguno</SelectItem>
                     {OBJECTIVES.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label>Dificultad</Label>
-                <Select value={planForm.difficulty || "__none__"} onValueChange={(v) => setPlanForm((p) => ({ ...p, difficulty: v === "__none__" ? "" : v }))}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                <Select
+                  value={planForm.difficulty || "__none__"}
+                  onValueChange={(v) =>
+                    setPlanForm((p) => ({ ...p, difficulty: v === "__none__" ? "" : v }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">Ninguno</SelectItem>
                     {DIFFICULTIES.map((d) => (
-                      <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                      <SelectItem key={d.value} value={d.value}>
+                        {d.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -653,12 +708,21 @@ export function RoutineManagement({
             </div>
             <div className="space-y-2">
               <Label>Frecuencia</Label>
-              <Select value={planForm.frequency || "__none__"} onValueChange={(v) => setPlanForm((p) => ({ ...p, frequency: v === "__none__" ? "" : v }))}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+              <Select
+                value={planForm.frequency || "__none__"}
+                onValueChange={(v) =>
+                  setPlanForm((p) => ({ ...p, frequency: v === "__none__" ? "" : v }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar" />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="__none__">Ninguno</SelectItem>
                   {FREQUENCIES.map((f) => (
-                    <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                    <SelectItem key={f.value} value={f.value}>
+                      {f.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -718,18 +782,29 @@ export function RoutineManagement({
                 <Input
                   type="number"
                   value={splitForm.estimatedDuration}
-                  onChange={(e) => setSplitForm((s) => ({ ...s, estimatedDuration: e.target.value }))}
+                  onChange={(e) =>
+                    setSplitForm((s) => ({ ...s, estimatedDuration: e.target.value }))
+                  }
                   placeholder="45"
                 />
               </div>
               <div className="space-y-2">
                 <Label>Dificultad</Label>
-                <Select value={splitForm.difficulty || "__none__"} onValueChange={(v) => setSplitForm((s) => ({ ...s, difficulty: v === "__none__" ? "" : v }))}>
-                  <SelectTrigger><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+                <Select
+                  value={splitForm.difficulty || "__none__"}
+                  onValueChange={(v) =>
+                    setSplitForm((s) => ({ ...s, difficulty: v === "__none__" ? "" : v }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar" />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__none__">Ninguno</SelectItem>
                     {DIFFICULTIES.map((d) => (
-                      <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+                      <SelectItem key={d.value} value={d.value}>
+                        {d.label}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -753,7 +828,9 @@ export function RoutineManagement({
             <div className="space-y-2">
               <Label>Ejercicio</Label>
               <Select value={selectedExerciseId} onValueChange={setSelectedExerciseId}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar ejercicio" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar ejercicio" />
+                </SelectTrigger>
                 <SelectContent className="max-h-[200px]">
                   {availableExercises.map((ex) => (
                     <SelectItem key={ex.id} value={ex.id}>
@@ -774,7 +851,9 @@ export function RoutineManagement({
                 <Input
                   type="number"
                   value={exerciseConfig.sets}
-                  onChange={(e) => setExerciseConfig((c) => ({ ...c, sets: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setExerciseConfig((c) => ({ ...c, sets: Number(e.target.value) }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -792,7 +871,9 @@ export function RoutineManagement({
                 <Input
                   type="number"
                   value={exerciseConfig.weight}
-                  onChange={(e) => setExerciseConfig((c) => ({ ...c, weight: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setExerciseConfig((c) => ({ ...c, weight: Number(e.target.value) }))
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -800,7 +881,9 @@ export function RoutineManagement({
                 <Input
                   type="number"
                   value={exerciseConfig.restSeconds}
-                  onChange={(e) => setExerciseConfig((c) => ({ ...c, restSeconds: Number(e.target.value) }))}
+                  onChange={(e) =>
+                    setExerciseConfig((c) => ({ ...c, restSeconds: Number(e.target.value) }))
+                  }
                 />
               </div>
             </div>
@@ -820,7 +903,10 @@ export function RoutineManagement({
             </DialogDescription>
           </DialogHeader>
           <DialogFooter showCloseButton>
-            <Button variant="destructive" onClick={() => deletePlanConfirm && handleDeletePlan(deletePlanConfirm)}>
+            <Button
+              variant="destructive"
+              onClick={() => deletePlanConfirm && handleDeletePlan(deletePlanConfirm)}
+            >
               Eliminar
             </Button>
           </DialogFooter>
@@ -831,19 +917,26 @@ export function RoutineManagement({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Eliminar split</DialogTitle>
-            <DialogDescription>
-              Esta acción no se puede deshacer.
-            </DialogDescription>
+            <DialogDescription>Esta acción no se puede deshacer.</DialogDescription>
           </DialogHeader>
           <DialogFooter showCloseButton>
-            <Button variant="destructive" onClick={() => deleteSplitConfirm && handleDeleteSplit(deleteSplitConfirm)}>
+            <Button
+              variant="destructive"
+              onClick={() => deleteSplitConfirm && handleDeleteSplit(deleteSplitConfirm)}
+            >
               Eliminar
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={!!assignDialogOpen} onOpenChange={() => { setAssignDialogOpen(null); setAssignMemberId(""); }}>
+      <Dialog
+        open={!!assignDialogOpen}
+        onOpenChange={() => {
+          setAssignDialogOpen(null)
+          setAssignMemberId("")
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Asignar rutina a miembro</DialogTitle>
@@ -852,7 +945,9 @@ export function RoutineManagement({
             <div className="space-y-2">
               <Label>Miembro</Label>
               <Select value={assignMemberId} onValueChange={setAssignMemberId}>
-                <SelectTrigger><SelectValue placeholder="Seleccionar miembro" /></SelectTrigger>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar miembro" />
+                </SelectTrigger>
                 <SelectContent>
                   {members.map((m) => (
                     <SelectItem key={m.id} value={m.id}>

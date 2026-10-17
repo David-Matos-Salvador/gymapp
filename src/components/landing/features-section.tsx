@@ -25,7 +25,8 @@ export function FeaturesSection({ features }: FeaturesSectionProps) {
             <span className="text-accent-yellow">Características</span> de la plataforma
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Todo lo que necesitas para gestionar tu gimnasio de forma profesional, desde el check-in hasta el seguimiento corporal.
+            Todo lo que necesitas para gestionar tu gimnasio de forma profesional, desde el check-in
+            hasta el seguimiento corporal.
           </p>
         </motion.div>
 

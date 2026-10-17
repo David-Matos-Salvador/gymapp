@@ -18,26 +18,27 @@ export async function GET() {
 
   const clientIds = await getTrainerClientIds(user.id)
 
-  const clients = clientIds.length > 0
-    ? await prisma.user.findMany({
-        where: { id: { in: clientIds } },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          objective: true,
-          experienceLevel: true,
-          createdAt: true,
-          memberShips: {
-            include: { plan: true },
-            where: { status: "ACTIVE" },
-            take: 1,
+  const clients =
+    clientIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: clientIds } },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            objective: true,
+            experienceLevel: true,
+            createdAt: true,
+            memberShips: {
+              include: { plan: true },
+              where: { status: "ACTIVE" },
+              take: 1,
+            },
           },
-        },
-        orderBy: { name: "asc" },
-      })
-    : []
+          orderBy: { name: "asc" },
+        })
+      : []
 
   return NextResponse.json({ clients })
 }
@@ -63,18 +64,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
   if (client.role !== "MEMBER") {
-    return NextResponse.json({ error: "Solo se puede enviar solicitud a miembros" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Solo se puede enviar solicitud a miembros" },
+      { status: 400 }
+    )
   }
   const hasTrainer = await hasAnyTrainer(clientId)
   if (hasTrainer) {
-    return NextResponse.json({ error: "El usuario ya tiene un entrenador asignado" }, { status: 409 })
+    return NextResponse.json(
+      { error: "El usuario ya tiene un entrenador asignado" },
+      { status: 409 }
+    )
   }
 
   const existing = await prisma.trainerRequest.findFirst({
     where: { trainerId: user.id, clientId, status: "PENDING" },
   })
   if (existing) {
-    return NextResponse.json({ error: "Ya existe una solicitud pendiente para este usuario" }, { status: 409 })
+    return NextResponse.json(
+      { error: "Ya existe una solicitud pendiente para este usuario" },
+      { status: 409 }
+    )
   }
 
   const trainerRequest = await prisma.trainerRequest.create({

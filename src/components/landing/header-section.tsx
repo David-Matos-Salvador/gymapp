@@ -28,7 +28,9 @@ export function HeaderSection() {
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/login" onClick={() => play("click")}>Iniciar sesión</Link>
+                <Link href="/login" onClick={() => play("click")}>
+                  Iniciar sesión
+                </Link>
               </Button>
               <Button size="sm" asChild>
                 <Link href="/register" onClick={() => play("click")}>

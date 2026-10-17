@@ -29,7 +29,11 @@ interface ExerciseDetailSheetProps {
   showMachineNumbers?: boolean
 }
 
-export function ExerciseDetailSheet({ exercise, children, userGymId, showMachineNumbers = false }: ExerciseDetailSheetProps) {
+export function ExerciseDetailSheet({
+  exercise,
+  children,
+  showMachineNumbers = false,
+}: ExerciseDetailSheetProps) {
   const [open, setOpen] = useState(false)
 
   const gymEquipments = exercise.gymEquipments ?? []
@@ -38,9 +42,7 @@ export function ExerciseDetailSheet({ exercise, children, userGymId, showMachine
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        {children}
-      </SheetTrigger>
+      <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent side="right" className="w-full sm:max-w-[400px] p-0">
         <SheetHeader className="p-6 pb-4 border-b border-border">
           <SheetTitle className="text-lg font-bold flex items-center gap-2">
@@ -49,11 +51,7 @@ export function ExerciseDetailSheet({ exercise, children, userGymId, showMachine
           </SheetTitle>
         </SheetHeader>
         <div className="flex flex-col items-center py-6 px-6 space-y-4 overflow-y-auto">
-          <ExerciseImage
-            imageUrl={exercise.imageUrl}
-            alt={exercise.name}
-            size="xl"
-          />
+          <ExerciseImage imageUrl={exercise.imageUrl} alt={exercise.name} size="xl" />
 
           <div className="flex flex-wrap justify-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-xs font-medium">
@@ -69,22 +67,13 @@ export function ExerciseDetailSheet({ exercise, children, userGymId, showMachine
           {gymEquipments.length > 0 && (
             <div className="w-full space-y-2">
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                {showMachineNumbers
-                  ? "Máquina en tu gimnasio"
-                  : "Equipamiento en tu gimnasio"}
+                {showMachineNumbers ? "Máquina en tu gimnasio" : "Equipamiento en tu gimnasio"}
               </p>
               {gymEquipments.map((eq) => (
-                <div
-                  key={eq.id}
-                  className="rounded-lg border p-3 space-y-2"
-                >
+                <div key={eq.id} className="rounded-lg border p-3 space-y-2">
                   <div className="relative aspect-[3/1] w-full rounded-lg overflow-hidden bg-muted">
                     {eq.imageUrl ? (
-                      <img
-                        src={eq.imageUrl}
-                        alt={eq.name}
-                        className="h-full w-full object-cover"
-                      />
+                      <img src={eq.imageUrl} alt={eq.name} className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
                         <Wrench className="h-10 w-10 text-muted-foreground/40" />
@@ -116,7 +105,8 @@ export function ExerciseDetailSheet({ exercise, children, userGymId, showMachine
                 Video demostrativo
               </p>
               <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-muted">
-                {exercise.videoUrl.includes("youtube.com") || exercise.videoUrl.includes("youtu.be") ? (
+                {exercise.videoUrl.includes("youtube.com") ||
+                exercise.videoUrl.includes("youtu.be") ? (
                   <iframe
                     src={`https://www.youtube.com/embed/${extractYouTubeId(exercise.videoUrl)}`}
                     title={exercise.name}
@@ -146,7 +136,8 @@ export function ExerciseDetailSheet({ exercise, children, userGymId, showMachine
             <p className="text-muted-foreground text-center text-sm max-w-[280px] leading-relaxed">
               Estamos trabajando en el detalle de este ejercicio.
               <br />
-              Pronto podr&aacute;s ver instrucciones, videos y m&aacute;s informaci&oacute;n aqu&iacute;.
+              Pronto podr&aacute;s ver instrucciones, videos y m&aacute;s informaci&oacute;n
+              aqu&iacute;.
             </p>
           )}
           <Button variant="outline" onClick={() => setOpen(false)} className="gap-2 mt-4">

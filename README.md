@@ -6,12 +6,12 @@ Plataforma de gestión integral para gimnasios — membresías, rutinas, seguimi
 
 ## Roles de usuario
 
-| Rol | Descripción |
-|---|---|
-| `SUPER_ADMIN` | Administrador global — gestiona gimnasios y pagos |
-| `ADMIN` | Dueño/administrador de un gimnasio |
-| `TRAINER` | Entrenador — crea rutinas, gestiona clientes |
-| `MEMBER` | Cliente — entrena, registra progreso, reserva clases |
+| Rol           | Descripción                                          |
+| ------------- | ---------------------------------------------------- |
+| `SUPER_ADMIN` | Administrador global — gestiona gimnasios y pagos    |
+| `ADMIN`       | Dueño/administrador de un gimnasio                   |
+| `TRAINER`     | Entrenador — crea rutinas, gestiona clientes         |
+| `MEMBER`      | Cliente — entrena, registra progreso, reserva clases |
 
 ## Funcionalidades
 
@@ -51,12 +51,12 @@ cp .env.example .env
 
 Variables requeridas en `.env`:
 
-| Variable | Descripción |
-|---|---|
-| `DATABASE_URL` | Conexión PostgreSQL |
-| `AUTH_SECRET` | Secreto de NextAuth (`openssl rand -base64 32`) |
-| `AUTH_GOOGLE_ID` | Client ID de Google OAuth |
-| `AUTH_GOOGLE_SECRET` | Client Secret de Google OAuth |
+| Variable              | Descripción                                           |
+| --------------------- | ----------------------------------------------------- |
+| `DATABASE_URL`        | Conexión PostgreSQL                                   |
+| `AUTH_SECRET`         | Secreto de NextAuth (`openssl rand -base64 32`)       |
+| `AUTH_GOOGLE_ID`      | Client ID de Google OAuth                             |
+| `AUTH_GOOGLE_SECRET`  | Client Secret de Google OAuth                         |
 | `NEXT_PUBLIC_APP_URL` | URL base de la app (default: `http://localhost:3000`) |
 
 ## Desarrollo
@@ -89,18 +89,18 @@ Abre [http://localhost:3000](http://localhost:3000).
 
 ## Comandos
 
-| Comando | Descripción |
-|---|---|
-| `npm run dev` | Servidor de desarrollo |
-| `npm run build` | Build de producción |
-| `npm run start` | Iniciar build de producción |
-| `npm run lint` | ESLint |
-| `npm run test` | Tests unitarios (Vitest) |
-| `npm run test:e2e` | Tests end-to-end (Playwright) |
-| `npm run test:ci` | Lint + unitarios + e2e |
-| `npm run db:reset` | Reiniciar schema y seed de datos demo |
-| `npm run db:seed` | Cargar datos demo sin reiniciar schema |
-| `npm run db:push` | Sincronizar schema con la DB |
+| Comando            | Descripción                            |
+| ------------------ | -------------------------------------- |
+| `npm run dev`      | Servidor de desarrollo                 |
+| `npm run build`    | Build de producción                    |
+| `npm run start`    | Iniciar build de producción            |
+| `npm run lint`     | ESLint                                 |
+| `npm run test`     | Tests unitarios (Vitest)               |
+| `npm run test:e2e` | Tests end-to-end (Playwright)          |
+| `npm run test:ci`  | Lint + unitarios + e2e                 |
+| `npm run db:reset` | Reiniciar schema y seed de datos demo  |
+| `npm run db:seed`  | Cargar datos demo sin reiniciar schema |
+| `npm run db:push`  | Sincronizar schema con la DB           |
 
 ## Usuarios demo
 

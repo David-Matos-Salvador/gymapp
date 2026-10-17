@@ -9,7 +9,19 @@ import { sendMembershipReminder } from "@/lib/email"
 const sendNotificationSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
   message: z.string().min(1, "El mensaje es requerido"),
-  type: z.enum(["INFO", "WARNING", "REMINDER", "PAYMENT", "MEMBERSHIP", "CLASS", "CHECK_IN", "GOAL", "SYSTEM"]).default("INFO"),
+  type: z
+    .enum([
+      "INFO",
+      "WARNING",
+      "REMINDER",
+      "PAYMENT",
+      "MEMBERSHIP",
+      "CLASS",
+      "CHECK_IN",
+      "GOAL",
+      "SYSTEM",
+    ])
+    .default("INFO"),
   userId: z.string().min(1, "El userId es requerido"),
   sendEmail: z.boolean().optional().default(false),
   daysLeft: z.number().optional(),
@@ -26,7 +38,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
-  if (currentUser.role !== "ADMIN" && currentUser.role !== "TRAINER" && currentUser.role !== "SUPER_ADMIN") {
+  if (
+    currentUser.role !== "ADMIN" &&
+    currentUser.role !== "TRAINER" &&
+    currentUser.role !== "SUPER_ADMIN"
+  ) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
@@ -52,13 +68,21 @@ export async function POST(request: Request) {
 
   emitRealtime("notifications")
 
-  const emailResult: { triggered: boolean; success?: boolean; error?: string } = { triggered: false }
-  const pushResult: { triggered: boolean; success?: boolean; sent?: number; error?: string } = { triggered: false }
+  const emailResult: { triggered: boolean; success?: boolean; error?: string } = {
+    triggered: false,
+  }
+  const pushResult: { triggered: boolean; success?: boolean; sent?: number; error?: string } = {
+    triggered: false,
+  }
 
   if (sendEmail && targetUser.email) {
     emailResult.triggered = true
     if (type === "MEMBERSHIP") {
-      const result = await sendMembershipReminder(targetUser.email, targetUser.name ?? "Usuario", daysLeft ?? 0)
+      const result = await sendMembershipReminder(
+        targetUser.email,
+        targetUser.name ?? "Usuario",
+        daysLeft ?? 0
+      )
       emailResult.success = result.success
       emailResult.error = result.error
     } else {
@@ -67,7 +91,9 @@ export async function POST(request: Request) {
       // - CLASS → class booking confirmation
       // - REMINDER → general reminder email
       // - CHECK_IN → check-in confirmation
-      console.log(`[Notifications] Email trigger requested for type=${type} (no specific handler yet)`)
+      console.log(
+        `[Notifications] Email trigger requested for type=${type} (no specific handler yet)`
+      )
       emailResult.error = `No email handler implemented for type: ${type}`
     }
   }

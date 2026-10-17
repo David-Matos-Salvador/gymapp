@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { getTrainerClientIds } from "@/lib/trainer-client"
 import { AppShell } from "@/components/layout/shell"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Users, Mail, Phone, Target, Award, BadgeCheck, ArrowRight, Clock } from "lucide-react"
 import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
 import { BackButton } from "@/components/back-button"
@@ -17,19 +17,25 @@ export default async function CoachClientsListPage() {
 
   const clientIds = await getTrainerClientIds(user.id)
 
-  const clients = clientIds.length > 0
-    ? await prisma.user.findMany({
-        where: { id: { in: clientIds } },
-        select: {
-          id: true, name: true, email: true, phone: true, objective: true, experienceLevel: true,
-          onboardingCompleted: true,
-          createdAt: true,
-          bodyMeasurements: { orderBy: { date: "desc" }, take: 1 },
-          memberShips: { include: { plan: true }, where: { status: "ACTIVE" }, take: 1 },
-        },
-        orderBy: { name: "asc" },
-      })
-    : []
+  const clients =
+    clientIds.length > 0
+      ? await prisma.user.findMany({
+          where: { id: { in: clientIds } },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            objective: true,
+            experienceLevel: true,
+            onboardingCompleted: true,
+            createdAt: true,
+            bodyMeasurements: { orderBy: { date: "desc" }, take: 1 },
+            memberShips: { include: { plan: true }, where: { status: "ACTIVE" }, take: 1 },
+          },
+          orderBy: { name: "asc" },
+        })
+      : []
 
   const now = new Date()
 
@@ -40,8 +46,11 @@ export default async function CoachClientsListPage() {
           <BackButton />
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Mis clientes</h1>
-            <p className="text-muted-foreground">{clients.length} cliente{clients.length !== 1 ? "s" : ""} asignado{clients.length !== 1 ? "s" : ""}</p>
-            </div>
+            <p className="text-muted-foreground">
+              {clients.length} cliente{clients.length !== 1 ? "s" : ""} asignado
+              {clients.length !== 1 ? "s" : ""}
+            </p>
+          </div>
         </div>
 
         {clients.length === 0 ? (
@@ -49,7 +58,9 @@ export default async function CoachClientsListPage() {
             <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
               <Users className="h-12 w-12 text-muted-foreground" />
               <p className="text-lg font-medium">No tienes clientes asignados</p>
-              <p className="text-sm text-muted-foreground">Ve al Coach Panel para buscar y asignar miembros.</p>
+              <p className="text-sm text-muted-foreground">
+                Ve al Coach Panel para buscar y asignar miembros.
+              </p>
             </CardContent>
           </Card>
         ) : (
@@ -82,18 +93,29 @@ export default async function CoachClientsListPage() {
                             )}
                           </div>
                           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{client.email}</span>
-                            {client.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{client.phone}</span>}
+                            <span className="flex items-center gap-1">
+                              <Mail className="h-3 w-3" />
+                              {client.email}
+                            </span>
+                            {client.phone && (
+                              <span className="flex items-center gap-1">
+                                <Phone className="h-3 w-3" />
+                                {client.phone}
+                              </span>
+                            )}
                           </div>
                           <div className="flex flex-wrap items-center gap-2 mt-2">
                             {client.objective && (
                               <span className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
-                                <Target className="h-3 w-3" />{OBJECTIVE_LABELS[client.objective] || client.objective}
+                                <Target className="h-3 w-3" />
+                                {OBJECTIVE_LABELS[client.objective] || client.objective}
                               </span>
                             )}
                             {client.experienceLevel && (
                               <span className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
-                                <Award className="h-3 w-3" />{EXPERIENCE_LABELS[client.experienceLevel] || client.experienceLevel}
+                                <Award className="h-3 w-3" />
+                                {EXPERIENCE_LABELS[client.experienceLevel] ||
+                                  client.experienceLevel}
                               </span>
                             )}
                             {lastMeasurement?.weight && (

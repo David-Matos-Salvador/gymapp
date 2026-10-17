@@ -18,17 +18,15 @@ export default async function HistorialPage({ params }: PageProps) {
     <AppShell>
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl space-y-4">
         <Breadcrumb
-          items={[
-            { label: "Rutina", href: `/rutinas/${planId}` },
-            { label: "Historial" },
-          ]}
+          items={[{ label: "Rutina", href: `/rutinas/${planId}` }, { label: "Historial" }]}
           className="px-0 pb-1"
         />
         <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
           <Construction className="h-12 w-12 text-muted-foreground" />
           <h1 className="text-xl font-bold">Historial de entrenamientos</h1>
           <p className="text-sm text-muted-foreground max-w-sm">
-            Esta sección está en construcción. Próximamente podrás ver el historial completo de tus sesiones de entrenamiento.
+            Esta sección está en construcción. Próximamente podrás ver el historial completo de tus
+            sesiones de entrenamiento.
           </p>
         </div>
       </div>

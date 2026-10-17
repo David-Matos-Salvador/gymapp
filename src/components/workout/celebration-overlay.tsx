@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { cn } from "@/lib/utils"
 
 const MOTIVATIONAL_MESSAGES = [
   "¡Sigue así, campeón!",
@@ -136,9 +135,7 @@ export function CelebrationOverlay({
               <p className="text-[10px] text-muted-foreground">días esta semana</p>
             </div>
             <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-2xl font-bold tabular-nums text-accent-yellow">
-                {weeklyStreak}
-              </p>
+              <p className="text-2xl font-bold tabular-nums text-accent-yellow">{weeklyStreak}</p>
               <p className="text-[10px] text-muted-foreground">semanas seguidas</p>
             </div>
           </motion.div>

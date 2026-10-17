@@ -1,13 +1,12 @@
 "use client"
 
 import { MUSCLE_LABELS } from "@/constants/user"
-import { useRouter } from "next/navigation"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Dumbbell, Plus, ArrowRight, Clock, GripVertical } from "lucide-react"
+import { Dumbbell, Plus, Clock } from "lucide-react"
 
 interface BaseRoutine {
   id: string
@@ -72,16 +71,22 @@ export function RoutinesList({ routines, isCoach, recommended }: RoutinesListPro
               transition={{ duration: 0.3, delay: i * 0.05 }}
             >
               <Link href={`/routines/${routine.id}`} onClick={() => play("select")}>
-                <Card className={`h-full hover:shadow-md transition-all hover:border-primary/40 group cursor-pointer ${recommended ? "ring-1 ring-accent-yellow/20" : ""}`}>
+                <Card
+                  className={`h-full hover:shadow-md transition-all hover:border-primary/40 group cursor-pointer ${recommended ? "ring-1 ring-accent-yellow/20" : ""}`}
+                >
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-base">{routine.name}</CardTitle>
                       {recommended && (
-                        <span className="text-[10px] bg-accent-yellow/10 text-accent-yellow px-1.5 py-0.5 rounded-full">Popular</span>
+                        <span className="text-[10px] bg-accent-yellow/10 text-accent-yellow px-1.5 py-0.5 rounded-full">
+                          Popular
+                        </span>
                       )}
                     </div>
                     {routine.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">{routine.description}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {routine.description}
+                      </p>
                     )}
                   </CardHeader>
                   <CardContent>

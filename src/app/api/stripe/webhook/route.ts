@@ -54,7 +54,10 @@ export async function POST(request: Request) {
           where: { stripeSessionId: session.id },
           data: {
             status: "COMPLETED",
-            stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null,
+            stripePaymentIntentId:
+              typeof session.payment_intent === "string"
+                ? session.payment_intent
+                : (session.payment_intent?.id ?? null),
           },
         })
 

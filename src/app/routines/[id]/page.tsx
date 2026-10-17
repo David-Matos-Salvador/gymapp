@@ -9,7 +9,9 @@ import { Dumbbell } from "lucide-react"
 import { revalidatePath } from "next/cache"
 import { RoutineEditButton } from "@/components/routines/routine-edit-button"
 
-interface PageProps { params: Promise<{ id: string }> }
+interface PageProps {
+  params: Promise<{ id: string }>
+}
 
 async function deletePlan(formData: FormData) {
   "use server"
@@ -46,7 +48,10 @@ export default async function RoutineDetailPage({ params }: PageProps) {
   return (
     <AppShell>
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl space-y-6">
-        <Link href="/routines" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+        <Link
+          href="/routines"
+          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
           ← Volver a rutinas
         </Link>
         <div className="flex items-center justify-between">
@@ -95,7 +100,9 @@ export default async function RoutineDetailPage({ params }: PageProps) {
           <div className="border-t pt-6">
             <form action={deletePlan}>
               <input type="hidden" name="id" value={plan.id} />
-              <Button type="submit" variant="destructive" size="sm">Eliminar rutina</Button>
+              <Button type="submit" variant="destructive" size="sm">
+                Eliminar rutina
+              </Button>
             </form>
           </div>
         )}

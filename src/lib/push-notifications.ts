@@ -29,7 +29,9 @@ export async function sendPush(
 
     const tokens = deviceTokens.get(userId) ?? []
 
-    console.log(`[Push] Sending to userId=${userId}: "${notification.title}" (${tokens.length} devices)`)
+    console.log(
+      `[Push] Sending to userId=${userId}: "${notification.title}" (${tokens.length} devices)`
+    )
 
     if (tokens.length === 0) {
       return { success: true, sent: 0 }

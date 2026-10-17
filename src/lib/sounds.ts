@@ -1,6 +1,10 @@
-const audioContext = typeof window !== "undefined"
-  ? new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
-  : null
+const audioContext =
+  typeof window !== "undefined"
+    ? new (
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      )()
+    : null
 
 function ensureContext(): AudioContext | null {
   if (!audioContext) return null
@@ -85,7 +89,11 @@ export const sounds = {
   exerciseComplete: () => playChime([262, 330, 392, 523], 0.1, 0.06, 0.07),
   restStart: () => playSwoop(262, 131, 0.25, 0.05),
   restEnd: () => playChime([262, 330, 392], 0.08, 0.06, 0.07),
-  restWarning: () => { playTick(0.04); playTick(0.04); playTick(0.04) },
+  restWarning: () => {
+    playTick(0.04)
+    playTick(0.04)
+    playTick(0.04)
+  },
   workoutStart: () => playChime([262, 330, 392, 523, 659], 0.12, 0.08, 0.07),
   workoutComplete: () => playChime([262, 330, 392, 523, 659, 784], 0.12, 0.07, 0.09),
   streak: () => playChime([523, 659, 784, 1047], 0.09, 0.05, 0.08),
@@ -118,7 +126,11 @@ function createNoiseBuffer(ctx: AudioContext, seconds = 3): AudioBuffer {
   return buffer
 }
 
-function createAmbientSource(ctx: AudioContext, phase: AmbientPhase, destination: AudioNode): AudioBufferSourceNode {
+function createAmbientSource(
+  ctx: AudioContext,
+  phase: AmbientPhase,
+  destination: AudioNode
+): AudioBufferSourceNode {
   const source = ctx.createBufferSource()
   const buffer = createNoiseBuffer(ctx)
   source.buffer = buffer
@@ -186,7 +198,11 @@ function startAmbientPhase(phase: AmbientPhase) {
       setTimeout(() => {
         const oldSource = activeAmbientChannel === "A" ? ambientSourceA : ambientSourceB
         if (oldSource) {
-          try { oldSource.stop() } catch { /* already stopped */ }
+          try {
+            oldSource.stop()
+          } catch {
+            /* already stopped */
+          }
         }
       }, 1600)
     }
@@ -198,10 +214,22 @@ function startAmbientPhase(phase: AmbientPhase) {
     const newGain = getActiveGain()
 
     if (activeAmbientChannel === "A") {
-      if (ambientSourceA) { try { ambientSourceA.stop() } catch { /* ignore */ } }
+      if (ambientSourceA) {
+        try {
+          ambientSourceA.stop()
+        } catch {
+          /* ignore */
+        }
+      }
       ambientSourceA = newSource
     } else {
-      if (ambientSourceB) { try { ambientSourceB.stop() } catch { /* ignore */ } }
+      if (ambientSourceB) {
+        try {
+          ambientSourceB.stop()
+        } catch {
+          /* ignore */
+        }
+      }
       ambientSourceB = newSource
     }
 
@@ -249,8 +277,16 @@ export function stopAmbient() {
   }
 
   setTimeout(() => {
-    try { ambientSourceA?.stop() } catch { /* ignore */ }
-    try { ambientSourceB?.stop() } catch { /* ignore */ }
+    try {
+      ambientSourceA?.stop()
+    } catch {
+      /* ignore */
+    }
+    try {
+      ambientSourceB?.stop()
+    } catch {
+      /* ignore */
+    }
     ambientSourceA = null
     ambientSourceB = null
     ambientGainA = null

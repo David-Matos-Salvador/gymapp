@@ -17,14 +17,7 @@ interface RestTimerProps {
 const RADIUS = 54
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-export function RestTimer({
-  remaining,
-  total,
-  status,
-  onPause,
-  onResume,
-  onSkip,
-}: RestTimerProps) {
+export function RestTimer({ remaining, total, status, onPause, onResume, onSkip }: RestTimerProps) {
   const progress = total > 0 ? remaining / total : 0
   const offset = CIRCUMFERENCE * (1 - progress)
 
@@ -36,11 +29,23 @@ export function RestTimer({
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl border border-accent-yellow/20 bg-accent-yellow/5 animate-in fade-in slide-in-from-top-2">
       <svg width="36" height="36" viewBox="0 0 120 120" className="-rotate-90 shrink-0">
-        <circle cx="60" cy="60" r={RADIUS} fill="none" strokeWidth="6" stroke="currentColor" className="text-muted/20" />
         <circle
-          cx="60" cy="60" r={RADIUS}
-          fill="none" strokeWidth="6"
-          stroke="currentColor" strokeLinecap="round"
+          cx="60"
+          cy="60"
+          r={RADIUS}
+          fill="none"
+          strokeWidth="6"
+          stroke="currentColor"
+          className="text-muted/20"
+        />
+        <circle
+          cx="60"
+          cy="60"
+          r={RADIUS}
+          fill="none"
+          strokeWidth="6"
+          stroke="currentColor"
+          strokeLinecap="round"
           className={cn("transition-[stroke-dashoffset] duration-1000 ease-linear", strokeColor)}
           style={{
             strokeDasharray: CIRCUMFERENCE,
@@ -49,7 +54,12 @@ export function RestTimer({
         />
       </svg>
       <div className="flex-1 min-w-0">
-        <span className={cn("font-mono text-lg font-bold tabular-nums", remaining <= 5 && "animate-pulse")}>
+        <span
+          className={cn(
+            "font-mono text-lg font-bold tabular-nums",
+            remaining <= 5 && "animate-pulse"
+          )}
+        >
           {formatted}
         </span>
         <p className="text-xs text-muted-foreground">descanso</p>
@@ -61,7 +71,11 @@ export function RestTimer({
           className="p-1.5 rounded-lg border border-input bg-background hover:bg-muted transition-colors"
           aria-label={status === "paused" ? "Reanudar" : "Pausar"}
         >
-          {status === "paused" ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+          {status === "paused" ? (
+            <Play className="h-3.5 w-3.5" />
+          ) : (
+            <Pause className="h-3.5 w-3.5" />
+          )}
         </button>
         <button
           type="button"

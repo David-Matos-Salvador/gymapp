@@ -11,13 +11,17 @@ const updateProfileSchema = z.object({
   birthDate: z.string().optional(),
   objective: z
     .enum([
-      "WEIGHT_LOSS", "MUSCLE_GAIN", "TONING", "STRENGTH",
-      "ENDURANCE", "GENERAL_FITNESS", "REHABILITATION", "COMPETITION",
+      "WEIGHT_LOSS",
+      "MUSCLE_GAIN",
+      "TONING",
+      "STRENGTH",
+      "ENDURANCE",
+      "GENERAL_FITNESS",
+      "REHABILITATION",
+      "COMPETITION",
     ])
     .optional(),
-  experienceLevel: z
-    .enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "ELITE"])
-    .optional(),
+  experienceLevel: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED", "ELITE"]).optional(),
   sex: z.enum(["MALE", "FEMALE", "OTHER"]).optional(),
   bio: z.string().optional(),
   emergencyContact: z.string().optional(),

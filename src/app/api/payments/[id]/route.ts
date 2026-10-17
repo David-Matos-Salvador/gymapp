@@ -48,7 +48,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
     })
 
     if (paymentUser?.assignedTrainerId && paymentUser.assignedTrainerId !== user.id && !isAdmin) {
-      return NextResponse.json({ error: "Este usuario ya tiene otro entrenador asignado" }, { status: 403 })
+      return NextResponse.json(
+        { error: "Este usuario ya tiene otro entrenador asignado" },
+        { status: 403 }
+      )
     }
 
     const hasAcceptedRequest = await prisma.trainerRequest.findFirst({
@@ -58,7 +61,13 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const isAlreadyMyClient = paymentUser?.assignedTrainerId === user.id
 
     if (!hasAcceptedRequest && !isAlreadyMyClient && !isAdmin) {
-      return NextResponse.json({ error: "Solo puedes confirmar pagos de tus clientes o de usuarios que aceptaron tu solicitud" }, { status: 403 })
+      return NextResponse.json(
+        {
+          error:
+            "Solo puedes confirmar pagos de tus clientes o de usuarios que aceptaron tu solicitud",
+        },
+        { status: 403 }
+      )
     }
 
     const shouldAssignTrainer =

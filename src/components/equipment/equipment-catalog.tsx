@@ -32,11 +32,12 @@ export function EquipmentCatalog({ equipment, hasGym, showMachineNumbers }: Equi
   const [search, setSearch] = useState("")
 
   const filtered = search.trim()
-    ? equipment.filter((e) =>
-        e.name.toLowerCase().includes(search.toLowerCase()) ||
-        e.category?.toLowerCase().includes(search.toLowerCase()) ||
-        e.location?.toLowerCase().includes(search.toLowerCase()) ||
-        e.exercise?.name.toLowerCase().includes(search.toLowerCase())
+    ? equipment.filter(
+        (e) =>
+          e.name.toLowerCase().includes(search.toLowerCase()) ||
+          e.category?.toLowerCase().includes(search.toLowerCase()) ||
+          e.location?.toLowerCase().includes(search.toLowerCase()) ||
+          e.exercise?.name.toLowerCase().includes(search.toLowerCase())
       )
     : equipment
 

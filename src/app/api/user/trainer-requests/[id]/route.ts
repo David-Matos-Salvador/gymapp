@@ -27,7 +27,16 @@ export async function GET(_request: Request, { params }: RouteParams) {
   const request = await prisma.trainerRequest.findUnique({
     where: { id },
     include: {
-      trainer: { select: { id: true, name: true, email: true, bio: true, specialties: true, yearsExperience: true } },
+      trainer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          bio: true,
+          specialties: true,
+          yearsExperience: true,
+        },
+      },
     },
   })
   if (!request) {
@@ -70,7 +79,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   if (action === "REJECTED") {
-    const updated = await     prisma.trainerRequest.update({
+    const updated = await prisma.trainerRequest.update({
       where: { id },
       data: { status: "REJECTED", rejectedAt: new Date() },
     })
@@ -95,7 +104,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
   const alreadyHasTrainer = await hasAnyTrainer(user.id)
   if (alreadyHasTrainer) {
-    return NextResponse.json({ error: "Ya tienes un entrenador asignado o una solicitud aceptada pendiente" }, { status: 409 })
+    return NextResponse.json(
+      { error: "Ya tienes un entrenador asignado o una solicitud aceptada pendiente" },
+      { status: 409 }
+    )
   }
 
   const now = new Date()
