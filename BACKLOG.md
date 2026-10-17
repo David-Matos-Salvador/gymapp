@@ -166,6 +166,13 @@
 
 ---
 
+## Diferidos de la ronda de validación (2026-10-17)
+
+- **F-03 — Historial real de entrenamientos** (`/rutinas/[planId]/historial`): sigue como placeholder. Diferido según D-06.
+- **F-10 — `CardTitle` semántico** (`src/components/ui/card.tsx`): cambio transversal de accesibilidad, diferido para una ronda aparte.
+
+---
+
 ## Resumen
 
 | Área                | Tareas | Prioridad |

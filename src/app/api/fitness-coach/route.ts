@@ -216,7 +216,7 @@ const MUSCLE_POOL: Record<
       reps: "12-15",
       restSeconds: 60,
     },
-    { name: "Face pull", equipment: "CABLE", sets: 3, reps: "15-20", restSeconds: 60 },
+    { name: "Face Pull", equipment: "CABLE", sets: 3, reps: "15-20", restSeconds: 60 },
     {
       name: "Pájaros para deltoides posterior",
       equipment: "DUMBBELL",
@@ -229,13 +229,19 @@ const MUSCLE_POOL: Record<
     { name: "Curl con barra", equipment: "BARBELL", sets: 3, reps: "10-12", restSeconds: 60 },
     { name: "Curl martillo", equipment: "DUMBBELL", sets: 3, reps: "10-12", restSeconds: 60 },
     { name: "Curl concentrado", equipment: "DUMBBELL", sets: 3, reps: "12-15", restSeconds: 60 },
-    { name: "Curl en polea", equipment: "CABLE", sets: 3, reps: "12-15", restSeconds: 60 },
+    { name: "Curl con cable", equipment: "CABLE", sets: 3, reps: "12-15", restSeconds: 60 },
   ],
   TRICEPS: [
     { name: "Press francés", equipment: "EZ_BAR", sets: 3, reps: "10-12", restSeconds: 60 },
     { name: "Extensión en polea", equipment: "CABLE", sets: 3, reps: "12-15", restSeconds: 60 },
     { name: "Fondos en banco", equipment: "BODYWEIGHT", sets: 3, reps: "10-15", restSeconds: 75 },
-    { name: "Press cerrado", equipment: "BARBELL", sets: 3, reps: "8-12", restSeconds: 75 },
+    {
+      name: "Press de banca agarre cerrado",
+      equipment: "BARBELL",
+      sets: 3,
+      reps: "8-12",
+      restSeconds: 75,
+    },
   ],
   LEGS: [
     {
@@ -297,7 +303,7 @@ const MUSCLE_POOL: Record<
   CALVES: [
     { name: "Elevación de talones", equipment: "MACHINE", sets: 4, reps: "15-20", restSeconds: 60 },
     {
-      name: "Elevación de talones sentado",
+      name: "Elevación de gemelos sentado",
       equipment: "MACHINE",
       sets: 3,
       reps: "15-20",
@@ -374,6 +380,61 @@ function pickExercisesForMuscleGroup(
   }
 
   return picked
+}
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "P2002"
+  )
+}
+
+async function findExerciseByNameInsensitive(name: string) {
+  return prisma.exercise.findFirst({
+    where: { name: { equals: name, mode: "insensitive" } },
+    select: { id: true },
+  })
+}
+
+/**
+ * Resolves an Exercise without ever failing on a duplicate name.
+ *
+ * The seed already owns the canonical spelling and concurrent onboarding
+ * requests may race on the same pool exercise. We therefore:
+ *  1. look up case-insensitively so the seed row is reused,
+ *  2. upsert by exact name as the atomic write,
+ *  3. recover from P2002 by re-reading case-insensitively.
+ */
+async function resolveExercise(
+  exercise: { name: string; equipment: string },
+  muscleGroup: MuscleGroup,
+  userId: string | undefined
+): Promise<{ id: string }> {
+  const existing = await findExerciseByNameInsensitive(exercise.name)
+  if (existing) return existing
+
+  try {
+    return await prisma.exercise.upsert({
+      where: { name: exercise.name },
+      update: {},
+      create: {
+        name: exercise.name,
+        muscleGroup:
+          exercise.equipment === "BODYWEIGHT" ? ("FULL_BODY" as MuscleGroup) : muscleGroup,
+        equipment: exercise.equipment as Equipment,
+        userId,
+      },
+      select: { id: true },
+    })
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) throw error
+
+    const raced = await findExerciseByNameInsensitive(exercise.name)
+    if (raced) return raced
+    throw error
+  }
 }
 
 export async function POST(request: Request) {
@@ -483,20 +544,11 @@ export async function POST(request: Request) {
                 exercises: {
                   create: await Promise.all(
                     split.exercises.map(async (ex, exIdx) => {
-                      let dbExercise = await prisma.exercise.findFirst({ where: { name: ex.name } })
-                      if (!dbExercise) {
-                        dbExercise = await prisma.exercise.create({
-                          data: {
-                            name: ex.name,
-                            muscleGroup:
-                              ex.equipment === "BODYWEIGHT"
-                                ? ("FULL_BODY" as MuscleGroup)
-                                : (split.muscleGroups[0] as MuscleGroup),
-                            equipment: ex.equipment as Equipment,
-                            userId: superadmin?.id,
-                          },
-                        })
-                      }
+                      const dbExercise = await resolveExercise(
+                        ex,
+                        split.muscleGroups[0] as MuscleGroup,
+                        superadmin?.id
+                      )
                       return {
                         exerciseId: dbExercise.id,
                         sets: ex.sets as number,

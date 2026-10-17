@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic"
 
-import { Suspense, useState } from "react"
+import { Suspense, useState, useSyncExternalStore } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -30,11 +30,17 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>
 
+const subscribeToNothing = () => () => {}
+const getClientMounted = () => true
+const getServerMounted = () => false
+
 function LoginFormInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl") ?? "/rutinas"
   const [error, setError] = useState("")
+  // false during SSR/hydration, true once React has mounted on the client.
+  const mounted = useSyncExternalStore(subscribeToNothing, getClientMounted, getServerMounted)
   const { play } = useSound()
 
   const {
@@ -73,47 +79,49 @@ function LoginFormInner() {
         <CardDescription>Inicia sesión en tu cuenta</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              autoComplete="email"
-              placeholder="tu@email.com"
-              {...emailRest}
-              onChange={(e) => {
-                emailOnChange(e)
-                play("click")
-              }}
-            />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Contraseña</Label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••"
-              {...passwordRest}
-              onChange={(e) => {
-                passwordOnChange(e)
-                play("click")
-              }}
-            />
-            {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
-            )}
-          </div>
-          {error && <p className="text-sm text-destructive text-center">{error}</p>}
-          <Button
-            type="submit"
-            className="w-full active:scale-[0.96] transition-transform"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
-          </Button>
+        <form method="post" action="/login" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <fieldset disabled={!mounted} className="m-0 min-w-0 space-y-4 border-0 p-0">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="tu@email.com"
+                {...emailRest}
+                onChange={(e) => {
+                  emailOnChange(e)
+                  play("click")
+                }}
+              />
+              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="••••••"
+                {...passwordRest}
+                onChange={(e) => {
+                  passwordOnChange(e)
+                  play("click")
+                }}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
+            </div>
+            {error && <p className="text-sm text-destructive text-center">{error}</p>}
+            <Button
+              type="submit"
+              className="w-full active:scale-[0.96] transition-transform"
+              disabled={!mounted || isSubmitting}
+            >
+              {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
+            </Button>
+          </fieldset>
         </form>
         <div className="mt-4 flex items-center gap-2">
           <Separator className="flex-1" />

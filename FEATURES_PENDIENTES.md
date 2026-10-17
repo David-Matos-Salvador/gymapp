@@ -2,6 +2,15 @@
 
 ---
 
+## Diferidos de la ronda de validación (2026-10-17)
+
+Quedan fuera de alcance por decisión D-06 de `docs/decisions/validation-fixes.md`:
+
+- **F-03 — Historial real de entrenamientos**: `/rutinas/[planId]/historial` sigue mostrando el placeholder "en construcción". Implementar la consulta de `WorkoutLog` del plan y renderizar el historial en una ronda aparte.
+- **F-10 — `CardTitle` semántico**: `src/components/ui/card.tsx` renderiza un `div`; evaluar el cambio transversal a `h2`/`asChild` junto con una revisión de accesibilidad de títulos, sin bloquear la ronda actual.
+
+---
+
 ## Compartir Progreso
 
 - **Descripción**: Permitir al usuario compartir su resumen de entrenamiento al completar un workout.

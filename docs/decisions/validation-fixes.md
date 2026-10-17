@@ -103,5 +103,3 @@ Diferir como limitación conocida. Documentar en `BACKLOG.md`/`FEATURES_PENDIENT
 - `npm run validate` en integración: 202 tests OK.
 - Validación E2E de la ola 1: **60/60 pasos OK**. La causa de los fallos previos de pagos era un dev server viejo; con `.next` limpio y la DB re-seedeada, los dos pasos pasaron.
 - Quedan para la ola 2: **F-08** (500 intermitente en onboarding), **F-01** (login GET), **F-02** (warnings de Recharts); F-03 y F-10 siguen diferidos.
-
-

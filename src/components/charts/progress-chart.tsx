@@ -111,8 +111,8 @@ export function ProgressChart<T extends object>({
   const rightSeries = series.filter((s) => s.yAxisId === "right")
 
   return (
-    <div style={{ height }} className="w-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div style={{ height, minHeight: height }} className="w-full min-w-0">
+      <ResponsiveContainer width="100%" height={height} minHeight={height}>
         <ComposedChart
           data={data}
           margin={{ top: 8, right: rightSeries.length > 0 ? 8 : 16, bottom: 4, left: 0 }}
