@@ -101,7 +101,7 @@ Diferir como limitación conocida. Documentar en `BACKLOG.md`/`FEATURES_PENDIENT
 
 - Mergeados en `fix/validation-batch-1`: booking race (`e184800`), membresías (`74721a2`), pagos (`0c9071d`).
 - `npm run validate` en integración: 202 tests OK.
-- Validación E2E previa a pagos: 58/60; solo fallaban los dos pasos de pagos.
-- Tras aplicar pagos, la suite volvió a marcar esos dos pasos; los unit tests de pagos pasan. Sospecha: dev server viejo reutilizado o estado del entorno. La verificación final quedó bloqueada por Docker Desktop (I/O errors en la VM; `docker ps` no responde).
-- Próximo paso: reiniciar/resetear Docker, recrear `gymapp_fix_integration` con `scripts/worktree-setup.sh integration 3120 4`, matar cualquier server previo en 3120 y correr `npm run test:validation` con `DATABASE_URL=postgresql://gymuser:gympassword@localhost:5432/gymapp_fix_integration?schema=public`, `PORT=3120` y `NEXT_PUBLIC_APP_URL=http://localhost:3120`.
+- Validación E2E de la ola 1: **60/60 pasos OK**. La causa de los fallos previos de pagos era un dev server viejo; con `.next` limpio y la DB re-seedeada, los dos pasos pasaron.
+- Quedan para la ola 2: **F-08** (500 intermitente en onboarding), **F-01** (login GET), **F-02** (warnings de Recharts); F-03 y F-10 siguen diferidos.
+
 
