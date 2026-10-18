@@ -33,6 +33,9 @@ const TEST_EQUIPMENT = `Equipo Validación ${UNIQUE}`
 const TEST_ROUTINE = `Rutina Validación ${UNIQUE}`
 const TEST_CLASS = `Clase Validación ${UNIQUE}`
 const CONCURRENCY_CLASS = `Clase Concurrencia ${UNIQUE}`
+const NEW_GYM = `Gym Validación ${UNIQUE}`
+const NEW_ADMIN_EMAIL = `admin-plataforma-${UNIQUE}@gymapp.com`
+const TEST_PLAN = `Plan Validación ${UNIQUE}`
 const TINY_PNG = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Y9ZQmcAAAAASUVORK5CYII=",
   "base64"
@@ -1611,6 +1614,121 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     async () => {
       await visit(superadmin.page, "/requests")
       await superadmin.page.waitForURL(/\/dashboard/, { timeout: 20_000 })
+    }
+  )
+
+  await runStep(
+    "superadmin-crea-gym",
+    {
+      phase: "12:51 Mediodía",
+      role: "superadmin",
+      expected: "Crear un gym desde la plataforma con provisioning",
+    },
+    superadmin.page,
+    async () => {
+      await visit(superadmin.page, "/dashboard")
+      await superadmin.page.getByRole("button", { name: /Crear gym/i }).click()
+      await superadmin.page.locator("#gymName").fill(NEW_GYM)
+      await superadmin.page.locator("#gymAddress").fill("Av. Validación 123")
+      await superadmin.page.getByRole("button", { name: /Crear gimnasio/i }).click()
+      await toast(superadmin.page, /Gimnasio creado/i)
+      await expect(superadmin.page.getByText(NEW_GYM, { exact: true })).toBeVisible({
+        timeout: 20_000,
+      })
+    }
+  )
+
+  await runStep(
+    "superadmin-edita-gym",
+    {
+      phase: "12:52 Mediodía",
+      role: "superadmin",
+      expected: "Editar los datos de un gym",
+    },
+    superadmin.page,
+    async () => {
+      const row = superadmin.page
+        .getByText(NEW_GYM, { exact: true })
+        .locator("xpath=ancestor::div[contains(@class,'rounded-lg')][1]")
+      await row.getByRole("button", { name: "Editar gimnasio" }).click()
+      await superadmin.page.locator("#editGymAddress").fill("Av. Editada 456")
+      await superadmin.page.getByRole("button", { name: /Guardar cambios/i }).click()
+      await toast(superadmin.page, /Gimnasio actualizado/i)
+    }
+  )
+
+  await runStep(
+    "superadmin-crea-admin",
+    {
+      phase: "12:53 Mediodía",
+      role: "superadmin",
+      expected: "Crear un admin para el gym desde la plataforma",
+    },
+    superadmin.page,
+    async () => {
+      const row = superadmin.page
+        .getByText(NEW_GYM, { exact: true })
+        .locator("xpath=ancestor::div[contains(@class,'rounded-lg')][1]")
+      await row.getByRole("button", { name: "Crear admin" }).click()
+      await superadmin.page.locator("#adminName").fill("Admin Validación")
+      await superadmin.page.locator("#adminEmail").fill(NEW_ADMIN_EMAIL)
+      await superadmin.page.locator("#adminPassword").fill("Demo1234")
+      await superadmin.page.getByRole("button", { name: /Crear usuario/i }).click()
+      await toast(superadmin.page, /Admin creado/i)
+    }
+  )
+
+  await runStep(
+    "superadmin-toggle-gym",
+    {
+      phase: "12:54 Mediodía",
+      role: "superadmin",
+      expected: "Desactivar y reactivar un gym",
+    },
+    superadmin.page,
+    async () => {
+      const row = superadmin.page
+        .getByText(NEW_GYM, { exact: true })
+        .locator("xpath=ancestor::div[contains(@class,'rounded-lg')][1]")
+      await row.getByRole("button", { name: "Desactivar gimnasio" }).click()
+      await superadmin.page.getByRole("button", { name: /^Desactivar$/i }).click()
+      await toast(superadmin.page, /Gimnasio desactivado/i)
+
+      const inactiveRow = superadmin.page
+        .getByText(NEW_GYM, { exact: true })
+        .locator("xpath=ancestor::div[contains(@class,'rounded-lg')][1]")
+      await inactiveRow.getByRole("button", { name: "Activar gimnasio" }).click()
+      await superadmin.page.getByRole("button", { name: /^Activar$/i }).click()
+      await toast(superadmin.page, /Gimnasio activado/i)
+    }
+  )
+
+  await runStep(
+    "superadmin-plan",
+    {
+      phase: "12:55 Mediodía",
+      role: "superadmin",
+      expected: "Crear, desactivar y eliminar un plan de membresía",
+    },
+    superadmin.page,
+    async () => {
+      await visit(superadmin.page, "/admin/gym-management")
+      await superadmin.page.getByRole("tab", { name: /Planes/i }).click()
+      await superadmin.page.getByRole("button", { name: /Nuevo plan/i }).click()
+      await superadmin.page.locator("#planName").fill(TEST_PLAN)
+      await superadmin.page.locator("#planPrice").fill("123")
+      await superadmin.page.locator("#planDuration").fill("30")
+      await superadmin.page.getByRole("button", { name: /Crear plan/i }).click()
+      await toast(superadmin.page, /Plan creado/i)
+
+      const planCard = superadmin.page
+        .getByText(TEST_PLAN, { exact: true })
+        .locator("xpath=ancestor::div[contains(@class,'rounded')][1]")
+      await planCard.getByRole("button", { name: "Desactivar plan" }).click()
+      await toast(superadmin.page, /Plan desactivado/i)
+      await planCard.getByRole("button", { name: "Eliminar plan" }).click()
+      await superadmin.page.getByRole("button", { name: /^Eliminar$/i }).click()
+      await toast(superadmin.page, /Plan eliminado/i)
     }
   )
 

@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: true },
+    select: { role: true },
   })
   if (!user || !isSuperAdmin(user.role)) {
     return NextResponse.json({ error: "Solo el superadmin puede crear gimnasios" }, { status: 403 })
@@ -78,7 +78,7 @@ export async function POST(request: Request) {
           email,
           logoUrl,
           showMachineNumbers,
-          ownerId: user.id,
+          ownerId: null,
         },
       })
 
