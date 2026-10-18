@@ -28,12 +28,13 @@ async function main() {
   // ── Staff ───────────────────────────────────────────
   const superadmin = await prisma.user.upsert({
     where: { email: "superadmin@gymapp.com" },
-    update: {},
+    update: { gymId: gym.id },
     create: {
       email: "superadmin@gymapp.com",
       name: "Super Admin",
       password: passwordHash,
       role: "SUPER_ADMIN",
+      gymId: gym.id,
     },
   })
 
@@ -51,10 +52,10 @@ async function main() {
     },
   })
 
-  // El admin del gym seed es el dueño del gimnasio
+  // El superadmin es el dueño del gimnasio base; el admin lo opera día a día.
   await prisma.gym.update({
     where: { id: gym.id },
-    data: { ownerId: admin.id },
+    data: { ownerId: superadmin.id },
   })
 
   const trainer = await prisma.user.upsert({
