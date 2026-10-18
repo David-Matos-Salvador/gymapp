@@ -256,31 +256,17 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                   </div>
 
                   {pendingPayment && (
-                    <div className="flex items-center gap-3 rounded-lg border p-2">
-                      {pendingPayment.receiptUrl ? (
-                        <a
-                          href={pendingPayment.receiptUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="shrink-0"
-                        >
-                          <img
-                            src={pendingPayment.receiptUrl}
-                            alt="Comprobante de pago"
-                            className="h-14 w-14 rounded border object-cover"
-                          />
-                        </a>
-                      ) : (
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded border bg-muted text-[10px] text-muted-foreground">
-                          Sin imagen
-                        </div>
-                      )}
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium">Comprobante pendiente</p>
-                        <p className="text-[10px] text-muted-foreground">
+                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                          Comprobante pendiente
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
                           {formatCurrency(pendingPayment.amount, pendingPayment.currency)} ·{" "}
                           {formatDate(pendingPayment.createdAt)}
-                        </p>
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
                         {pendingPayment.receiptUrl && (
                           <a
                             href={pendingPayment.receiptUrl}
@@ -292,8 +278,6 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                             Ver captura
                           </a>
                         )}
-                      </div>
-                      <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
                         <Link
                           href="/coach/payments"
                           className="inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] font-medium text-accent-yellow hover:bg-accent-yellow/10"
@@ -375,7 +359,7 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
 
       <Tabs defaultValue="pending">
         <TabsList>
-          <TabsTrigger value="pending">Pendientes ({pending.length})</TabsTrigger>
+          <TabsTrigger value="pending">Pago sin confirmar ({pending.length})</TabsTrigger>
           <TabsTrigger value="active">Activas ({active.length})</TabsTrigger>
           <TabsTrigger value="expired">Vencidas ({expired.length})</TabsTrigger>
         </TabsList>

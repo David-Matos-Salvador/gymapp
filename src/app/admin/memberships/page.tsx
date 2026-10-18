@@ -69,8 +69,9 @@ export default async function AdminMembershipsPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Membresías</h1>
           <p className="text-muted-foreground">
-            Acá gestionás fechas, plan, coach y renovación. Para validar la captura de un pago, usá{" "}
-            <strong>Comprobantes</strong>.
+            Membresías = estado y vigencia (plan, gym, coach, renovación). Comprobantes = revisar la
+            captura y aprobar o rechazar el pago. Marcar pagado es solo para cobros manuales sin
+            comprobante.
           </p>
           <Link
             href="/coach/payments"

@@ -763,7 +763,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     admin.page,
     async () => {
       await visit(admin.page, "/coach/payments")
-      await expect(admin.page.getByRole("heading", { name: /Pagos pendientes/i })).toBeVisible({
+      await expect(admin.page.getByRole("heading", { name: /Comprobantes/i })).toBeVisible({
         timeout: 20_000,
       })
       await expect(admin.page.getByText("Mateo Herrera")).toBeVisible()

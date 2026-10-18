@@ -102,9 +102,10 @@ export default function CoachPaymentsPage() {
     <AppShell>
       <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Pagos pendientes</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Comprobantes</h1>
           <p className="text-muted-foreground">
-            Bandeja de comprobantes: revisá la captura y confirmá o rechazá el pago del socio.
+            Bandeja de comprobantes: revisá la captura y confirmá o rechazá el pago. El estado de la
+            membresía se gestiona en Membresías.
           </p>
         </div>
 
