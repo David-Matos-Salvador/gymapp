@@ -15,9 +15,13 @@ import {
   CalendarDays,
   Banknote,
   Loader2,
+  Building2,
+  UserRound,
+  Eye,
+  XCircle,
 } from "lucide-react"
 import { toast } from "sonner"
-import { formatDate } from "@/lib/utils"
+import { formatCurrency, formatDate } from "@/lib/utils"
 import {
   canRenewMembership,
   getMembershipStatusLabel,
@@ -28,6 +32,7 @@ interface MembershipUser {
   id: string
   name: string | null
   email: string
+  assignedTrainer: { name: string | null } | null
 }
 
 interface MembershipPlan {
@@ -36,6 +41,7 @@ interface MembershipPlan {
   price: number
   currency: string
   durationDays: number
+  gym: { name: string } | null
 }
 
 interface Membership {
@@ -56,8 +62,19 @@ interface Membership {
   plan: MembershipPlan
 }
 
+interface PendingPayment {
+  id: string
+  userId: string
+  amount: number
+  currency: string
+  method: string
+  receiptUrl: string | null
+  createdAt: string
+}
+
 interface MembershipPanelProps {
   memberships: Membership[]
+  pendingPayments: PendingPayment[]
 }
 
 const paymentMethodLabels: Record<string, string> = {
@@ -68,17 +85,30 @@ const paymentMethodLabels: Record<string, string> = {
   OTHER: "Otro",
 }
 
-export function MembershipPanel({ memberships }: MembershipPanelProps) {
+export function MembershipPanel({ memberships, pendingPayments }: MembershipPanelProps) {
   const { play } = useSound()
   const [data, setData] = useState<Membership[]>(memberships)
+  const [pendingReceipts, setPendingReceipts] = useState<PendingPayment[]>(pendingPayments)
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState<string | null>(null)
 
-  // D-02: every membership belongs to exactly one tab.
+  const pendingByUser = new Map<string, PendingPayment>()
+  for (const payment of pendingReceipts) {
+    if (!pendingByUser.has(payment.userId)) pendingByUser.set(payment.userId, payment)
+  }
+
+  // D-02: every membership belongs to exactly one tab. A pending receipt always
+  // goes to Pendientes so the admin can review the capture before confirming.
   const now = new Date()
-  const pending = data.filter((m) => getMembershipTab(m, now) === "pending")
-  const active = data.filter((m) => getMembershipTab(m, now) === "active")
-  const expired = data.filter((m) => getMembershipTab(m, now) === "expired")
+  const pending = data.filter(
+    (m) => pendingByUser.has(m.userId) || getMembershipTab(m, now) === "pending"
+  )
+  const active = data.filter(
+    (m) => !pendingByUser.has(m.userId) && getMembershipTab(m, now) === "active"
+  )
+  const expired = data.filter(
+    (m) => !pendingByUser.has(m.userId) && getMembershipTab(m, now) === "expired"
+  )
 
   function filterBySearch(list: Membership[]) {
     if (!search.trim()) return list
@@ -91,7 +121,7 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
     )
   }
 
-  async function handleConfirmPayment(id: string) {
+  async function handleMarkPaid(id: string) {
     setLoading(id)
     play("select")
     const res = await fetch(`/api/memberships/${id}`, {
@@ -107,12 +137,65 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
         )
       )
       play("success")
-      toast.success("Pago confirmado correctamente")
+      toast.success("Membresía marcada como pagada")
     } else {
       const json = await res.json()
       toast.error(json.error ?? "Error al confirmar pago")
     }
     setLoading(null)
+  }
+
+  async function handleConfirmReceipt(paymentId: string, membershipId: string) {
+    setLoading(membershipId)
+    play("select")
+    try {
+      const res = await fetch(`/api/payments/${paymentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "CONFIRM" }),
+      })
+      if (!res.ok) {
+        const json = await res.json()
+        toast.error(json.error ?? "Error al confirmar el comprobante")
+        return
+      }
+      setData((prev) =>
+        prev.map((m) => (m.id === membershipId ? { ...m, paymentConfirmed: true } : m))
+      )
+      setPendingReceipts((prev) => prev.filter((p) => p.id !== paymentId))
+      play("success")
+      toast.success("Comprobante confirmado")
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function handleRejectReceipt(paymentId: string, membershipId: string) {
+    setLoading(membershipId)
+    play("select")
+    try {
+      const res = await fetch(`/api/payments/${paymentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "REJECT",
+          notes: "Comprobante rechazado por el administrador",
+        }),
+      })
+      if (!res.ok) {
+        const json = await res.json()
+        toast.error(json.error ?? "Error al rechazar el comprobante")
+        return
+      }
+      setData((prev) =>
+        prev.map((m) => (m.id === membershipId ? { ...m, paymentConfirmed: false } : m))
+      )
+      setPendingReceipts((prev) => prev.filter((p) => p.id !== paymentId))
+      play("success")
+      toast.success("Comprobante rechazado")
+    } finally {
+      setLoading(null)
+    }
   }
 
   async function handleRenew(id: string) {
@@ -168,104 +251,183 @@ export function MembershipPanel({ memberships }: MembershipPanelProps) {
 
     return (
       <div className="space-y-3">
-        {filtered.map((m, i) => (
-          <motion.div
-            key={m.id}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25, delay: i * 0.03 }}
-          >
-            <Card>
-              <CardContent className="pt-4 space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
-                      {m.user.name?.[0] ?? m.user.email[0].toUpperCase()}
+        {filtered.map((m, i) => {
+          const pendingPayment = pendingByUser.get(m.userId)
+          return (
+            <motion.div
+              key={m.id}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: i * 0.03 }}
+            >
+              <Card>
+                <CardContent className="pt-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                        {m.user.name?.[0] ?? m.user.email[0].toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">
+                          {m.user.name ?? "Sin nombre"}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">{m.user.email}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{m.user.name ?? "Sin nombre"}</p>
-                      <p className="text-xs text-muted-foreground truncate">{m.user.email}</p>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <span
+                        className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${
+                          m.status === "ACTIVE"
+                            ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
+                            : "border-destructive/30 bg-destructive/10 text-destructive"
+                        }`}
+                      >
+                        {getMembershipStatusLabel(m.status)}
+                      </span>
+                      <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                        {m.plan.name}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <span
-                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${
-                        m.status === "ACTIVE"
-                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600"
-                          : "border-destructive/30 bg-destructive/10 text-destructive"
-                      }`}
-                    >
-                      {getMembershipStatusLabel(m.status)}
+
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <CalendarDays className="h-3 w-3" />
+                      {formatDate(m.startDate)} — {formatDate(m.endDate)}
                     </span>
-                    <span className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                      {m.plan.name}
+                    <span className="flex items-center gap-1">
+                      <Banknote className="h-3 w-3" />
+                      {m.plan.currency.toUpperCase()} ${m.plan.price}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Building2 className="h-3 w-3" />
+                      {m.plan.gym?.name ?? "Sin gimnasio"}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <UserRound className="h-3 w-3" />
+                      {m.user.assignedTrainer?.name ?? "Sin coach"}
                     </span>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <CalendarDays className="h-3 w-3" />
-                    {formatDate(m.startDate)} — {formatDate(m.endDate)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Banknote className="h-3 w-3" />
-                    {m.plan.currency.toUpperCase()} ${m.plan.price}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
-                    {paymentMethodLabels[m.paymentMethod] ?? m.paymentMethod}
-                  </span>
-
-                  {!m.paymentConfirmed && m.status === "ACTIVE" ? (
-                    <Button
-                      size="xs"
-                      onClick={() => handleConfirmPayment(m.id)}
-                      disabled={loading === m.id}
-                      className="h-6 text-[10px]"
-                    >
-                      {loading === m.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
+                  {pendingPayment && (
+                    <div className="flex items-center gap-3 rounded-lg border p-2">
+                      {pendingPayment.receiptUrl ? (
+                        <a
+                          href={pendingPayment.receiptUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="shrink-0"
+                        >
+                          <img
+                            src={pendingPayment.receiptUrl}
+                            alt="Comprobante de pago"
+                            className="h-14 w-14 rounded border object-cover"
+                          />
+                        </a>
                       ) : (
-                        <CheckCircle2 className="h-3 w-3" />
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded border bg-muted text-[10px] text-muted-foreground">
+                          Sin imagen
+                        </div>
                       )}
-                      Confirmar pago
-                    </Button>
-                  ) : m.paymentConfirmed ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                      <CheckCircle2 className="h-2.5 w-2.5" />
-                      Pagado
-                    </span>
-                  ) : null}
-
-                  {canRenewMembership(m, now) && (
-                    <Button
-                      size="xs"
-                      variant="outline"
-                      onClick={() => handleRenew(m.id)}
-                      disabled={loading === m.id}
-                      className="h-6 text-[10px]"
-                    >
-                      {loading === m.id ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-3 w-3" />
-                      )}
-                      Renovar
-                    </Button>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium">Comprobante pendiente</p>
+                        <p className="text-[10px] text-muted-foreground">
+                          {formatCurrency(pendingPayment.amount, pendingPayment.currency)} ·{" "}
+                          {formatDate(pendingPayment.createdAt)}
+                        </p>
+                        {pendingPayment.receiptUrl && (
+                          <a
+                            href={pendingPayment.receiptUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[10px] text-accent-yellow hover:underline"
+                          >
+                            <Eye className="h-3 w-3" />
+                            Ver captura
+                          </a>
+                        )}
+                      </div>
+                      <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
+                        <Button
+                          size="xs"
+                          onClick={() => handleConfirmReceipt(pendingPayment.id, m.id)}
+                          disabled={loading === m.id}
+                          className="h-6 text-[10px]"
+                        >
+                          {loading === m.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="h-3 w-3" />
+                          )}
+                          Confirmar
+                        </Button>
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={() => handleRejectReceipt(pendingPayment.id, m.id)}
+                          disabled={loading === m.id}
+                          className="h-6 text-[10px]"
+                        >
+                          <XCircle className="h-3 w-3" />
+                          Rechazar
+                        </Button>
+                      </div>
+                    </div>
                   )}
-                </div>
 
-                {m.paymentRef && (
-                  <p className="text-[10px] text-muted-foreground">Ref: {m.paymentRef}</p>
-                )}
-                {m.notes && <p className="text-[10px] text-muted-foreground italic">{m.notes}</p>}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">
+                      {paymentMethodLabels[m.paymentMethod] ?? m.paymentMethod}
+                    </span>
+
+                    {!m.paymentConfirmed && m.status === "ACTIVE" && !pendingPayment ? (
+                      <Button
+                        size="xs"
+                        onClick={() => handleMarkPaid(m.id)}
+                        disabled={loading === m.id}
+                        className="h-6 text-[10px]"
+                      >
+                        {loading === m.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="h-3 w-3" />
+                        )}
+                        Marcar pagado
+                      </Button>
+                    ) : m.paymentConfirmed ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                        <CheckCircle2 className="h-2.5 w-2.5" />
+                        Pagado
+                      </span>
+                    ) : null}
+
+                    {canRenewMembership(m, now) && (
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => handleRenew(m.id)}
+                        disabled={loading === m.id}
+                        className="h-6 text-[10px]"
+                      >
+                        {loading === m.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <RefreshCw className="h-3 w-3" />
+                        )}
+                        Renovar
+                      </Button>
+                    )}
+                  </div>
+
+                  {m.paymentRef && (
+                    <p className="text-[10px] text-muted-foreground">Ref: {m.paymentRef}</p>
+                  )}
+                  {m.notes && <p className="text-[10px] text-muted-foreground italic">{m.notes}</p>}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )
+        })}
       </div>
     )
   }

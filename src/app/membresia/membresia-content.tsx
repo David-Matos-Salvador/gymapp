@@ -3,8 +3,9 @@
 import { MembershipCard } from "@/components/memberships/membership-card"
 import { PaymentForm } from "@/components/memberships/payment-form"
 import { Card, CardContent } from "@/components/ui/card"
-import { CreditCard } from "lucide-react"
+import { Clock, CreditCard, Eye } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { formatCurrency } from "@/lib/utils"
 
 interface MembershipData {
   id: string
@@ -14,6 +15,8 @@ interface MembershipData {
     currency: string
     durationDays: number
   }
+  gym: { name: string } | null
+  coach: { name: string | null } | null
   status: string
   startDate: string
   endDate: string
@@ -23,7 +26,21 @@ interface MembershipData {
   autoRenew: boolean
 }
 
-export function MembresiaContent({ membership }: { membership: MembershipData | null }) {
+interface PendingPayment {
+  id: string
+  amount: number
+  currency: string
+  receiptUrl: string | null
+  createdAt: string
+}
+
+export function MembresiaContent({
+  membership,
+  pendingPayment,
+}: {
+  membership: MembershipData | null
+  pendingPayment: PendingPayment | null
+}) {
   const router = useRouter()
 
   if (!membership) {
@@ -60,15 +77,41 @@ export function MembresiaContent({ membership }: { membership: MembershipData | 
 
       <MembershipCard membership={membership} />
 
-      {!membership.paymentConfirmed && (
-        <PaymentForm
-          membershipId={membership.id}
-          plan={membership.plan}
-          currentPaymentMethod={membership.paymentMethod}
-          currentPaymentRef={membership.paymentRef}
-          onSuccess={() => router.refresh()}
-        />
-      )}
+      {!membership.paymentConfirmed &&
+        (pendingPayment ? (
+          <Card>
+            <CardContent className="space-y-3 py-6">
+              <div className="flex items-center gap-2">
+                <Clock className="size-5 text-accent-yellow" />
+                <p className="font-semibold">Comprobante en revisión</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Recibimos tu comprobante por{" "}
+                {formatCurrency(pendingPayment.amount, pendingPayment.currency)}. El equipo lo
+                revisará y confirmará tu membresía. No necesitás subir otro comprobante.
+              </p>
+              {pendingPayment.receiptUrl && (
+                <a
+                  href={pendingPayment.receiptUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-sm text-accent-yellow hover:underline"
+                >
+                  <Eye className="size-4" />
+                  Ver comprobante
+                </a>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <PaymentForm
+            membershipId={membership.id}
+            plan={membership.plan}
+            currentPaymentMethod={membership.paymentMethod}
+            currentPaymentRef={membership.paymentRef}
+            onSuccess={() => router.refresh()}
+          />
+        ))}
     </div>
   )
 }

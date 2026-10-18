@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640" viewBox="0 0 480 640">
+  <rect width="480" height="640" fill="#f1f5f9"/>
+  <rect x="24" y="24" width="432" height="592" rx="18" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+  <rect x="48" y="48" width="384" height="72" rx="12" fill="#7c3aed"/>
+  <text x="72" y="94" font-family="Arial, sans-serif" font-size="30" font-weight="bold" fill="#ffffff">YAPE</text>
+  <text x="48" y="160" font-family="Arial, sans-serif" font-size="16" fill="#64748b">Comprobante de pago</text>
+  <line x1="48" y1="180" x2="432" y2="180" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="48" y="220" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Pagador</text>
+  <text x="48" y="246" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#0f172a">Mateo Herrera</text>
+  <text x="48" y="300" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Concepto</text>
+  <text x="48" y="326" font-family="Arial, sans-serif" font-size="18" fill="#0f172a">Membresía mensual</text>
+  <text x="48" y="380" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Monto</text>
+  <text x="48" y="412" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#0f172a">PEN 500.00</text>
+  <line x1="48" y1="450" x2="432" y2="450" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="48" y="490" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Nro. de operación</text>
+  <text x="48" y="516" font-family="Arial, sans-serif" font-size="18" fill="#0f172a">000123456789</text>
+  <text x="48" y="560" font-family="Arial, sans-serif" font-size="14" fill="#64748b">Fecha</text>
+  <text x="48" y="586" font-family="Arial, sans-serif" font-size="18" fill="#0f172a">17/10/2026 13:45</text>
+  <text x="240" y="600" font-family="Arial, sans-serif" font-size="12" fill="#94a3b8">Comprobante demo</text>
+</svg>

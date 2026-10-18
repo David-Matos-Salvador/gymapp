@@ -12,6 +12,8 @@ import {
   ArrowLeftRight,
   RefreshCw,
   Loader2,
+  Building2,
+  UserRound,
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatDate } from "@/lib/utils"
@@ -27,6 +29,8 @@ interface MembershipPlan {
 interface Membership {
   id: string
   plan: MembershipPlan
+  gym: { name: string } | null
+  coach: { name: string | null } | null
   status: string
   startDate: string
   endDate: string
@@ -70,6 +74,8 @@ const paymentMethodLabels: Record<string, string> = {
 export function MembershipCard({ membership }: MembershipCardProps) {
   const {
     plan,
+    gym,
+    coach,
     status,
     startDate,
     endDate,
@@ -119,6 +125,14 @@ export function MembershipCard({ membership }: MembershipCardProps) {
           <span className="flex items-center gap-1.5">
             <CalendarDays className="size-3.5" />
             {formatDate(startDate)} — {formatDate(endDate)}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Building2 className="size-3.5" />
+            {gym?.name ?? "Gimnasio no asignado"}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <UserRound className="size-3.5" />
+            {coach?.name ?? "Sin coach asignado"}
           </span>
         </div>
 

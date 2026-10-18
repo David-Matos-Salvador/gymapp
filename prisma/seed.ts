@@ -3229,7 +3229,7 @@ async function main() {
         status: "PENDING",
         method: "YAPE",
         type: "MEMBERSHIP",
-        receiptUrl: null,
+        receiptUrl: "/demo/receipt.svg",
       },
     })
   }

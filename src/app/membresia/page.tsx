@@ -18,8 +18,23 @@ export default async function MembresiaPage() {
 
   const membership = await prisma.membership.findFirst({
     where: { userId: user.id },
-    include: { plan: true },
+    include: {
+      plan: { include: { gym: { select: { name: true } } } },
+      user: { select: { assignedTrainer: { select: { name: true } } } },
+    },
     orderBy: { createdAt: "desc" },
+  })
+
+  const pendingPayment = await prisma.payment.findFirst({
+    where: { userId: user.id, type: "MEMBERSHIP", status: "PENDING" },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      amount: true,
+      currency: true,
+      receiptUrl: true,
+      createdAt: true,
+    },
   })
 
   const serializedMembership = membership
@@ -31,6 +46,10 @@ export default async function MembresiaPage() {
           currency: membership.plan.currency,
           durationDays: membership.plan.durationDays,
         },
+        gym: membership.plan.gym ? { name: membership.plan.gym.name } : null,
+        coach: membership.user.assignedTrainer
+          ? { name: membership.user.assignedTrainer.name }
+          : null,
         status: membership.status,
         startDate: membership.startDate.toISOString(),
         endDate: membership.endDate.toISOString(),
@@ -41,9 +60,19 @@ export default async function MembresiaPage() {
       }
     : null
 
+  const serializedPendingPayment = pendingPayment
+    ? {
+        ...pendingPayment,
+        createdAt: pendingPayment.createdAt.toISOString(),
+      }
+    : null
+
   return (
     <AppShell>
-      <MembresiaContent membership={serializedMembership} />
+      <MembresiaContent
+        membership={serializedMembership}
+        pendingPayment={serializedPendingPayment}
+      />
     </AppShell>
   )
 }
