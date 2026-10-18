@@ -7,6 +7,7 @@ import { z } from "zod"
 
 const activationSchema = z.object({
   equipmentId: z.string().min(1),
+  gymId: z.string().optional(),
   active: z.boolean().optional(),
   machineNumber: z.number().int().min(1).max(9999).optional().nullable(),
   imageUrl: imageUrlSchema.optional().nullable(),
@@ -22,15 +23,7 @@ export async function PATCH(request: Request) {
     where: { email: session.user.email },
     select: { id: true, role: true, gymId: true },
   })
-  if (!user || !user.gymId) {
-    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
-  }
-
-  const gym = await prisma.gym.findUnique({
-    where: { id: user.gymId },
-    select: { id: true, ownerId: true },
-  })
-  if (!canManageGymEquipment(user, gym)) {
+  if (!user) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
@@ -44,6 +37,23 @@ export async function PATCH(request: Request) {
   }
 
   const { equipmentId, active, machineNumber, imageUrl } = parsed.data
+  const isSuper = user.role === "SUPER_ADMIN"
+  const gymId = isSuper ? (parsed.data.gymId ?? user.gymId) : user.gymId
+
+  if (!gymId) {
+    return NextResponse.json({ error: "Sin gimnasio seleccionado" }, { status: 403 })
+  }
+  if (!isSuper && parsed.data.gymId && parsed.data.gymId !== user.gymId) {
+    return NextResponse.json({ error: "Sin permisos sobre este gimnasio" }, { status: 403 })
+  }
+
+  const gym = await prisma.gym.findUnique({
+    where: { id: gymId },
+    select: { id: true, ownerId: true },
+  })
+  if (!canManageGymEquipment(user, gym)) {
+    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  }
 
   const equipment = await prisma.gymEquipment.findUnique({
     where: { id: equipmentId },
@@ -60,10 +70,10 @@ export async function PATCH(request: Request) {
   }
 
   const activation = await prisma.gymEquipmentActivation.upsert({
-    where: { gymId_equipmentId: { gymId: user.gymId, equipmentId } },
+    where: { gymId_equipmentId: { gymId, equipmentId } },
     update: data,
     create: {
-      gymId: user.gymId,
+      gymId,
       equipmentId,
       active: active ?? true,
       machineNumber: machineNumber ?? null,
@@ -73,7 +83,7 @@ export async function PATCH(request: Request) {
 
   if (machineNumber != null) {
     await prisma.gym.update({
-      where: { id: user.gymId },
+      where: { id: gymId },
       data: { showMachineNumbers: true },
     })
   }

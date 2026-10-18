@@ -34,6 +34,7 @@ import {
   Pencil,
   Power,
   PowerOff,
+  UserPlus,
 } from "lucide-react"
 import { ROLE_LABELS } from "@/constants/user"
 
@@ -104,6 +105,14 @@ export function SuperAdminDashboard({
   })
   const [editSaving, setEditSaving] = useState(false)
   const [statusGym, setStatusGym] = useState<GymData | null>(null)
+  const [adminGym, setAdminGym] = useState<GymData | null>(null)
+  const [adminForm, setAdminForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "ADMIN" as "ADMIN" | "TRAINER",
+  })
+  const [adminSaving, setAdminSaving] = useState(false)
 
   async function handleCreateGym() {
     if (!gymForm.name.trim()) return
@@ -204,6 +213,36 @@ export function SuperAdminDashboard({
       const data = await res.json().catch(() => ({}))
       toast.error(data.error ?? "Error al cambiar el estado")
     }
+  }
+
+  function openCreateAdmin(gym: GymData) {
+    setAdminGym(gym)
+    setAdminForm({ name: "", email: "", password: "", role: "ADMIN" })
+  }
+
+  async function handleCreateAdmin() {
+    if (!adminGym) return
+    setAdminSaving(true)
+    const res = await fetch("/api/admin/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...adminForm,
+        gymId: adminGym.id,
+      }),
+    })
+    if (res.ok) {
+      play("success")
+      toast.success("Admin creado y asignado al gimnasio")
+      setAdminGym(null)
+      const data = await fetch("/api/admin/platform").then((r) => r.json())
+      setStats(data.stats)
+      setGyms(data.gyms)
+    } else {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? "Error al crear admin")
+    }
+    setAdminSaving(false)
   }
 
   async function handleToggleMachineNumbers(gymId: string, current: boolean) {
@@ -365,6 +404,15 @@ export function SuperAdminDashboard({
                       ) : (
                         <Power className="h-4 w-4" />
                       )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => openCreateAdmin(gym)}
+                      aria-label="Crear admin"
+                      title="Crear admin"
+                    >
+                      <UserPlus className="h-4 w-4" />
                     </Button>
                   </div>
                 ))
@@ -588,6 +636,85 @@ export function SuperAdminDashboard({
               onClick={() => statusGym && handleToggleActive(statusGym)}
             >
               {statusGym?.active ? "Desactivar" : "Activar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!adminGym}
+        onOpenChange={(open) => {
+          if (!open) setAdminGym(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Crear admin</DialogTitle>
+            <DialogDescription>
+              Creá un administrador o entrenador para {adminGym?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="adminName">Nombre</Label>
+              <Input
+                id="adminName"
+                value={adminForm.name}
+                onChange={(e) => setAdminForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="adminEmail">Email</Label>
+              <Input
+                id="adminEmail"
+                type="email"
+                value={adminForm.email}
+                onChange={(e) => setAdminForm((f) => ({ ...f, email: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="adminPassword">Contraseña</Label>
+              <Input
+                id="adminPassword"
+                type="password"
+                value={adminForm.password}
+                onChange={(e) => setAdminForm((f) => ({ ...f, password: e.target.value }))}
+                placeholder="Mín. 8, 1 mayúscula, 1 número"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={adminForm.role === "ADMIN" ? "default" : "outline"}
+                onClick={() => setAdminForm((f) => ({ ...f, role: "ADMIN" }))}
+              >
+                Administrador
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={adminForm.role === "TRAINER" ? "default" : "outline"}
+                onClick={() => setAdminForm((f) => ({ ...f, role: "TRAINER" }))}
+              >
+                Entrenador
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAdminGym(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateAdmin}
+              disabled={
+                adminSaving ||
+                !adminForm.name.trim() ||
+                !adminForm.email.trim() ||
+                !adminForm.password
+              }
+            >
+              {adminSaving ? "Creando..." : "Crear usuario"}
             </Button>
           </DialogFooter>
         </DialogContent>

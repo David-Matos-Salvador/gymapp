@@ -86,11 +86,11 @@ export function GymManagementTabs({
       await fetch("/api/gym-equipment-activations", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ equipmentId, active }),
+        body: JSON.stringify({ equipmentId, gymId: gym?.id, active }),
       })
       router.refresh()
     },
-    [router]
+    [gym?.id, router]
   )
 
   return (

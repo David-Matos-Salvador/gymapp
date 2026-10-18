@@ -191,6 +191,7 @@ export function GymEquipmentManager({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           equipmentId: editingId,
+          gymId,
           machineNumber: formMachineNumber.trim() ? Number(formMachineNumber) : null,
           imageUrl: formImageUrl.trim() || null,
         }),

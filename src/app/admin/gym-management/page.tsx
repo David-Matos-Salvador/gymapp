@@ -1,11 +1,17 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AppShell } from "@/components/layout/shell"
 import { GymManagementTabs } from "@/components/admin/gym-management-tabs"
 import { canManageGymEquipment } from "@/lib/gym-equipment"
 
-export default async function GymManagementPage() {
+interface GymManagementPageProps {
+  searchParams: Promise<{ gymId?: string }>
+}
+
+export default async function GymManagementPage({ searchParams }: GymManagementPageProps) {
+  const { gymId } = await searchParams
   const session = await auth()
   if (!session?.user?.email) redirect("/login")
 
@@ -15,9 +21,25 @@ export default async function GymManagementPage() {
   })
   if (!user) redirect("/login")
 
-  const gym = user.gymId
+  const gyms =
+    user.role === "SUPER_ADMIN"
+      ? await prisma.gym.findMany({
+          select: { id: true, name: true, slug: true },
+          orderBy: { name: "asc" },
+        })
+      : []
+
+  const requestedGymId =
+    user.role === "SUPER_ADMIN" ? (gymId ?? user.gymId ?? gyms[0]?.id ?? null) : user.gymId
+  const selectedGymId = gyms.some((g) => g.id === requestedGymId)
+    ? requestedGymId
+    : user.role === "SUPER_ADMIN"
+      ? (user.gymId ?? gyms[0]?.id ?? null)
+      : user.gymId
+
+  const gym = selectedGymId
     ? await prisma.gym.findUnique({
-        where: { id: user.gymId },
+        where: { id: selectedGymId },
         select: { id: true, ownerId: true, showMachineNumbers: true },
       })
     : null
@@ -29,29 +51,29 @@ export default async function GymManagementPage() {
     orderBy: { name: "asc" },
   })
 
-  const gymExercises = user.gymId
+  const gymExercises = selectedGymId
     ? await prisma.gymExercise.findMany({
-        where: { gymId: user.gymId },
+        where: { gymId: selectedGymId },
         select: { exerciseId: true, active: true },
       })
     : []
 
   const gymExerciseMap = new Map(gymExercises.map((ge) => [ge.exerciseId, ge.active]))
 
-  const systemEquipmentRaw = user.gymId
+  const systemEquipmentRaw = selectedGymId
     ? await prisma.gymEquipment.findMany({
         where: { isSystem: true },
         include: {
-          activations: { where: { gymId: user.gymId } },
+          activations: { where: { gymId: selectedGymId } },
           exercise: { select: { id: true, name: true } },
         },
         orderBy: { name: "asc" },
       })
     : []
 
-  const customEquipment = user.gymId
+  const customEquipment = selectedGymId
     ? await prisma.gymEquipment.findMany({
-        where: { gymId: user.gymId },
+        where: { gymId: selectedGymId },
         include: { exercise: { select: { id: true, name: true } } },
         orderBy: { name: "asc" },
       })
@@ -67,20 +89,17 @@ export default async function GymManagementPage() {
     }
   })
 
-  const equipmentActivations = user.gymId
+  const equipmentActivations = selectedGymId
     ? await prisma.gymEquipmentActivation.findMany({
-        where: { gymId: user.gymId },
+        where: { gymId: selectedGymId },
         select: { equipmentId: true, active: true },
       })
     : []
 
   const equipActiveMap = new Map(equipmentActivations.map((a) => [a.equipmentId, a.active]))
 
-  const superadmin = user.role === "SUPER_ADMIN"
-  const gymScope = superadmin ? {} : { gymId: user.gymId ?? "__no_gym__" }
-
   const plans = await prisma.routinePlan.findMany({
-    where: superadmin ? {} : { user: { gymId: user.gymId ?? "__no_gym__" } },
+    where: selectedGymId ? { user: { gymId: selectedGymId } } : {},
     include: {
       splits: {
         include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
@@ -92,7 +111,7 @@ export default async function GymManagementPage() {
   })
 
   const members = await prisma.user.findMany({
-    where: { role: "MEMBER", ...gymScope },
+    where: { role: "MEMBER", ...(selectedGymId ? { gymId: selectedGymId } : {}) },
     select: { id: true, name: true, email: true },
     orderBy: { name: "asc" },
   })
@@ -101,6 +120,23 @@ export default async function GymManagementPage() {
 
   return (
     <AppShell>
+      {user.role === "SUPER_ADMIN" && gyms.length > 0 && (
+        <div className="max-w-4xl mx-auto px-4 pt-6 flex flex-wrap gap-2">
+          {gyms.map((item) => (
+            <Link
+              key={item.id}
+              href={`/admin/gym-management?gymId=${item.id}`}
+              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                item.id === selectedGymId
+                  ? "border-accent-yellow bg-accent-yellow/10 text-accent-yellow"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {item.name}
+            </Link>
+          ))}
+        </div>
+      )}
       <GymManagementTabs
         exercises={JSON.parse(JSON.stringify(exercises))}
         gymExerciseMap={Object.fromEntries(gymExerciseMap)}
