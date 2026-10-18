@@ -295,7 +295,8 @@ model Membership {
   updatedAt       DateTime         @updatedAt
 
   user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan MembershipPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  plan MembershipPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  payments Payment[]
 
   @@unique([userId, planId])
 }
@@ -558,6 +559,7 @@ model Booking {
 model Payment {
   id                    String        @id @default(cuid())
   userId                String
+  membershipId          String?
   amount                Float
   currency              String        @default("PEN")
   status                PaymentStatus @default(PENDING)
@@ -573,8 +575,11 @@ model Payment {
   createdAt             DateTime      @default(now())
   updatedAt             DateTime      @updatedAt
 
-  user        User  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  confirmedBy User? @relation("PaymentConfirmer", fields: [confirmedById], references: [id])
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membership  Membership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  confirmedBy User?       @relation("PaymentConfirmer", fields: [confirmedById], references: [id])
+
+  @@index([membershipId])
 }
 
 model Notification {

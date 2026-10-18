@@ -76,18 +76,32 @@ export async function PUT(request: Request, { params }: RouteParams) {
   // is ambiguous and must be rejected.
   let targetMembershipId: string | null = null
   if (payment.type === "MEMBERSHIP") {
-    const unconfirmedMemberships = await prisma.membership.findMany({
-      where: { userId: payment.userId, paymentConfirmed: false },
-      select: { id: true },
-      take: 2,
-    })
-    if (unconfirmedMemberships.length > 1) {
-      return NextResponse.json(
-        { error: "Hay más de una membresía sin confirmar para este usuario" },
-        { status: 409 }
-      )
+    if (payment.membershipId) {
+      const target = await prisma.membership.findUnique({
+        where: { id: payment.membershipId },
+        select: { id: true, userId: true },
+      })
+      if (!target || target.userId !== payment.userId) {
+        return NextResponse.json(
+          { error: "El pago apunta a una membresía inválida" },
+          { status: 409 }
+        )
+      }
+      targetMembershipId = target.id
+    } else {
+      const unconfirmedMemberships = await prisma.membership.findMany({
+        where: { userId: payment.userId, paymentConfirmed: false },
+        select: { id: true },
+        take: 2,
+      })
+      if (unconfirmedMemberships.length > 1) {
+        return NextResponse.json(
+          { error: "Hay más de una membresía sin confirmar para este usuario" },
+          { status: 409 }
+        )
+      }
+      targetMembershipId = unconfirmedMemberships[0]?.id ?? null
     }
-    targetMembershipId = unconfirmedMemberships[0]?.id ?? null
   }
 
   if (action === "CONFIRM") {

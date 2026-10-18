@@ -748,7 +748,9 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
         { timeout: 20_000 }
       )
       await expect(admin.page.getByText("Membresías activas")).toBeVisible()
-      await expect(admin.page.getByRole("link", { name: /Membresías/i })).toBeVisible()
+      await expect(
+        admin.page.getByRole("main").getByRole("link", { name: /Membresías/i })
+      ).toBeVisible()
     }
   )
 

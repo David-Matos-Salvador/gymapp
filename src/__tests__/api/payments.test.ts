@@ -115,6 +115,7 @@ const adminUser = {
   email: "admin@gymapp.com",
   role: "ADMIN",
   name: "Admin",
+  gymId: "gym-1",
 }
 
 const receiptFile = {
@@ -160,6 +161,13 @@ function pendingMembershipPayment(overrides: Record<string, unknown> = {}) {
     type: "MEMBERSHIP",
     reference: "REF-123",
     receiptUrl: "/uploads/receipts/comprobante.png",
+    user: {
+      id: "client-1",
+      name: "Client",
+      email: "client@example.com",
+      gymId: "gym-1",
+      assignedTrainerId: null,
+    },
     ...overrides,
   }
 }
@@ -169,7 +177,7 @@ function mockReviewAuth(role = "ADMIN") {
   mockUserFindUnique.mockImplementation(
     async (args: { where: { email?: string; id?: string } }) => {
       if (args.where.email) return { ...adminUser, role }
-      return { id: "client-1", assignedTrainerId: null, name: "Client" }
+      return { id: "client-1", assignedTrainerId: null, name: "Client", gymId: "gym-1" }
     }
   )
   mockTrainerRequestFindFirst.mockResolvedValue(null)

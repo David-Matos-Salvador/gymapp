@@ -267,7 +267,6 @@ export default async function DashboardPage() {
 
     const [
       totalActiveMemberships,
-      monthMemberships,
       newMembersThisMonth,
       weeklyCheckIns,
       expiringMemberships,
@@ -282,14 +281,6 @@ export default async function DashboardPage() {
           paymentConfirmed: true,
           user: { gymId: adminGymId },
         },
-      }),
-      prisma.membership.findMany({
-        where: {
-          paymentConfirmed: true,
-          startDate: { gte: startOfMonth },
-          user: { gymId: adminGymId },
-        },
-        include: { plan: { select: { price: true } } },
       }),
       prisma.user.count({
         where: {
@@ -344,7 +335,16 @@ export default async function DashboardPage() {
       }),
     ])
 
-    const monthlyIncome = monthMemberships.reduce((sum, m) => sum + m.plan.price, 0)
+    const monthlyRevenue = await prisma.payment.aggregate({
+      where: {
+        status: "COMPLETED",
+        type: "MEMBERSHIP",
+        createdAt: { gte: startOfMonth },
+        user: { gymId: adminGymId },
+      },
+      _sum: { amount: true },
+    })
+    const monthlyIncome = monthlyRevenue._sum.amount ?? 0
     const avgDailyAttendance = Math.round((weeklyCheckIns / 7) * 10) / 10
 
     const activeEquipment = user.gymId

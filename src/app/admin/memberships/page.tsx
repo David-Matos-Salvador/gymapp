@@ -48,6 +48,7 @@ export default async function AdminMembershipsPage() {
     select: {
       id: true,
       userId: true,
+      membershipId: true,
       amount: true,
       currency: true,
       method: true,

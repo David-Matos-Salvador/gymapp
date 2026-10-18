@@ -3208,6 +3208,10 @@ async function main() {
   console.log("✅ Trainer invites created")
 
   // ── Payment example (pending Yape payment) ──────────
+  const mateoMembership = await prisma.membership.findFirst({
+    where: { userId: mateo.id },
+    select: { id: true },
+  })
   const existingPayment = await prisma.payment.findFirst({
     where: { userId: mateo.id, type: "MEMBERSHIP" },
   })
@@ -3215,6 +3219,7 @@ async function main() {
     await prisma.payment.create({
       data: {
         userId: mateo.id,
+        membershipId: mateoMembership?.id,
         amount: 500,
         currency: "PEN",
         status: "PENDING",

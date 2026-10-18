@@ -6,6 +6,14 @@ import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -73,6 +81,7 @@ interface Membership {
 interface PendingPayment {
   id: string
   userId: string
+  membershipId: string | null
   amount: number
   currency: string
   method: string
@@ -90,6 +99,7 @@ const paymentMethodLabels: Record<string, string> = {
   TRANSFER: "Transferencia",
   CARD: "Tarjeta",
   STRIPE: "Stripe",
+  YAPE: "Yape",
   OTHER: "Otro",
 }
 
@@ -102,12 +112,21 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
     membership: Membership
   } | null>(null)
   const [manualMembership, setManualMembership] = useState<Membership | null>(null)
+  const [manualMethod, setManualMethod] = useState("CASH")
+  const [manualRef, setManualRef] = useState("")
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState<string | null>(null)
 
+  const pendingByMembership = new Map<string, PendingPayment>()
   const pendingByUser = new Map<string, PendingPayment>()
   for (const payment of pendingReceipts) {
-    if (!pendingByUser.has(payment.userId)) pendingByUser.set(payment.userId, payment)
+    if (payment.membershipId) {
+      if (!pendingByMembership.has(payment.membershipId)) {
+        pendingByMembership.set(payment.membershipId, payment)
+      }
+    } else if (!pendingByUser.has(payment.userId)) {
+      pendingByUser.set(payment.userId, payment)
+    }
   }
 
   // D-02: cada membresía pertenece a un solo tab. El comprobante pendiente se
@@ -128,27 +147,45 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
     )
   }
 
+  function openManualPayment(membership: Membership) {
+    setManualMethod("CASH")
+    setManualRef("")
+    setManualMembership(membership)
+  }
+
   async function handleMarkPaid(id: string) {
     setLoading(id)
     play("select")
-    const res = await fetch(`/api/memberships/${id}`, {
-      method: "PATCH",
+    const res = await fetch("/api/payments/manual", {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ paymentConfirmed: true }),
+      body: JSON.stringify({
+        membershipId: id,
+        method: manualMethod,
+        reference: manualRef.trim() || undefined,
+      }),
     })
     if (res.ok) {
       const json = await res.json()
       setData((prev) =>
         prev.map((m) =>
-          m.id === id ? { ...m, paymentConfirmed: true, updatedAt: json.membership.updatedAt } : m
+          m.id === id
+            ? {
+                ...m,
+                paymentConfirmed: true,
+                paymentMethod: manualMethod,
+                paymentRef: manualRef.trim() || null,
+                updatedAt: json.membership.updatedAt,
+              }
+            : m
         )
       )
       play("success")
-      toast.success("Membresía marcada como pagada")
+      toast.success("Pago manual registrado")
       setManualMembership(null)
     } else {
       const json = await res.json()
-      toast.error(json.error ?? "Error al confirmar pago")
+      toast.error(json.error ?? "Error al registrar el pago")
     }
     setLoading(null)
   }
@@ -259,7 +296,7 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
     return (
       <div className="space-y-3">
         {filtered.map((m, i) => {
-          const pendingPayment = pendingByUser.get(m.userId)
+          const pendingPayment = pendingByMembership.get(m.id) ?? pendingByUser.get(m.userId)
           return (
             <motion.div
               key={m.id}
@@ -370,7 +407,7 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                     {!m.paymentConfirmed && m.status === "ACTIVE" && !pendingPayment ? (
                       <Button
                         size="xs"
-                        onClick={() => setManualMembership(m)}
+                        onClick={() => openManualPayment(m)}
                         className="h-6 text-[10px]"
                       >
                         <CheckCircle2 className="h-3 w-3" />
@@ -512,6 +549,45 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
               pagada sin comprobante. Usalo solo para efectivo o cobros manuales.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-4">
+            {manualMembership && (
+              <div className="rounded-lg border p-3 text-sm">
+                <p className="font-medium">
+                  {manualMembership.user.name ?? manualMembership.user.email}
+                </p>
+                <p className="text-muted-foreground">
+                  {manualMembership.plan.name} ·{" "}
+                  {formatCurrency(manualMembership.plan.price, manualMembership.plan.currency)}
+                </p>
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label htmlFor="manualMethod">Método</Label>
+              <Select value={manualMethod} onValueChange={setManualMethod}>
+                <SelectTrigger id="manualMethod" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(paymentMethodLabels)
+                    .filter(([key]) => key !== "STRIPE")
+                    .map(([key, label]) => (
+                      <SelectItem key={key} value={key}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manualRef">Referencia (opcional)</Label>
+              <Input
+                id="manualRef"
+                value={manualRef}
+                onChange={(e) => setManualRef(e.target.value)}
+                placeholder="Nro. de operación"
+              />
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setManualMembership(null)}>
               Cancelar
@@ -525,7 +601,7 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
               ) : (
                 <CheckCircle2 className="h-4 w-4" />
               )}
-              Sí, marcar pagada
+              Sí, registrar pago
             </Button>
           </DialogFooter>
         </DialogContent>

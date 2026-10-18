@@ -87,6 +87,7 @@ export async function POST(request: Request) {
       const payment = await prisma.payment.create({
         data: {
           userId: user.id,
+          membershipId: membership.id,
           amount: membership.plan.price,
           currency: membership.plan.currency,
           status: "PENDING",
