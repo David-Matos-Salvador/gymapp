@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => {
   const membershipUpdate = vi.fn()
   const membershipUpdateMany = vi.fn()
   const paymentFindUnique = vi.fn()
+  const paymentFindFirst = vi.fn()
   const paymentCreate = vi.fn()
   const paymentUpdateMany = vi.fn()
   const trainerRequestFindFirst = vi.fn()
@@ -28,6 +29,7 @@ const mocks = vi.hoisted(() => {
     },
     payment: {
       findUnique: paymentFindUnique,
+      findFirst: paymentFindFirst,
       create: paymentCreate,
       updateMany: paymentUpdateMany,
     },
@@ -49,6 +51,7 @@ const mocks = vi.hoisted(() => {
     membershipUpdate,
     membershipUpdateMany,
     paymentFindUnique,
+    paymentFindFirst,
     paymentCreate,
     paymentUpdateMany,
     trainerRequestFindFirst,
@@ -66,6 +69,7 @@ const mockMembershipFindMany = mocks.membershipFindMany
 const mockMembershipUpdate = mocks.membershipUpdate
 const mockMembershipUpdateMany = mocks.membershipUpdateMany
 const mockPaymentFindUnique = mocks.paymentFindUnique
+const mockPaymentFindFirst = mocks.paymentFindFirst
 const mockPaymentCreate = mocks.paymentCreate
 const mockPaymentUpdateMany = mocks.paymentUpdateMany
 const mockTrainerRequestFindFirst = mocks.trainerRequestFindFirst
@@ -196,6 +200,7 @@ beforeEach(() => {
   mockMembershipUpdate.mockReset()
   mockMembershipUpdateMany.mockReset()
   mockPaymentFindUnique.mockReset()
+  mockPaymentFindFirst.mockReset()
   mockPaymentCreate.mockReset()
   mockPaymentUpdateMany.mockReset()
   mockTrainerRequestFindFirst.mockReset()
@@ -210,6 +215,7 @@ beforeEach(() => {
     return Promise.all(arg as Promise<unknown>[])
   })
   mockMembershipFindMany.mockResolvedValue([])
+  mockPaymentFindFirst.mockResolvedValue(null)
   mockPaymentUpdateMany.mockResolvedValue({ count: 1 })
   mockMembershipUpdateMany.mockResolvedValue({ count: 1 })
 })

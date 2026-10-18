@@ -54,6 +54,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 })
     }
 
+    const existingPending = await prisma.payment.findFirst({
+      where: { membershipId: membership.id, status: "PENDING", type: "MEMBERSHIP" },
+      select: { id: true },
+    })
+    if (existingPending) {
+      return NextResponse.json(
+        { error: "Ya hay un comprobante pendiente para esta membresía" },
+        { status: 409 }
+      )
+    }
+
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
     const mimeValid = file.type === "" || ALLOWED_TYPES.includes(file.type)
     const extValid = ALLOWED_EXTENSIONS.includes(ext)
