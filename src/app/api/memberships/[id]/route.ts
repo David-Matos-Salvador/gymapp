@@ -121,6 +121,15 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       )
     }
 
+    if (!isAdmin && existing.status === "ACTIVE" && existing.endDate.getTime() > Date.now()) {
+      return NextResponse.json(
+        {
+          error: "La membresía sigue vigente. La renovación anticipada requiere un pago pendiente.",
+        },
+        { status: 403 }
+      )
+    }
+
     try {
       // D-01: renewal dates are always calculated on the server.
       const renewal = calculateRenewal(existing, existing.plan)

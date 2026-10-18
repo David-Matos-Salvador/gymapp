@@ -110,18 +110,12 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
     if (!pendingByUser.has(payment.userId)) pendingByUser.set(payment.userId, payment)
   }
 
-  // D-02: every membership belongs to exactly one tab. A pending receipt always
-  // goes to Pendientes so the admin can review the capture before confirming.
+  // D-02: cada membresía pertenece a un solo tab. El comprobante pendiente se
+  // muestra en la tarjeta de su membresía, sin moverla de su tab real.
   const now = new Date()
-  const pending = data.filter(
-    (m) => pendingByUser.has(m.userId) || getMembershipTab(m, now) === "pending"
-  )
-  const active = data.filter(
-    (m) => !pendingByUser.has(m.userId) && getMembershipTab(m, now) === "active"
-  )
-  const expired = data.filter(
-    (m) => !pendingByUser.has(m.userId) && getMembershipTab(m, now) === "expired"
-  )
+  const pending = data.filter((m) => getMembershipTab(m, now) === "pending")
+  const active = data.filter((m) => getMembershipTab(m, now) === "active")
+  const expired = data.filter((m) => getMembershipTab(m, now) === "expired")
 
   function filterBySearch(list: Membership[]) {
     if (!search.trim()) return list
