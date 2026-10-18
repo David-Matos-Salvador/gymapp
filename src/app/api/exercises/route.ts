@@ -61,12 +61,9 @@ export async function POST(request: Request) {
     }
 
     const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-    if (
-      !user ||
-      (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && user.role !== "TRAINER")
-    ) {
+    if (!user || user.role !== "SUPER_ADMIN") {
       return NextResponse.json(
-        { error: "No tienes permisos para crear ejercicios" },
+        { error: "Solo el superadmin puede modificar el catálogo global de ejercicios" },
         { status: 403 }
       )
     }
@@ -80,15 +77,44 @@ export async function POST(request: Request) {
       )
     }
 
-    const exercise = await prisma.exercise.create({
-      data: {
-        ...parsed.data,
-        userId: user.id,
-      },
+    const exercise = await prisma.$transaction(async (tx) => {
+      const created = await tx.exercise.create({
+        data: {
+          ...parsed.data,
+          userId: user.id,
+        },
+      })
+
+      const gyms = await tx.gym.findMany({
+        where: { active: true },
+        select: { id: true },
+      })
+      if (gyms.length > 0) {
+        await tx.gymExercise.createMany({
+          data: gyms.map((gym) => ({
+            gymId: gym.id,
+            exerciseId: created.id,
+            active: false,
+          })),
+          skipDuplicates: true,
+        })
+      }
+
+      return created
     })
 
     return NextResponse.json(exercise, { status: 201 })
   } catch (error) {
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? (error as { code?: string }).code
+        : undefined
+    if (code === "P2002") {
+      return NextResponse.json(
+        { error: "Ya existe un ejercicio con ese nombre", details: { name: ["Duplicado"] } },
+        { status: 409 }
+      )
+    }
     console.error("POST /api/exercises:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }

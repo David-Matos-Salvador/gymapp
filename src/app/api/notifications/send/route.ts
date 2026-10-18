@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { emitRealtime } from "@/lib/realtime"
 import { sendPush } from "@/lib/push-notifications"
 import { sendMembershipReminder } from "@/lib/email"
+import { getTrainerClientIds } from "@/lib/trainer-client"
 
 const sendNotificationSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
@@ -60,6 +61,16 @@ export async function POST(request: Request) {
   const targetUser = await prisma.user.findUnique({ where: { id: userId } })
   if (!targetUser) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+
+  if (currentUser.role === "ADMIN" && targetUser.gymId !== currentUser.gymId) {
+    return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+  if (currentUser.role === "TRAINER") {
+    const clientIds = await getTrainerClientIds(currentUser.id)
+    if (!clientIds.includes(targetUser.id)) {
+      return NextResponse.json({ error: "Solo podés notificar a tus clientes" }, { status: 403 })
+    }
   }
 
   const notification = await prisma.notification.create({

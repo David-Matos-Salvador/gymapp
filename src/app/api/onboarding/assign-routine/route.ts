@@ -11,7 +11,7 @@ export async function POST(request: Request) {
 
   const caller = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: true },
+    select: { id: true, role: true, gymId: true },
   })
 
   if (!caller) {
@@ -26,13 +26,22 @@ export async function POST(request: Request) {
 
   let targetUserId = caller.id
   if (body.memberId) {
-    if (caller.role !== "TRAINER" && caller.role !== "ADMIN") {
+    if (!["TRAINER", "ADMIN", "SUPER_ADMIN"].includes(caller.role)) {
       return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
     }
     if (caller.role === "TRAINER") {
       const clientIds = await getTrainerClientIds(caller.id)
       if (!clientIds.includes(body.memberId)) {
         return NextResponse.json({ error: "El miembro no es tu cliente" }, { status: 403 })
+      }
+    }
+    if (caller.role === "ADMIN") {
+      const target = await prisma.user.findUnique({
+        where: { id: body.memberId },
+        select: { gymId: true },
+      })
+      if (!target || !caller.gymId || target.gymId !== caller.gymId) {
+        return NextResponse.json({ error: "Miembro no encontrado" }, { status: 404 })
       }
     }
     targetUserId = body.memberId
@@ -42,11 +51,26 @@ export async function POST(request: Request) {
 
   const plan = await prisma.routinePlan.findUnique({
     where: { id: planId },
-    include: { splits: { include: { exercises: true }, orderBy: { order: "asc" } } },
+    include: {
+      user: { select: { id: true, role: true, gymId: true } },
+      splits: { include: { exercises: true }, orderBy: { order: "asc" } },
+    },
   })
 
   if (!plan) {
     return NextResponse.json({ error: "Plan no encontrado" }, { status: 404 })
+  }
+
+  if (caller.role === "ADMIN") {
+    if (plan.user.gymId !== caller.gymId && plan.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Plan no encontrado" }, { status: 404 })
+    }
+  }
+
+  if (caller.role === "TRAINER") {
+    if (plan.userId !== caller.id && plan.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Sin permisos sobre este plan" }, { status: 403 })
+    }
   }
 
   // Deactivate previous assignments

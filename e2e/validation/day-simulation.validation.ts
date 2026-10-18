@@ -818,29 +818,30 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     "admin-crea-y-elimina-ejercicio",
     {
       phase: "07:50 Mañana",
-      role: "admin",
-      expected: "Crear un ejercicio y luego eliminarlo",
+      role: "superadmin",
+      expected: "El superadmin crea un ejercicio global y lo elimina",
     },
-    admin.page,
+    requireSession("superadmin").page,
     async () => {
-      await visit(admin.page, "/admin/gym-management")
-      await admin.page.getByRole("button", { name: /Nuevo ejercicio/i }).click()
-      await expect(admin.page.locator("#ex-name")).toBeVisible({ timeout: 15_000 })
-      await admin.page.locator("#ex-name").fill(TEST_EXERCISE)
-      await admin.page.locator("#ex-category").fill("Validación")
-      await admin.page.getByRole("button", { name: /Crear ejercicio/i }).click()
-      await toast(admin.page, /Ejercicio creado/i)
-      await expect(admin.page.getByText(TEST_EXERCISE).first()).toBeVisible({ timeout: 20_000 })
+      const sa = requireSession("superadmin")
+      await visit(sa.page, "/admin/gym-management")
+      await sa.page.getByRole("button", { name: /Nuevo ejercicio/i }).click()
+      await expect(sa.page.locator("#ex-name")).toBeVisible({ timeout: 15_000 })
+      await sa.page.locator("#ex-name").fill(TEST_EXERCISE)
+      await sa.page.locator("#ex-category").fill("Validación")
+      await sa.page.getByRole("button", { name: /Crear ejercicio/i }).click()
+      await toast(sa.page, /Ejercicio creado/i)
+      await expect(sa.page.getByText(TEST_EXERCISE).first()).toBeVisible({ timeout: 20_000 })
 
-      const row = admin.page
+      const row = sa.page
         .locator("div.flex.items-center.gap-4.p-4")
         .filter({ hasText: TEST_EXERCISE })
         .first()
       await expect(row).toBeVisible({ timeout: 15_000 })
       await row.locator("button.text-destructive").click()
-      await admin.page.getByRole("button", { name: /^Eliminar$/i }).click()
-      await toast(admin.page, /Ejercicio eliminado/i)
-      await expect(admin.page.getByText(TEST_EXERCISE)).toHaveCount(0, { timeout: 20_000 })
+      await sa.page.getByRole("button", { name: /^Eliminar$/i }).click()
+      await toast(sa.page, /Ejercicio eliminado/i)
+      await expect(sa.page.getByText(TEST_EXERCISE)).toHaveCount(0, { timeout: 20_000 })
     }
   )
 

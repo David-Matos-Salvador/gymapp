@@ -66,11 +66,22 @@ export function GymManagementTabs({
   const [equipActiveMap, setEquipActiveMap] =
     useState<Record<string, boolean>>(initialEquipActiveMap)
 
-  const canEditExercise = (exercise: Exercise) =>
-    exercise.userId === currentUser.id || currentUser.role === "SUPER_ADMIN"
+  const canEditExercise = () => currentUser.role === "SUPER_ADMIN"
 
   const canEditPlan = (plan: Plan) =>
     plan.userId === currentUser.id || currentUser.role === "SUPER_ADMIN"
+
+  function handleExercisesChange(next: Exercise[]) {
+    setExercises(next)
+    setGymExerciseMap((prev) => {
+      const updated = { ...prev }
+      for (const exercise of next) {
+        if (updated[exercise.id] === undefined) updated[exercise.id] = false
+      }
+      return updated
+    })
+    router.refresh()
+  }
 
   const handleToggleExercise = useCallback(
     async (exerciseId: string, active: boolean) => {
@@ -136,7 +147,8 @@ export function GymManagementTabs({
             exercises={exercises}
             gymExerciseMap={gymExerciseMap}
             canEditExercise={canEditExercise}
-            onExercisesChange={setExercises}
+            canCreateExercise={currentUser.role === "SUPER_ADMIN"}
+            onExercisesChange={handleExercisesChange}
             onToggleExercise={handleToggleExercise}
           />
         </TabsContent>

@@ -69,6 +69,7 @@ function buildExisting(overrides: ExistingMembershipOverrides = {}) {
     createdAt: new Date("2026-10-01T12:00:00.000Z"),
     updatedAt: new Date("2026-10-01T12:00:00.000Z"),
     plan: { id: "p-1", durationDays },
+    user: { gymId: "gym-1" },
     ...rest,
   }
 }
@@ -87,7 +88,7 @@ function routeParams(id = "m-1") {
 
 function loginAs(id: string, role: string, email = `${id}@gymapp.com`) {
   mockAuth.mockResolvedValue({ user: { email } })
-  mockUserFindUnique.mockResolvedValue({ id, role })
+  mockUserFindUnique.mockResolvedValue({ id, role, gymId: "gym-1" })
 }
 
 describe("PATCH /api/memberships/[id]", () => {
@@ -191,8 +192,20 @@ describe("PATCH /api/memberships/[id]", () => {
     )
   })
 
-  it("lets an admin confirm a payment", async () => {
+  it("rejects an admin direct payment override", async () => {
     loginAs("u-admin", "ADMIN", "admin@gymapp.com")
+    mockMembershipFindUnique.mockResolvedValue(
+      buildExisting({ id: "m-ana", userId: "u-ana", paymentConfirmed: false })
+    )
+
+    const response = await PATCH(patchRequest({ paymentConfirmed: true }), routeParams("m-ana"))
+
+    expect(response.status).toBe(403)
+    expect(mockMembershipUpdate).not.toHaveBeenCalled()
+  })
+
+  it("lets a superadmin confirm a payment", async () => {
+    loginAs("u-super", "SUPER_ADMIN", "superadmin@gymapp.com")
     mockMembershipFindUnique.mockResolvedValue(
       buildExisting({ id: "m-ana", userId: "u-ana", paymentConfirmed: false })
     )
@@ -223,7 +236,7 @@ describe("PATCH /api/memberships/[id]", () => {
   })
 
   it("rejects explicit dates whose end is not after their start", async () => {
-    loginAs("u-admin", "ADMIN", "admin@gymapp.com")
+    loginAs("u-super", "SUPER_ADMIN", "superadmin@gymapp.com")
     mockMembershipFindUnique.mockResolvedValue(buildExisting())
 
     const response = await PATCH(
@@ -239,7 +252,7 @@ describe("PATCH /api/memberships/[id]", () => {
   })
 
   it("rejects explicit dates that shorten a future endDate", async () => {
-    loginAs("u-admin", "ADMIN", "admin@gymapp.com")
+    loginAs("u-super", "SUPER_ADMIN", "superadmin@gymapp.com")
     mockMembershipFindUnique.mockResolvedValue(buildExisting())
 
     const response = await PATCH(

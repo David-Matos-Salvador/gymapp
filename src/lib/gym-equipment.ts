@@ -3,7 +3,5 @@ export function canManageGymEquipment(
   gym: { id: string; ownerId: string | null } | null
 ): boolean {
   if (user.role === "SUPER_ADMIN") return true
-  if (!gym) return false
-  if (gym.ownerId === user.id) return true
-  return user.role === "ADMIN" && user.gymId === gym.id
+  return user.role === "ADMIN" && !!gym && user.gymId === gym.id
 }

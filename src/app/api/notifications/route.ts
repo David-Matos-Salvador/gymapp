@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { getTrainerClientIds } from "@/lib/trainer-client"
 
 const createNotificationSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
@@ -74,6 +75,16 @@ export async function POST(request: Request) {
   const targetUser = await prisma.user.findUnique({ where: { id: userId } })
   if (!targetUser) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+
+  if (user.role === "ADMIN" && targetUser.gymId !== user.gymId) {
+    return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+  if (user.role === "TRAINER") {
+    const clientIds = await getTrainerClientIds(user.id)
+    if (!clientIds.includes(targetUser.id)) {
+      return NextResponse.json({ error: "Solo podés notificar a tus clientes" }, { status: 403 })
+    }
   }
 
   const notification = await prisma.notification.create({

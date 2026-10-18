@@ -95,6 +95,7 @@ interface ExerciseManagementProps {
   exercises: Exercise[]
   gymExerciseMap?: Record<string, boolean>
   canEditExercise: (ex: Exercise) => boolean
+  canCreateExercise?: boolean
   onExercisesChange: (exercises: Exercise[]) => void
   onToggleExercise?: (exerciseId: string, active: boolean) => void
 }
@@ -103,6 +104,7 @@ export function ExerciseManagement({
   exercises,
   gymExerciseMap = {},
   canEditExercise,
+  canCreateExercise = false,
   onExercisesChange,
   onToggleExercise,
 }: ExerciseManagementProps) {
@@ -247,10 +249,12 @@ export function ExerciseManagement({
         <p className="text-sm text-muted-foreground">
           {exercises.length} ejercicio{exercises.length !== 1 ? "s" : ""}
         </p>
-        <Button onClick={openCreate} size="sm" className="gap-2">
-          <Plus className="size-4" />
-          Nuevo ejercicio
-        </Button>
+        {canCreateExercise && (
+          <Button onClick={openCreate} size="sm" className="gap-2">
+            <Plus className="size-4" />
+            Nuevo ejercicio
+          </Button>
+        )}
       </div>
 
       {exercises.length === 0 ? (

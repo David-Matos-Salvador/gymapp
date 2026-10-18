@@ -53,9 +53,7 @@ async function checkExerciseOwnership(exerciseId: string, user: { id: string; ro
 
   if (!exercise) return { exists: false, canEdit: false }
 
-  const isCreator = exercise.userId === user.id
-  const isSuperAdmin = user.role === "SUPER_ADMIN"
-  const canEdit = isCreator || isSuperAdmin
+  const canEdit = user.role === "SUPER_ADMIN"
 
   return { exists: true, canEdit }
 }
@@ -161,8 +159,21 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     if (!canEdit) {
       return NextResponse.json(
-        { error: "No tienes permisos para eliminar este ejercicio" },
+        { error: "Solo el superadmin puede eliminar el catálogo global" },
         { status: 403 }
+      )
+    }
+
+    const referenced = await prisma.routineSplitExercise.count({
+      where: { exerciseId: id },
+    })
+    if (referenced > 0) {
+      return NextResponse.json(
+        {
+          error:
+            "No se puede eliminar: el ejercicio está en rutinas. Desactivalo o quitálo de las rutinas primero.",
+        },
+        { status: 409 }
       )
     }
 

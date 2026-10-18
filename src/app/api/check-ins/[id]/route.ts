@@ -13,7 +13,10 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, role: true, gymId: true },
+    })
     if (!user) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
     }
@@ -24,8 +27,16 @@ export async function DELETE(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Check-in no encontrado" }, { status: 404 })
     }
 
-    if (existing.userId !== user.id && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+    if (existing.userId !== user.id) {
+      if (user.role === "SUPER_ADMIN") {
+        // allowed
+      } else if (user.role === "ADMIN") {
+        if (!user.gymId || existing.gymId !== user.gymId) {
+          return NextResponse.json({ error: "Check-in no encontrado" }, { status: 404 })
+        }
+      } else {
+        return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+      }
     }
 
     await prisma.checkIn.delete({ where: { id } })

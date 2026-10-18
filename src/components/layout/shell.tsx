@@ -40,7 +40,7 @@ export function AppBottomNav({
   pendingCount?: number
 }) {
   const pathname = usePathname()
-  const { isAdmin, isTrainer, isSuperAdmin, isMember, isGymOwner } = useAuth()
+  const { isAdmin, isTrainer, isSuperAdmin, isMember } = useAuth()
   const { play } = useSound()
 
   const tabs: { label: string; href: string; icon: typeof LayoutDashboard; badge?: number }[] = []
@@ -67,7 +67,7 @@ export function AppBottomNav({
   }
 
   // Admin — ADMIN, SUPER_ADMIN, gym owners (links to gym management)
-  if (isAdmin || isSuperAdmin || isGymOwner) {
+  if (isAdmin || isSuperAdmin) {
     tabs.push({ label: "Admin", href: "/admin/gym-management", icon: BarChart3 })
     tabs.push({ label: "Membresías", href: "/admin/memberships", icon: CreditCard })
   }

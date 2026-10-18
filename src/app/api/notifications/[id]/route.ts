@@ -50,8 +50,19 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   if (!notification) {
     return NextResponse.json({ error: "Notificación no encontrada" }, { status: 404 })
   }
-  if (notification.userId !== user.id && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
-    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  if (notification.userId !== user.id) {
+    if (user.role !== "SUPER_ADMIN") {
+      if (user.role !== "ADMIN") {
+        return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+      }
+      const target = await prisma.user.findUnique({
+        where: { id: notification.userId },
+        select: { gymId: true },
+      })
+      if (!target || !user.gymId || target.gymId !== user.gymId) {
+        return NextResponse.json({ error: "Notificación no encontrada" }, { status: 404 })
+      }
+    }
   }
 
   await prisma.notification.delete({ where: { id } })

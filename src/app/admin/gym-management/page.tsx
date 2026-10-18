@@ -44,8 +44,7 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
       })
     : null
 
-  const isGymOwner = !!gym && gym.ownerId === user.id
-  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN" && !isGymOwner) redirect("/dashboard")
+  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") redirect("/dashboard")
 
   const exercises = await prisma.exercise.findMany({
     orderBy: { name: "asc" },

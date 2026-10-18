@@ -52,7 +52,10 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
   if (!user) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
@@ -60,10 +63,16 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   const { id } = await params
   const existing = await prisma.membership.findUnique({
     where: { id },
-    include: { plan: true },
+    include: { plan: true, user: { select: { gymId: true } } },
   })
   if (!existing) {
     return NextResponse.json({ error: "Membresía no encontrada" }, { status: 404 })
+  }
+
+  if (user.role === "ADMIN") {
+    if (!user.gymId || existing.user.gymId !== user.gymId) {
+      return NextResponse.json({ error: "Membresía no encontrada" }, { status: 404 })
+    }
   }
 
   const isAdmin = ADMIN_ROLES.has(user.role)
@@ -93,6 +102,23 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   const input = parsed.data
   const hasDateOverride = input.startDate !== undefined || input.endDate !== undefined
+
+  if (user.role === "ADMIN") {
+    // ADM-01: el admin no puede sobrescribir pago, estado ni fechas por PATCH.
+    // Solo puede solicitar la renovación calculada en servidor.
+    const forbiddenField = Object.entries(input).find(
+      ([key, value]) => key !== "renew" && value !== undefined
+    )
+    if (forbiddenField) {
+      return NextResponse.json(
+        { error: "Usá el cobro de pago o la renovación; no edites esos campos directamente" },
+        { status: 403 }
+      )
+    }
+    if (input.renew !== true) {
+      return NextResponse.json({ error: "No hay cambios para aplicar" }, { status: 400 })
+    }
+  }
 
   if (!isAdmin) {
     // D-08: non-admin clients can only ask for a server-calculated renewal.
