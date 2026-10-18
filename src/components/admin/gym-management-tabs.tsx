@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dumbbell, ListTodo, Wrench, CreditCard, Building2, Users } from "lucide-react"
+import { Dumbbell, ListTodo, Wrench, CreditCard, Building2, Users, Receipt } from "lucide-react"
 import { ExerciseManagement, type Exercise } from "./exercise-management"
 import { RoutineManagement, type Plan } from "./routine-management"
 import {
@@ -13,6 +13,8 @@ import {
 import { MembershipPlanManager, type MembershipPlan } from "./membership-plan-manager"
 import { GymProfileForm } from "./gym-profile-form"
 import { MemberManagement } from "./member-management"
+import { PaymentLedger, type PaymentRow } from "./payment-ledger"
+import { TrainerPanel, type TrainerRow } from "./trainer-panel"
 
 interface SerializedMember {
   id: string
@@ -51,6 +53,8 @@ interface GymManagementTabsProps {
   gym: SerializedGym | null
   canManageEquipment: boolean
   canManagePlans: boolean
+  payments: PaymentRow[]
+  trainers: TrainerRow[]
 }
 
 export function GymManagementTabs({
@@ -66,6 +70,8 @@ export function GymManagementTabs({
   gym,
   canManageEquipment,
   canManagePlans,
+  payments,
+  trainers,
 }: GymManagementTabsProps) {
   const router = useRouter()
   const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
@@ -147,6 +153,14 @@ export function GymManagementTabs({
             <Users className="size-4" />
             Miembros
           </TabsTrigger>
+          <TabsTrigger value="payments" className="gap-2">
+            <Receipt className="size-4" />
+            Pagos
+          </TabsTrigger>
+          <TabsTrigger value="trainers" className="gap-2">
+            <Dumbbell className="size-4" />
+            Trainers
+          </TabsTrigger>
           {gym && (
             <TabsTrigger value="profile" className="gap-2">
               <Building2 className="size-4" />
@@ -197,6 +211,14 @@ export function GymManagementTabs({
             initialMembers={members}
             canManage={currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN"}
           />
+        </TabsContent>
+
+        <TabsContent value="payments" className="mt-6">
+          <PaymentLedger payments={payments} />
+        </TabsContent>
+
+        <TabsContent value="trainers" className="mt-6">
+          <TrainerPanel trainers={trainers} />
         </TabsContent>
 
         {gym && (

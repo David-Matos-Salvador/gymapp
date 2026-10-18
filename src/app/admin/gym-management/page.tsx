@@ -138,6 +138,60 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
       })
     : []
 
+  const payments = selectedGymId
+    ? await prisma.payment.findMany({
+        where: { user: { gymId: selectedGymId } },
+        select: {
+          id: true,
+          amount: true,
+          currency: true,
+          status: true,
+          method: true,
+          reference: true,
+          receiptUrl: true,
+          createdAt: true,
+          user: { select: { name: true, email: true } },
+          confirmedBy: { select: { name: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 100,
+      })
+    : []
+
+  const serializedPayments = payments.map((payment) => ({
+    id: payment.id,
+    userName: payment.user.name,
+    userEmail: payment.user.email,
+    amount: payment.amount,
+    currency: payment.currency,
+    status: payment.status,
+    method: payment.method,
+    reference: payment.reference,
+    receiptUrl: payment.receiptUrl,
+    createdAt: payment.createdAt.toISOString(),
+    confirmedByName: payment.confirmedBy?.name ?? null,
+  }))
+
+  const trainers = selectedGymId
+    ? await prisma.user.findMany({
+        where: { role: "TRAINER", gymId: selectedGymId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          _count: { select: { clients: true } },
+        },
+        orderBy: { name: "asc" },
+      })
+    : []
+
+  const serializedTrainers = trainers.map((trainer) => ({
+    id: trainer.id,
+    name: trainer.name,
+    email: trainer.email,
+    clientCount: trainer._count.clients,
+  }))
+
   const canManageEquipment = canManageGymEquipment(user, gym)
 
   return (
@@ -172,6 +226,8 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
         gym={gym ? JSON.parse(JSON.stringify(gym)) : null}
         canManageEquipment={canManageEquipment}
         canManagePlans={user.role === "ADMIN" || user.role === "SUPER_ADMIN"}
+        payments={serializedPayments}
+        trainers={serializedTrainers}
       />
     </AppShell>
   )
