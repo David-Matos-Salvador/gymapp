@@ -367,6 +367,12 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                       {paymentMethodLabels[m.paymentMethod] ?? m.paymentMethod}
                     </span>
 
+                    {!m.paymentConfirmed && !pendingPayment && (
+                      <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                        Pago sin confirmar
+                      </span>
+                    )}
+
                     {!m.paymentConfirmed && m.status === "ACTIVE" && !pendingPayment ? (
                       <Button
                         size="xs"
@@ -384,20 +390,26 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                     ) : null}
 
                     {canRenewMembership(m, now) && (
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        onClick={() => handleRenew(m.id)}
-                        disabled={loading === m.id}
-                        className="h-6 text-[10px]"
-                      >
-                        {loading === m.id ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <RefreshCw className="h-3 w-3" />
-                        )}
-                        Renovar
-                      </Button>
+                      <>
+                        <span className="inline-flex items-center rounded-full border border-accent-yellow/30 px-2 py-0.5 text-[10px] font-medium text-accent-yellow">
+                          Renovable
+                        </span>
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={() => handleRenew(m.id)}
+                          disabled={loading === m.id}
+                          title="Reactiva desde hoy y deja el pago pendiente"
+                          className="h-6 text-[10px]"
+                        >
+                          {loading === m.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-3 w-3" />
+                          )}
+                          Renovar
+                        </Button>
+                      </>
                     )}
                   </div>
 
