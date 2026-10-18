@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { canManageGymEquipment } from "@/lib/gym-equipment"
 import { z } from "zod"
 
-const toggleSchema = z.object({
+const activationSchema = z.object({
   equipmentId: z.string().min(1),
-  active: z.boolean(),
+  active: z.boolean().optional(),
+  machineNumber: z.number().int().min(1).optional().nullable(),
+  imageUrl: z.string().url().optional().nullable(),
 })
 
 export async function PATCH(request: Request) {
@@ -22,23 +25,62 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
-  if (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN") {
+  const gym = await prisma.gym.findUnique({
+    where: { id: user.gymId },
+    select: { id: true, ownerId: true },
+  })
+  if (!canManageGymEquipment(user, gym)) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
   const body = await request.json()
-  const parsed = toggleSchema.safeParse(body)
+  const parsed = activationSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: "Datos inválidos" }, { status: 400 })
+    return NextResponse.json(
+      { error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    )
   }
 
-  const { equipmentId, active } = parsed.data
+  const { equipmentId, active, machineNumber, imageUrl } = parsed.data
 
-  await prisma.gymEquipmentActivation.upsert({
+  const equipment = await prisma.gymEquipment.findUnique({
+    where: { id: equipmentId },
+    select: { id: true },
+  })
+  if (!equipment) {
+    return NextResponse.json({ error: "Equipo no encontrado" }, { status: 404 })
+  }
+
+  const data = {
+    ...(active !== undefined ? { active } : {}),
+    ...(machineNumber !== undefined ? { machineNumber } : {}),
+    ...(imageUrl !== undefined ? { imageUrl } : {}),
+  }
+
+  const activation = await prisma.gymEquipmentActivation.upsert({
     where: { gymId_equipmentId: { gymId: user.gymId, equipmentId } },
-    update: { active },
-    create: { gymId: user.gymId, equipmentId, active },
+    update: data,
+    create: {
+      gymId: user.gymId,
+      equipmentId,
+      active: active ?? true,
+      machineNumber: machineNumber ?? null,
+      imageUrl: imageUrl ?? null,
+    },
   })
 
-  return NextResponse.json({ success: true, active })
+  if (machineNumber != null) {
+    await prisma.gym.update({
+      where: { id: user.gymId },
+      data: { showMachineNumbers: true },
+    })
+  }
+
+  return NextResponse.json({
+    success: true,
+    active: activation.active,
+    machineNumber: activation.machineNumber,
+    imageUrl: activation.imageUrl,
+  })
 }

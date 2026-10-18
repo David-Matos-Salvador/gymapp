@@ -35,6 +35,7 @@ interface GymManagementTabsProps {
   members: SerializedMember[]
   currentUser: CurrentUser
   systemEquipment: Equipment[]
+  initialCustomEquipment: Equipment[]
   equipActiveMap: Record<string, boolean>
   gym: SerializedGym | null
   canManageEquipment: boolean
@@ -47,6 +48,7 @@ export function GymManagementTabs({
   members,
   currentUser,
   systemEquipment,
+  initialCustomEquipment,
   equipActiveMap: initialEquipActiveMap,
   gym,
   canManageEquipment,
@@ -141,7 +143,7 @@ export function GymManagementTabs({
         {canManageEquipment && (
           <TabsContent value="equipment" className="mt-6">
             <GymEquipmentManager
-              initialEquipment={[]}
+              initialEquipment={initialCustomEquipment}
               systemEquipment={systemEquipment}
               equipActiveMap={equipActiveMap}
               exercises={exercises.map((ex) => ({ id: ex.id, name: ex.name }))}

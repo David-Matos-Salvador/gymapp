@@ -384,10 +384,12 @@ model GymExercise {
 }
 
 model GymEquipmentActivation {
-  gymId       String
-  equipmentId String
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  gymId         String
+  equipmentId   String
+  active        Boolean @default(true)
+  machineNumber Int?
+  imageUrl      String?
+  createdAt     DateTime @default(now())
 
   gym       Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
   equipment GymEquipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)

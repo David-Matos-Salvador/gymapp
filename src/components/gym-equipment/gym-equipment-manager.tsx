@@ -40,6 +40,7 @@ export interface Equipment {
   exerciseId: string | null
   exercise: ExerciseRef | null
   machineNumber: number | null
+  isSystem?: boolean
 }
 
 interface GymEquipmentManagerProps {
@@ -79,6 +80,7 @@ export function GymEquipmentManager({
   const [equipment, setEquipment] = useState<Equipment[]>(initialEquipment)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingSystem, setEditingSystem] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
@@ -101,12 +103,14 @@ export function GymEquipmentManager({
 
   function openCreate() {
     setEditingId(null)
+    setEditingSystem(false)
     resetForm()
     setDialogOpen(true)
   }
 
   function openEdit(item: Equipment) {
     setEditingId(item.id)
+    setEditingSystem(!!item.isSystem)
     setFormName(item.name)
     setFormCategory(item.category ?? "")
     setFormLocation(item.location ?? "")
@@ -120,6 +124,33 @@ export function GymEquipmentManager({
     if (!formName.trim() || !gymId) return
     setSaving(true)
     play("select")
+
+    if (editingSystem && editingId) {
+      const res = await fetch("/api/gym-equipment-activations", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          equipmentId: editingId,
+          machineNumber: formMachineNumber.trim() ? Number(formMachineNumber) : null,
+          imageUrl: formImageUrl.trim() || null,
+        }),
+      })
+
+      if (res.ok) {
+        toast.success("Máquina actualizada")
+        play("success")
+        setDialogOpen(false)
+        resetForm()
+        setEditingId(null)
+        setEditingSystem(false)
+        router.refresh()
+      } else {
+        const data = await res.json()
+        toast.error(data.error ?? "Error al guardar la máquina")
+      }
+      setSaving(false)
+      return
+    }
 
     const body = {
       name: formName.trim(),
@@ -197,39 +228,69 @@ export function GymEquipmentManager({
         </Button>
       </div>
 
-      {/* System equipment toggles */}
+      {/* System equipment: catálogo global con configuración por gimnasio */}
       {systemEquipment.length > 0 && onToggleEquipment && (
         <div className="space-y-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Equipamiento del sistema
-          </p>
+          <div>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              Equipamiento del sistema
+            </p>
+            <p className="text-[10px] text-muted-foreground">
+              El nombre es global. El número, la imagen y la activación son de este gimnasio.
+            </p>
+          </div>
           <div className="grid gap-2 sm:grid-cols-2">
             {systemEquipment.map((item) => {
               const active = equipActiveMap[item.id] !== false
               return (
                 <div
                   key={item.id}
-                  className={`flex items-center justify-between rounded-lg border p-3 transition-colors ${active ? "bg-card" : "bg-muted/30"}`}
+                  className={`flex items-center justify-between gap-2 rounded-lg border p-3 transition-colors ${active ? "bg-card" : "bg-muted/30"}`}
                 >
-                  <div className="min-w-0">
-                    <p
-                      className={`text-sm font-medium ${active ? "" : "text-muted-foreground line-through"}`}
-                    >
-                      {item.name}
-                    </p>
+                  <div className="flex min-w-0 items-center gap-2">
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="h-10 w-10 shrink-0 rounded border object-cover"
+                      />
+                    )}
+                    <div className="min-w-0">
+                      <p
+                        className={`truncate text-sm font-medium ${active ? "" : "text-muted-foreground line-through"}`}
+                      >
+                        {item.name}
+                      </p>
+                      {item.machineNumber != null && (
+                        <span className="inline-flex items-center rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-medium text-accent-yellow">
+                          Máquina #{item.machineNumber}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <Button
-                    variant={active ? "default" : "outline"}
-                    size="sm"
-                    className={
-                      active
-                        ? "bg-accent-yellow text-black hover:bg-accent-yellow/80 shrink-0"
-                        : "shrink-0"
-                    }
-                    onClick={() => onToggleEquipment(item.id, !active)}
-                  >
-                    {active ? <Power className="h-4 w-4" /> : <PowerOff className="h-4 w-4" />}
-                  </Button>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="text-muted-foreground hover:text-foreground"
+                      onClick={() => openEdit({ ...item, isSystem: true })}
+                      aria-label="Editar máquina"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={active ? "default" : "outline"}
+                      size="sm"
+                      className={
+                        active
+                          ? "bg-accent-yellow text-black hover:bg-accent-yellow/80 shrink-0"
+                          : "shrink-0"
+                      }
+                      onClick={() => onToggleEquipment(item.id, !active)}
+                    >
+                      {active ? <Power className="h-4 w-4" /> : <PowerOff className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
               )
             })}
@@ -360,55 +421,67 @@ export function GymEquipmentManager({
           setDialogOpen(open)
           if (!open) {
             setEditingId(null)
+            setEditingSystem(false)
             resetForm()
           }
         }}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingId ? "Editar equipo" : "Agregar equipo"}</DialogTitle>
+            <DialogTitle>
+              {editingSystem ? "Editar máquina" : editingId ? "Editar equipo" : "Agregar equipo"}
+            </DialogTitle>
             <DialogDescription>
-              {editingId
-                ? "Modifica los datos del equipamiento"
-                : "Ingresa los datos del nuevo equipamiento"}
+              {editingSystem
+                ? "El nombre es global. El número, la imagen y la activación son de este gimnasio."
+                : editingId
+                  ? "Modifica los datos del equipamiento"
+                  : "Ingresa los datos del nuevo equipamiento"}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="equipName">Nombre</Label>
+              <Label htmlFor="equipName">Nombre {editingSystem && "(global)"}</Label>
               <Input
                 id="equipName"
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 placeholder="Ej: Prensa de pierna"
+                disabled={editingSystem}
               />
             </div>
+            {!editingSystem && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="equipCategory">Categoría</Label>
+                  <Select value={formCategory} onValueChange={setFormCategory}>
+                    <SelectTrigger id="equipCategory" className="w-full">
+                      <SelectValue placeholder="Seleccionar categoría..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(categoryLabels).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="equipLocation">Ubicación</Label>
+                  <Input
+                    id="equipLocation"
+                    value={formLocation}
+                    onChange={(e) => setFormLocation(e.target.value)}
+                    placeholder="Ej: Zona de pesas, 2do piso"
+                  />
+                </div>
+              </>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="equipCategory">Categoría</Label>
-              <Select value={formCategory} onValueChange={setFormCategory}>
-                <SelectTrigger id="equipCategory" className="w-full">
-                  <SelectValue placeholder="Seleccionar categoría..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(categoryLabels).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="equipLocation">Ubicación</Label>
-              <Input
-                id="equipLocation"
-                value={formLocation}
-                onChange={(e) => setFormLocation(e.target.value)}
-                placeholder="Ej: Zona de pesas, 2do piso"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="equipImageUrl">URL de imagen</Label>
+              <Label htmlFor="equipImageUrl">
+                URL de imagen {editingSystem && "(este gimnasio)"}
+              </Label>
               <Input
                 id="equipImageUrl"
                 value={formImageUrl}
@@ -416,23 +489,27 @@ export function GymEquipmentManager({
                 placeholder="https://..."
               />
             </div>
+            {!editingSystem && (
+              <div className="space-y-2">
+                <Label htmlFor="equipExercise">Ejercicio vinculado</Label>
+                <Select value={formExerciseId} onValueChange={setFormExerciseId}>
+                  <SelectTrigger id="equipExercise" className="w-full">
+                    <SelectValue placeholder="Seleccionar ejercicio..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {exercises.map((ex) => (
+                      <SelectItem key={ex.id} value={ex.id}>
+                        {ex.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="equipExercise">Ejercicio vinculado</Label>
-              <Select value={formExerciseId} onValueChange={setFormExerciseId}>
-                <SelectTrigger id="equipExercise" className="w-full">
-                  <SelectValue placeholder="Seleccionar ejercicio..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {exercises.map((ex) => (
-                    <SelectItem key={ex.id} value={ex.id}>
-                      {ex.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="equipMachineNumber">Número de máquina</Label>
+              <Label htmlFor="equipMachineNumber">
+                Número de máquina {editingSystem && "(este gimnasio)"}
+              </Label>
               <Input
                 id="equipMachineNumber"
                 type="number"

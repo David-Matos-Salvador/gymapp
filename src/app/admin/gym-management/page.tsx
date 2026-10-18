@@ -38,9 +38,34 @@ export default async function GymManagementPage() {
 
   const gymExerciseMap = new Map(gymExercises.map((ge) => [ge.exerciseId, ge.active]))
 
-  const systemEquipment = user.gymId
-    ? await prisma.gymEquipment.findMany({ where: { isSystem: true }, orderBy: { name: "asc" } })
+  const systemEquipmentRaw = user.gymId
+    ? await prisma.gymEquipment.findMany({
+        where: { isSystem: true },
+        include: {
+          activations: { where: { gymId: user.gymId } },
+          exercise: { select: { id: true, name: true } },
+        },
+        orderBy: { name: "asc" },
+      })
     : []
+
+  const customEquipment = user.gymId
+    ? await prisma.gymEquipment.findMany({
+        where: { gymId: user.gymId },
+        include: { exercise: { select: { id: true, name: true } } },
+        orderBy: { name: "asc" },
+      })
+    : []
+
+  const systemEquipment = systemEquipmentRaw.map((equipment) => {
+    const activation = equipment.activations[0]
+    return {
+      ...equipment,
+      machineNumber: activation?.machineNumber ?? equipment.machineNumber,
+      imageUrl: activation?.imageUrl ?? equipment.imageUrl,
+      isSystem: true,
+    }
+  })
 
   const equipmentActivations = user.gymId
     ? await prisma.gymEquipmentActivation.findMany({
@@ -79,6 +104,7 @@ export default async function GymManagementPage() {
         members={JSON.parse(JSON.stringify(members))}
         currentUser={{ id: user.id, role: user.role }}
         systemEquipment={JSON.parse(JSON.stringify(systemEquipment))}
+        initialCustomEquipment={JSON.parse(JSON.stringify(customEquipment))}
         equipActiveMap={Object.fromEntries(equipActiveMap)}
         gym={gym ? JSON.parse(JSON.stringify(gym)) : null}
         canManageEquipment={canManageEquipment}

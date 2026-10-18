@@ -1070,7 +1070,6 @@ async function main() {
       category: "MACHINE",
       location: "Zona de fuerza",
       exerciseId: pressBanca.id,
-      machineNumber: 1,
       imageUrl:
         "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg",
     },
@@ -1079,7 +1078,6 @@ async function main() {
       category: "MACHINE",
       location: "Zona de fuerza",
       exerciseId: pressBanca.id,
-      machineNumber: 2,
       imageUrl:
         "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg",
     },
@@ -1088,7 +1086,6 @@ async function main() {
       category: "BARBELL",
       location: "Zona de pesas",
       exerciseId: sentadilla.id,
-      machineNumber: 3,
       imageUrl:
         "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg",
     },
@@ -1097,7 +1094,6 @@ async function main() {
       category: "MACHINE",
       location: "Zona de pierna",
       exerciseId: prensaPierna.id,
-      machineNumber: 4,
       imageUrl: "https://upload.wikimedia.org/wikipedia/commons/b/bd/Gym_Leg_Press_Machine.jpg",
     },
     {
@@ -1105,7 +1101,6 @@ async function main() {
       category: "MACHINE",
       location: "Zona de espalda",
       exerciseId: remoConBarra.id,
-      machineNumber: 5,
       imageUrl:
         "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Barbell_Row/0.jpg",
     },
@@ -1114,7 +1109,6 @@ async function main() {
       category: "BENCH",
       location: "Zona de brazos",
       exerciseId: curlBiceps.id,
-      machineNumber: 6,
       imageUrl:
         "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/0.jpg",
     },
@@ -1122,21 +1116,18 @@ async function main() {
       name: "Máquina de remo",
       category: "CARDIO",
       location: "Zona de cardio",
-      machineNumber: 7,
       imageUrl: "https://cdn.pixabay.com/photo/2015/04/06/16/00/machine-709588_640.jpg",
     },
     {
       name: "Cinta de correr",
       category: "CARDIO",
       location: "Zona de cardio",
-      machineNumber: 8,
       imageUrl: "https://upload.wikimedia.org/wikipedia/commons/6/62/Treadmill-gym.jpg",
     },
     {
       name: "Bicicleta estática",
       category: "CARDIO",
       location: "Zona de cardio",
-      machineNumber: 9,
       imageUrl: "https://upload.wikimedia.org/wikipedia/commons/7/77/Stationary_bikes_at_a_gym.jpg",
     },
     {
@@ -1144,7 +1135,6 @@ async function main() {
       category: "CABLE",
       location: "Zona de brazos",
       exerciseId: extensionTriceps.id,
-      machineNumber: 10,
       imageUrl:
         "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg",
     },
@@ -1156,14 +1146,14 @@ async function main() {
     const sysId = `sys-${item.name.replace(/\s+/g, "-").toLowerCase()}`
     const sys = await prisma.gymEquipment.upsert({
       where: { id: sysId },
-      update: { machineNumber: item.machineNumber, imageUrl: item.imageUrl },
+      update: { machineNumber: null, imageUrl: item.imageUrl },
       create: {
         id: sysId,
         name: item.name,
         category: item.category,
         location: item.location,
         exerciseId: item.exerciseId ?? null,
-        machineNumber: item.machineNumber,
+        machineNumber: null,
         imageUrl: item.imageUrl,
         isSystem: true,
       },

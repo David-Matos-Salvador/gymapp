@@ -49,6 +49,14 @@ export async function GET(request: Request, { params }: RouteParams) {
                   location: true,
                   gymId: true,
                   imageUrl: true,
+                  activations: {
+                    select: {
+                      gymId: true,
+                      machineNumber: true,
+                      imageUrl: true,
+                      active: true,
+                    },
+                  },
                 },
               },
             },
@@ -96,9 +104,20 @@ export async function GET(request: Request, { params }: RouteParams) {
   if (activeEquipmentIds) {
     for (const se of split.exercises) {
       const equip = se.exercise.gymEquipments ?? []
-      se.exercise.gymEquipments = equip.filter(
-        (e) => e.gymId === user!.gymId || (e.gymId === null && activeEquipmentIds!.has(e.id))
-      )
+      se.exercise.gymEquipments = equip
+        .filter(
+          (e) => e.gymId === user!.gymId || (e.gymId === null && activeEquipmentIds!.has(e.id))
+        )
+        .map((e) => {
+          const { activations, ...equipment } = e
+          const activation = activations.find((a) => a.gymId === user!.gymId)
+          return {
+            ...equipment,
+            activations: [],
+            machineNumber: activation?.machineNumber ?? e.machineNumber,
+            imageUrl: activation?.imageUrl ?? e.imageUrl,
+          }
+        })
     }
   }
 
