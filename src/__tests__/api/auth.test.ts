@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 const mockFindUnique = vi.fn()
 const mockCreate = vi.fn()
+const mockGymFindFirst = vi.fn().mockResolvedValue({ id: "gym-1", active: true })
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -10,6 +11,8 @@ vi.mock("@/lib/prisma", () => ({
       create: (...args: unknown[]) => mockCreate(...args),
     },
     gym: {
+      findFirst: (...args: unknown[]) => mockGymFindFirst(...args),
+      findUnique: vi.fn(),
       create: vi.fn().mockResolvedValue({ id: "gym-1", name: "Test Gym" }),
     },
   },
@@ -68,6 +71,22 @@ describe("POST /api/auth/register", () => {
     expect(body.user).toHaveProperty("id", "user-new")
     expect(body.user).toHaveProperty("email", "test@example.com")
     expect(mockFindUnique).toHaveBeenCalledWith({ where: { email: "test@example.com" } })
+  })
+
+  it("rejects public registration as ADMIN", async () => {
+    const req = new Request("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        name: "Admin Attempt",
+        email: "admin-attempt@example.com",
+        password: "Password1",
+        role: "ADMIN",
+      }),
+    })
+    const response = await POST(req)
+
+    expect(response.status).toBe(400)
+    expect(mockCreate).not.toHaveBeenCalled()
   })
 
   it("returns 409 when registering with duplicate email", async () => {

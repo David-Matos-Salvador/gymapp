@@ -11,9 +11,8 @@ const registerSchema = z.object({
     .min(8, "Minimo 8 caracteres")
     .regex(/[A-Z]/, "Debe contener una mayuscula")
     .regex(/[0-9]/, "Debe contener un numero"),
-  role: z.enum(["MEMBER", "TRAINER", "ADMIN"]).default("MEMBER"),
-  gymName: z.string().optional(),
-  gymAddress: z.string().optional(),
+  role: z.literal("MEMBER").default("MEMBER"),
+  gymSlug: z.string().optional(),
 })
 
 export async function POST(request: Request) {
@@ -28,7 +27,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { name, email, password, role, gymName, gymAddress } = parsed.data
+    const { name, email, password, gymSlug } = parsed.data
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -38,70 +37,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "El email ya esta registrado" }, { status: 409 })
     }
 
-    const passwordHash = await bcrypt.hash(password, 10)
+    const gym = gymSlug
+      ? await prisma.gym.findUnique({
+          where: { slug: gymSlug },
+          select: { id: true, active: true },
+        })
+      : await prisma.gym.findFirst({
+          where: { active: true },
+          orderBy: { createdAt: "asc" },
+          select: { id: true, active: true },
+        })
 
-    let gymId: string | undefined
-
-    if (role === "ADMIN" && gymName) {
-      const slug = gymName
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "")
-        .slice(0, 50)
-
-      const existingGym = await prisma.gym.findUnique({ where: { slug } })
-      if (existingGym) {
-        return NextResponse.json(
-          { error: "Ya existe un gimnasio con ese nombre. Elige otro." },
-          { status: 409 }
-        )
-      }
-
-      const gym = await prisma.gym.create({
-        data: {
-          name: gymName,
-          slug,
-          address: gymAddress,
-        },
-      })
-      gymId = gym.id
+    if (gymSlug && (!gym || !gym.active)) {
+      return NextResponse.json(
+        { error: "El gimnasio no existe o no está disponible" },
+        { status: 400 }
+      )
     }
+
+    const passwordHash = await bcrypt.hash(password, 10)
 
     const user = await prisma.user.create({
       data: {
         name,
         email,
         password: passwordHash,
-        role,
-        gymId: gymId ?? undefined,
+        role: "MEMBER",
+        gymId: gym?.id ?? undefined,
       },
     })
-
-    if (gymId) {
-      await prisma.gym.update({
-        where: { id: gymId },
-        data: { ownerId: user.id },
-      })
-
-      // Activate all system exercises for the new gym
-      const allExercises = await prisma.exercise.findMany({ select: { id: true } })
-      await prisma.gymExercise.createMany({
-        data: allExercises.map((ex) => ({ gymId, exerciseId: ex.id, active: true })),
-        skipDuplicates: true,
-      })
-
-      // Activate all system equipment for the new gym
-      const systemEquipment = await prisma.gymEquipment.findMany({
-        where: { isSystem: true },
-        select: { id: true },
-      })
-      if (systemEquipment.length > 0) {
-        await prisma.gymEquipmentActivation.createMany({
-          data: systemEquipment.map((eq) => ({ gymId, equipmentId: eq.id, active: true })),
-          skipDuplicates: true,
-        })
-      }
-    }
 
     return NextResponse.json(
       {

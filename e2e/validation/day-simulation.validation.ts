@@ -616,7 +616,6 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       const { context, page } = await openAnonymous(browser, "/register")
       try {
         await page.waitForLoadState("networkidle")
-        await page.getByRole("button", { name: /Soy usuario/i }).click()
         await expect(page.locator("#name")).toBeVisible({ timeout: 15_000 })
         await page.locator("#name").fill("Usuario Validación")
         await page.locator("#email").fill(NEW_MEMBER_EMAIL)

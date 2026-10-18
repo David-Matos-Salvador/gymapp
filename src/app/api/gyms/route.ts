@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { isSuperAdmin } from "@/lib/authz"
 
 const createGymSchema = z.object({
   name: z.string().min(1),
@@ -15,6 +16,14 @@ const createGymSchema = z.object({
 export async function GET() {
   const gyms = await prisma.gym.findMany({
     where: { active: true },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      address: true,
+      logoUrl: true,
+      showMachineNumbers: true,
+    },
     orderBy: { name: "asc" },
   })
 
@@ -27,9 +36,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
-    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true },
+  })
+  if (!user || !isSuperAdmin(user.role)) {
+    return NextResponse.json({ error: "Solo el superadmin puede crear gimnasios" }, { status: 403 })
   }
 
   const body = await request.json()
@@ -48,9 +60,75 @@ export async function POST(request: Request) {
     .replace(/[^a-z0-9-]/g, "")
     .slice(0, 50)
 
-  const gym = await prisma.gym.create({
-    data: { name, slug, address, phone, email, logoUrl, showMachineNumbers },
-  })
+  if (!slug) {
+    return NextResponse.json(
+      { error: "El nombre del gimnasio no genera un slug válido" },
+      { status: 400 }
+    )
+  }
 
-  return NextResponse.json({ gym }, { status: 201 })
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      const gym = await tx.gym.create({
+        data: {
+          name,
+          slug,
+          address,
+          phone,
+          email,
+          logoUrl,
+          showMachineNumbers,
+          ownerId: user.id,
+        },
+      })
+
+      const exercises = await tx.exercise.findMany({ select: { id: true } })
+      if (exercises.length > 0) {
+        await tx.gymExercise.createMany({
+          data: exercises.map((exercise) => ({
+            gymId: gym.id,
+            exerciseId: exercise.id,
+            active: true,
+          })),
+          skipDuplicates: true,
+        })
+      }
+
+      const systemEquipment = await tx.gymEquipment.findMany({
+        where: { isSystem: true },
+        select: { id: true },
+      })
+      if (systemEquipment.length > 0) {
+        await tx.gymEquipmentActivation.createMany({
+          data: systemEquipment.map((equipment) => ({
+            gymId: gym.id,
+            equipmentId: equipment.id,
+            active: true,
+          })),
+          skipDuplicates: true,
+        })
+      }
+
+      return {
+        gym,
+        provisionedExercises: exercises.length,
+        provisionedEquipment: systemEquipment.length,
+      }
+    })
+
+    return NextResponse.json(result, { status: 201 })
+  } catch (error) {
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? (error as { code?: string }).code
+        : undefined
+    if (code === "P2002") {
+      return NextResponse.json(
+        { error: "Ya existe un gimnasio con ese nombre", details: { name: ["Slug duplicado"] } },
+        { status: 409 }
+      )
+    }
+    console.error("POST /api/gyms:", error)
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
+  }
 }

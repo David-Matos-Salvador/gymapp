@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { canEditGymField, isSuperAdmin } from "@/lib/authz"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -37,9 +38,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-    if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { id: true, role: true, gymId: true },
+    })
+    if (!user) {
+      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
     }
 
     const { id } = await params
@@ -48,12 +52,32 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Gimnasio no encontrado" }, { status: 404 })
     }
 
+    if (!isSuperAdmin(user.role) && user.gymId !== id) {
+      return NextResponse.json({ error: "Sin permisos sobre este gimnasio" }, { status: 403 })
+    }
+
     const body = await request.json()
     const parsed = updateGymSchema.safeParse(body)
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
         { status: 400 }
+      )
+    }
+
+    const fields = Object.keys(parsed.data)
+    if (fields.length === 0) {
+      return NextResponse.json({ error: "No hay cambios para aplicar" }, { status: 400 })
+    }
+
+    const forbidden = fields.filter((field) => !canEditGymField(user.role, field))
+    if (forbidden.length > 0) {
+      return NextResponse.json(
+        {
+          error: "No podés modificar esos campos de este gimnasio",
+          details: { forbidden },
+        },
+        { status: 403 }
       )
     }
 
@@ -68,7 +92,18 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     const gym = await prisma.gym.update({ where: { id }, data })
     return NextResponse.json({ gym })
-  } catch {
+  } catch (error) {
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? (error as { code?: string }).code
+        : undefined
+    if (code === "P2002") {
+      return NextResponse.json(
+        { error: "Ya existe un gimnasio con ese nombre", details: { name: ["Slug duplicado"] } },
+        { status: 409 }
+      )
+    }
+    console.error("PATCH /api/gyms/[id]:", error)
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
