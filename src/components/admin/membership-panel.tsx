@@ -35,6 +35,7 @@ import {
   UserRound,
   Eye,
   XCircle,
+  Plus,
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -48,6 +49,7 @@ interface MembershipUser {
   id: string
   name: string | null
   email: string
+  gymId: string | null
   assignedTrainer: { name: string | null } | null
 }
 
@@ -57,6 +59,7 @@ interface MembershipPlan {
   price: number
   currency: string
   durationDays: number
+  gymId: string
   gym: { name: string } | null
 }
 
@@ -92,9 +95,28 @@ interface PendingPayment {
   createdAt: string
 }
 
+interface MemberOption {
+  id: string
+  name: string | null
+  email: string
+  gymId: string | null
+}
+
+interface PlanOption {
+  id: string
+  name: string
+  price: number
+  currency: string
+  durationDays: number
+  gymId: string
+  gym: { name: string } | null
+}
+
 interface MembershipPanelProps {
   memberships: Membership[]
   pendingPayments: PendingPayment[]
+  members: MemberOption[]
+  plans: PlanOption[]
 }
 
 const paymentMethodLabels: Record<string, string> = {
@@ -106,7 +128,12 @@ const paymentMethodLabels: Record<string, string> = {
   OTHER: "Otro",
 }
 
-export function MembershipPanel({ memberships, pendingPayments }: MembershipPanelProps) {
+export function MembershipPanel({
+  memberships,
+  pendingPayments,
+  members,
+  plans,
+}: MembershipPanelProps) {
   const { play } = useSound()
   const [data, setData] = useState<Membership[]>(memberships)
   const [pendingReceipts, setPendingReceipts] = useState<PendingPayment[]>(pendingPayments)
@@ -117,6 +144,13 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
   const [manualMembership, setManualMembership] = useState<Membership | null>(null)
   const [manualMethod, setManualMethod] = useState("CASH")
   const [manualRef, setManualRef] = useState("")
+  const [newOpen, setNewOpen] = useState(false)
+  const [newMemberId, setNewMemberId] = useState("")
+  const [newPlanId, setNewPlanId] = useState("")
+  const [newMethod, setNewMethod] = useState("CASH")
+  const [newRef, setNewRef] = useState("")
+  const [newSaving, setNewSaving] = useState(false)
+  const [newError, setNewError] = useState("")
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState<string | null>(null)
 
@@ -243,6 +277,82 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
     } finally {
       setLoading(null)
     }
+  }
+
+  const selectedMember = members.find((member) => member.id === newMemberId) ?? null
+  const availablePlans = plans.filter(
+    (plan) => !selectedMember || plan.gymId === selectedMember.gymId
+  )
+
+  function openNewMembership() {
+    setNewMemberId("")
+    setNewPlanId("")
+    setNewMethod("CASH")
+    setNewRef("")
+    setNewError("")
+    setNewOpen(true)
+  }
+
+  async function handleCreateMembership() {
+    if (!newMemberId || !newPlanId) {
+      setNewError("Elegí un miembro y un plan")
+      return
+    }
+
+    setNewSaving(true)
+    setNewError("")
+    play("select")
+
+    const res = await fetch("/api/memberships", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: newMemberId,
+        planId: newPlanId,
+        paymentMethod: newMethod,
+        paymentRef: newRef.trim() || undefined,
+      }),
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      setNewError(data.error ?? "Error al crear la membresía")
+      play("delete")
+      setNewSaving(false)
+      return
+    }
+
+    const data = await res.json()
+    const member = members.find((item) => item.id === newMemberId)
+    const plan = plans.find((item) => item.id === newPlanId)
+    if (member && plan) {
+      setData((prev) => [
+        {
+          ...data.membership,
+          user: {
+            id: member.id,
+            name: member.name,
+            email: member.email,
+            gymId: member.gymId,
+            assignedTrainer: null,
+          },
+          plan: {
+            id: plan.id,
+            name: plan.name,
+            price: plan.price,
+            currency: plan.currency,
+            durationDays: plan.durationDays,
+            gymId: plan.gymId,
+            gym: plan.gym,
+          },
+        },
+        ...prev,
+      ])
+    }
+    play("success")
+    toast.success("Membresía creada; queda con pago pendiente")
+    setNewOpen(false)
+    setNewSaving(false)
   }
 
   async function handleRenew(id: string) {
@@ -467,14 +577,20 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
 
   return (
     <div className="space-y-6">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por nombre, email o plan..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre, email o plan..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Button size="sm" onClick={openNewMembership}>
+          <Plus className="h-4 w-4" />
+          Nueva membresía
+        </Button>
       </div>
 
       <Tabs defaultValue="pending">
@@ -612,6 +728,94 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                 <CheckCircle2 className="h-4 w-4" />
               )}
               Sí, registrar pago
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={newOpen} onOpenChange={setNewOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Nueva membresía</DialogTitle>
+            <DialogDescription>
+              Elegí un miembro del gimnasio y un plan activo. La membresía queda con el pago
+              pendiente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label>Miembro</Label>
+              <Select
+                value={newMemberId}
+                onValueChange={(value) => {
+                  setNewMemberId(value)
+                  setNewPlanId("")
+                  setNewError("")
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Elegir miembro" />
+                </SelectTrigger>
+                <SelectContent>
+                  {members.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      {member.name ?? member.email} — {member.email}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Plan</Label>
+              <Select value={newPlanId} onValueChange={setNewPlanId} disabled={!selectedMember}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Elegir plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availablePlans.map((plan) => (
+                    <SelectItem key={plan.id} value={plan.id}>
+                      {plan.name} · {formatCurrency(plan.price, plan.currency)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Método de pago</Label>
+              <Select value={newMethod} onValueChange={setNewMethod}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(paymentMethodLabels).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="newMembershipRef">Referencia (opcional)</Label>
+              <Input
+                id="newMembershipRef"
+                value={newRef}
+                onChange={(e) => setNewRef(e.target.value)}
+                placeholder="Nro. de operación"
+              />
+            </div>
+            {newError && <p className="text-sm text-destructive">{newError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setNewOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCreateMembership}
+              disabled={newSaving || !newMemberId || !newPlanId}
+            >
+              {newSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              Crear membresía
             </Button>
           </DialogFooter>
         </DialogContent>

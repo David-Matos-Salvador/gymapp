@@ -26,6 +26,7 @@ export default async function AdminMembershipsPage() {
           id: true,
           name: true,
           email: true,
+          gymId: true,
           assignedTrainer: { select: { name: true } },
         },
       },
@@ -36,6 +37,7 @@ export default async function AdminMembershipsPage() {
           price: true,
           currency: true,
           durationDays: true,
+          gymId: true,
           gym: { select: { name: true } },
         },
       },
@@ -71,6 +73,32 @@ export default async function AdminMembershipsPage() {
     createdAt: payment.createdAt.toISOString(),
   }))
 
+  const members = await prisma.user.findMany({
+    where: {
+      role: "MEMBER",
+      ...(superadmin ? {} : { gymId: user.gymId ?? "__no_gym__" }),
+    },
+    select: { id: true, name: true, email: true, gymId: true },
+    orderBy: { name: "asc" },
+  })
+
+  const plans = await prisma.membershipPlan.findMany({
+    where: {
+      active: true,
+      ...(superadmin ? {} : { gymId: user.gymId ?? "__no_gym__" }),
+    },
+    select: {
+      id: true,
+      name: true,
+      price: true,
+      currency: true,
+      durationDays: true,
+      gymId: true,
+      gym: { select: { name: true } },
+    },
+    orderBy: { price: "asc" },
+  })
+
   return (
     <AppShell>
       <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
@@ -82,7 +110,12 @@ export default async function AdminMembershipsPage() {
             pago. <strong>Registrar pago manual</strong> es solo para efectivo, sin comprobante.
           </p>
         </div>
-        <MembershipPanel memberships={serialized} pendingPayments={serializedPendingPayments} />
+        <MembershipPanel
+          memberships={serialized}
+          pendingPayments={serializedPendingPayments}
+          members={members}
+          plans={plans}
+        />
       </div>
     </AppShell>
   )
