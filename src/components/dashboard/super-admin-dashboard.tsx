@@ -31,6 +31,9 @@ import {
   ShieldCheck,
   Plus,
   Hash,
+  Pencil,
+  Power,
+  PowerOff,
 } from "lucide-react"
 import { ROLE_LABELS } from "@/constants/user"
 
@@ -39,7 +42,12 @@ interface GymData {
   name: string
   slug: string
   active: boolean
+  address: string | null
+  phone: string | null
+  email: string | null
+  logoUrl: string | null
   showMachineNumbers: boolean
+  ownerId: string | null
   userCount: number
 }
 
@@ -84,10 +92,23 @@ export function SuperAdminDashboard({
     showMachineNumbers: false,
   })
   const [gymSaving, setGymSaving] = useState(false)
+  const [gymError, setGymError] = useState("")
+  const [editingGym, setEditingGym] = useState<GymData | null>(null)
+  const [editForm, setEditForm] = useState({
+    name: "",
+    address: "",
+    phone: "",
+    email: "",
+    logoUrl: "",
+    showMachineNumbers: false,
+  })
+  const [editSaving, setEditSaving] = useState(false)
+  const [statusGym, setStatusGym] = useState<GymData | null>(null)
 
   async function handleCreateGym() {
     if (!gymForm.name.trim()) return
     setGymSaving(true)
+    setGymError("")
     const res = await fetch("/api/gyms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -108,9 +129,81 @@ export function SuperAdminDashboard({
       setStats(data.stats)
       setGyms(data.gyms)
     } else {
-      toast.error("Error al crear gimnasio")
+      const data = await res.json().catch(() => ({}))
+      const message = data.error ?? "Error al crear gimnasio"
+      setGymError(message)
+      toast.error(message)
     }
     setGymSaving(false)
+  }
+
+  function openEditGym(gym: GymData) {
+    setEditingGym(gym)
+    setEditForm({
+      name: gym.name,
+      address: gym.address ?? "",
+      phone: gym.phone ?? "",
+      email: gym.email ?? "",
+      logoUrl: gym.logoUrl ?? "",
+      showMachineNumbers: gym.showMachineNumbers,
+    })
+  }
+
+  async function handleEditGym() {
+    if (!editingGym || !editForm.name.trim()) return
+    setEditSaving(true)
+    const res = await fetch(`/api/gyms/${editingGym.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: editForm.name,
+        address: editForm.address || undefined,
+        phone: editForm.phone || undefined,
+        email: editForm.email || undefined,
+        logoUrl: editForm.logoUrl || undefined,
+        showMachineNumbers: editForm.showMachineNumbers,
+      }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setGyms((prev) =>
+        prev.map((g) =>
+          g.id === editingGym.id
+            ? {
+                ...g,
+                ...data.gym,
+                userCount: g.userCount,
+                ownerId: data.gym.ownerId ?? g.ownerId,
+              }
+            : g
+        )
+      )
+      play("success")
+      toast.success("Gimnasio actualizado")
+      setEditingGym(null)
+    } else {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? "Error al actualizar gimnasio")
+    }
+    setEditSaving(false)
+  }
+
+  async function handleToggleActive(gym: GymData) {
+    const res = await fetch(`/api/gyms/${gym.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active: !gym.active }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setGyms((prev) => prev.map((g) => (g.id === gym.id ? { ...g, ...data.gym } : g)))
+      play("success")
+      toast.success(data.gym.active ? "Gimnasio activado" : "Gimnasio desactivado")
+      setStatusGym(null)
+    } else {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error ?? "Error al cambiar el estado")
+    }
   }
 
   async function handleToggleMachineNumbers(gymId: string, current: boolean) {
@@ -192,7 +285,14 @@ export function SuperAdminDashboard({
               <CardTitle className="text-base flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-accent-yellow" /> Gimnasios
               </CardTitle>
-              <Button variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setGymError("")
+                  setDialogOpen(true)
+                }}
+              >
                 <Plus className="h-4 w-4 mr-1" /> Crear gym
               </Button>
             </CardHeader>
@@ -230,6 +330,11 @@ export function SuperAdminDashboard({
                       size="icon-sm"
                       className={gym.showMachineNumbers ? "text-primary" : "text-muted-foreground"}
                       onClick={() => handleToggleMachineNumbers(gym.id, gym.showMachineNumbers)}
+                      aria-label={
+                        gym.showMachineNumbers
+                          ? "Desactivar números de máquina"
+                          : "Activar números de máquina"
+                      }
                       title={
                         gym.showMachineNumbers
                           ? "Desactivar números de máquina"
@@ -237,6 +342,29 @@ export function SuperAdminDashboard({
                       }
                     >
                       <Hash className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => openEditGym(gym)}
+                      aria-label="Editar gimnasio"
+                      title="Editar gimnasio"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className={gym.active ? "text-muted-foreground" : "text-accent-yellow"}
+                      onClick={() => setStatusGym(gym)}
+                      aria-label={gym.active ? "Desactivar gimnasio" : "Activar gimnasio"}
+                      title={gym.active ? "Desactivar gimnasio" : "Activar gimnasio"}
+                    >
+                      {gym.active ? (
+                        <PowerOff className="h-4 w-4" />
+                      ) : (
+                        <Power className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 ))
@@ -335,10 +463,11 @@ export function SuperAdminDashboard({
               >
                 <Hash className="h-3.5 w-3.5" />
                 {gymForm.showMachineNumbers
-                  ? "Mostrar números de máquina"
-                  : "Ocultar números de máquina"}
+                  ? "Números de máquina: activados"
+                  : "Números de máquina: desactivados"}
               </Button>
             </div>
+            {gymError && <p className="text-sm text-destructive">{gymError}</p>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
@@ -346,6 +475,119 @@ export function SuperAdminDashboard({
             </Button>
             <Button onClick={handleCreateGym} disabled={gymSaving || !gymForm.name.trim()}>
               {gymSaving ? "Creando..." : "Crear gimnasio"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!editingGym}
+        onOpenChange={(open) => {
+          if (!open) setEditingGym(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar gimnasio</DialogTitle>
+            <DialogDescription>
+              Actualizá los datos del gimnasio y su configuración de plataforma.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="editGymName">Nombre</Label>
+              <Input
+                id="editGymName"
+                value={editForm.name}
+                onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editGymAddress">Dirección</Label>
+              <Input
+                id="editGymAddress"
+                value={editForm.address}
+                onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editGymPhone">Teléfono</Label>
+              <Input
+                id="editGymPhone"
+                value={editForm.phone}
+                onChange={(e) => setEditForm((f) => ({ ...f, phone: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editGymEmail">Email</Label>
+              <Input
+                id="editGymEmail"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm((f) => ({ ...f, email: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editGymLogo">URL del logo</Label>
+              <Input
+                id="editGymLogo"
+                value={editForm.logoUrl}
+                onChange={(e) => setEditForm((f) => ({ ...f, logoUrl: e.target.value }))}
+                placeholder="https://..."
+              />
+            </div>
+            <Button
+              type="button"
+              variant={editForm.showMachineNumbers ? "default" : "outline"}
+              size="sm"
+              onClick={() =>
+                setEditForm((f) => ({ ...f, showMachineNumbers: !f.showMachineNumbers }))
+              }
+              className="gap-2"
+            >
+              <Hash className="h-3.5 w-3.5" />
+              {editForm.showMachineNumbers
+                ? "Números de máquina: activados"
+                : "Números de máquina: desactivados"}
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingGym(null)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleEditGym} disabled={editSaving || !editForm.name.trim()}>
+              {editSaving ? "Guardando..." : "Guardar cambios"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={!!statusGym}
+        onOpenChange={(open) => {
+          if (!open) setStatusGym(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {statusGym?.active ? "Desactivar gimnasio" : "Activar gimnasio"}
+            </DialogTitle>
+            <DialogDescription>
+              {statusGym?.active
+                ? "Los usuarios de este gimnasio no podrán iniciar sesión ni operar hasta que lo reactives."
+                : "El gimnasio volverá a estar disponible para sus usuarios."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setStatusGym(null)}>
+              Cancelar
+            </Button>
+            <Button
+              variant={statusGym?.active ? "destructive" : "default"}
+              onClick={() => statusGym && handleToggleActive(statusGym)}
+            >
+              {statusGym?.active ? "Desactivar" : "Activar"}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -461,7 +461,12 @@ export default async function DashboardPage() {
             name: g.name,
             slug: g.slug,
             active: g.active,
+            address: g.address,
+            phone: g.phone,
+            email: g.email,
+            logoUrl: g.logoUrl,
             showMachineNumbers: g.showMachineNumbers ?? false,
+            ownerId: g.ownerId,
             userCount: g._count.users,
           }))}
           recentUsers={recentUsers.map((u) => ({

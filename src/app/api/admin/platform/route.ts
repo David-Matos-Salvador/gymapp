@@ -17,7 +17,9 @@ export async function GET() {
   const totalUsers = await prisma.user.count()
   const totalMembers = await prisma.user.count({ where: { role: "MEMBER" } })
   const totalTrainers = await prisma.user.count({ where: { role: "TRAINER" } })
-  const activeMemberships = await prisma.membership.count({ where: { status: "ACTIVE" } })
+  const activeMemberships = await prisma.membership.count({
+    where: { status: "ACTIVE", paymentConfirmed: true, endDate: { gt: new Date() } },
+  })
   const totalRevenue = await prisma.payment.aggregate({
     where: { status: "COMPLETED", type: "MEMBERSHIP" },
     _sum: { amount: true },
@@ -52,6 +54,12 @@ export async function GET() {
       name: g.name,
       slug: g.slug,
       active: g.active,
+      address: g.address,
+      phone: g.phone,
+      email: g.email,
+      logoUrl: g.logoUrl,
+      showMachineNumbers: g.showMachineNumbers,
+      ownerId: g.ownerId,
       userCount: g._count.users,
       createdAt: g.createdAt.toISOString(),
     })),
