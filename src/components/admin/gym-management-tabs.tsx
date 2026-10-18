@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dumbbell, ListTodo, Wrench, CreditCard, Building2 } from "lucide-react"
+import { Dumbbell, ListTodo, Wrench, CreditCard, Building2, Users } from "lucide-react"
 import { ExerciseManagement, type Exercise } from "./exercise-management"
 import { RoutineManagement, type Plan } from "./routine-management"
 import {
@@ -12,11 +12,14 @@ import {
 } from "@/components/gym-equipment/gym-equipment-manager"
 import { MembershipPlanManager, type MembershipPlan } from "./membership-plan-manager"
 import { GymProfileForm } from "./gym-profile-form"
+import { MemberManagement } from "./member-management"
 
 interface SerializedMember {
   id: string
   name: string | null
   email: string
+  phone?: string | null
+  assignedTrainer?: { name: string | null } | null
 }
 
 interface CurrentUser {
@@ -140,6 +143,10 @@ export function GymManagementTabs({
               Planes
             </TabsTrigger>
           )}
+          <TabsTrigger value="members" className="gap-2">
+            <Users className="size-4" />
+            Miembros
+          </TabsTrigger>
           {gym && (
             <TabsTrigger value="profile" className="gap-2">
               <Building2 className="size-4" />
@@ -184,6 +191,13 @@ export function GymManagementTabs({
             />
           </TabsContent>
         )}
+
+        <TabsContent value="members" className="mt-6">
+          <MemberManagement
+            initialMembers={members}
+            canManage={currentUser.role === "ADMIN" || currentUser.role === "SUPER_ADMIN"}
+          />
+        </TabsContent>
 
         {gym && (
           <TabsContent value="profile" className="mt-6">

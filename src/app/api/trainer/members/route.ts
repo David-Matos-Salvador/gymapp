@@ -25,6 +25,9 @@ export async function POST(request: Request) {
   if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
+  if (!user.gymId) {
+    return NextResponse.json({ error: "Sin gimnasio asignado" }, { status: 403 })
+  }
 
   const body = await request.json().catch(() => ({}))
   const parsed = createMemberSchema.safeParse(body)
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
       password: passwordHash,
       phone: phone?.trim() || null,
       role: "MEMBER",
-      assignedTrainerId: user.id,
+      assignedTrainerId: user.role === "TRAINER" ? user.id : null,
       gymId: user.gymId,
     },
   })

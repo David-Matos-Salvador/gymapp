@@ -121,7 +121,13 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
 
   const members = await prisma.user.findMany({
     where: { role: "MEMBER", ...(selectedGymId ? { gymId: selectedGymId } : {}) },
-    select: { id: true, name: true, email: true },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      assignedTrainer: { select: { name: true } },
+    },
     orderBy: { name: "asc" },
   })
 
