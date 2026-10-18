@@ -3,13 +3,14 @@
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dumbbell, ListTodo, Wrench } from "lucide-react"
+import { Dumbbell, ListTodo, Wrench, CreditCard } from "lucide-react"
 import { ExerciseManagement, type Exercise } from "./exercise-management"
 import { RoutineManagement, type Plan } from "./routine-management"
 import {
   GymEquipmentManager,
   type Equipment,
 } from "@/components/gym-equipment/gym-equipment-manager"
+import { MembershipPlanManager, type MembershipPlan } from "./membership-plan-manager"
 
 interface SerializedMember {
   id: string
@@ -32,6 +33,7 @@ interface GymManagementTabsProps {
   exercises: Exercise[]
   gymExerciseMap: Record<string, boolean>
   plans: Plan[]
+  membershipPlans: MembershipPlan[]
   members: SerializedMember[]
   currentUser: CurrentUser
   systemEquipment: Equipment[]
@@ -39,12 +41,14 @@ interface GymManagementTabsProps {
   equipActiveMap: Record<string, boolean>
   gym: SerializedGym | null
   canManageEquipment: boolean
+  canManagePlans: boolean
 }
 
 export function GymManagementTabs({
   exercises: initialExercises,
   gymExerciseMap: initialGymExerciseMap,
   plans: initialPlans,
+  membershipPlans,
   members,
   currentUser,
   systemEquipment,
@@ -52,6 +56,7 @@ export function GymManagementTabs({
   equipActiveMap: initialEquipActiveMap,
   gym,
   canManageEquipment,
+  canManagePlans,
 }: GymManagementTabsProps) {
   const router = useRouter()
   const [exercises, setExercises] = useState<Exercise[]>(initialExercises)
@@ -112,6 +117,12 @@ export function GymManagementTabs({
             <ListTodo className="size-4" />
             Rutinas
           </TabsTrigger>
+          {canManagePlans && (
+            <TabsTrigger value="plans" className="gap-2">
+              <CreditCard className="size-4" />
+              Planes
+            </TabsTrigger>
+          )}
           {canManageEquipment && (
             <TabsTrigger value="equipment" className="gap-2">
               <Wrench className="size-4" />
@@ -139,6 +150,16 @@ export function GymManagementTabs({
             onPlansChange={setPlans}
           />
         </TabsContent>
+
+        {canManagePlans && (
+          <TabsContent value="plans" className="mt-6">
+            <MembershipPlanManager
+              initialPlans={membershipPlans}
+              gymId={gym?.id}
+              canManage={canManagePlans}
+            />
+          </TabsContent>
+        )}
 
         {canManageEquipment && (
           <TabsContent value="equipment" className="mt-6">

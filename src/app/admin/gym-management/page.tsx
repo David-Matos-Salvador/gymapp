@@ -116,6 +116,13 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
     orderBy: { name: "asc" },
   })
 
+  const membershipPlans = selectedGymId
+    ? await prisma.membershipPlan.findMany({
+        where: { gymId: selectedGymId },
+        orderBy: { price: "asc" },
+      })
+    : []
+
   const canManageEquipment = canManageGymEquipment(user, gym)
 
   return (
@@ -141,6 +148,7 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
         exercises={JSON.parse(JSON.stringify(exercises))}
         gymExerciseMap={Object.fromEntries(gymExerciseMap)}
         plans={JSON.parse(JSON.stringify(plans))}
+        membershipPlans={JSON.parse(JSON.stringify(membershipPlans))}
         members={JSON.parse(JSON.stringify(members))}
         currentUser={{ id: user.id, role: user.role }}
         systemEquipment={JSON.parse(JSON.stringify(systemEquipment))}
@@ -148,6 +156,7 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
         equipActiveMap={Object.fromEntries(equipActiveMap)}
         gym={gym ? JSON.parse(JSON.stringify(gym)) : null}
         canManageEquipment={canManageEquipment}
+        canManagePlans={user.role === "ADMIN" || user.role === "SUPER_ADMIN"}
       />
     </AppShell>
   )
