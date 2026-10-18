@@ -187,9 +187,6 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
         toast.error(json.error ?? "Error al rechazar el comprobante")
         return
       }
-      setData((prev) =>
-        prev.map((m) => (m.id === membershipId ? { ...m, paymentConfirmed: false } : m))
-      )
       setPendingReceipts((prev) => prev.filter((p) => p.id !== paymentId))
       play("success")
       toast.success("Comprobante rechazado")
