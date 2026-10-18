@@ -2,13 +2,14 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { canManageGymEquipment } from "@/lib/gym-equipment"
+import { imageUrlSchema } from "@/lib/validation"
 import { z } from "zod"
 
 const activationSchema = z.object({
   equipmentId: z.string().min(1),
   active: z.boolean().optional(),
-  machineNumber: z.number().int().min(1).optional().nullable(),
-  imageUrl: z.string().url().optional().nullable(),
+  machineNumber: z.number().int().min(1).max(9999).optional().nullable(),
+  imageUrl: imageUrlSchema.optional().nullable(),
 })
 
 export async function PATCH(request: Request) {

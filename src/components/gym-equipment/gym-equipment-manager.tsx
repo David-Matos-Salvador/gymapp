@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
@@ -23,8 +23,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, Trash2, Pencil, Dumbbell, MapPin, Power, PowerOff } from "lucide-react"
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  Dumbbell,
+  MapPin,
+  Power,
+  PowerOff,
+  ImagePlus,
+  Loader2,
+} from "lucide-react"
 import { toast } from "sonner"
+
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
 interface ExerciseRef {
   id: string
@@ -84,6 +97,9 @@ export function GymEquipmentManager({
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formName, setFormName] = useState("")
   const [formCategory, setFormCategory] = useState("")
@@ -92,6 +108,13 @@ export function GymEquipmentManager({
   const [formExerciseId, setFormExerciseId] = useState("")
   const [formMachineNumber, setFormMachineNumber] = useState("")
 
+  const machineNumberValue = formMachineNumber.trim() ? Number(formMachineNumber) : null
+  const machineNumberError =
+    machineNumberValue !== null &&
+    (!Number.isInteger(machineNumberValue) || machineNumberValue < 1 || machineNumberValue > 9999)
+      ? "Ingresá un número entero entre 1 y 9999"
+      : null
+
   function resetForm() {
     setFormName("")
     setFormCategory("")
@@ -99,11 +122,47 @@ export function GymEquipmentManager({
     setFormImageUrl("")
     setFormExerciseId("")
     setFormMachineNumber("")
+    setImageError(null)
+  }
+
+  async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      setImageError("Formato no permitido. Usá JPEG, PNG, WebP o GIF.")
+      return
+    }
+    if (file.size > MAX_IMAGE_SIZE) {
+      setImageError("La imagen supera el máximo de 5 MB.")
+      return
+    }
+
+    setImageError(null)
+    setUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("type", "equipment")
+      const res = await fetch("/api/upload", { method: "POST", body: formData })
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error ?? "Error al subir la imagen")
+      }
+      const data = await res.json()
+      setFormImageUrl(data.url)
+    } catch (error) {
+      setImageError(error instanceof Error ? error.message : "Error al subir la imagen")
+    } finally {
+      setUploadingImage(false)
+    }
   }
 
   function openCreate() {
     setEditingId(null)
     setEditingSystem(false)
+    setImageError(null)
     resetForm()
     setDialogOpen(true)
   }
@@ -111,6 +170,7 @@ export function GymEquipmentManager({
   function openEdit(item: Equipment) {
     setEditingId(item.id)
     setEditingSystem(!!item.isSystem)
+    setImageError(null)
     setFormName(item.name)
     setFormCategory(item.category ?? "")
     setFormLocation(item.location ?? "")
@@ -121,7 +181,7 @@ export function GymEquipmentManager({
   }
 
   async function handleSave() {
-    if (!formName.trim() || !gymId) return
+    if (!formName.trim() || !gymId || machineNumberError) return
     setSaving(true)
     play("select")
 
@@ -154,10 +214,10 @@ export function GymEquipmentManager({
 
     const body = {
       name: formName.trim(),
-      category: formCategory.trim() || undefined,
-      location: formLocation.trim() || undefined,
-      imageUrl: formImageUrl.trim() || undefined,
-      exerciseId: formExerciseId || undefined,
+      category: formCategory.trim() || (editingId ? null : undefined),
+      location: formLocation.trim() || (editingId ? null : undefined),
+      imageUrl: formImageUrl.trim() || (editingId ? null : undefined),
+      exerciseId: formExerciseId || (editingId ? null : undefined),
       machineNumber: formMachineNumber.trim() ? Number(formMachineNumber) : null,
     }
 
@@ -479,15 +539,56 @@ export function GymEquipmentManager({
               </>
             )}
             <div className="space-y-2">
-              <Label htmlFor="equipImageUrl">
-                URL de imagen {editingSystem && "(este gimnasio)"}
-              </Label>
-              <Input
-                id="equipImageUrl"
-                value={formImageUrl}
-                onChange={(e) => setFormImageUrl(e.target.value)}
-                placeholder="https://..."
+              <Label>Imagen {editingSystem && "(este gimnasio)"}</Label>
+              {formImageUrl ? (
+                <div className="relative overflow-hidden rounded-lg border">
+                  <img
+                    src={formImageUrl}
+                    alt="Vista previa del equipo"
+                    className="h-40 w-full object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="absolute right-2 top-2"
+                    onClick={() => setFormImageUrl("")}
+                  >
+                    Quitar
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex h-32 items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
+                  Sin imagen
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                className="hidden"
+                onChange={handleImageUpload}
               />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImage}
+              >
+                {uploadingImage ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <ImagePlus className="h-4 w-4" />
+                )}
+                {formImageUrl ? "Cambiar imagen" : "Subir imagen"}
+              </Button>
+              <p className="text-xs text-muted-foreground">JPEG, PNG, WebP o GIF. Máx. 5 MB.</p>
+              {editingSystem && (
+                <p className="text-xs text-muted-foreground">
+                  Si la quitás, se usa la imagen del catálogo.
+                </p>
+              )}
+              {imageError && <p className="text-xs text-destructive">{imageError}</p>}
             </div>
             {!editingSystem && (
               <div className="space-y-2">
@@ -513,17 +614,31 @@ export function GymEquipmentManager({
               <Input
                 id="equipMachineNumber"
                 type="number"
+                min={1}
+                max={9999}
+                step={1}
+                inputMode="numeric"
                 value={formMachineNumber}
-                onChange={(e) => setFormMachineNumber(e.target.value)}
+                onChange={(e) => setFormMachineNumber(e.target.value.replace(/[^\d]/g, ""))}
+                aria-invalid={!!machineNumberError}
+                aria-describedby={machineNumberError ? "equipMachineNumberError" : undefined}
                 placeholder="Ej: 1, 2, 3..."
               />
+              {machineNumberError && (
+                <p id="equipMachineNumberError" className="text-xs text-destructive">
+                  {machineNumberError}
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={saving || !formName.trim()}>
+            <Button
+              onClick={handleSave}
+              disabled={saving || uploadingImage || !formName.trim() || !!machineNumberError}
+            >
               {saving ? "Guardando..." : editingId ? "Guardar cambios" : "Guardar"}
             </Button>
           </DialogFooter>

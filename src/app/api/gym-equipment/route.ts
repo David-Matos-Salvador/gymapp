@@ -3,14 +3,15 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { canManageGymEquipment } from "@/lib/gym-equipment"
+import { imageUrlSchema } from "@/lib/validation"
 
 const createEquipmentSchema = z.object({
   name: z.string().min(1),
   category: z.string().optional(),
   location: z.string().optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrl: imageUrlSchema.optional(),
   exerciseId: z.string().optional(),
-  machineNumber: z.number().int().min(1).optional().nullable(),
+  machineNumber: z.number().int().min(1).max(9999).optional().nullable(),
   gymId: z.string().min(1),
 })
 

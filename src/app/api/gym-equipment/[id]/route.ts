@@ -3,6 +3,7 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { canManageGymEquipment } from "@/lib/gym-equipment"
+import { imageUrlSchema } from "@/lib/validation"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -12,9 +13,9 @@ const updateEquipmentSchema = z.object({
   name: z.string().min(1).optional(),
   category: z.string().optional().nullable(),
   location: z.string().optional().nullable(),
-  imageUrl: z.string().url().optional().nullable(),
+  imageUrl: imageUrlSchema.optional().nullable(),
   exerciseId: z.string().optional().nullable(),
-  machineNumber: z.number().int().min(1).optional().nullable(),
+  machineNumber: z.number().int().min(1).max(9999).optional().nullable(),
 })
 
 interface AuthResult {
