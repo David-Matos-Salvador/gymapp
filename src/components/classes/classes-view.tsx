@@ -17,7 +17,7 @@ interface ClassItem {
   duration: number
   capacity: number
   trainer: { name: string | null }
-  bookings?: { id: string; userId: string; status: string }[]
+  confirmedCount: number
 }
 
 interface Booking {
@@ -143,7 +143,7 @@ export function ClassesView({ classes, bookings, userRole }: ClassesViewProps) {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {sorted.map((cls, i) => {
         const booked = bookingIds.has(cls.id)
-        const confirmedCount = (cls.bookings ?? []).filter((b) => b.status === "CONFIRMED").length
+        const confirmedCount = cls.confirmedCount
         const isFull = confirmedCount >= cls.capacity
 
         return (

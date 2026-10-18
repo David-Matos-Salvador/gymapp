@@ -25,6 +25,7 @@ export default async function ClassesPage() {
   if (!user) redirect("/login")
 
   const classes = await prisma.class.findMany({
+    where: { gymId: user.gymId ?? "__no_gym__" },
     include: {
       trainer: { select: { name: true } },
       bookings: { select: { id: true, userId: true, status: true } },
@@ -41,7 +42,7 @@ export default async function ClassesPage() {
     duration: c.duration,
     capacity: c.capacity,
     trainer: { name: c.trainer.name },
-    bookings: c.bookings,
+    confirmedCount: c.bookings.filter((b) => b.status === "CONFIRMED").length,
   }))
 
   const serializedBookings = user.bookings.map((b) => ({
@@ -56,6 +57,7 @@ export default async function ClassesPage() {
       duration: b.classItem.duration,
       capacity: b.classItem.capacity,
       trainer: { name: b.classItem.trainer.name },
+      confirmedCount: 0,
     },
   }))
 

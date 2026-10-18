@@ -1,9 +1,9 @@
-# Validation Report — 2026-10-18T23-12-40-530Z
+# Validation Report — 2026-10-18T23-22-56-859Z
 
 ## Resumen
 
 - **URL:** http://localhost:3120
-- **Fecha:** 2026-10-18T23:15:06.821Z
+- **Fecha:** 2026-10-18T23:25:32.148Z
 - **Pasos:** 65
 - **OK:** 65
 - **Fallos:** 0
@@ -18,71 +18,71 @@ No se detectaron fallos.
 
 | ID | Fase | Rol | Esperado | Resultado | Duración |
 | --- | --- | --- | --- | --- | --- |
-| login-multiusuario | 06:00 Apertura | todos | 12 sesiones simultáneas activas | OK | 28837 ms |
-| registro-nuevo-miembro | 06:15 Apertura | anónimo | Un visitante crea una cuenta y llega al onboarding | OK | 1826 ms |
-| login-credenciales-invalidas | 06:20 Apertura | anónimo | Credenciales incorrectas muestran un error claro | OK | 822 ms |
-| auth-dashboard-sin-sesion | 06:25 Apertura | anónimo | El dashboard redirige al login sin sesión | OK | 369 ms |
-| auth-miembro-no-entra-admin | 06:30 Apertura | carlos | Un miembro no puede acceder a /admin ni /coach | OK | 2026 ms |
-| auth-trainer-no-entra-admin | 06:35 Apertura | trainer | Un trainer no puede acceder a /admin | OK | 966 ms |
-| auth-idor-membership | 06:40 Apertura | carlos | Un miembro no puede modificar la membresía de otro usuario | OK | 605 ms |
-| admin-dashboard | 07:00 Mañana | admin | Dashboard con métricas y accesos de administración | OK | 976 ms |
-| admin-pagos-pendientes | 07:15 Mañana | admin | Lista de pagos pendientes con el comprobante de Mateo | OK | 965 ms |
-| admin-membresias | 07:30 Mañana | admin | Panel de membresías con miembros y estados | OK | 1048 ms |
-| admin-gestion-gimnasio | 07:45 Mañana | admin | Gestión de ejercicios, rutinas y equipamiento | OK | 1266 ms |
-| admin-crea-y-elimina-ejercicio | 07:50 Mañana | superadmin | El superadmin crea un ejercicio global y lo elimina | OK | 3150 ms |
-| admin-crea-y-elimina-equipo | 07:55 Mañana | admin | Crear un equipo y luego eliminarlo | OK | 3156 ms |
-| coach-panel | 08:00 Mañana | trainer | Panel de Coach con clientes, rutinas y clases | OK | 1039 ms |
-| coach-clientes | 08:15 Mañana | trainer | Listado de clientes asignados | OK | 1066 ms |
-| coach-crea-rutina | 08:20 Mañana | trainer | El coach crea una rutina nueva con un ejercicio | OK | 1973 ms |
-| coach-crea-cliente | 08:25 Mañana | trainer | El coach registra un cliente nuevo desde el dashboard | OK | 1685 ms |
-| coach-crea-invitacion | 08:30 Mañana | trainer | El coach genera un link de invitación y el invitado lo abre | OK | 3365 ms |
-| coach-crea-clase | 08:35 Mañana | trainer | El coach crea una clase con capacidad 1 | OK | 1558 ms |
-| clase-capacidad-y-cancelacion | 08:40 Mañana | carlos/ana | Carlos reserva, Ana ve clase llena, Carlos cancela y Ana reserva | OK | 6225 ms |
-| clase-concurrencia | 08:45 Mañana | carlos/ana | Con capacidad 1, solo una de dos reservas simultáneas debe ganar | OK | 67 ms |
-| coach-asignar-rutina | 08:30 Mañana | trainer | Asignar una rutina a Carlos desde su ficha | OK | 3496 ms |
-| member-ve-rutina-asignada | 08:45 Mañana | carlos | Carlos ve la rutina recién asignada por su coach | OK | 977 ms |
-| trainer2-solicita-roberto | 09:30 Mañana | trainer2 | Trainer2 envía una solicitud de coaching a Roberto | OK | 1520 ms |
-| roberto-acepta-solicitud | 09:45 Mañana | roberto | Roberto recibe y acepta la solicitud desde notificaciones | OK | 2556 ms |
-| trainer2-ve-roberto | 10:00 Mañana | trainer2 | Roberto aparece como cliente de Trainer2 tras aceptar | OK | 923 ms |
-| onboarding-inicio | 10:15 Mañana | laura | Onboarding inicia en el paso de objetivo | OK | 804 ms |
-| onboarding-primeros-pasos | 10:30 Mañana | laura | Avanzar objetivo, historial, nivel y frecuencia hasta condiciones físicas | OK | 3587 ms |
-| onboarding-completo | 10:45 Mañana | laura | Completar peso, altura, medidas, horario, confirmación y elegir rutina | OK | 9882 ms |
-| workout-carlos | 11:00 Mediodía | carlos | Completar un entrenamiento, persistirlo y volver a la lista de rutinas | OK | 15062 ms |
-| workout-historial | 11:15 Mediodía | carlos | El historial del plan carga (actualmente es un placeholder) | OK | 1205 ms |
-| progress-carlos | 11:30 Mediodía | carlos | Página de progreso con historial de mediciones | OK | 991 ms |
-| routine-mateo | 11:45 Mediodía | mateo | Miembro con plan activo ve sus entrenamientos | OK | 953 ms |
-| progress-ana | 12:00 Mediodía | ana | Miembro activa ve su progreso e historial | OK | 1011 ms |
-| profile-actualiza-datos | 12:15 Mediodía | carlos | Carlos actualiza nombre y teléfono | OK | 1204 ms |
-| profile-avatar | 12:20 Mediodía | carlos | Carlos sube una foto de perfil | OK | 1052 ms |
-| settings-tema-y-sonido | 12:25 Mediodía | carlos | Cambiar tema a oscuro/claro y alternar sonidos | OK | 1125 ms |
-| progress-nueva-medicion | 12:30 Mediodía | carlos | Registrar una nueva medición corporal | OK | 1252 ms |
-| timer-funciona | 12:35 Mediodía | carlos | El temporizador inicia, cuenta y pausa | OK | 4094 ms |
-| superadmin-dashboard | 12:45 Mediodía | superadmin | Super Admin entra al dashboard sin errores | OK | 923 ms |
-| requests-redirect | 12:50 Mediodía | superadmin | /requests redirige al dashboard | OK | 980 ms |
-| superadmin-crea-gym | 12:51 Mediodía | superadmin | Crear un gym desde la plataforma con provisioning | OK | 1454 ms |
-| superadmin-edita-gym | 12:52 Mediodía | superadmin | Editar los datos de un gym | OK | 1228 ms |
-| superadmin-crea-admin | 12:53 Mediodía | superadmin | Crear un admin para el gym desde la plataforma | OK | 596 ms |
-| superadmin-toggle-gym | 12:54 Mediodía | superadmin | Desactivar y reactivar un gym | OK | 938 ms |
-| superadmin-plan | 12:55 Mediodía | superadmin | Crear, desactivar y eliminar un plan de membresía | OK | 3093 ms |
-| error-404 | 12:55 Mediodía | carlos | Una ruta inexistente devuelve 404 | OK | 228 ms |
-| responsive-mobile | 13:00 Tarde | carlos | Mi Rutina usable en viewport móvil sin overflow horizontal | OK | 1103 ms |
-| mateo-dashboard-pre-pago | 13:00 Tarde | mateo | Mateo tiene el dashboard abierto antes de la confirmación | OK | 3042 ms |
-| admin-confirma-pago | 13:15 Tarde | admin | Confirmar el pago pendiente de Mateo | OK | 2878 ms |
-| mateo-notificacion-sse | 13:30 Tarde | mateo | El badge de notificaciones de Mateo se actualiza sin recargar | OK | 57 ms |
-| valentina-membresia-pendiente | 14:00 Tarde | valentina | Valentina tiene una membresía esperando comprobante | OK | 1036 ms |
-| valentina-sube-comprobante | 14:10 Tarde | valentina | El comprobante queda pendiente de revisión y NO activa la membresía | OK | 172 ms |
-| admin-rechaza-pago-valentina | 14:20 Tarde | admin | Rechazar el comprobante deja el pago FAILED y la membresía sin confirmar | OK | 1061 ms |
-| valentina-historial-pagos | 14:30 Tarde | valentina | Valentina ve su historial de pagos | OK | 1078 ms |
-| sofia-membresia-vencida | 15:00 Tarde | sofia | Miembro con membresía vencida no puede reservar clase | OK | 1122 ms |
-| sofia-renovacion-y-reserva | 15:30 Tarde | sofia | Tras renovar +30 días, la reserva de clase funciona | OK | 1122 ms |
-| ricardo-membresia-inactiva | 16:00 Tarde | ricardo | Miembro inactivo no puede reservar clase | OK | 1095 ms |
-| admin-ricardo-inactiva-visible | 16:15 Tarde | admin | La membresía INACTIVA de Ricardo aparece en el panel de admin | OK | 978 ms |
-| admin-renueva-ricardo | 16:30 Tarde | admin | El admin renueva una membresía vencida desde el panel | OK | 1125 ms |
-| invite-expirada | 17:00 Tarde | trainer2 | Una invitación vencida responde 410 | OK | 30 ms |
-| notificaciones-carlos | 18:00 Tarde | carlos | Listado de notificaciones accesible | OK | 931 ms |
-| admin-membresia-sofia-renovada | 18:30 Tarde | admin | Sofía aparece como activa tras la renovación | OK | 934 ms |
-| health-check | 19:00 Cierre | admin | API de salud responde 200 | OK | 35 ms |
-| sin-errores-500 | 19:00 Cierre | todos | Ninguna sesión registró errores HTTP 5xx | OK | 0 ms |
+| login-multiusuario | 06:00 Apertura | todos | 12 sesiones simultáneas activas | OK | 30161 ms |
+| registro-nuevo-miembro | 06:15 Apertura | anónimo | Un visitante crea una cuenta y llega al onboarding | OK | 1949 ms |
+| login-credenciales-invalidas | 06:20 Apertura | anónimo | Credenciales incorrectas muestran un error claro | OK | 942 ms |
+| auth-dashboard-sin-sesion | 06:25 Apertura | anónimo | El dashboard redirige al login sin sesión | OK | 366 ms |
+| auth-miembro-no-entra-admin | 06:30 Apertura | carlos | Un miembro no puede acceder a /admin ni /coach | OK | 1947 ms |
+| auth-trainer-no-entra-admin | 06:35 Apertura | trainer | Un trainer no puede acceder a /admin | OK | 1068 ms |
+| auth-idor-membership | 06:40 Apertura | carlos | Un miembro no puede modificar la membresía de otro usuario | OK | 613 ms |
+| admin-dashboard | 07:00 Mañana | admin | Dashboard con métricas y accesos de administración | OK | 963 ms |
+| admin-pagos-pendientes | 07:15 Mañana | admin | Lista de pagos pendientes con el comprobante de Mateo | OK | 869 ms |
+| admin-membresias | 07:30 Mañana | admin | Panel de membresías con miembros y estados | OK | 1042 ms |
+| admin-gestion-gimnasio | 07:45 Mañana | admin | Gestión de ejercicios, rutinas y equipamiento | OK | 1375 ms |
+| admin-crea-y-elimina-ejercicio | 07:50 Mañana | superadmin | El superadmin crea un ejercicio global y lo elimina | OK | 3170 ms |
+| admin-crea-y-elimina-equipo | 07:55 Mañana | admin | Crear un equipo y luego eliminarlo | OK | 3254 ms |
+| coach-panel | 08:00 Mañana | trainer | Panel de Coach con clientes, rutinas y clases | OK | 1102 ms |
+| coach-clientes | 08:15 Mañana | trainer | Listado de clientes asignados | OK | 1082 ms |
+| coach-crea-rutina | 08:20 Mañana | trainer | El coach crea una rutina nueva con un ejercicio | OK | 1999 ms |
+| coach-crea-cliente | 08:25 Mañana | trainer | El coach registra un cliente nuevo desde el dashboard | OK | 1676 ms |
+| coach-crea-invitacion | 08:30 Mañana | trainer | El coach genera un link de invitación y el invitado lo abre | OK | 3225 ms |
+| coach-crea-clase | 08:35 Mañana | trainer | El coach crea una clase con capacidad 1 | OK | 1577 ms |
+| clase-capacidad-y-cancelacion | 08:40 Mañana | carlos/ana | Carlos reserva, Ana ve clase llena, Carlos cancela y Ana reserva | OK | 6073 ms |
+| clase-concurrencia | 08:45 Mañana | carlos/ana | Con capacidad 1, solo una de dos reservas simultáneas debe ganar | OK | 58 ms |
+| coach-asignar-rutina | 08:30 Mañana | trainer | Asignar una rutina a Carlos desde su ficha | OK | 3509 ms |
+| member-ve-rutina-asignada | 08:45 Mañana | carlos | Carlos ve la rutina recién asignada por su coach | OK | 1081 ms |
+| trainer2-solicita-roberto | 09:30 Mañana | trainer2 | Trainer2 envía una solicitud de coaching a Roberto | OK | 1515 ms |
+| roberto-acepta-solicitud | 09:45 Mañana | roberto | Roberto recibe y acepta la solicitud desde notificaciones | OK | 2754 ms |
+| trainer2-ve-roberto | 10:00 Mañana | trainer2 | Roberto aparece como cliente de Trainer2 tras aceptar | OK | 1021 ms |
+| onboarding-inicio | 10:15 Mañana | laura | Onboarding inicia en el paso de objetivo | OK | 939 ms |
+| onboarding-primeros-pasos | 10:30 Mañana | laura | Avanzar objetivo, historial, nivel y frecuencia hasta condiciones físicas | OK | 3563 ms |
+| onboarding-completo | 10:45 Mañana | laura | Completar peso, altura, medidas, horario, confirmación y elegir rutina | OK | 9959 ms |
+| workout-carlos | 11:00 Mediodía | carlos | Completar un entrenamiento, persistirlo y volver a la lista de rutinas | OK | 15244 ms |
+| workout-historial | 11:15 Mediodía | carlos | El historial del plan carga (actualmente es un placeholder) | OK | 1260 ms |
+| progress-carlos | 11:30 Mediodía | carlos | Página de progreso con historial de mediciones | OK | 1006 ms |
+| routine-mateo | 11:45 Mediodía | mateo | Miembro con plan activo ve sus entrenamientos | OK | 981 ms |
+| progress-ana | 12:00 Mediodía | ana | Miembro activa ve su progreso e historial | OK | 875 ms |
+| profile-actualiza-datos | 12:15 Mediodía | carlos | Carlos actualiza nombre y teléfono | OK | 1200 ms |
+| profile-avatar | 12:20 Mediodía | carlos | Carlos sube una foto de perfil | OK | 1014 ms |
+| settings-tema-y-sonido | 12:25 Mediodía | carlos | Cambiar tema a oscuro/claro y alternar sonidos | OK | 1048 ms |
+| progress-nueva-medicion | 12:30 Mediodía | carlos | Registrar una nueva medición corporal | OK | 1291 ms |
+| timer-funciona | 12:35 Mediodía | carlos | El temporizador inicia, cuenta y pausa | OK | 4152 ms |
+| superadmin-dashboard | 12:45 Mediodía | superadmin | Super Admin entra al dashboard sin errores | OK | 963 ms |
+| requests-redirect | 12:50 Mediodía | superadmin | /requests redirige al dashboard | OK | 905 ms |
+| superadmin-crea-gym | 12:51 Mediodía | superadmin | Crear un gym desde la plataforma con provisioning | OK | 1394 ms |
+| superadmin-edita-gym | 12:52 Mediodía | superadmin | Editar los datos de un gym | OK | 1063 ms |
+| superadmin-crea-admin | 12:53 Mediodía | superadmin | Crear un admin para el gym desde la plataforma | OK | 605 ms |
+| superadmin-toggle-gym | 12:54 Mediodía | superadmin | Desactivar y reactivar un gym | OK | 770 ms |
+| superadmin-plan | 12:55 Mediodía | superadmin | Crear, desactivar y eliminar un plan de membresía | OK | 3320 ms |
+| error-404 | 12:55 Mediodía | carlos | Una ruta inexistente devuelve 404 | OK | 233 ms |
+| responsive-mobile | 13:00 Tarde | carlos | Mi Rutina usable en viewport móvil sin overflow horizontal | OK | 1039 ms |
+| mateo-dashboard-pre-pago | 13:00 Tarde | mateo | Mateo tiene el dashboard abierto antes de la confirmación | OK | 3047 ms |
+| admin-confirma-pago | 13:15 Tarde | admin | Confirmar el pago pendiente de Mateo | OK | 3809 ms |
+| mateo-notificacion-sse | 13:30 Tarde | mateo | El badge de notificaciones de Mateo se actualiza sin recargar | OK | 56 ms |
+| valentina-membresia-pendiente | 14:00 Tarde | valentina | Valentina tiene una membresía esperando comprobante | OK | 3168 ms |
+| valentina-sube-comprobante | 14:10 Tarde | valentina | El comprobante queda pendiente de revisión y NO activa la membresía | OK | 441 ms |
+| admin-rechaza-pago-valentina | 14:20 Tarde | admin | Rechazar el comprobante deja el pago FAILED y la membresía sin confirmar | OK | 1115 ms |
+| valentina-historial-pagos | 14:30 Tarde | valentina | Valentina ve su historial de pagos | OK | 2298 ms |
+| sofia-membresia-vencida | 15:00 Tarde | sofia | Miembro con membresía vencida no puede reservar clase | OK | 1154 ms |
+| sofia-renovacion-y-reserva | 15:30 Tarde | sofia | Tras renovar +30 días, la reserva de clase funciona | OK | 1079 ms |
+| ricardo-membresia-inactiva | 16:00 Tarde | ricardo | Miembro inactivo no puede reservar clase | OK | 1214 ms |
+| admin-ricardo-inactiva-visible | 16:15 Tarde | admin | La membresía INACTIVA de Ricardo aparece en el panel de admin | OK | 1100 ms |
+| admin-renueva-ricardo | 16:30 Tarde | admin | El admin renueva una membresía vencida desde el panel | OK | 1181 ms |
+| invite-expirada | 17:00 Tarde | trainer2 | Una invitación vencida responde 410 | OK | 43 ms |
+| notificaciones-carlos | 18:00 Tarde | carlos | Listado de notificaciones accesible | OK | 2194 ms |
+| admin-membresia-sofia-renovada | 18:30 Tarde | admin | Sofía aparece como activa tras la renovación | OK | 1026 ms |
+| health-check | 19:00 Cierre | admin | API de salud responde 200 | OK | 86 ms |
+| sin-errores-500 | 19:00 Cierre | todos | Ninguna sesión registró errores HTTP 5xx | OK | 1 ms |
 
 ## Errores de consola / red
 

@@ -3231,6 +3231,10 @@ async function main() {
   }
   console.log("✅ Payment examples created")
 
+  await prisma.$executeRawUnsafe(
+    'UPDATE "Membership" m SET "planPrice" = p.price, "planCurrency" = p.currency, "planDurationDays" = p."durationDays" FROM "MembershipPlan" p WHERE m."planId" = p.id'
+  )
+
   console.log("\n🎉 Seed completed!")
   console.log("\n📋 Login credentials (password: demo123):")
   console.log("  Staff:")

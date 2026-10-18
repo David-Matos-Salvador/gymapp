@@ -71,6 +71,9 @@ interface Membership {
   paymentConfirmed: boolean
   paymentMethod: string
   paymentRef: string | null
+  planPrice: number
+  planCurrency: string
+  planDurationDays: number
   notes: string | null
   createdAt: string
   updatedAt: string
@@ -341,7 +344,9 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                     </span>
                     <span className="flex items-center gap-1">
                       <Banknote className="h-3 w-3" />
-                      {m.plan.currency.toUpperCase()} ${m.plan.price}
+                      {m.planPrice > 0
+                        ? formatCurrency(m.planPrice, m.planCurrency)
+                        : `${m.plan.currency.toUpperCase()} $${m.plan.price}`}
                     </span>
                     <span className="flex items-center gap-1">
                       <Building2 className="h-3 w-3" />
@@ -404,7 +409,10 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                       </span>
                     )}
 
-                    {!m.paymentConfirmed && m.status === "ACTIVE" && !pendingPayment ? (
+                    {!m.paymentConfirmed &&
+                    m.status === "ACTIVE" &&
+                    new Date(m.endDate) > now &&
+                    !pendingPayment ? (
                       <Button
                         size="xs"
                         onClick={() => openManualPayment(m)}
@@ -557,7 +565,9 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                 </p>
                 <p className="text-muted-foreground">
                   {manualMembership.plan.name} ·{" "}
-                  {formatCurrency(manualMembership.plan.price, manualMembership.plan.currency)}
+                  {manualMembership.planPrice > 0
+                    ? formatCurrency(manualMembership.planPrice, manualMembership.planCurrency)
+                    : formatCurrency(manualMembership.plan.price, manualMembership.plan.currency)}
                 </p>
               </div>
             )}

@@ -72,6 +72,7 @@ let postBooking: (request: Request) => Promise<Response>
 let deleteBooking: (request: Request) => Promise<Response>
 let trainerId: string
 let planId: string
+let gymId: string
 const userIds: string[] = []
 
 async function createMember(suffix: string, paymentConfirmed = true, daysToExpire = 30) {
@@ -97,6 +98,7 @@ async function createClass(name: string, capacity: number) {
     data: {
       name,
       trainerId,
+      gymId,
       capacity,
       duration: 30,
       dayOfWeek: "FRIDAY",
@@ -134,10 +136,13 @@ describe.skipIf(!RUN_INTEGRATION)("booking capacity under concurrency (real DB)"
 
     const trainer = await prisma.user.findUnique({ where: { email: "trainer@gymapp.com" } })
     const plan = await prisma.membershipPlan.findFirst()
+    const gym = await prisma.gym.findFirst({ select: { id: true } })
     if (!trainer) throw new Error("Falta el trainer del seed")
     if (!plan) throw new Error("Falta un plan de membresía del seed")
+    if (!gym) throw new Error("Falta un gimnasio del seed")
     trainerId = trainer.id
     planId = plan.id
+    gymId = gym.id
 
     const route = await import("@/app/api/bookings/route")
     postBooking = route.POST

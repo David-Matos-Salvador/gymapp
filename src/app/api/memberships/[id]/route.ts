@@ -161,7 +161,12 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       const renewal = calculateRenewal(existing, existing.plan)
       const membership = await prisma.membership.update({
         where: { id },
-        data: renewal,
+        data: {
+          ...renewal,
+          planPrice: existing.plan.price,
+          planCurrency: existing.plan.currency,
+          planDurationDays: existing.plan.durationDays,
+        },
         include: membershipInclude,
       })
 

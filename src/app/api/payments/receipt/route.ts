@@ -99,8 +99,8 @@ export async function POST(request: Request) {
         data: {
           userId: user.id,
           membershipId: membership.id,
-          amount: membership.plan.price,
-          currency: membership.plan.currency,
+          amount: membership.planPrice > 0 ? membership.planPrice : membership.plan.price,
+          currency: membership.planPrice > 0 ? membership.planCurrency : membership.plan.currency,
           status: "PENDING",
           method: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
           type: "MEMBERSHIP",

@@ -9,7 +9,7 @@ const createPlanSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   price: z.number().positive(),
-  currency: z.string().default("PEN"),
+  currency: z.enum(["PEN", "USD", "EUR"]).default("PEN"),
   durationDays: z.number().int().positive(),
 })
 
@@ -80,9 +80,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Gimnasio no encontrado" }, { status: 404 })
   }
 
-  const plan = await prisma.membershipPlan.create({
-    data: { gymId, name, description, price, currency, durationDays },
-  })
+  const plan = await prisma.membershipPlan
+    .create({
+      data: { gymId, name, description, price, currency, durationDays },
+    })
+    .catch((error: unknown) => {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? (error as { code?: string }).code
+          : undefined
+      if (code === "P2002") return null
+      throw error
+    })
+
+  if (!plan) {
+    return NextResponse.json(
+      {
+        error: "Ya existe un plan con ese nombre en el gimnasio",
+        details: { fieldErrors: { name: ["Nombre duplicado"] } },
+      },
+      { status: 409 }
+    )
+  }
 
   return NextResponse.json({ plan }, { status: 201 })
 }

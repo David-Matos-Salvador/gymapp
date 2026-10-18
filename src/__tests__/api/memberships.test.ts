@@ -68,7 +68,7 @@ function buildExisting(overrides: ExistingMembershipOverrides = {}) {
     notes: null,
     createdAt: new Date("2026-10-01T12:00:00.000Z"),
     updatedAt: new Date("2026-10-01T12:00:00.000Z"),
-    plan: { id: "p-1", durationDays },
+    plan: { id: "p-1", durationDays, price: 500, currency: "PEN" },
     user: { gymId: "gym-1" },
     ...rest,
   }
@@ -161,6 +161,9 @@ describe("PATCH /api/memberships/[id]", () => {
           endDate: new Date(NOW.getTime() + 30 * DAY),
           status: "ACTIVE",
           paymentConfirmed: false,
+          planPrice: 500,
+          planCurrency: "PEN",
+          planDurationDays: 30,
         },
       })
     )
@@ -187,6 +190,9 @@ describe("PATCH /api/memberships/[id]", () => {
           endDate: new Date(existing.endDate.getTime() + 30 * DAY),
           status: "ACTIVE",
           paymentConfirmed: true,
+          planPrice: 500,
+          planCurrency: "PEN",
+          planDurationDays: 30,
         },
       })
     )

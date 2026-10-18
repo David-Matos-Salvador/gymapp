@@ -44,6 +44,7 @@ const exerciseCreateSchema = z.object({
 
 export async function GET() {
   const exercises = await prisma.exercise.findMany({
+    where: { active: true },
     orderBy: { name: "asc" },
     include: {
       creator: { select: { id: true, name: true, role: true } },

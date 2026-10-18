@@ -12,7 +12,7 @@ const updatePlanSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   price: z.number().positive().optional(),
-  currency: z.string().optional(),
+  currency: z.enum(["PEN", "USD", "EUR"]).optional(),
   durationDays: z.number().int().positive().optional(),
   active: z.boolean().optional(),
 })
@@ -61,7 +61,27 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Sin permisos sobre este plan" }, { status: 403 })
   }
 
-  const plan = await prisma.membershipPlan.update({ where: { id }, data: parsed.data })
+  const plan = await prisma.membershipPlan
+    .update({ where: { id }, data: parsed.data })
+    .catch((error: unknown) => {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? (error as { code?: string }).code
+          : undefined
+      if (code === "P2002") return null
+      throw error
+    })
+
+  if (!plan) {
+    return NextResponse.json(
+      {
+        error: "Ya existe un plan con ese nombre en el gimnasio",
+        details: { fieldErrors: { name: ["Nombre duplicado"] } },
+      },
+      { status: 409 }
+    )
+  }
+
   return NextResponse.json({ plan })
 }
 

@@ -46,6 +46,12 @@ export async function POST(request: Request) {
   if (!isSuperAdmin(user.role) && membership.user.gymId !== user.gymId) {
     return NextResponse.json({ error: "Sin permisos sobre este gimnasio" }, { status: 403 })
   }
+  if (membership.status !== "ACTIVE" || membership.endDate.getTime() <= Date.now()) {
+    return NextResponse.json(
+      { error: "La membresía está vencida. Renovala antes de registrar el pago." },
+      { status: 409 }
+    )
+  }
   if (membership.paymentConfirmed) {
     return NextResponse.json({ error: "La membresía ya está pagada" }, { status: 409 })
   }
@@ -55,8 +61,8 @@ export async function POST(request: Request) {
       data: {
         userId: membership.userId,
         membershipId: membership.id,
-        amount: membership.plan.price,
-        currency: membership.plan.currency,
+        amount: membership.planPrice > 0 ? membership.planPrice : membership.plan.price,
+        currency: membership.planPrice > 0 ? membership.planCurrency : membership.plan.currency,
         status: "COMPLETED",
         method: parsed.data.method,
         type: "MEMBERSHIP",

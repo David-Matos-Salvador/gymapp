@@ -61,6 +61,12 @@ export async function POST(request: Request) {
   if (!plan) {
     return NextResponse.json({ error: "Plan no encontrado" }, { status: 404 })
   }
+  if (!plan.active) {
+    return NextResponse.json(
+      { error: "El plan está inactivo; elegí un plan activo" },
+      { status: 409 }
+    )
+  }
 
   const targetUser = await prisma.user.findUnique({ where: { id: userId } })
   if (!targetUser) {
@@ -77,19 +83,40 @@ export async function POST(request: Request) {
   const endDate = new Date(startDate)
   endDate.setDate(endDate.getDate() + plan.durationDays)
 
-  const membership = await prisma.membership.create({
-    data: {
-      userId,
-      planId,
-      startDate,
-      endDate,
-      paymentMethod,
-      paymentRef,
-      notes,
-      autoRenew,
-    },
-    include: { plan: true },
-  })
+  const membership = await prisma.membership
+    .create({
+      data: {
+        userId,
+        planId,
+        startDate,
+        endDate,
+        paymentMethod,
+        paymentRef,
+        notes,
+        autoRenew,
+        planPrice: plan.price,
+        planCurrency: plan.currency,
+        planDurationDays: plan.durationDays,
+      },
+      include: { plan: true },
+    })
+    .catch((error: unknown) => {
+      const code =
+        error && typeof error === "object" && "code" in error
+          ? (error as { code?: string }).code
+          : undefined
+      if (code === "P2002") return null
+      throw error
+    })
+
+  if (!membership) {
+    return NextResponse.json(
+      {
+        error: "Ya existe una membresía para ese miembro y plan. Usá renovar o elegí otro plan.",
+      },
+      { status: 409 }
+    )
+  }
 
   return NextResponse.json({ membership }, { status: 201 })
 }

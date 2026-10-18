@@ -164,20 +164,12 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       )
     }
 
-    const referenced = await prisma.routineSplitExercise.count({
-      where: { exerciseId: id },
+    await prisma.exercise.update({
+      where: { id },
+      data: { active: false },
     })
-    if (referenced > 0) {
-      return NextResponse.json(
-        {
-          error:
-            "No se puede eliminar: el ejercicio está en rutinas. Desactivalo o quitálo de las rutinas primero.",
-        },
-        { status: 409 }
-      )
-    }
 
-    await prisma.exercise.delete({ where: { id } })
+    return NextResponse.json({ success: true })
 
     return NextResponse.json({ success: true })
   } catch (error) {
