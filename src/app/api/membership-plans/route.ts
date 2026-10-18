@@ -2,27 +2,40 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { isSuperAdmin } from "@/lib/authz"
 
 const createPlanSchema = z.object({
   gymId: z.string().min(1),
   name: z.string().min(1),
   description: z.string().optional(),
   price: z.number().positive(),
-  currency: z.string().default("MXN"),
+  currency: z.string().default("PEN"),
   durationDays: z.number().int().positive(),
 })
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
-  const gymId = searchParams.get("gymId")
+  const requestedGymId = searchParams.get("gymId")
+  const session = await auth()
 
-  const where: Record<string, unknown> = { active: true }
-  if (gymId) {
-    where.gymId = gymId
+  let gymId = requestedGymId
+
+  if (session?.user?.email) {
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: { role: true, gymId: true },
+    })
+    if (user && !isSuperAdmin(user.role)) {
+      gymId = user.gymId ?? "__no_gym__"
+    }
+  }
+
+  if (!gymId) {
+    return NextResponse.json({ error: "gymId requerido" }, { status: 400 })
   }
 
   const plans = await prisma.membershipPlan.findMany({
-    where,
+    where: { active: true, gymId },
     orderBy: { price: "asc" },
   })
 
@@ -35,8 +48,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || (user.role !== "ADMIN" && user.role !== "TRAINER")) {
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
+  if (!user || user.role === "TRAINER" || user.role === "MEMBER") {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
@@ -49,7 +65,15 @@ export async function POST(request: Request) {
     )
   }
 
-  const { gymId, name, description, price, currency, durationDays } = parsed.data
+  const { name, description, price, currency, durationDays } = parsed.data
+  const gymId = isSuperAdmin(user.role) ? parsed.data.gymId : user.gymId
+
+  if (!gymId) {
+    return NextResponse.json({ error: "Sin gimnasio asignado" }, { status: 403 })
+  }
+  if (!isSuperAdmin(user.role) && parsed.data.gymId !== gymId) {
+    return NextResponse.json({ error: "Sin permisos sobre este gimnasio" }, { status: 403 })
+  }
 
   const gym = await prisma.gym.findUnique({ where: { id: gymId } })
   if (!gym) {

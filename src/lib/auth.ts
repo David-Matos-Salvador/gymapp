@@ -49,6 +49,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null
         }
 
+        if (user.role !== "SUPER_ADMIN" && user.gymId) {
+          const gym = await prisma.gym.findUnique({
+            where: { id: user.gymId },
+            select: { active: true },
+          })
+          if (!gym?.active) return null
+        }
+
         return {
           id: user.id,
           email: user.email,

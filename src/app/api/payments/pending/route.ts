@@ -8,7 +8,10 @@ export async function GET() {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
   if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
@@ -40,12 +43,17 @@ export async function GET() {
   const where =
     user.role === "TRAINER"
       ? { status: "PENDING" as const, userId: { in: clientIds } }
-      : { status: "PENDING" as const }
+      : user.role === "ADMIN"
+        ? {
+            status: "PENDING" as const,
+            user: { gymId: user.gymId ?? "__no_gym__" },
+          }
+        : { status: "PENDING" as const }
 
   const payments = await prisma.payment.findMany({
     where,
     include: {
-      user: { select: { id: true, name: true, email: true } },
+      user: { select: { id: true, name: true, email: true, gymId: true } },
     },
     orderBy: { createdAt: "desc" },
   })

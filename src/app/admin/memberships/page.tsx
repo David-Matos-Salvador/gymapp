@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { isSuperAdmin } from "@/lib/authz"
 import { AppShell } from "@/components/layout/shell"
 import { MembershipPanel } from "@/components/admin/membership-panel"
 
@@ -8,10 +9,17 @@ export default async function AdminMembershipsPage() {
   const session = await auth()
   if (!session?.user?.email) redirect("/login")
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
   if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) redirect("/dashboard")
 
+  const superadmin = isSuperAdmin(user.role)
+  const gymScope = superadmin ? {} : { user: { gymId: user.gymId ?? "__no_gym__" } }
+
   const memberships = await prisma.membership.findMany({
+    where: gymScope,
     include: {
       user: {
         select: {
@@ -36,7 +44,7 @@ export default async function AdminMembershipsPage() {
   })
 
   const pendingPayments = await prisma.payment.findMany({
-    where: { status: "PENDING", type: "MEMBERSHIP" },
+    where: { status: "PENDING", type: "MEMBERSHIP", ...gymScope },
     select: {
       id: true,
       userId: true,

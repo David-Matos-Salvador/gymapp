@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma"
 const createMembershipSchema = z.object({
   userId: z.string().min(1),
   planId: z.string().min(1),
-  paymentMethod: z.enum(["CASH", "TRANSFER", "CARD", "STRIPE", "OTHER"]).default("CASH"),
+  paymentMethod: z.enum(["CASH", "TRANSFER", "CARD", "STRIPE", "YAPE", "OTHER"]).default("CASH"),
   paymentRef: z.string().optional(),
   notes: z.string().optional(),
   autoRenew: z.boolean().default(false),
@@ -38,8 +38,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || (user.role !== "ADMIN" && user.role !== "TRAINER")) {
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
+  if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
@@ -62,6 +65,12 @@ export async function POST(request: Request) {
   const targetUser = await prisma.user.findUnique({ where: { id: userId } })
   if (!targetUser) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+
+  if (user.role === "ADMIN") {
+    if (targetUser.gymId !== user.gymId || plan.gymId !== user.gymId) {
+      return NextResponse.json({ error: "Sin permisos sobre este gimnasio" }, { status: 403 })
+    }
   }
 
   const startDate = new Date()

@@ -9,14 +9,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || (user.role !== "ADMIN" && user.role !== "TRAINER")) {
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
+  if (!user || (user.role !== "ADMIN" && user.role !== "TRAINER" && user.role !== "SUPER_ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
   const { planId, assignToUserId } = await request.json()
   if (!planId || !assignToUserId) {
     return NextResponse.json({ error: "planId y assignToUserId requeridos" }, { status: 400 })
+  }
+
+  const targetUser = await prisma.user.findUnique({
+    where: { id: assignToUserId },
+    select: { id: true, gymId: true, assignedTrainerId: true },
+  })
+  if (!targetUser) {
+    return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
   if (user.role === "TRAINER") {
@@ -29,13 +40,24 @@ export async function POST(request: Request) {
     }
   }
 
+  if (user.role === "ADMIN" && targetUser.gymId !== user.gymId) {
+    return NextResponse.json({ error: "Sin permisos sobre este gimnasio" }, { status: 403 })
+  }
+
   const plan = await prisma.routinePlan.findUnique({
     where: { id: planId },
-    include: { splits: { include: { exercises: { orderBy: { order: "asc" } } } } },
+    include: {
+      user: { select: { gymId: true } },
+      splits: { include: { exercises: { orderBy: { order: "asc" } } } },
+    },
   })
 
   if (!plan) {
     return NextResponse.json({ error: "Plan no encontrado" }, { status: 404 })
+  }
+
+  if (user.role === "ADMIN" && plan.user.gymId !== user.gymId) {
+    return NextResponse.json({ error: "Sin permisos sobre este plan" }, { status: 403 })
   }
 
   // Deactivate old assignments

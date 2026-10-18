@@ -10,7 +10,7 @@ export async function GET() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: true },
+    select: { id: true, role: true, gymId: true },
   })
 
   if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
@@ -39,7 +39,12 @@ export async function GET() {
   const where =
     user.role === "TRAINER"
       ? { status: "PENDING" as const, userId: { in: clientIds } }
-      : { status: "PENDING" as const }
+      : user.role === "ADMIN"
+        ? {
+            status: "PENDING" as const,
+            user: { gymId: user.gymId ?? "__no_gym__" },
+          }
+        : { status: "PENDING" as const }
 
   const count = await prisma.payment.count({ where })
   return NextResponse.json({ count })

@@ -5,13 +5,18 @@ import { prisma } from "@/lib/prisma"
 export async function GET() {
   const classes = await prisma.class.findMany({
     include: {
-      trainer: { select: { id: true, name: true, email: true } },
-      bookings: { select: { id: true, userId: true, status: true } },
+      trainer: { select: { name: true } },
+      bookings: { where: { status: "CONFIRMED" }, select: { id: true } },
     },
     orderBy: { startTime: "asc" },
   })
 
-  return NextResponse.json({ classes })
+  const publicClasses = classes.map(({ bookings, ...classItem }) => ({
+    ...classItem,
+    confirmedCount: bookings.length,
+  }))
+
+  return NextResponse.json({ classes: publicClasses })
 }
 
 export async function POST(request: Request) {

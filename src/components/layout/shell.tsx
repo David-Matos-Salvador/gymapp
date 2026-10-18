@@ -72,8 +72,8 @@ export function AppBottomNav({
     tabs.push({ label: "Membresías", href: "/admin/memberships", icon: CreditCard })
   }
 
-  // Pagos — TRAINER only; los admins entran desde Membresías
-  if (isTrainer) {
+  // Comprobantes — TRAINER (sus clientes), ADMIN (su gym), SUPER_ADMIN (global)
+  if (isTrainer || isAdmin || isSuperAdmin) {
     tabs.push({
       label: "Comprobantes",
       href: "/coach/payments",

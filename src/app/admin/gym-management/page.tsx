@@ -76,7 +76,11 @@ export default async function GymManagementPage() {
 
   const equipActiveMap = new Map(equipmentActivations.map((a) => [a.equipmentId, a.active]))
 
+  const superadmin = user.role === "SUPER_ADMIN"
+  const gymScope = superadmin ? {} : { gymId: user.gymId ?? "__no_gym__" }
+
   const plans = await prisma.routinePlan.findMany({
+    where: superadmin ? {} : { user: { gymId: user.gymId ?? "__no_gym__" } },
     include: {
       splits: {
         include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
@@ -88,7 +92,7 @@ export default async function GymManagementPage() {
   })
 
   const members = await prisma.user.findMany({
-    where: { role: "MEMBER" },
+    where: { role: "MEMBER", ...gymScope },
     select: { id: true, name: true, email: true },
     orderBy: { name: "asc" },
   })

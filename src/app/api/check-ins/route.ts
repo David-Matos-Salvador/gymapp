@@ -40,13 +40,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, gymId: true },
+  })
   if (!user) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
   const body = await request.json()
-  const { gymId } = z.object({ gymId: z.string().optional() }).parse(body)
+  const { gymId: requestedGymId } = z.object({ gymId: z.string().optional() }).parse(body)
+
+  if (user.gymId && requestedGymId && requestedGymId !== user.gymId) {
+    return NextResponse.json(
+      { error: "No podés registrar check-in en otro gimnasio" },
+      { status: 400 }
+    )
+  }
+
+  const gymId = user.gymId ?? requestedGymId
+  if (!gymId) {
+    return NextResponse.json({ error: "Sin gimnasio asignado" }, { status: 400 })
+  }
 
   const checkIn = await prisma.checkIn.create({
     data: { userId: user.id, gymId, date: new Date() },

@@ -19,7 +19,10 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true, name: true },
+  })
   if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
@@ -30,7 +33,17 @@ export async function PUT(request: Request, { params }: RouteParams) {
 
   const payment = await prisma.payment.findUnique({
     where: { id },
-    include: { user: true },
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          gymId: true,
+          assignedTrainerId: true,
+        },
+      },
+    },
   })
   if (!payment) {
     return NextResponse.json({ error: "Pago no encontrado" }, { status: 404 })
@@ -39,7 +52,24 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Este pago ya fue procesado" }, { status: 409 })
   }
 
-  const isAdmin = user.role === "ADMIN" || user.role === "SUPER_ADMIN"
+  if (user.role === "ADMIN" && payment.user.gymId !== user.gymId) {
+    return NextResponse.json({ error: "Sin permisos sobre este gimnasio" }, { status: 403 })
+  }
+
+  let hasAcceptedRequest = false
+  if (user.role === "TRAINER") {
+    hasAcceptedRequest = Boolean(
+      await prisma.trainerRequest.findFirst({
+        where: { trainerId: user.id, clientId: payment.userId, status: "ACCEPTED" },
+      })
+    )
+    if (payment.user.assignedTrainerId !== user.id && !hasAcceptedRequest) {
+      return NextResponse.json(
+        { error: "Solo puedes gestionar pagos de tus clientes" },
+        { status: 403 }
+      )
+    }
+  }
 
   // D-07: membership side effects only apply to MEMBERSHIP payments. The
   // target is the user's unconfirmed membership: 0 means no-op, more than one
@@ -61,36 +91,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   if (action === "CONFIRM") {
-    const paymentUser = await prisma.user.findUnique({
-      where: { id: payment.userId },
-      select: { assignedTrainerId: true, name: true },
-    })
-
-    if (paymentUser?.assignedTrainerId && paymentUser.assignedTrainerId !== user.id && !isAdmin) {
-      return NextResponse.json(
-        { error: "Este usuario ya tiene otro entrenador asignado" },
-        { status: 403 }
-      )
-    }
-
-    const hasAcceptedRequest = await prisma.trainerRequest.findFirst({
-      where: { trainerId: user.id, clientId: payment.userId, status: "ACCEPTED" },
-    })
-
-    const isAlreadyMyClient = paymentUser?.assignedTrainerId === user.id
-
-    if (!hasAcceptedRequest && !isAlreadyMyClient && !isAdmin) {
-      return NextResponse.json(
-        {
-          error:
-            "Solo puedes confirmar pagos de tus clientes o de usuarios que aceptaron tu solicitud",
-        },
-        { status: 403 }
-      )
-    }
-
     const shouldAssignTrainer =
-      !paymentUser?.assignedTrainerId && hasAcceptedRequest ? user.id : undefined
+      !payment.user.assignedTrainerId && hasAcceptedRequest ? user.id : undefined
 
     const updatedPayment = await prisma.$transaction(async (tx) => {
       // Atomic guard: only a PENDING payment can transition.

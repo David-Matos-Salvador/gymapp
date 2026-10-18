@@ -263,6 +263,7 @@ export default async function DashboardPage() {
     startOfWeek.setHours(0, 0, 0, 0)
     const nextWeek = new Date(now)
     nextWeek.setDate(now.getDate() + 7)
+    const adminGymId = user.gymId ?? "__no_gym__"
 
     const [
       totalActiveMemberships,
@@ -275,12 +276,18 @@ export default async function DashboardPage() {
       recentWorkouts,
     ] = await Promise.all([
       prisma.membership.count({
-        where: { status: "ACTIVE", endDate: { gt: now } },
+        where: {
+          status: "ACTIVE",
+          endDate: { gt: now },
+          paymentConfirmed: true,
+          user: { gymId: adminGymId },
+        },
       }),
       prisma.membership.findMany({
         where: {
           paymentConfirmed: true,
           startDate: { gte: startOfMonth },
+          user: { gymId: adminGymId },
         },
         include: { plan: { select: { price: true } } },
       }),
@@ -288,15 +295,17 @@ export default async function DashboardPage() {
         where: {
           role: { in: ["MEMBER", "TRAINER"] },
           createdAt: { gte: startOfMonth },
+          gymId: adminGymId,
         },
       }),
       prisma.checkIn.count({
-        where: { date: { gte: startOfWeek } },
+        where: { date: { gte: startOfWeek }, gymId: adminGymId },
       }),
       prisma.membership.findMany({
         where: {
           status: "ACTIVE",
           endDate: { gt: now, lte: nextWeek },
+          user: { gymId: adminGymId },
         },
         include: {
           user: { select: { id: true, name: true, email: true } },
@@ -306,6 +315,7 @@ export default async function DashboardPage() {
         take: 20,
       }),
       prisma.checkIn.findMany({
+        where: { gymId: adminGymId },
         orderBy: { date: "desc" },
         take: 20,
         include: {
@@ -322,6 +332,7 @@ export default async function DashboardPage() {
           })
         : Promise.resolve(null),
       prisma.workoutLog.findMany({
+        where: { user: { gymId: adminGymId } },
         orderBy: { createdAt: "desc" },
         take: 8,
         select: {
@@ -414,7 +425,9 @@ export default async function DashboardPage() {
     ] = await Promise.all([
       prisma.gym.count(),
       prisma.user.count(),
-      prisma.membership.count({ where: { status: "ACTIVE", endDate: { gt: now } } }),
+      prisma.membership.count({
+        where: { status: "ACTIVE", endDate: { gt: now }, paymentConfirmed: true },
+      }),
       prisma.user.count({ where: { role: "TRAINER" } }),
       prisma.checkIn.count({ where: { date: { gte: todayStart } } }),
       prisma.payment.aggregate({
