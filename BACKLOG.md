@@ -52,6 +52,14 @@
 - **Detalle**: Soporte para portugués (Brasil). Preparado con labels traducibles pero sin `next-intl` o similar.
 - **Depende de**: Ninguna
 
+### 🟡 5.8 — Integración con calendarios del coach (Google/Gmail + iCloud)
+
+- **Prioridad**: 🟡 Media
+- **Esfuerzo**: XL
+- **Categoría**: Backend + Frontend
+- **Detalle**: Conectar Google Calendar e iCloud Calendar para leer free/busy y bloquear automáticamente las horas ocupadas del coach. Requiere OAuth/CalDAV, cifrado de credenciales, caché de disponibilidad, agenda 1:1 y validación de conflictos. El alcance completo está en `FEATURES_PENDIENTES.md` → “Integración de calendarios del coach”.
+- **Depende de**: Agenda 1:1 de clientes, modelo de disponibilidad
+
 ---
 
 ## 6. UI Components faltantes
