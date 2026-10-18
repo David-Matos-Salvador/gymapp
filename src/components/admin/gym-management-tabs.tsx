@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dumbbell, ListTodo, Wrench, CreditCard } from "lucide-react"
+import { Dumbbell, ListTodo, Wrench, CreditCard, Building2 } from "lucide-react"
 import { ExerciseManagement, type Exercise } from "./exercise-management"
 import { RoutineManagement, type Plan } from "./routine-management"
 import {
@@ -11,6 +11,7 @@ import {
   type Equipment,
 } from "@/components/gym-equipment/gym-equipment-manager"
 import { MembershipPlanManager, type MembershipPlan } from "./membership-plan-manager"
+import { GymProfileForm } from "./gym-profile-form"
 
 interface SerializedMember {
   id: string
@@ -26,6 +27,11 @@ interface CurrentUser {
 interface SerializedGym {
   id: string
   ownerId: string | null
+  name: string
+  address: string | null
+  phone: string | null
+  email: string | null
+  logoUrl: string | null
   showMachineNumbers: boolean
 }
 
@@ -134,6 +140,12 @@ export function GymManagementTabs({
               Planes
             </TabsTrigger>
           )}
+          {gym && (
+            <TabsTrigger value="profile" className="gap-2">
+              <Building2 className="size-4" />
+              Perfil
+            </TabsTrigger>
+          )}
           {canManageEquipment && (
             <TabsTrigger value="equipment" className="gap-2">
               <Wrench className="size-4" />
@@ -170,6 +182,12 @@ export function GymManagementTabs({
               gymId={gym?.id}
               canManage={canManagePlans}
             />
+          </TabsContent>
+        )}
+
+        {gym && (
+          <TabsContent value="profile" className="mt-6">
+            <GymProfileForm gym={gym} />
           </TabsContent>
         )}
 

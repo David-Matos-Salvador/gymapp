@@ -40,7 +40,16 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
   const gym = selectedGymId
     ? await prisma.gym.findUnique({
         where: { id: selectedGymId },
-        select: { id: true, ownerId: true, showMachineNumbers: true },
+        select: {
+          id: true,
+          ownerId: true,
+          name: true,
+          address: true,
+          phone: true,
+          email: true,
+          logoUrl: true,
+          showMachineNumbers: true,
+        },
       })
     : null
 
