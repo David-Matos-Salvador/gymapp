@@ -1,12 +1,19 @@
 "use client"
 
-import Link from "next/link"
 import { useState } from "react"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Search,
@@ -19,6 +26,7 @@ import {
   Building2,
   UserRound,
   Eye,
+  XCircle,
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -88,11 +96,17 @@ const paymentMethodLabels: Record<string, string> = {
 export function MembershipPanel({ memberships, pendingPayments }: MembershipPanelProps) {
   const { play } = useSound()
   const [data, setData] = useState<Membership[]>(memberships)
+  const [pendingReceipts, setPendingReceipts] = useState<PendingPayment[]>(pendingPayments)
+  const [reviewPayment, setReviewPayment] = useState<{
+    payment: PendingPayment
+    membership: Membership
+  } | null>(null)
+  const [manualMembership, setManualMembership] = useState<Membership | null>(null)
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState<string | null>(null)
 
   const pendingByUser = new Map<string, PendingPayment>()
-  for (const payment of pendingPayments) {
+  for (const payment of pendingReceipts) {
     if (!pendingByUser.has(payment.userId)) pendingByUser.set(payment.userId, payment)
   }
 
@@ -137,11 +151,64 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
       )
       play("success")
       toast.success("Membresía marcada como pagada")
+      setManualMembership(null)
     } else {
       const json = await res.json()
       toast.error(json.error ?? "Error al confirmar pago")
     }
     setLoading(null)
+  }
+
+  async function handleConfirmReceipt(paymentId: string, membershipId: string) {
+    setLoading(membershipId)
+    play("select")
+    try {
+      const res = await fetch(`/api/payments/${paymentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "CONFIRM" }),
+      })
+      if (!res.ok) {
+        const json = await res.json()
+        toast.error(json.error ?? "Error al confirmar el comprobante")
+        return
+      }
+      setData((prev) =>
+        prev.map((m) => (m.id === membershipId ? { ...m, paymentConfirmed: true } : m))
+      )
+      setPendingReceipts((prev) => prev.filter((p) => p.id !== paymentId))
+      setReviewPayment(null)
+      play("success")
+      toast.success("Comprobante confirmado")
+    } finally {
+      setLoading(null)
+    }
+  }
+
+  async function handleRejectReceipt(paymentId: string, membershipId: string) {
+    setLoading(membershipId)
+    play("select")
+    try {
+      const res = await fetch(`/api/payments/${paymentId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "REJECT",
+          notes: "Comprobante rechazado por el administrador",
+        }),
+      })
+      if (!res.ok) {
+        const json = await res.json()
+        toast.error(json.error ?? "Error al rechazar el comprobante")
+        return
+      }
+      setPendingReceipts((prev) => prev.filter((p) => p.id !== paymentId))
+      setReviewPayment(null)
+      play("success")
+      toast.success("Comprobante rechazado")
+    } finally {
+      setLoading(null)
+    }
   }
 
   async function handleRenew(id: string) {
@@ -256,35 +323,42 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                   </div>
 
                   {pendingPayment && (
-                    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border p-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
-                          Comprobante pendiente
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">
+                    <div className="flex items-center gap-3 rounded-lg border p-2">
+                      {pendingPayment.receiptUrl ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setReviewPayment({ payment: pendingPayment, membership: m })
+                          }
+                          className="shrink-0"
+                        >
+                          <img
+                            src={pendingPayment.receiptUrl}
+                            alt="Comprobante de pago"
+                            className="h-14 w-14 rounded border object-cover"
+                          />
+                        </button>
+                      ) : (
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded border bg-muted text-[10px] text-muted-foreground">
+                          Sin imagen
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-medium">Comprobante pendiente</p>
+                        <p className="text-[10px] text-muted-foreground">
                           {formatCurrency(pendingPayment.amount, pendingPayment.currency)} ·{" "}
                           {formatDate(pendingPayment.createdAt)}
-                        </span>
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {pendingPayment.receiptUrl && (
-                          <a
-                            href={pendingPayment.receiptUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-[10px] text-accent-yellow hover:underline"
-                          >
-                            <Eye className="h-3 w-3" />
-                            Ver captura
-                          </a>
-                        )}
-                        <Link
-                          href="/coach/payments"
-                          className="inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] font-medium text-accent-yellow hover:bg-accent-yellow/10"
-                        >
-                          Revisar en Comprobantes →
-                        </Link>
-                      </div>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => setReviewPayment({ payment: pendingPayment, membership: m })}
+                        className="h-6 shrink-0 text-[10px]"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Revisar comprobante
+                      </Button>
                     </div>
                   )}
 
@@ -296,16 +370,11 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                     {!m.paymentConfirmed && m.status === "ACTIVE" && !pendingPayment ? (
                       <Button
                         size="xs"
-                        onClick={() => handleMarkPaid(m.id)}
-                        disabled={loading === m.id}
+                        onClick={() => setManualMembership(m)}
                         className="h-6 text-[10px]"
                       >
-                        {loading === m.id ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <CheckCircle2 className="h-3 w-3" />
-                        )}
-                        Marcar pagado
+                        <CheckCircle2 className="h-3 w-3" />
+                        Registrar pago manual
                       </Button>
                     ) : m.paymentConfirmed ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
@@ -376,6 +445,85 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
           {renderMembershipList(expired, "No hay membresías vencidas")}
         </TabsContent>
       </Tabs>
+
+      <Dialog open={!!reviewPayment} onOpenChange={(open) => !open && setReviewPayment(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Revisar comprobante</DialogTitle>
+            <DialogDescription>
+              {reviewPayment?.membership.user.name ?? reviewPayment?.membership.user.email}
+              {reviewPayment
+                ? ` · ${formatCurrency(reviewPayment.payment.amount, reviewPayment.payment.currency)} · ${formatDate(reviewPayment.payment.createdAt)}`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {reviewPayment && reviewPayment.payment.receiptUrl ? (
+            <img
+              src={reviewPayment.payment.receiptUrl}
+              alt="Comprobante de pago"
+              className="max-h-[60vh] w-full rounded-lg border object-contain"
+            />
+          ) : (
+            <p className="text-sm text-muted-foreground">Este pago no tiene captura adjunta.</p>
+          )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() =>
+                reviewPayment &&
+                handleRejectReceipt(reviewPayment.payment.id, reviewPayment.membership.id)
+              }
+              disabled={!!loading}
+            >
+              <XCircle className="h-4 w-4" />
+              Rechazar
+            </Button>
+            <Button
+              onClick={() =>
+                reviewPayment &&
+                handleConfirmReceipt(reviewPayment.payment.id, reviewPayment.membership.id)
+              }
+              disabled={!!loading}
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              Confirmar pago
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!manualMembership} onOpenChange={(open) => !open && setManualMembership(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Registrar pago manual</DialogTitle>
+            <DialogDescription>
+              Esto marca la membresía de{" "}
+              {manualMembership?.user.name ?? manualMembership?.user.email ?? "este socio"} como
+              pagada sin comprobante. Usalo solo para efectivo o cobros manuales.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManualMembership(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => manualMembership && handleMarkPaid(manualMembership.id)}
+              disabled={!!loading}
+            >
+              {loading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4" />
+              )}
+              Sí, marcar pagada
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

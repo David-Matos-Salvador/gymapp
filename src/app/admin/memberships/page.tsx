@@ -1,6 +1,5 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
-import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { AppShell } from "@/components/layout/shell"
 import { MembershipPanel } from "@/components/admin/membership-panel"
@@ -69,16 +68,10 @@ export default async function AdminMembershipsPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Membresías</h1>
           <p className="text-muted-foreground">
-            Membresías = estado y vigencia (plan, gym, coach, renovación). Comprobantes = revisar la
-            captura y aprobar o rechazar el pago. Marcar pagado es solo para cobros manuales sin
-            comprobante.
+            Estado y vigencia de cada membresía (plan, gym, coach, fechas). Si hay un comprobante
+            pendiente, usá <strong>Revisar comprobante</strong> para ver la captura y confirmar el
+            pago. <strong>Registrar pago manual</strong> es solo para efectivo, sin comprobante.
           </p>
-          <Link
-            href="/coach/payments"
-            className="mt-2 inline-block text-sm text-accent-yellow hover:underline"
-          >
-            Ir a Comprobantes →
-          </Link>
         </div>
         <MembershipPanel memberships={serialized} pendingPayments={serializedPendingPayments} />
       </div>
