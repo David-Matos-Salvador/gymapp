@@ -69,14 +69,14 @@ export default async function AdminMembershipsPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Membresías</h1>
           <p className="text-muted-foreground">
-            Renovar extiende el período y deja el pago pendiente. Confirmar comprobante valida la
-            captura subida por el miembro; Marcar pagado es para cobros manuales sin comprobante.
+            Acá gestionás fechas, plan, coach y renovación. Para validar la captura de un pago, usá{" "}
+            <strong>Comprobantes</strong>.
           </p>
           <Link
             href="/coach/payments"
             className="mt-2 inline-block text-sm text-accent-yellow hover:underline"
           >
-            Revisar todos los comprobantes →
+            Ir a Comprobantes →
           </Link>
         </div>
         <MembershipPanel memberships={serialized} pendingPayments={serializedPendingPayments} />

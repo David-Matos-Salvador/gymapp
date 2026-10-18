@@ -16,6 +16,7 @@ import {
   Sparkles,
   TrendingUp,
   CreditCard,
+  CheckCircle2,
 } from "lucide-react"
 import { useRef, useState, useEffect, useCallback } from "react"
 import { AnimatePresence, motion } from "framer-motion"
@@ -68,11 +69,17 @@ export function AppBottomNav({
   // Admin — ADMIN, SUPER_ADMIN, gym owners (links to gym management)
   if (isAdmin || isSuperAdmin || isGymOwner) {
     tabs.push({ label: "Admin", href: "/admin/gym-management", icon: BarChart3 })
+    tabs.push({ label: "Membresías", href: "/admin/memberships", icon: CreditCard })
   }
 
   // Pagos — TRAINER, ADMIN, SUPER_ADMIN
   if (isTrainer || isAdmin || isSuperAdmin) {
-    tabs.push({ label: "Pagos", href: "/coach/payments", icon: CreditCard, badge: pendingCount })
+    tabs.push({
+      label: "Comprobantes",
+      href: "/coach/payments",
+      icon: CheckCircle2,
+      badge: pendingCount,
+    })
   }
 
   // Perfil — all roles

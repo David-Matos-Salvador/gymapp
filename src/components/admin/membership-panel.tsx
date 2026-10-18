@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
@@ -18,7 +19,6 @@ import {
   Building2,
   UserRound,
   Eye,
-  XCircle,
 } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -88,12 +88,11 @@ const paymentMethodLabels: Record<string, string> = {
 export function MembershipPanel({ memberships, pendingPayments }: MembershipPanelProps) {
   const { play } = useSound()
   const [data, setData] = useState<Membership[]>(memberships)
-  const [pendingReceipts, setPendingReceipts] = useState<PendingPayment[]>(pendingPayments)
   const [search, setSearch] = useState("")
   const [loading, setLoading] = useState<string | null>(null)
 
   const pendingByUser = new Map<string, PendingPayment>()
-  for (const payment of pendingReceipts) {
+  for (const payment of pendingPayments) {
     if (!pendingByUser.has(payment.userId)) pendingByUser.set(payment.userId, payment)
   }
 
@@ -143,56 +142,6 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
       toast.error(json.error ?? "Error al confirmar pago")
     }
     setLoading(null)
-  }
-
-  async function handleConfirmReceipt(paymentId: string, membershipId: string) {
-    setLoading(membershipId)
-    play("select")
-    try {
-      const res = await fetch(`/api/payments/${paymentId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "CONFIRM" }),
-      })
-      if (!res.ok) {
-        const json = await res.json()
-        toast.error(json.error ?? "Error al confirmar el comprobante")
-        return
-      }
-      setData((prev) =>
-        prev.map((m) => (m.id === membershipId ? { ...m, paymentConfirmed: true } : m))
-      )
-      setPendingReceipts((prev) => prev.filter((p) => p.id !== paymentId))
-      play("success")
-      toast.success("Comprobante confirmado")
-    } finally {
-      setLoading(null)
-    }
-  }
-
-  async function handleRejectReceipt(paymentId: string, membershipId: string) {
-    setLoading(membershipId)
-    play("select")
-    try {
-      const res = await fetch(`/api/payments/${paymentId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "REJECT",
-          notes: "Comprobante rechazado por el administrador",
-        }),
-      })
-      if (!res.ok) {
-        const json = await res.json()
-        toast.error(json.error ?? "Error al rechazar el comprobante")
-        return
-      }
-      setPendingReceipts((prev) => prev.filter((p) => p.id !== paymentId))
-      play("success")
-      toast.success("Comprobante rechazado")
-    } finally {
-      setLoading(null)
-    }
   }
 
   async function handleRenew(id: string) {
@@ -345,29 +294,12 @@ export function MembershipPanel({ memberships, pendingPayments }: MembershipPane
                         )}
                       </div>
                       <div className="flex shrink-0 flex-col gap-1 sm:flex-row">
-                        <Button
-                          size="xs"
-                          onClick={() => handleConfirmReceipt(pendingPayment.id, m.id)}
-                          disabled={loading === m.id}
-                          className="h-6 text-[10px]"
+                        <Link
+                          href="/coach/payments"
+                          className="inline-flex h-6 items-center gap-1 rounded-md border px-2 text-[10px] font-medium text-accent-yellow hover:bg-accent-yellow/10"
                         >
-                          {loading === m.id ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <CheckCircle2 className="h-3 w-3" />
-                          )}
-                          Confirmar
-                        </Button>
-                        <Button
-                          size="xs"
-                          variant="outline"
-                          onClick={() => handleRejectReceipt(pendingPayment.id, m.id)}
-                          disabled={loading === m.id}
-                          className="h-6 text-[10px]"
-                        >
-                          <XCircle className="h-3 w-3" />
-                          Rechazar
-                        </Button>
+                          Revisar en Comprobantes →
+                        </Link>
                       </div>
                     </div>
                   )}

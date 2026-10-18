@@ -104,7 +104,7 @@ export default function CoachPaymentsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pagos pendientes</h1>
           <p className="text-muted-foreground">
-            Revisa y confirma los comprobantes de pago de tus clientes
+            Bandeja de comprobantes: revisá la captura y confirmá o rechazá el pago del socio.
           </p>
         </div>
 
