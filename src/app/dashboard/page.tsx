@@ -201,7 +201,14 @@ export default async function DashboardPage() {
     })
 
     const plans = await prisma.routinePlan.findMany({
-      where: { userId: user.id },
+      where: {
+        OR: [
+          { userId: user.id },
+          ...(user.gymId
+            ? [{ user: { OR: [{ gymId: user.gymId }, { role: "SUPER_ADMIN" as const }] } }]
+            : [{ user: { role: "SUPER_ADMIN" as const } }]),
+        ],
+      },
       include: { splits: { include: { exercises: true } } },
       orderBy: { updatedAt: "desc" },
     })

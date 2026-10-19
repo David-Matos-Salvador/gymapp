@@ -680,7 +680,7 @@ export function CoachDashboard({
           >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-base">Rutinas creadas</CardTitle>
+                <CardTitle className="text-base">Rutinas del gimnasio</CardTitle>
                 <Button size="sm" asChild onClick={() => play("click")}>
                   <Link href="/routines/new">
                     <Plus className="mr-1 h-4 w-4" /> Nueva rutina

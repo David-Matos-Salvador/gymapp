@@ -1402,7 +1402,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     {
       phase: "11:15 Mediodía",
       role: "carlos",
-      expected: "El historial del plan carga (actualmente es un placeholder)",
+      expected: "El historial del plan muestra las sesiones registradas",
     },
     carlos.page,
     async () => {
@@ -1410,7 +1410,8 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       await expect(
         carlos.page.getByRole("heading", { name: /Historial de entrenamientos/i })
       ).toBeVisible({ timeout: 20_000 })
-      await expect(carlos.page.getByText(/en construcción/i)).toBeVisible({ timeout: 20_000 })
+      await expect(carlos.page.getByText(/volumen/i).first()).toBeVisible({ timeout: 20_000 })
+      await expect(carlos.page.getByText(/en construcción/i)).toHaveCount(0)
     }
   )
 

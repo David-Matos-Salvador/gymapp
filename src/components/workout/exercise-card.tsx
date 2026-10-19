@@ -331,12 +331,13 @@ export function ExerciseCard({
   }, [onSetsCountChange, totalSets])
 
   const handleContinue = useCallback(() => {
-    if (stepperExpanded && !allCompleted) {
-      toast.warning("No has completado todas las series")
+    if (!allCompleted) {
+      setStepperExpanded(true)
+      toast.warning(`Completá las ${totalSets} series antes de continuar`)
       return
     }
     onContinue?.()
-  }, [stepperExpanded, allCompleted, onContinue])
+  }, [allCompleted, onContinue, totalSets])
 
   return (
     <div

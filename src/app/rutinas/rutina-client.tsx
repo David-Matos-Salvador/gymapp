@@ -4,7 +4,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState, useEffect, useMemo } from "react"
 import { motion } from "framer-motion"
-import { Dumbbell, Clock, AlertTriangle } from "lucide-react"
+import { Dumbbell, Clock, AlertTriangle, History } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { WeeklyCalendar } from "@/components/rutina/weekly-calendar"
 import { WeeklyProgress } from "@/components/rutina/weekly-progress"
 import { SplitCard } from "@/components/rutina/split-card"
@@ -134,9 +135,17 @@ export function RutinaClient({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
     >
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Hola, {userName}</h1>
-        <p className="text-muted-foreground">{planName}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Hola, {userName}</h1>
+          <p className="text-muted-foreground">{planName}</p>
+        </div>
+        <Button asChild variant="outline" size="sm">
+          <Link href={`/rutinas/${planId}/historial`}>
+            <History className="mr-1 h-4 w-4" />
+            Historial
+          </Link>
+        </Button>
       </div>
 
       {planDescription && (
