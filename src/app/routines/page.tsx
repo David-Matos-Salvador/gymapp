@@ -17,7 +17,14 @@ export default async function RoutinesPage() {
   if (user.role === "MEMBER") redirect("/rutinas")
 
   const userPlans = await prisma.routinePlan.findMany({
-    where: { userId: user.id },
+    where: {
+      OR: [
+        { userId: user.id },
+        ...(user.gymId
+          ? [{ user: { OR: [{ gymId: user.gymId }, { role: "SUPER_ADMIN" as const }] } }]
+          : [{ user: { role: "SUPER_ADMIN" as const } }]),
+      ],
+    },
     include: {
       splits: {
         include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },

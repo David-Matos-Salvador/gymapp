@@ -38,7 +38,7 @@ Estado: P0/P1/P2 implementados y validados. Diferidos al backlog.
 6. **Pagos.** La ruta canónica es `receipt` con `membershipId`. El shim legacy `/api/payments` crea/reutiliza una membresía sin confirmar exactamente una vez, setea `membershipId`, rechaza comprobantes pendientes duplicados y notifica al trainer asignado. Confirmar pago no asigna trainer.
 7. **Personalización idempotente.** Una copia editable activa por cliente; el segundo “Personalizar” reutiliza la asignación existente. Nombres determinísticos con sufijo si hay colisión.
 8. **Historial de pagos.** Bandeja `PENDING` de clientes asignados; historial completo queda como feature. El rechazo exige motivo editable.
-9. **Biblioteca de rutinas.** TRAINER ve propias + plantillas SUPER; no rutinas de otros trainers. ADMIN lee/duplica las de su gym pero no edita/borra. La visibilidad ADMIN de rutinas de trainers queda como deuda ADMIN.
+9. **Biblioteca de rutinas.** TRAINER ve **todas las rutinas de su gym en solo lectura** (además de plantillas globales); solo edita/borra las propias. ADMIN lee/duplica las de su gym pero no edita/borra. La visibilidad ADMIN de rutinas de trainers queda como deuda ADMIN.
 
 ## Implementación
 

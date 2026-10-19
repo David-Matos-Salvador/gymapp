@@ -55,7 +55,7 @@ Estado: bloqueantes y lote acotado implementados y validados. Features de produc
 - `workout-logs`: split de asignación activa, ejercicios del split y nombre derivado del servidor.
 - `exercises/[id]`: requiere auth y ya no expone planes/rutinas.
 - `/routines/new` redirige a MEMBER; CTAs de trainer ocultos en detalle de ejercicio.
-- Registro sin slug: solo resuelve automáticamente si hay **un** gym activo; con varios exige link.
+- Registro de miembro: **solo por link/invitación** (`?gym=slug` o invitación); sin slug devuelve 400.
 
 ### Membresía/pagos
 

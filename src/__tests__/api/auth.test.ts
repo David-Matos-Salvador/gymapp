@@ -4,6 +4,7 @@ const mockFindUnique = vi.fn()
 const mockCreate = vi.fn()
 const mockGymFindFirst = vi.fn().mockResolvedValue({ id: "gym-1", active: true })
 const mockGymFindMany = vi.fn().mockResolvedValue([{ id: "gym-1" }])
+const mockGymFindUnique = vi.fn().mockResolvedValue({ id: "gym-1", active: true })
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -14,7 +15,7 @@ vi.mock("@/lib/prisma", () => ({
     gym: {
       findFirst: (...args: unknown[]) => mockGymFindFirst(...args),
       findMany: (...args: unknown[]) => mockGymFindMany(...args),
-      findUnique: vi.fn(),
+      findUnique: (...args: unknown[]) => mockGymFindUnique(...args),
       create: vi.fn().mockResolvedValue({ id: "gym-1", name: "Test Gym" }),
     },
   },
@@ -63,6 +64,7 @@ describe("POST /api/auth/register", () => {
         name: "Test User",
         email: "test@example.com",
         password: "Password1",
+        gymSlug: "test-gym",
       }),
     })
     const response = await POST(req)

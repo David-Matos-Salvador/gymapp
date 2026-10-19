@@ -50,21 +50,13 @@ export async function POST(request: Request) {
         )
       }
     } else {
-      const activeGyms = await prisma.gym.findMany({
-        where: { active: true },
-        select: { id: true },
-        take: 2,
-      })
-      if (activeGyms.length !== 1) {
-        return NextResponse.json(
-          {
-            error:
-              "Necesitás el link de tu gimnasio para registrarte. Pedíselo al gimnasio o al coach.",
-          },
-          { status: 400 }
-        )
-      }
-      gym = { ...activeGyms[0], active: true }
+      return NextResponse.json(
+        {
+          error:
+            "Necesitás el link de tu gimnasio para registrarte. Pedíselo al gimnasio o al coach.",
+        },
+        { status: 400 }
+      )
     }
 
     const passwordHash = await bcrypt.hash(password, 10)

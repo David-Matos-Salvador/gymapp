@@ -24,7 +24,12 @@ export async function GET() {
 
   const plans = await prisma.routinePlan.findMany({
     where: {
-      OR: [{ userId: user.id }, { user: { role: "SUPER_ADMIN" } }],
+      OR: [
+        { userId: user.id },
+        ...(user.gymId
+          ? [{ user: { OR: [{ gymId: user.gymId }, { role: "SUPER_ADMIN" as const }] } }]
+          : [{ user: { role: "SUPER_ADMIN" as const } }]),
+      ],
     },
     include: {
       splits: {

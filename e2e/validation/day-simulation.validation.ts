@@ -612,11 +612,11 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     {
       phase: "06:15 Apertura",
       role: "anónimo",
-      expected: "Un visitante crea una cuenta y llega al onboarding",
+      expected: "Un visitante con el link del gimnasio crea su cuenta y llega al onboarding",
     },
     null,
     async () => {
-      const { context, page } = await openAnonymous(browser, "/register")
+      const { context, page } = await openAnonymous(browser, "/register?gym=fitness-total")
       try {
         await page.waitForLoadState("networkidle")
         await expect(page.locator("#name")).toBeVisible({ timeout: 15_000 })

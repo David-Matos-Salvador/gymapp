@@ -21,7 +21,13 @@ export async function canReadPlan(planId: string, user: PlanUser): Promise<boole
   if (!plan) return false
 
   if (plan.userId === user.id || user.role === "SUPER_ADMIN") return true
-  if (user.role === "ADMIN" && user.gymId && plan.user.gymId === user.gymId) return true
+  if (
+    (user.role === "ADMIN" || user.role === "TRAINER") &&
+    user.gymId &&
+    plan.user.gymId === user.gymId
+  ) {
+    return true
+  }
   if (user.role === "MEMBER") {
     const assignment = await prisma.assignedRoutinePlan.findFirst({
       where: { userId: user.id, planId, active: true },
