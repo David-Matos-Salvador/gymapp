@@ -79,6 +79,9 @@ export async function POST(request: Request) {
   if (!gym) {
     return NextResponse.json({ error: "Gimnasio no encontrado" }, { status: 404 })
   }
+  if (gym.isDefault) {
+    return NextResponse.json({ error: "El gimnasio por defecto no admite planes" }, { status: 409 })
+  }
 
   const plan = await prisma.membershipPlan
     .create({

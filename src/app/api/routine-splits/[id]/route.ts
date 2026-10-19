@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { canReadPlan } from "@/lib/routine-access"
+import { getDefaultGym, getEffectiveGym } from "@/lib/effective-gym"
 import { z } from "zod"
 
 interface RouteParams {
@@ -83,55 +84,62 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const user = currentUser
 
-  let activeExerciseIds: Set<string> | null = null
-  if (user?.gymId) {
+  const effectiveGym = await getEffectiveGym(user)
+  const defaultGym = await getDefaultGym()
+  const primaryGymId = user.gymId
+
+  let activeExerciseIds = new Set<string>()
+  if (primaryGymId) {
     const gymExercises = await prisma.gymExercise.findMany({
-      where: { gymId: user.gymId, active: true },
+      where: { gymId: primaryGymId, active: true },
       select: { exerciseId: true },
     })
     activeExerciseIds = new Set(gymExercises.map((e) => e.exerciseId))
   }
-
-  if (activeExerciseIds) {
-    split.exercises = split.exercises.filter((se) => activeExerciseIds!.has(se.exerciseId))
-  }
-
-  // Filter gymEquipments: show system equipment (gymId=null) only if activated for user's gym,
-  // plus custom equipment for user's gym (gymId matches)
-  let activeEquipmentIds: Set<string> | null = null
-  if (user?.gymId) {
-    const eqActivations = await prisma.gymEquipmentActivation.findMany({
-      where: { gymId: user.gymId, active: true },
-      select: { equipmentId: true },
+  if (activeExerciseIds.size === 0 && defaultGym) {
+    const defaultExercises = await prisma.gymExercise.findMany({
+      where: { gymId: defaultGym.id, active: true },
+      select: { exerciseId: true },
     })
-    activeEquipmentIds = new Set(eqActivations.map((e) => e.equipmentId))
+    activeExerciseIds = new Set(defaultExercises.map((e) => e.exerciseId))
   }
 
-  if (activeEquipmentIds) {
-    for (const se of split.exercises) {
-      const equip = se.exercise.gymEquipments ?? []
-      se.exercise.gymEquipments = equip
-        .filter(
-          (e) => e.gymId === user!.gymId || (e.gymId === null && activeEquipmentIds!.has(e.id))
+  if (activeExerciseIds.size > 0) {
+    split.exercises = split.exercises.filter((se) => activeExerciseIds.has(se.exerciseId))
+  }
+
+  for (const se of split.exercises) {
+    const equip = se.exercise.gymEquipments ?? []
+    se.exercise.gymEquipments = equip
+      .filter((equipment) => {
+        if (primaryGymId && equipment.gymId === primaryGymId) return true
+        if (equipment.gymId !== null) return false
+        return equipment.activations.some(
+          (activation) =>
+            activation.active &&
+            (activation.gymId === primaryGymId || activation.gymId === defaultGym?.id)
         )
-        .map((e) => {
-          const { activations, ...equipment } = e
-          const activation = activations.find((a) => a.gymId === user!.gymId)
-          return {
-            ...equipment,
-            activations: [],
-            machineNumber: activation?.machineNumber ?? e.machineNumber,
-            imageUrl: activation?.imageUrl ?? e.imageUrl,
-          }
-        })
-    }
+      })
+      .map((equipment) => {
+        const { activations, ...rest } = equipment
+        const primaryActivation = activations.find(
+          (activation) => activation.active && activation.gymId === primaryGymId
+        )
+        const defaultActivation = activations.find(
+          (activation) => activation.active && activation.gymId === defaultGym?.id
+        )
+        const activation = primaryActivation ?? defaultActivation
+        return {
+          ...rest,
+          activations: [],
+          machineNumber: activation?.machineNumber ?? equipment.machineNumber,
+          imageUrl: activation?.imageUrl ?? equipment.imageUrl,
+        }
+      })
   }
 
-  const gym = user?.gymId
-    ? await prisma.gym.findUnique({
-        where: { id: user.gymId },
-        select: { id: true, showMachineNumbers: true },
-      })
+  const gym = effectiveGym
+    ? { id: effectiveGym.id, showMachineNumbers: effectiveGym.showMachineNumbers }
     : null
 
   return NextResponse.json({ split, gym })

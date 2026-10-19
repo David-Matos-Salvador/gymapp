@@ -49,14 +49,6 @@ export async function POST(request: Request) {
           { status: 400 }
         )
       }
-    } else {
-      return NextResponse.json(
-        {
-          error:
-            "Necesitás el link de tu gimnasio para registrarte. Pedíselo al gimnasio o al coach.",
-        },
-        { status: 400 }
-      )
     }
 
     const passwordHash = await bcrypt.hash(password, 10)

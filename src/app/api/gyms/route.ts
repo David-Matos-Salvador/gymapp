@@ -15,7 +15,7 @@ const createGymSchema = z.object({
 
 export async function GET() {
   const gyms = await prisma.gym.findMany({
-    where: { active: true },
+    where: { active: true, isDefault: false },
     select: {
       id: true,
       name: true,

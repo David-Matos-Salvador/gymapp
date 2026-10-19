@@ -6,6 +6,7 @@ import { NextResponse } from "next/server"
 const userSelect = {
   id: true,
   name: true,
+  gymId: true,
   onboardingCompleted: true,
   onboardingCompletedAt: true,
   trainingFrequency: true,
@@ -127,6 +128,11 @@ export async function GET(request: Request) {
   return NextResponse.json({
     onboardingCompleted: user.onboardingCompleted,
     onboardingCompletedAt: user.onboardingCompletedAt?.toISOString() ?? null,
+    gymId: user.gymId,
+    gymName: user.gymId
+      ? ((await prisma.gym.findUnique({ where: { id: user.gymId }, select: { name: true } }))
+          ?.name ?? null)
+      : null,
     hasRoutine: !!assignment,
     trainingFrequency: user.trainingFrequency ?? null,
     coachPlan,

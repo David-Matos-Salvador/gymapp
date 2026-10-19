@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { useSound } from "@/hooks/use-sound"
 import { calculateBMI, getBMICategory } from "@/lib/health"
 import {
@@ -82,6 +83,16 @@ export default function OnboardingPage() {
   const [memberName, setMemberName] = useState<string | null>(null)
 
   const [step, setStep] = useState(1)
+  const [gymGate, setGymGate] = useState(false)
+  const [gymId, setGymId] = useState<string | null>(null)
+  const [gymName, setGymName] = useState<string | null>(null)
+  const [gymQuery, setGymQuery] = useState("")
+  const [gymResults, setGymResults] = useState<
+    Array<{ id: string; name: string; slug: string; address: string | null }>
+  >([])
+  const [gymSearching, setGymSearching] = useState(false)
+  const [gymSaving, setGymSaving] = useState(false)
+  const [gymError, setGymError] = useState("")
   const [direction, setDirection] = useState(0)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState("")
@@ -160,6 +171,12 @@ export default function OnboardingPage() {
               return
             }
             setAssisted(true)
+            if (d.gymId) {
+              setGymId(d.gymId)
+              setGymName(d.gymName ?? null)
+            } else if (sessionStorage.getItem("gym-gate-skipped") !== "1") {
+              setGymGate(true)
+            }
             if (d.memberName) setMemberName(d.memberName)
             if (d.trainingFrequency) {
               setData((prev) => ({ ...prev, trainingFrequency: d.trainingFrequency }))
@@ -184,8 +201,16 @@ export default function OnboardingPage() {
         .then((d) => {
           if (d.onboardingCompleted) {
             router.push("/dashboard")
-          } else if (d.trainingFrequency) {
-            setData((prev) => ({ ...prev, trainingFrequency: d.trainingFrequency }))
+          } else {
+            if (d.gymId) {
+              setGymId(d.gymId)
+              setGymName(d.gymName ?? null)
+            } else if (sessionStorage.getItem("gym-gate-skipped") !== "1") {
+              setGymGate(true)
+            }
+            if (d.trainingFrequency) {
+              setData((prev) => ({ ...prev, trainingFrequency: d.trainingFrequency }))
+            }
           }
           if (d.coachPlan) {
             setCoachPlan(d.coachPlan)
@@ -200,6 +225,53 @@ export default function OnboardingPage() {
   const [weightError, setWeightError] = useState("")
   const [heightError, setHeightError] = useState("")
   const [measurementInputs, setMeasurementInputs] = useState<Record<string, string>>({})
+
+  const searchGyms = useCallback(async () => {
+    if (gymQuery.trim().length < 2) {
+      setGymResults([])
+      return
+    }
+    setGymSearching(true)
+    setGymError("")
+    try {
+      const res = await fetch(`/api/gyms/search?q=${encodeURIComponent(gymQuery.trim())}`)
+      const data = await res.json()
+      if (!res.ok) {
+        setGymError(data.error || "Error al buscar gimnasios")
+        return
+      }
+      setGymResults(data.gyms ?? [])
+    } finally {
+      setGymSearching(false)
+    }
+  }, [gymQuery])
+
+  const joinGym = useCallback(async (gym: { id: string; name: string }) => {
+    setGymSaving(true)
+    setGymError("")
+    try {
+      const res = await fetch("/api/user/gym", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ gymId: gym.id }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setGymError(data.error || "No se pudo vincular el gimnasio")
+        return
+      }
+      setGymId(gym.id)
+      setGymName(gym.name)
+      setGymGate(false)
+    } finally {
+      setGymSaving(false)
+    }
+  }, [])
+
+  const skipGym = useCallback(() => {
+    sessionStorage.setItem("gym-gate-skipped", "1")
+    setGymGate(false)
+  }, [])
 
   const goNext = useCallback(() => {
     if (editingStep !== null) {
@@ -1364,6 +1436,79 @@ export default function OnboardingPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (gymGate) {
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <div className="mx-auto w-full max-w-lg flex-1 space-y-5 px-5 py-10">
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold tracking-tight">¿Tenés un gimnasio?</h1>
+            <p className="text-sm text-muted-foreground">
+              Si tu gimnasio usa GymApp, buscálo para ver sus máquinas y ejercicios. Si no, podés
+              usar la app con el catálogo por defecto.
+            </p>
+          </div>
+
+          <div className="flex gap-2">
+            <Input
+              value={gymQuery}
+              onChange={(e) => setGymQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void searchGyms()
+              }}
+              placeholder="Nombre o slug del gimnasio"
+            />
+            <Button onClick={() => void searchGyms()} disabled={gymSearching}>
+              {gymSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+            </Button>
+          </div>
+
+          {gymError && <p className="text-sm text-destructive">{gymError}</p>}
+
+          {gymResults.length > 0 && (
+            <div className="space-y-2">
+              {gymResults.map((gym) => (
+                <button
+                  key={gym.id}
+                  type="button"
+                  onClick={() => void joinGym(gym)}
+                  disabled={gymSaving}
+                  className="flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
+                >
+                  <span>
+                    <span className="block text-sm font-medium">{gym.name}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {gym.address || gym.slug}
+                    </span>
+                  </span>
+                  {gymSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {gymResults.length === 0 && gymQuery.trim().length >= 2 && !gymSearching && (
+            <p className="text-sm text-muted-foreground">
+              No encontramos gimnasios con ese nombre.
+            </p>
+          )}
+
+          <div className="border-t pt-4">
+            <Button variant="outline" onClick={skipGym} className="w-full">
+              No tengo gimnasio, usar la app
+            </Button>
+            <p className="mt-2 text-center text-xs text-muted-foreground">
+              Podés vincularlo más adelante si tu gimnasio se registra.
+            </p>
+          </div>
+        </div>
       </div>
     )
   }

@@ -148,6 +148,7 @@ model Gym {
   email     String?
   logoUrl             String?
   active              Boolean  @default(true)
+  isDefault           Boolean  @default(false)
   showMachineNumbers  Boolean  @default(false)
   ownerId             String?  @unique
   owner               User?    @relation("GymOwner", fields: [ownerId], references: [id])

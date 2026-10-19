@@ -11,10 +11,23 @@ async function main() {
   console.log("🌱 Seeding database...")
   const passwordHash = await bcrypt.hash("demo123", 10)
 
+  // ── Default gym (no physical location) ───────────────
+  const defaultGym = await prisma.gym.upsert({
+    where: { slug: "gymapp-default" },
+    update: { isDefault: true, active: true, address: null },
+    create: {
+      name: "GymApp Default",
+      slug: "gymapp-default",
+      address: null,
+      isDefault: true,
+      showMachineNumbers: true,
+    },
+  })
+
   // ── Gym ──────────────────────────────────────────────
   const gym = await prisma.gym.upsert({
     where: { slug: "fitness-total" },
-    update: {},
+    update: { isDefault: false },
     create: {
       name: "Fitness Total",
       slug: "fitness-total",
@@ -1163,24 +1176,28 @@ async function main() {
   }
   console.log(`✅ ${systemEquipmentIds.length} system equipment templates created`)
 
-  // Activate all system equipment for the seed gym
+  // Activate all system equipment for the seed gym and the default gym
   for (const equipId of systemEquipmentIds) {
-    await prisma.gymEquipmentActivation.upsert({
-      where: { gymId_equipmentId: { gymId: gym.id, equipmentId: equipId } },
-      update: {},
-      create: { gymId: gym.id, equipmentId: equipId, active: true },
-    })
+    for (const targetGymId of [gym.id, defaultGym.id]) {
+      await prisma.gymEquipmentActivation.upsert({
+        where: { gymId_equipmentId: { gymId: targetGymId, equipmentId: equipId } },
+        update: {},
+        create: { gymId: targetGymId, equipmentId: equipId, active: true },
+      })
+    }
   }
   console.log(`✅ ${systemEquipmentIds.length} equipment activations created for gym`)
 
-  // Activate all exercises for the seed gym
+  // Activate all exercises for the seed gym and the default gym
   let exerciseCount = 0
   for (const ex of allExercises) {
-    await prisma.gymExercise.upsert({
-      where: { gymId_exerciseId: { gymId: gym.id, exerciseId: ex.id } },
-      update: {},
-      create: { gymId: gym.id, exerciseId: ex.id, active: true },
-    })
+    for (const targetGymId of [gym.id, defaultGym.id]) {
+      await prisma.gymExercise.upsert({
+        where: { gymId_exerciseId: { gymId: targetGymId, exerciseId: ex.id } },
+        update: {},
+        create: { gymId: targetGymId, exerciseId: ex.id, active: true },
+      })
+    }
     exerciseCount++
   }
   console.log(`✅ ${exerciseCount} gym exercises activated for gym`)
