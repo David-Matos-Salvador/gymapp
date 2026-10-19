@@ -4,11 +4,12 @@ Cada gimnasio ya puede crear planes con precio, pero el modelo usa `Float` para 
 
 ## What Changes
 
-- El precio del plan es por gimnasio y moneda; solo ADMIN de ese gym o SUPER_ADMIN puede crearlo/editarlo.
+- El precio del plan es por gimnasio, en soles peruanos (PEN); solo ADMIN de ese gym o SUPER_ADMIN puede crearlo/editarlo.
+- Cada gym puede decidir si ofrece planes gratuitos (`price = 0`).
 - El dinero se representa con precisión decimal (o centavos), no `Float`.
-- Se validan rango, decimales, moneda y duración del plan.
+- Se validan rango, decimales, moneda PEN y duración del plan.
 - La membresía y el pago guardan un snapshot inmutable del precio/moneda/duración al crearse.
-- Cambiar el precio de un plan no modifica membresías ni pagos existentes; la renovación usa el precio vigente y se muestra antes de confirmar.
+- Cambiar el precio de un plan no modifica membresías ni pagos existentes. Al renovar con un precio distinto, se notifica al miembro y este debe aceptar explícitamente el nuevo precio; si rechaza, la membresía vence sin renovarse.
 - El pago legacy reutiliza el snapshot de la membresía existente; no el precio actual del plan.
 - Se agrega historial de cambios de precio (quién, cuándo, valor anterior/nuevo).
 - Membresías, pagos manuales y receipts validan que el monto/moneda coincidan con el snapshot.
@@ -33,7 +34,8 @@ Cada gimnasio ya puede crear planes con precio, pero el modelo usa `Float` para 
 
 ## Non-goals
 
-- Cupones, descuentos, impuestos, prorrateos o multi-moneda automática.
+- Cupones, descuentos, impuestos, prorrateos o multi-moneda.
+- Cobro automático del precio nuevo sin consentimiento.
 - Precios por trainer o por clase.
 - Cambio de precio retroactivo.
 - Stripe Checkout en esta iteración.

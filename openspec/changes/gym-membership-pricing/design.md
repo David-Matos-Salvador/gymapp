@@ -57,6 +57,4 @@ El PATCH de precio y la creación de pago se serializan por plan/membresía. Un 
 
 ## Open Questions
 
-- ¿Un gym puede tener planes en distintas monedas o debe fijar una moneda única?
-- ¿Se permiten planes gratuitos/trial (`price=0`) o solo precios positivos?
-- ¿La renovación requiere aceptación explícita del nuevo precio o alcanza con el preview?
+Ninguna bloqueante. El alta de un plan gratuito no exige comprobante; si el gym quiere aprobación manual de ese plan, se resuelve con un flag futuro.
