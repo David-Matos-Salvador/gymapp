@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { Sparkles, ChevronRight, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { signOut } from "next-auth/react"
 import { useAuth } from "@/hooks/use-auth"
 import { useSound } from "@/hooks/use-sound"
 
@@ -19,12 +20,24 @@ export function HeaderSection() {
         </Link>
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
-            <Button asChild size="sm">
-              <Link href="/dashboard" onClick={() => play("click")}>
-                Inicio
-                <ArrowRight className="ml-1 h-4 w-4" />
-              </Link>
-            </Button>
+            <>
+              <Button asChild size="sm">
+                <Link href="/dashboard" onClick={() => play("click")}>
+                  Inicio
+                  <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  play("click")
+                  void signOut({ callbackUrl: "/" })
+                }}
+              >
+                Cerrar sesión
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
