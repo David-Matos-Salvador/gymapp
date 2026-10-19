@@ -60,20 +60,16 @@ async function checkExerciseOwnership(exerciseId: string, user: { id: string; ro
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const session = await auth()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+    }
+
     const { id } = await params
 
     const exercise = await prisma.exercise.findUnique({
       where: { id },
       include: {
-        splitExercises: {
-          include: {
-            split: {
-              include: {
-                plan: true,
-              },
-            },
-          },
-        },
         gymEquipments: true,
         creator: { select: { id: true, name: true, role: true } },
       },

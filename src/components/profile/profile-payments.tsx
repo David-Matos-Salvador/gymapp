@@ -27,6 +27,7 @@ interface Payment {
   method: string
   type: string
   reference: string | null
+  notes: string | null
   receiptUrl: string | null
   createdAt: string
   confirmedAt: string | null
@@ -112,6 +113,10 @@ function PaymentCard({ payment }: { payment: Payment }) {
 
         {payment.reference && (
           <p className="text-xs text-muted-foreground">Ref: {payment.reference}</p>
+        )}
+
+        {payment.notes && (
+          <p className="text-xs text-muted-foreground">Motivo/nota: {payment.notes}</p>
         )}
 
         {payment.confirmedAt && (

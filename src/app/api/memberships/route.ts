@@ -79,6 +79,17 @@ export async function POST(request: Request) {
     }
   }
 
+  const activeMembership = await prisma.membership.findFirst({
+    where: { userId, status: "ACTIVE", endDate: { gt: new Date() } },
+    select: { id: true },
+  })
+  if (activeMembership) {
+    return NextResponse.json(
+      { error: "El miembro ya tiene una membresía vigente. Renovala en lugar de crear otra." },
+      { status: 409 }
+    )
+  }
+
   const startDate = new Date()
   const endDate = new Date(startDate)
   endDate.setDate(endDate.getDate() + plan.durationDays)

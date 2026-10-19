@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { emitRealtime } from "@/lib/realtime"
@@ -18,6 +19,8 @@ const ALLOWED_TYPES = [
 const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"]
 const MAX_SIZE = 5 * 1024 * 1024
 
+const paymentMethodSchema = z.enum(["CASH", "TRANSFER", "CARD", "STRIPE", "YAPE", "OTHER"])
+
 export async function POST(request: Request) {
   const session = await auth()
   if (!session?.user?.email) {
@@ -33,8 +36,16 @@ export async function POST(request: Request) {
     const formData = await request.formData()
     const file = formData.get("file") as File | null
     const membershipId = formData.get("membershipId") as string | null
-    const method = (formData.get("method") as string) || "CASH"
+    const methodRaw = (formData.get("method") as string) || "CASH"
     const reference = (formData.get("reference") as string) || null
+    const methodParsed = paymentMethodSchema.safeParse(methodRaw)
+    if (!methodParsed.success) {
+      return NextResponse.json(
+        { error: "Método de pago inválido", details: { method: ["Inválido"] } },
+        { status: 400 }
+      )
+    }
+    const method = methodParsed.data
 
     if (!file) {
       return NextResponse.json({ error: "Comprobante requerido" }, { status: 400 })
@@ -52,6 +63,21 @@ export async function POST(request: Request) {
     }
     if (membership.userId !== user.id) {
       return NextResponse.json({ error: "No autorizado" }, { status: 403 })
+    }
+    if (!user.gymId || membership.plan.gymId !== user.gymId) {
+      return NextResponse.json({ error: "Membresía no encontrada" }, { status: 404 })
+    }
+    if (membership.paymentConfirmed && membership.endDate > new Date()) {
+      return NextResponse.json(
+        { error: "Tu membresía ya está confirmada y vigente" },
+        { status: 409 }
+      )
+    }
+    if (membership.endDate <= new Date()) {
+      return NextResponse.json(
+        { error: "Tu membresía venció. Renovala antes de subir un comprobante." },
+        { status: 409 }
+      )
     }
 
     const existingPending = await prisma.payment.findFirst({
@@ -102,7 +128,7 @@ export async function POST(request: Request) {
           amount: membership.planPrice > 0 ? membership.planPrice : membership.plan.price,
           currency: membership.planPrice > 0 ? membership.planCurrency : membership.plan.currency,
           status: "PENDING",
-          method: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
+          method,
           type: "MEMBERSHIP",
           receiptUrl,
           reference,

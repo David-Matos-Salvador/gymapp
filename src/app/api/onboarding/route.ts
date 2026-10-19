@@ -14,7 +14,7 @@ const userSelect = {
 async function resolveUser(sessionEmail: string, memberId: string | null) {
   const caller = await prisma.user.findUnique({
     where: { email: sessionEmail },
-    select: { id: true, role: true },
+    select: { id: true, role: true, gymId: true },
   })
   if (!caller) return { error: "Usuario no encontrado", status: 404 } as const
 
@@ -31,8 +31,14 @@ async function resolveUser(sessionEmail: string, memberId: string | null) {
         return { error: "El miembro no es tu cliente", status: 403 } as const
       }
     }
-    const target = await prisma.user.findUnique({ where: { id: memberId }, select: userSelect })
+    const target = await prisma.user.findUnique({
+      where: { id: memberId },
+      select: { ...userSelect, gymId: true },
+    })
     if (!target) return { error: "Miembro no encontrado", status: 404 } as const
+    if (caller.role === "ADMIN" && (!caller.gymId || target.gymId !== caller.gymId)) {
+      return { error: "Miembro no encontrado", status: 404 } as const
+    }
     return { user: target, assisted: true } as const
   }
 

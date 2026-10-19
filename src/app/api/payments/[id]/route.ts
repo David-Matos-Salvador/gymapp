@@ -81,11 +81,17 @@ export async function PUT(request: Request, { params }: RouteParams) {
     if (payment.membershipId) {
       const target = await prisma.membership.findUnique({
         where: { id: payment.membershipId },
-        select: { id: true, userId: true },
+        select: { id: true, userId: true, endDate: true, paymentConfirmed: true },
       })
       if (!target || target.userId !== payment.userId) {
         return NextResponse.json(
           { error: "El pago apunta a una membresía inválida" },
+          { status: 409 }
+        )
+      }
+      if (target.endDate <= new Date()) {
+        return NextResponse.json(
+          { error: "La membresía venció. Renovala antes de confirmar el pago." },
           { status: 409 }
         )
       }

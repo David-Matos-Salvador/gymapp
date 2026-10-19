@@ -320,6 +320,17 @@ export default function OnboardingPage() {
 
     const plans = await fetchPromise
 
+    if (!assisted) {
+      try {
+        await updateSession({
+          onboardingCompleted: true,
+          onboardingCompletedAt: new Date().toISOString(),
+        })
+      } catch {
+        // silent
+      }
+    }
+
     if (plans?.length) {
       setExpandedPlanId(null)
     }
@@ -330,7 +341,7 @@ export default function OnboardingPage() {
 
     setDirection(1)
     setStep(10)
-  }, [data, play, fetchGeneratedPlans, memberId])
+  }, [data, play, fetchGeneratedPlans, memberId, assisted, updateSession])
 
   const assignPlan = useCallback(
     async (planId: string) => {

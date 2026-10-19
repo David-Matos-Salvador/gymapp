@@ -156,6 +156,13 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       )
     }
 
+    if (!isAdmin && existing.plan.active === false) {
+      return NextResponse.json(
+        { error: "El plan está inactivo. Elegí un plan activo o contactá al gimnasio." },
+        { status: 409 }
+      )
+    }
+
     try {
       // D-01: renewal dates are always calculated on the server.
       const renewal = calculateRenewal(existing, existing.plan)

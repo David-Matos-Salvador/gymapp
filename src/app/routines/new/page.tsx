@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, GripVertical } from "lucide-react"
 import { toast } from "sonner"
+import { useAuth } from "@/hooks/use-auth"
 
 interface Exercise {
   id: string
@@ -31,6 +32,7 @@ interface RoutineExercise {
 export default function NewRoutinePage() {
   const router = useRouter()
   const { play } = useSound()
+  const { isMember, isLoading } = useAuth()
   const [name, setName] = useState("")
   const [description, setDescription] = useState("")
   const [allExercises, setAllExercises] = useState<Exercise[]>([])
@@ -39,10 +41,16 @@ export default function NewRoutinePage() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
+    if (!isLoading && isMember) {
+      router.replace("/rutinas")
+      return
+    }
     fetch("/api/exercises")
       .then((r) => r.json())
       .then((d) => setAllExercises(d.exercises ?? []))
-  }, [])
+  }, [isLoading, isMember, router])
+
+  if (isMember) return null
 
   function addExercise(exercise: Exercise) {
     play("select")

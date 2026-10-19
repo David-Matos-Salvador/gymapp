@@ -13,7 +13,15 @@ import {
 } from "@/components/ui/select"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { toast } from "sonner"
-import { Loader2, CreditCard, Banknote, ArrowLeftRight, CheckCircle2, Upload } from "lucide-react"
+import {
+  Loader2,
+  CreditCard,
+  Banknote,
+  ArrowLeftRight,
+  CheckCircle2,
+  Upload,
+  Smartphone,
+} from "lucide-react"
 
 interface MembershipPlan {
   name: string
@@ -34,6 +42,7 @@ const paymentMethods = [
   { value: "CASH", label: "Efectivo", icon: Banknote },
   { value: "TRANSFER", label: "Transferencia", icon: ArrowLeftRight },
   { value: "CARD", label: "Tarjeta", icon: CreditCard },
+  { value: "YAPE", label: "Yape", icon: Smartphone },
 ]
 
 export function PaymentForm({

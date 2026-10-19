@@ -66,6 +66,7 @@ function CounterRow({
       <div className="inline-flex items-center gap-1 bg-muted/30 rounded-lg px-1.5 py-0.5">
         <button
           type="button"
+          aria-label={`Disminuir ${label}`}
           disabled={disabled}
           onClick={onDecrement}
           className="flex items-center justify-center h-6 w-6 rounded-full border border-border/40 bg-background hover:bg-muted hover:border-border transition-all active:scale-90 disabled:opacity-30 disabled:pointer-events-none"
@@ -77,6 +78,7 @@ function CounterRow({
         </span>
         <button
           type="button"
+          aria-label={`Aumentar ${label}`}
           disabled={disabled}
           onClick={onIncrement}
           className="flex items-center justify-center h-6 w-6 rounded-full border border-border/40 bg-background hover:bg-muted hover:border-border transition-all active:scale-90 disabled:opacity-30 disabled:pointer-events-none"

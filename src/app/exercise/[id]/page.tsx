@@ -30,7 +30,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true },
+    select: { id: true, role: true },
   })
   if (!user) redirect("/login")
 
@@ -77,7 +77,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
     <AppShell>
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl space-y-6">
         <Link
-          href="/routines/new"
+          href={user.role === "MEMBER" ? "/rutinas" : "/routines/new"}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -115,9 +115,11 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
               </p>
             )}
 
-            <Button size="sm" variant="outline" className="w-fit" asChild>
-              <Link href="/routines/new">+ Agregar a una rutina</Link>
-            </Button>
+            {user.role !== "MEMBER" && (
+              <Button size="sm" variant="outline" className="w-fit" asChild>
+                <Link href="/routines/new">+ Agregar a una rutina</Link>
+              </Button>
+            )}
           </div>
         </div>
 

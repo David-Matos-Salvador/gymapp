@@ -145,6 +145,12 @@ export async function DELETE(request: Request) {
   if (!booking) {
     return NextResponse.json({ error: "Reserva no encontrada" }, { status: 404 })
   }
+  if (booking.status !== "CONFIRMED") {
+    return NextResponse.json(
+      { error: "Solo podés cancelar una reserva confirmada" },
+      { status: 409 }
+    )
+  }
 
   await prisma.booking.update({
     where: { id: bookingId },

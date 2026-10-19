@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     }
 
     const plan = await prisma.membershipPlan.findUnique({ where: { id: planId } })
-    if (!plan || !plan.active) {
+    if (!plan || !plan.active || plan.gymId !== user.gymId) {
       return NextResponse.json({ error: "Plan no encontrado o inactivo" }, { status: 404 })
     }
 
@@ -84,15 +84,46 @@ export async function POST(request: Request) {
 
     try {
       const existingMembership = await prisma.membership.findFirst({
-        where: {
-          userId: user.id,
-          planId: plan.id,
-          status: "ACTIVE",
-          paymentConfirmed: false,
-        },
+        where: { userId: user.id, planId: plan.id },
         include: { plan: true },
         orderBy: { createdAt: "desc" },
       })
+
+      const otherActive = await prisma.membership.findFirst({
+        where: {
+          userId: user.id,
+          status: "ACTIVE",
+          endDate: { gt: now },
+          paymentConfirmed: true,
+          planId: { not: plan.id },
+        },
+        select: { id: true },
+      })
+      if (otherActive) {
+        return NextResponse.json(
+          { error: "Ya tenés una membresía vigente. Renovala en lugar de comprar otra." },
+          { status: 409 }
+        )
+      }
+
+      if (existingMembership?.status === "ACTIVE" && existingMembership.endDate <= now) {
+        return NextResponse.json(
+          { error: "Tu membresía venció. Renovala antes de subir un nuevo comprobante." },
+          { status: 409 }
+        )
+      }
+      if (existingMembership?.status && existingMembership.status !== "ACTIVE") {
+        return NextResponse.json(
+          { error: "Ese plan ya tiene una membresía cerrada. Renovala desde Membresía." },
+          { status: 409 }
+        )
+      }
+      if (existingMembership?.paymentConfirmed) {
+        return NextResponse.json(
+          { error: "Ya tenés una membresía activa con este plan." },
+          { status: 409 }
+        )
+      }
 
       if (existingMembership) {
         const pending = await prisma.payment.findFirst({
@@ -168,6 +199,17 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ membership, payment }, { status: 201 })
     } catch (err) {
+      if (
+        err &&
+        typeof err === "object" &&
+        "code" in err &&
+        (err as { code?: string }).code === "P2002"
+      ) {
+        return NextResponse.json(
+          { error: "Ya existe una membresía para ese plan. Renovala desde Membresía." },
+          { status: 409 }
+        )
+      }
       console.error("Payment DB error:", err)
       return NextResponse.json({ error: "Error al registrar el pago" }, { status: 500 })
     }

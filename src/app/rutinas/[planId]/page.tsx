@@ -74,6 +74,18 @@ export default async function RutinaDetailPage({ params }: PageProps) {
 
   const plan = assignment.plan
   const frequency = plan.frequency ?? 3
+  const membership = await prisma.membership.findFirst({
+    where: { userId: user.id },
+    select: { status: true, endDate: true, paymentConfirmed: true },
+    orderBy: { endDate: "desc" },
+  })
+  const membershipStatus = membership
+    ? membership.status !== "ACTIVE" || membership.endDate <= new Date()
+      ? "EXPIRED"
+      : !membership.paymentConfirmed
+        ? "PENDING_PAYMENT"
+        : "ACTIVE"
+    : "ACTIVE"
 
   const [propuestoSplitId, weeklyProgress, weeklyStreakData, workoutDates] = await Promise.all([
     getNextPropuestoSplit(user.id, plan.id),
@@ -114,7 +126,7 @@ export default async function RutinaDetailPage({ params }: PageProps) {
         workoutDates={workoutDates.map((d) => d.toISOString())}
         weeklyStreak={weeklyStreakData.streak}
         bestStreak={weeklyStreakData.bestStreak}
-        membershipStatus="ACTIVE"
+        membershipStatus={membershipStatus}
       />
     </AppShell>
   )

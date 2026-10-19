@@ -10,6 +10,7 @@ import {
   CreditCard,
   Banknote,
   ArrowLeftRight,
+  Smartphone,
   RefreshCw,
   Loader2,
   Building2,
@@ -49,6 +50,7 @@ const statusConfig: Record<
   { label: string; variant: "default" | "destructive" | "outline" | "secondary" }
 > = {
   ACTIVE: { label: "Activa", variant: "secondary" },
+  PENDING_PAYMENT: { label: "Pago pendiente", variant: "outline" },
   INACTIVE: { label: "Inactiva", variant: "outline" },
   EXPIRED: { label: "Vencida", variant: "destructive" },
   SUSPENDED: { label: "Suspendida", variant: "destructive" },
@@ -60,6 +62,7 @@ const paymentMethodIcons: Record<string, typeof Banknote> = {
   TRANSFER: ArrowLeftRight,
   CARD: CreditCard,
   STRIPE: CreditCard,
+  YAPE: Smartphone,
   OTHER: CreditCard,
 }
 
@@ -68,6 +71,7 @@ const paymentMethodLabels: Record<string, string> = {
   TRANSFER: "Transferencia",
   CARD: "Tarjeta",
   STRIPE: "Stripe",
+  YAPE: "Yape",
   OTHER: "Otro",
 }
 
@@ -84,7 +88,18 @@ export function MembershipCard({ membership }: MembershipCardProps) {
     paymentRef,
     autoRenew,
   } = membership
-  const statusInfo = statusConfig[status] ?? { label: status, variant: "outline" as const }
+  const [now] = useState(() => Date.now())
+  const endTime = new Date(endDate).getTime()
+  const effectiveStatus =
+    status === "ACTIVE" && endTime < now
+      ? "EXPIRED"
+      : status === "ACTIVE" && !paymentConfirmed
+        ? "PENDING_PAYMENT"
+        : status
+  const statusInfo = statusConfig[effectiveStatus] ?? {
+    label: effectiveStatus,
+    variant: "outline" as const,
+  }
   const PaymentIcon = paymentMethodIcons[paymentMethod] ?? CreditCard
   const renewable = canRenewMembership({ status, endDate, paymentConfirmed })
   const router = useRouter()

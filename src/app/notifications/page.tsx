@@ -6,10 +6,14 @@ import { NotificationList } from "@/components/notifications"
 import type { MockNotification } from "@/components/notifications"
 import { toast } from "sonner"
 import { Bell } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { TrainerRequestDialog } from "@/components/notifications/trainer-request-dialog"
 
 export default function NotificationsPage() {
+  const router = useRouter()
   const [notifications, setNotifications] = useState<MockNotification[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -52,6 +56,20 @@ export default function NotificationsPage() {
     }
   }, [notifications])
 
+  const handleNavigate = useCallback(
+    (notification: MockNotification) => {
+      if (notification.type === "TRAINER_REQUEST") {
+        const requestId = notification.metadata?.requestId
+        if (requestId) setSelectedRequestId(requestId)
+        return
+      }
+      if (notification.type === "PAYMENT") {
+        router.push("/membresia")
+      }
+    },
+    [router]
+  )
+
   const unreadCount = notifications.filter((n) => !n.read).length
 
   return (
@@ -87,9 +105,19 @@ export default function NotificationsPage() {
             notifications={notifications}
             onMarkRead={handleMarkRead}
             onMarkAllRead={handleMarkAllRead}
+            onNavigate={handleNavigate}
           />
         )}
       </div>
+      <TrainerRequestDialog
+        key={selectedRequestId ?? "closed"}
+        requestId={selectedRequestId}
+        onClose={() => setSelectedRequestId(null)}
+        onResolved={() => {
+          setSelectedRequestId(null)
+          router.refresh()
+        }}
+      />
     </AppShell>
   )
 }

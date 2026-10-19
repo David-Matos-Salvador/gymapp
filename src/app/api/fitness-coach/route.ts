@@ -349,7 +349,8 @@ function getDifficultyMultiplier(level: string): number {
 function pickExercisesForMuscleGroup(
   muscleGroups: string[],
   multiplier: number,
-  usedNames: Set<string>
+  usedNames: Set<string>,
+  allowedNames?: Set<string>
 ) {
   const picked: Array<{
     name: string
@@ -361,7 +362,9 @@ function pickExercisesForMuscleGroup(
   }> = []
   const mainGroup = muscleGroups[0]
 
-  const pool = MUSCLE_POOL[mainGroup] ?? MUSCLE_POOL.FULL_BODY
+  const pool = (MUSCLE_POOL[mainGroup] ?? MUSCLE_POOL.FULL_BODY).filter(
+    (ex) => !allowedNames || allowedNames.has(ex.name)
+  )
   const available = pool.filter((ex) => !usedNames.has(ex.name)).slice(0, 4)
 
   const count = Math.min(available.length, Math.max(2, Math.floor(3 * multiplier)))
@@ -445,7 +448,7 @@ export async function POST(request: Request) {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: true },
+    select: { id: true, role: true, gymId: true },
   })
 
   if (!user) {
@@ -476,6 +479,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "El miembro no es tu cliente" }, { status: 403 })
       }
     }
+    if (user.role === "ADMIN") {
+      const target = await prisma.user.findUnique({
+        where: { id: rawBody.memberId },
+        select: { gymId: true },
+      })
+      if (!target || !user.gymId || target.gymId !== user.gymId) {
+        return NextResponse.json({ error: "Miembro no encontrado" }, { status: 404 })
+      }
+    }
     memberId = rawBody.memberId
   } else if (user.role !== "MEMBER") {
     return NextResponse.json({ error: "Solo miembros" }, { status: 403 })
@@ -487,6 +499,20 @@ export async function POST(request: Request) {
     where: { role: "SUPER_ADMIN" },
     select: { id: true },
   })
+
+  const targetMember = memberId
+    ? await prisma.user.findUnique({ where: { id: memberId }, select: { gymId: true } })
+    : user
+  const enabledExercises = targetMember?.gymId
+    ? await prisma.gymExercise.findMany({
+        where: { gymId: targetMember.gymId, active: true },
+        select: { exercise: { select: { name: true } } },
+      })
+    : []
+  const allowedNames =
+    enabledExercises.length > 0
+      ? new Set(enabledExercises.map((item) => item.exercise.name))
+      : undefined
 
   const difficultyMultiplier = getDifficultyMultiplier(experienceLevel)
   const templates = SPLIT_TEMPLATES[trainingFrequency] ?? SPLIT_TEMPLATES[3]
@@ -522,7 +548,12 @@ export async function POST(request: Request) {
         muscleGroups: mg,
         estimatedDuration: Math.round(mg.reduce((sum) => sum + 45 * difficultyMultiplier, 30)),
         order: i,
-        exercises: pickExercisesForMuscleGroup(mg, difficultyMultiplier, usedExercises),
+        exercises: pickExercisesForMuscleGroup(
+          mg,
+          difficultyMultiplier,
+          usedExercises,
+          allowedNames
+        ),
       }))
 
       return prisma.routinePlan.create({

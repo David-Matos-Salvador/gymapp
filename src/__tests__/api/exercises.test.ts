@@ -2,9 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 const mockFindMany = vi.fn()
 const mockFindUnique = vi.fn()
+const mockAuth = vi.fn()
 
 vi.mock("@/lib/auth", () => ({
-  auth: vi.fn(),
+  auth: () => mockAuth(),
 }))
 
 vi.mock("@/lib/prisma", () => ({
@@ -77,6 +78,7 @@ describe("GET /api/exercises", () => {
 describe("GET /api/exercises/[id]", () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockAuth.mockResolvedValue({ user: { email: "member@test.com" } })
   })
 
   it("returns exercise by known ID", async () => {

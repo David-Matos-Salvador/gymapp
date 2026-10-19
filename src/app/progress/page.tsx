@@ -187,7 +187,10 @@ export default function ProgressPage() {
     const bodyFat = parseFloat(form.bodyFat) || undefined
     const muscleMass = parseFloat(form.muscleMass) || undefined
     const bmiVal = bmi ? parseFloat(bmi) : undefined
-    if (!weight && !height && !bodyFat && !muscleMass) {
+    const hasAnyValue = Object.entries(form).some(
+      ([key, value]) => key !== "notes" && parseFloat(value) > 0
+    )
+    if (!hasAnyValue) {
       toast.error("Agrega al menos un valor")
       return
     }

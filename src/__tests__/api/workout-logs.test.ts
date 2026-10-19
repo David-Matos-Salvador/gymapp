@@ -5,6 +5,7 @@ const mockFindMany = vi.fn()
 const mockCount = vi.fn()
 const mockCreate = vi.fn()
 const mockAuth = vi.fn()
+const mockSplitFindFirst = vi.fn()
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -15,6 +16,9 @@ vi.mock("@/lib/prisma", () => ({
       findMany: (...args: unknown[]) => mockFindMany(...args),
       count: (...args: unknown[]) => mockCount(...args),
       create: (...args: unknown[]) => mockCreate(...args),
+    },
+    routineSplit: {
+      findFirst: (...args: unknown[]) => mockSplitFindFirst(...args),
     },
   },
 }))
@@ -127,6 +131,9 @@ describe("POST /api/workout-logs", () => {
   it("creates workout log with valid data", async () => {
     mockAuth.mockResolvedValue({ user: { email: "user@test.com" } })
     mockFindUnique.mockResolvedValue({ id: "user-1", email: "user@test.com", role: "MEMBER" })
+    mockSplitFindFirst.mockResolvedValue({
+      exercises: [{ exerciseId: "ex-1", exercise: { name: "Squat" } }],
+    })
     mockCreate.mockResolvedValue({
       id: "log-new",
       userId: "user-1",
@@ -145,6 +152,7 @@ describe("POST /api/workout-logs", () => {
     const req = new Request("http://localhost:3000/api/workout-logs", {
       method: "POST",
       body: JSON.stringify({
+        splitId: "split-1",
         duration: 3600,
         notes: "Great workout",
         sets: [{ exerciseId: "ex-1", exerciseName: "Squat", setNumber: 1, reps: 10, weight: 100 }],

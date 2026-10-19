@@ -71,6 +71,13 @@ export async function POST(request: Request) {
 
   if (data.userId && data.userId !== user.id) {
     if (user.role === "ADMIN") {
+      const target = await prisma.user.findUnique({
+        where: { id: data.userId },
+        select: { gymId: true },
+      })
+      if (!target || !user.gymId || target.gymId !== user.gymId) {
+        return NextResponse.json({ error: "Miembro no encontrado" }, { status: 404 })
+      }
       targetUserId = data.userId
     } else if (user.role === "TRAINER") {
       const clientIds = await getTrainerClientIds(user.id)

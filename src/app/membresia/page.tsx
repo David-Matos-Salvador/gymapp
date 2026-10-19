@@ -10,7 +10,7 @@ export default async function MembresiaPage() {
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
-    select: { id: true, role: true },
+    select: { id: true, role: true, gymId: true },
   })
 
   if (!user) redirect("/login")
@@ -24,6 +24,14 @@ export default async function MembresiaPage() {
     },
     orderBy: { createdAt: "desc" },
   })
+
+  const plans = user.gymId
+    ? await prisma.membershipPlan.findMany({
+        where: { gymId: user.gymId, active: true },
+        orderBy: { price: "asc" },
+        select: { id: true, name: true, price: true, currency: true, durationDays: true },
+      })
+    : []
 
   const pendingPayment = await prisma.payment.findFirst({
     where: { userId: user.id, type: "MEMBERSHIP", status: "PENDING" },
@@ -72,6 +80,7 @@ export default async function MembresiaPage() {
       <MembresiaContent
         membership={serializedMembership}
         pendingPayment={serializedPendingPayment}
+        plans={plans}
       />
     </AppShell>
   )

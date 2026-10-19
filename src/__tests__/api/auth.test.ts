@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 const mockFindUnique = vi.fn()
 const mockCreate = vi.fn()
 const mockGymFindFirst = vi.fn().mockResolvedValue({ id: "gym-1", active: true })
+const mockGymFindMany = vi.fn().mockResolvedValue([{ id: "gym-1" }])
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -12,6 +13,7 @@ vi.mock("@/lib/prisma", () => ({
     },
     gym: {
       findFirst: (...args: unknown[]) => mockGymFindFirst(...args),
+      findMany: (...args: unknown[]) => mockGymFindMany(...args),
       findUnique: vi.fn(),
       create: vi.fn().mockResolvedValue({ id: "gym-1", name: "Test Gym" }),
     },

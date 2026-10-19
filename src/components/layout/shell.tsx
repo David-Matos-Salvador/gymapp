@@ -56,6 +56,7 @@ export function AppBottomNav({
   // Progreso — MEMBER only
   if (isMember) {
     tabs.push({ label: "Progreso", href: "/progress", icon: TrendingUp })
+    tabs.push({ label: "Membresía", href: "/membresia", icon: CreditCard })
   }
 
   // Clases — all roles
@@ -132,7 +133,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
   const prevPathnameRef = useRef<string | null>(null)
-  const { user } = useAuth()
+  const { user, isMember } = useAuth()
 
   const [dir, setDir] = useState<1 | -1>(1)
   const [unreadCount, setUnreadCount] = useState(0)
@@ -198,10 +199,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         }
       }
       if (notification.type === "PAYMENT") {
-        router.push("/coach/payments")
+        router.push(isMember ? "/membresia" : "/coach/payments")
       }
     },
-    [router]
+    [isMember, router]
   )
 
   const refreshNotifications = useCallback(() => {

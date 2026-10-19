@@ -15,7 +15,7 @@ const setLogSchema = z.object({
 })
 
 const createWorkoutLogSchema = z.object({
-  splitId: z.string().optional(),
+  splitId: z.string().min(1),
   duration: z.number().int().positive().optional(),
   notes: z.string().optional(),
   sets: z.array(setLogSchema).min(1),
@@ -78,6 +78,32 @@ export async function POST(request: Request) {
 
   const { splitId, duration, notes, sets } = parsed.data
 
+  const split = await prisma.routineSplit.findFirst({
+    where: {
+      id: splitId,
+      plan: { assignments: { some: { userId: user.id, active: true } } },
+    },
+    select: {
+      exercises: {
+        select: { exerciseId: true, exercise: { select: { name: true } } },
+      },
+    },
+  })
+  if (!split) {
+    return NextResponse.json({ error: "Rutina no asignada" }, { status: 403 })
+  }
+
+  const exerciseNames = new Map(
+    split.exercises.map((exercise) => [exercise.exerciseId, exercise.exercise.name])
+  )
+  const invalid = sets.find((set) => !exerciseNames.has(set.exerciseId))
+  if (invalid) {
+    return NextResponse.json(
+      { error: "El ejercicio no pertenece a la rutina", details: { exerciseId: ["Inválido"] } },
+      { status: 400 }
+    )
+  }
+
   const workoutLog = await prisma.workoutLog.create({
     data: {
       userId: user.id,
@@ -87,7 +113,7 @@ export async function POST(request: Request) {
       sets: {
         create: sets.map((s) => ({
           exerciseId: s.exerciseId,
-          exerciseName: s.exerciseName,
+          exerciseName: exerciseNames.get(s.exerciseId) ?? s.exerciseName,
           setNumber: s.setNumber,
           reps: s.reps,
           weight: s.weight,

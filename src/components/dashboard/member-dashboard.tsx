@@ -127,6 +127,7 @@ export function MemberDashboard({
 
         <StatCard
           label="Membresía"
+          href="/membresia"
           icon={membershipActive ? UserCheck : AlertTriangle}
           iconColor={membershipActive ? "text-emerald-500" : "text-destructive"}
           borderColor={membershipActive ? "border-t-emerald-500" : "border-t-destructive"}
@@ -147,7 +148,9 @@ export function MemberDashboard({
                     ? "Activa"
                     : membership.status === "EXPIRED"
                       ? "Expirada"
-                      : membership.status}
+                      : membership.status === "PENDING_PAYMENT"
+                        ? "Pago pendiente"
+                        : membership.status}
                 </Badge>
                 <p className="text-xs text-muted-foreground mt-1.5">{membership.planName}</p>
                 {membership.daysRemaining !== null && membership.daysRemaining > 0 && (

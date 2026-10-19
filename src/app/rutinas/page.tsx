@@ -25,9 +25,16 @@ export default async function RutinasPage() {
 
   const membership = await prisma.membership.findFirst({
     where: { userId: user.id },
-    select: { status: true, endDate: true },
+    select: { status: true, endDate: true, paymentConfirmed: true },
+    orderBy: { endDate: "desc" },
   })
-  const membershipStatus = membership?.status ?? "ACTIVE"
+  const membershipStatus = membership
+    ? membership.status !== "ACTIVE" || membership.endDate <= new Date()
+      ? "EXPIRED"
+      : !membership.paymentConfirmed
+        ? "PENDING_PAYMENT"
+        : "ACTIVE"
+    : "ACTIVE"
 
   const assignment = await prisma.assignedRoutinePlan.findFirst({
     where: { userId: user.id, active: true },

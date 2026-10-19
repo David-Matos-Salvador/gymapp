@@ -118,10 +118,14 @@ export default async function DashboardPage() {
           membershipEndDate < new Date())
       : false
 
-    const effectiveStatus = isExpiredMembership ? "EXPIRED" : (membership?.status ?? "ACTIVE")
+    const effectiveStatus = isExpiredMembership
+      ? "EXPIRED"
+      : membership?.status === "ACTIVE" && !membership.paymentConfirmed
+        ? "PENDING_PAYMENT"
+        : (membership?.status ?? "ACTIVE")
 
-    const hasCoach = !!trainerRequest?.trainer || !!assignedTrainer
-    const coachName = trainerRequest?.trainer?.name ?? assignedTrainer?.name ?? null
+    const hasCoach = !!assignedTrainer
+    const coachName = assignedTrainer?.name ?? null
 
     return (
       <AppShell>
@@ -172,7 +176,7 @@ export default async function DashboardPage() {
           coach={{
             hasCoach: !!hasCoach,
             coachName,
-            hasPendingRequest: !hasCoach && !!trainerRequest && trainerRequest.status === "PENDING",
+            hasPendingRequest: !!trainerRequest && trainerRequest.status === "PENDING",
             requestStatus: trainerRequest?.status ?? null,
           }}
         />

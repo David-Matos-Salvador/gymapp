@@ -37,22 +37,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "El email ya esta registrado" }, { status: 409 })
     }
 
-    const gym = gymSlug
-      ? await prisma.gym.findUnique({
-          where: { slug: gymSlug },
-          select: { id: true, active: true },
-        })
-      : await prisma.gym.findFirst({
-          where: { active: true },
-          orderBy: { createdAt: "asc" },
-          select: { id: true, active: true },
-        })
-
-    if (gymSlug && (!gym || !gym.active)) {
-      return NextResponse.json(
-        { error: "El gimnasio no existe o no está disponible" },
-        { status: 400 }
-      )
+    let gym: { id: string; active: boolean } | null = null
+    if (gymSlug) {
+      gym = await prisma.gym.findUnique({
+        where: { slug: gymSlug },
+        select: { id: true, active: true },
+      })
+      if (!gym || !gym.active) {
+        return NextResponse.json(
+          { error: "El gimnasio no existe o no está disponible" },
+          { status: 400 }
+        )
+      }
+    } else {
+      const activeGyms = await prisma.gym.findMany({
+        where: { active: true },
+        select: { id: true },
+        take: 2,
+      })
+      if (activeGyms.length !== 1) {
+        return NextResponse.json(
+          {
+            error:
+              "Necesitás el link de tu gimnasio para registrarte. Pedíselo al gimnasio o al coach.",
+          },
+          { status: 400 }
+        )
+      }
+      gym = { ...activeGyms[0], active: true }
     }
 
     const passwordHash = await bcrypt.hash(password, 10)

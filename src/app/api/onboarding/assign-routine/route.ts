@@ -73,16 +73,39 @@ export async function POST(request: Request) {
     }
   }
 
-  // Deactivate previous assignments
-  await prisma.assignedRoutinePlan.updateMany({
-    where: { userId: targetUserId, active: true },
-    data: { active: false },
-  })
+  if (caller.role === "MEMBER") {
+    if (plan.user.role !== "SUPER_ADMIN") {
+      return NextResponse.json({ error: "Plan no disponible" }, { status: 403 })
+    }
+    if (caller.gymId && plan.splits.length > 0) {
+      const exerciseIds = [
+        ...new Set(plan.splits.flatMap((s) => s.exercises.map((e) => e.exerciseId))),
+      ]
+      if (exerciseIds.length > 0) {
+        const active = await prisma.gymExercise.count({
+          where: { gymId: caller.gymId, active: true, exerciseId: { in: exerciseIds } },
+        })
+        if (active !== exerciseIds.length) {
+          return NextResponse.json(
+            { error: "Este plan incluye ejercicios no disponibles en tu gimnasio" },
+            { status: 409 }
+          )
+        }
+      }
+    }
+  }
 
-  // Create new assignment
-  await prisma.assignedRoutinePlan.create({
-    data: { userId: targetUserId, planId: plan.id },
-  })
+  await prisma.$transaction([
+    prisma.assignedRoutinePlan.updateMany({
+      where: { userId: targetUserId, active: true, planId: { not: plan.id } },
+      data: { active: false },
+    }),
+    prisma.assignedRoutinePlan.upsert({
+      where: { userId_planId: { userId: targetUserId, planId: plan.id } },
+      update: { active: true, startedAt: new Date() },
+      create: { userId: targetUserId, planId: plan.id },
+    }),
+  ])
 
   const serialize = {
     id: plan.id,

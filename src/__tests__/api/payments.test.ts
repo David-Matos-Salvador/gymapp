@@ -227,6 +227,7 @@ describe("POST /api/payments/receipt", () => {
       id: "client-1",
       email: "valentina@gymapp.com",
       name: "Valentina",
+      gymId: "gym-1",
     })
     mockMembershipFindUnique.mockResolvedValue({
       id: "membership-1",
@@ -234,8 +235,8 @@ describe("POST /api/payments/receipt", () => {
       paymentConfirmed: false,
       status: "ACTIVE",
       startDate: new Date("2026-01-01"),
-      endDate: new Date("2026-02-01"),
-      plan: { price: 120, currency: "PEN" },
+      endDate: new Date("2099-02-01"),
+      plan: { price: 120, currency: "PEN", gymId: "gym-1" },
     })
     mockPaymentCreate.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
       id: "payment-1",
