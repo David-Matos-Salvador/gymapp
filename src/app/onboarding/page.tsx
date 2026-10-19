@@ -83,7 +83,6 @@ export default function OnboardingPage() {
   const [memberName, setMemberName] = useState<string | null>(null)
 
   const [step, setStep] = useState(1)
-  const [gymGate, setGymGate] = useState(false)
   const [gymId, setGymId] = useState<string | null>(null)
   const [gymName, setGymName] = useState<string | null>(null)
   const [gymQuery, setGymQuery] = useState("")
@@ -174,8 +173,6 @@ export default function OnboardingPage() {
             if (d.gymId) {
               setGymId(d.gymId)
               setGymName(d.gymName ?? null)
-            } else if (sessionStorage.getItem("gym-gate-skipped") !== "1") {
-              setGymGate(true)
             }
             if (d.memberName) setMemberName(d.memberName)
             if (d.trainingFrequency) {
@@ -205,8 +202,6 @@ export default function OnboardingPage() {
             if (d.gymId) {
               setGymId(d.gymId)
               setGymName(d.gymName ?? null)
-            } else if (sessionStorage.getItem("gym-gate-skipped") !== "1") {
-              setGymGate(true)
             }
             if (d.trainingFrequency) {
               setData((prev) => ({ ...prev, trainingFrequency: d.trainingFrequency }))
@@ -262,21 +257,15 @@ export default function OnboardingPage() {
       }
       setGymId(gym.id)
       setGymName(gym.name)
-      setGymGate(false)
     } finally {
       setGymSaving(false)
     }
   }, [])
 
-  const skipGym = useCallback(() => {
-    sessionStorage.setItem("gym-gate-skipped", "1")
-    setGymGate(false)
-  }, [])
-
   const goNext = useCallback(() => {
     if (editingStep !== null) {
       setDirection(-1)
-      setStep(9)
+      setStep(10)
       setEditingStep(null)
       return
     }
@@ -412,7 +401,7 @@ export default function OnboardingPage() {
     play("success")
 
     setDirection(1)
-    setStep(10)
+    setStep(11)
   }, [data, play, fetchGeneratedPlans, memberId, assisted, updateSession])
 
   const assignPlan = useCallback(
@@ -583,16 +572,17 @@ export default function OnboardingPage() {
   const canProceedStep8 = data.usualSchedule !== null
 
   const canProceedMap: Record<number, boolean> = {
-    1: canProceedStep1,
-    2: canProceedStep2,
-    3: canProceedStep3,
-    4: canProceedStep4,
-    5: canProceedStep5,
-    6: canProceedStep6,
-    7: canProceedStep7,
-    8: canProceedStep8,
-    9: true,
+    1: true,
+    2: canProceedStep1,
+    3: canProceedStep2,
+    4: canProceedStep3,
+    5: canProceedStep4,
+    6: canProceedStep5,
+    7: canProceedStep6,
+    8: canProceedStep7,
+    9: canProceedStep8,
     10: true,
+    11: true,
   }
 
   const showNextButton = STEP_BEHAVIOR[step] === "manual"
@@ -615,6 +605,79 @@ export default function OnboardingPage() {
   const renderStep = () => {
     switch (step) {
       case 1:
+        return (
+          <div className="space-y-6">
+            <div className="space-y-2 text-center">
+              <h2 className="text-2xl font-bold">¿Entrenás en un gimnasio?</h2>
+              <p className="text-sm text-muted-foreground">
+                Si tu gimnasio usa GymApp, buscalo para ver sus máquinas y ejercicios. Si no, seguí
+                con el catálogo por defecto.
+              </p>
+            </div>
+
+            {gymId ? (
+              <div className="rounded-xl border bg-muted/30 p-4 text-center">
+                <p className="text-sm text-muted-foreground">Tu gimnasio</p>
+                <p className="text-lg font-semibold">{gymName}</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex gap-2">
+                  <Input
+                    value={gymQuery}
+                    onChange={(e) => setGymQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") void searchGyms()
+                    }}
+                    placeholder="Nombre o slug del gimnasio"
+                  />
+                  <Button onClick={() => void searchGyms()} disabled={gymSearching}>
+                    {gymSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
+                  </Button>
+                </div>
+
+                {gymError && <p className="text-sm text-destructive">{gymError}</p>}
+
+                {gymResults.length > 0 && (
+                  <div className="space-y-2">
+                    {gymResults.map((gym) => (
+                      <button
+                        key={gym.id}
+                        type="button"
+                        onClick={() => void joinGym(gym)}
+                        disabled={gymSaving}
+                        className="flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
+                      >
+                        <span>
+                          <span className="block text-sm font-medium">{gym.name}</span>
+                          <span className="block text-xs text-muted-foreground">
+                            {gym.address || gym.slug}
+                          </span>
+                        </span>
+                        {gymSaving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {gymResults.length === 0 && gymQuery.trim().length >= 2 && !gymSearching && (
+                  <p className="text-sm text-muted-foreground">
+                    No encontramos gimnasios con ese nombre.
+                  </p>
+                )}
+
+                <p className="text-center text-xs text-muted-foreground">
+                  Podés continuar sin gimnasio y usar el catálogo por defecto.
+                </p>
+              </>
+            )}
+          </div>
+        )
+      case 2:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -661,7 +724,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 2:
+      case 3:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -706,7 +769,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 3:
+      case 4:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -751,7 +814,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 4:
+      case 5:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -796,7 +859,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 5:
+      case 6:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -846,7 +909,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 6:
+      case 7:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -918,7 +981,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 7:
+      case 8:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -967,7 +1030,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 8:
+      case 9:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -1011,7 +1074,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 9:
+      case 10:
         if (isGenerating) {
           return (
             <div className="flex flex-col items-center justify-center gap-8 py-16">
@@ -1072,34 +1135,39 @@ export default function OnboardingPage() {
 
             <div className="space-y-2">
               <SummaryRow
+                label="Gimnasio"
+                value={gymName ?? "Sin gimnasio (catálogo por defecto)"}
+                onEdit={() => jumpToEditStep(1)}
+              />
+              <SummaryRow
                 label="Objetivo"
                 value={objectiveLabelMap[data.objective!]}
-                onEdit={() => jumpToEditStep(1)}
+                onEdit={() => jumpToEditStep(2)}
               />
               <SummaryRow
                 label="Historial"
                 value={trainingHistoryLabelMap[data.trainingHistory!]}
-                onEdit={() => jumpToEditStep(2)}
+                onEdit={() => jumpToEditStep(3)}
               />
               <SummaryRow
                 label="Experiencia"
                 value={experienceLabelMap[data.experienceLevel!]}
-                onEdit={() => jumpToEditStep(3)}
+                onEdit={() => jumpToEditStep(4)}
               />
               <SummaryRow
                 label="Frecuencia"
                 value={`${data.trainingFrequency} días por semana`}
-                onEdit={() => jumpToEditStep(4)}
+                onEdit={() => jumpToEditStep(5)}
               />
               <SummaryRow
                 label="Condiciones"
                 value={data.physicalConditions.join(", ")}
-                onEdit={() => jumpToEditStep(5)}
+                onEdit={() => jumpToEditStep(6)}
               />
               <SummaryRow
                 label="Peso / Altura"
                 value={`${data.weight} kg / ${data.height} cm`}
-                onEdit={() => jumpToEditStep(6)}
+                onEdit={() => jumpToEditStep(7)}
               />
               {bmi !== null && (
                 <div
@@ -1114,12 +1182,12 @@ export default function OnboardingPage() {
               <SummaryRow
                 label="Medidas"
                 value={measurementsSummary}
-                onEdit={() => jumpToEditStep(7)}
+                onEdit={() => jumpToEditStep(8)}
               />
               <SummaryRow
                 label="Horario"
                 value={scheduleLabelMap[data.usualSchedule!]}
-                onEdit={() => jumpToEditStep(8)}
+                onEdit={() => jumpToEditStep(9)}
               />
             </div>
 
@@ -1191,7 +1259,7 @@ export default function OnboardingPage() {
           </div>
         )
 
-      case 10:
+      case 11:
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
@@ -1436,79 +1504,6 @@ export default function OnboardingPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    )
-  }
-
-  if (gymGate) {
-    return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <div className="mx-auto w-full max-w-lg flex-1 space-y-5 px-5 py-10">
-          <div className="space-y-2">
-            <h1 className="text-2xl font-bold tracking-tight">¿Tenés un gimnasio?</h1>
-            <p className="text-sm text-muted-foreground">
-              Si tu gimnasio usa GymApp, buscálo para ver sus máquinas y ejercicios. Si no, podés
-              usar la app con el catálogo por defecto.
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            <Input
-              value={gymQuery}
-              onChange={(e) => setGymQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void searchGyms()
-              }}
-              placeholder="Nombre o slug del gimnasio"
-            />
-            <Button onClick={() => void searchGyms()} disabled={gymSearching}>
-              {gymSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar"}
-            </Button>
-          </div>
-
-          {gymError && <p className="text-sm text-destructive">{gymError}</p>}
-
-          {gymResults.length > 0 && (
-            <div className="space-y-2">
-              {gymResults.map((gym) => (
-                <button
-                  key={gym.id}
-                  type="button"
-                  onClick={() => void joinGym(gym)}
-                  disabled={gymSaving}
-                  className="flex w-full items-center justify-between rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
-                >
-                  <span>
-                    <span className="block text-sm font-medium">{gym.name}</span>
-                    <span className="block text-xs text-muted-foreground">
-                      {gym.address || gym.slug}
-                    </span>
-                  </span>
-                  {gymSaving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {gymResults.length === 0 && gymQuery.trim().length >= 2 && !gymSearching && (
-            <p className="text-sm text-muted-foreground">
-              No encontramos gimnasios con ese nombre.
-            </p>
-          )}
-
-          <div className="border-t pt-4">
-            <Button variant="outline" onClick={skipGym} className="w-full">
-              No tengo gimnasio, usar la app
-            </Button>
-            <p className="mt-2 text-center text-xs text-muted-foreground">
-              Podés vincularlo más adelante si tu gimnasio se registra.
-            </p>
-          </div>
-        </div>
       </div>
     )
   }

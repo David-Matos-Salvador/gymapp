@@ -113,34 +113,36 @@ export interface GeneratedPlanData {
   }[]
 }
 
-export const TOTAL_STEPS = 10
+export const TOTAL_STEPS = 11
 
 export const STEPS = [
-  { num: 1, title: "Objetivo" },
-  { num: 2, title: "Historial" },
-  { num: 3, title: "Experiencia" },
-  { num: 4, title: "Frecuencia" },
-  { num: 5, title: "Condiciones" },
-  { num: 6, title: "Peso y altura" },
-  { num: 7, title: "Medidas" },
-  { num: 8, title: "Horario" },
-  { num: 9, title: "Confirmación" },
-  { num: 10, title: "Tu rutina" },
+  { num: 1, title: "Tu gimnasio" },
+  { num: 2, title: "Objetivo" },
+  { num: 3, title: "Historial" },
+  { num: 4, title: "Experiencia" },
+  { num: 5, title: "Frecuencia" },
+  { num: 6, title: "Condiciones" },
+  { num: 7, title: "Peso y altura" },
+  { num: 8, title: "Medidas" },
+  { num: 9, title: "Horario" },
+  { num: 10, title: "Confirmación" },
+  { num: 11, title: "Tu rutina" },
 ]
 
 export type StepBehavior = "auto-advance" | "manual" | "custom-button" | "system-auto" | "final"
 
 export const STEP_BEHAVIOR: Record<number, StepBehavior> = {
-  1: "auto-advance",
+  1: "manual",
   2: "auto-advance",
   3: "auto-advance",
   4: "auto-advance",
-  5: "manual",
+  5: "auto-advance",
   6: "manual",
   7: "manual",
-  8: "auto-advance",
-  9: "custom-button",
+  8: "manual",
+  9: "auto-advance",
   10: "custom-button",
+  11: "custom-button",
 }
 
 export const objectiveOptions: {
