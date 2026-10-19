@@ -3,17 +3,18 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { isSuperAdmin } from "@/lib/authz"
+import { planCurrencySchema, planDurationSchema, planPriceSchema } from "@/lib/membership-pricing"
 
 interface RouteParams {
   params: Promise<{ id: string }>
 }
 
 const updatePlanSchema = z.object({
-  name: z.string().optional(),
-  description: z.string().optional(),
-  price: z.number().positive().optional(),
-  currency: z.enum(["PEN", "USD", "EUR"]).optional(),
-  durationDays: z.number().int().positive().optional(),
+  name: z.string().trim().min(1).max(100).optional(),
+  description: z.string().max(500).optional(),
+  price: planPriceSchema.optional(),
+  currency: planCurrencySchema.optional(),
+  durationDays: planDurationSchema.optional(),
   active: z.boolean().optional(),
 })
 
@@ -61,8 +62,39 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Sin permisos sobre este plan" }, { status: 403 })
   }
 
-  const plan = await prisma.membershipPlan
-    .update({ where: { id }, data: parsed.data })
+  const priceChanged =
+    (parsed.data.price !== undefined && Number(parsed.data.price) !== Number(existing.price)) ||
+    (parsed.data.currency !== undefined && parsed.data.currency !== existing.currency)
+
+  const plan = await prisma
+    .$transaction(async (tx) => {
+      const updated = await tx.membershipPlan
+        .update({ where: { id }, data: parsed.data })
+        .catch((error: unknown) => {
+          const code =
+            error && typeof error === "object" && "code" in error
+              ? (error as { code?: string }).code
+              : undefined
+          if (code === "P2002") return null
+          throw error
+        })
+      if (!updated) return null
+
+      if (priceChanged) {
+        await tx.membershipPlanPriceHistory.create({
+          data: {
+            planId: id,
+            oldPrice: existing.price,
+            newPrice: updated.price,
+            oldCurrency: existing.currency,
+            newCurrency: updated.currency,
+            changedById: user.id,
+          },
+        })
+      }
+
+      return updated
+    })
     .catch((error: unknown) => {
       const code =
         error && typeof error === "object" && "code" in error
@@ -80,6 +112,28 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       },
       { status: 409 }
     )
+  }
+
+  if (priceChanged) {
+    const members = await prisma.membership.findMany({
+      where: { planId: id, status: "ACTIVE", endDate: { gt: new Date() } },
+      select: { userId: true },
+    })
+    if (members.length > 0) {
+      await prisma.notification.createMany({
+        data: members.map((member) => ({
+          userId: member.userId,
+          title: "Nuevo precio de membresía",
+          message: `El precio de ${plan.name} cambió a ${plan.currency} ${Number(plan.price).toFixed(2)}. Al renovar podés aceptarlo o rechazarlo.`,
+          type: "MEMBERSHIP",
+          metadata: {
+            planId: plan.id,
+            oldPrice: Number(existing.price),
+            newPrice: Number(plan.price),
+          },
+        })),
+      })
+    }
   }
 
   return NextResponse.json({ plan })

@@ -125,8 +125,9 @@ export async function POST(request: Request) {
         data: {
           userId: user.id,
           membershipId: membership.id,
-          amount: membership.planPrice > 0 ? membership.planPrice : membership.plan.price,
-          currency: membership.planPrice > 0 ? membership.planCurrency : membership.plan.currency,
+          amount: membership.planPrice ?? membership.plan.price,
+          currency:
+            membership.planPrice != null ? membership.planCurrency : membership.plan.currency,
           status: "PENDING",
           method,
           type: "MEMBERSHIP",

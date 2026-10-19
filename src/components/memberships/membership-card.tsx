@@ -30,6 +30,9 @@ interface MembershipPlan {
 interface Membership {
   id: string
   plan: MembershipPlan
+  planPrice: number | null
+  planCurrency: string
+  planDurationDays: number
   gym: { name: string } | null
   coach: { name: string | null } | null
   status: string
@@ -78,6 +81,9 @@ const paymentMethodLabels: Record<string, string> = {
 export function MembershipCard({ membership }: MembershipCardProps) {
   const {
     plan,
+    planPrice,
+    planCurrency,
+    planDurationDays,
     gym,
     coach,
     status,
@@ -114,6 +120,31 @@ export function MembershipCard({ membership }: MembershipCardProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ renew: true }),
       })
+      if (res.status === 409) {
+        const data = await res.json()
+        if (data.code === "PRICE_CHANGED" && data.current) {
+          const accepted = window.confirm(
+            `El nuevo precio es ${data.current.currency} ${Number(data.current.price).toFixed(2)} por ${data.current.durationDays} días (antes ${data.current.previousCurrency} ${Number(data.current.previousPrice).toFixed(2)}). ¿Aceptás renovar con el nuevo precio?`
+          )
+          if (!accepted) {
+            toast.info("No se renovó. Tu membresía vence en la fecha actual.")
+            return
+          }
+          const retry = await fetch(`/api/memberships/${membership.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ renew: true, acceptNewPrice: true }),
+          })
+          if (!retry.ok) {
+            const retryData = await retry.json()
+            throw new Error(retryData.error ?? "Error al renovar")
+          }
+          toast.success("Membresía renovada con el nuevo precio. Confirma tu pago.")
+          router.refresh()
+          return
+        }
+        throw new Error(data.error ?? "Error al renovar")
+      }
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error ?? "Error al renovar")
@@ -160,9 +191,9 @@ export function MembershipCard({ membership }: MembershipCardProps) {
             {paymentRef && <p className="text-xs text-muted-foreground">Ref: {paymentRef}</p>}
           </div>
           <span className="text-lg font-semibold tabular-nums">
-            {plan.currency.toUpperCase()} ${plan.price}
+            {planCurrency.toUpperCase()} ${planPrice ?? plan.price}
             <span className="text-xs font-normal text-muted-foreground ml-1">
-              / {plan.durationDays}d
+              / {planDurationDays || plan.durationDays}d
             </span>
           </span>
         </div>

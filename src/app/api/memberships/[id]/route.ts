@@ -26,6 +26,7 @@ const updateMembershipSchema = z.object({
   notes: z.string().optional(),
   autoRenew: z.boolean().optional(),
   renew: z.boolean().optional(),
+  acceptNewPrice: z.boolean().optional(),
   startDate: dateStringSchema.optional(),
   endDate: dateStringSchema.optional(),
 })
@@ -107,7 +108,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     // ADM-01: el admin no puede sobrescribir pago, estado ni fechas por PATCH.
     // Solo puede solicitar la renovación calculada en servidor.
     const forbiddenField = Object.entries(input).find(
-      ([key, value]) => key !== "renew" && value !== undefined
+      ([key, value]) => key !== "renew" && key !== "acceptNewPrice" && value !== undefined
     )
     if (forbiddenField) {
       return NextResponse.json(
@@ -123,7 +124,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
   if (!isAdmin) {
     // D-08: non-admin clients can only ask for a server-calculated renewal.
     const forbiddenField = Object.entries(input).find(
-      ([key, value]) => key !== "renew" && value !== undefined
+      ([key, value]) => key !== "renew" && key !== "acceptNewPrice" && value !== undefined
     )
     if (forbiddenField) {
       return NextResponse.json(
@@ -138,7 +139,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
   if (input.renew) {
     const conflictingField = Object.entries(input).find(
-      ([key, value]) => key !== "renew" && value !== undefined
+      ([key, value]) => key !== "renew" && key !== "acceptNewPrice" && value !== undefined
     )
     if (conflictingField) {
       return NextResponse.json(
@@ -159,6 +160,28 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     if (!isAdmin && existing.plan.active === false) {
       return NextResponse.json(
         { error: "El plan está inactivo. Elegí un plan activo o contactá al gimnasio." },
+        { status: 409 }
+      )
+    }
+
+    const priceChanged =
+      existing.planPrice != null &&
+      (Number(existing.planPrice) !== Number(existing.plan.price) ||
+        existing.planCurrency !== existing.plan.currency)
+
+    if (!isAdmin && priceChanged && input.acceptNewPrice !== true) {
+      return NextResponse.json(
+        {
+          error: "El precio de tu plan cambió. Aceptá el nuevo precio para renovar.",
+          code: "PRICE_CHANGED",
+          current: {
+            price: Number(existing.plan.price),
+            currency: existing.plan.currency,
+            durationDays: existing.plan.durationDays,
+            previousPrice: Number(existing.planPrice),
+            previousCurrency: existing.planCurrency,
+          },
+        },
         { status: 409 }
       )
     }

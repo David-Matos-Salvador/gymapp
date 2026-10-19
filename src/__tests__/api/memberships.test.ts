@@ -49,10 +49,12 @@ interface ExistingMembershipOverrides {
   endDate?: Date
   paymentConfirmed?: boolean
   durationDays?: number
+  planPrice?: number | null
+  planCurrency?: string
 }
 
 function buildExisting(overrides: ExistingMembershipOverrides = {}) {
-  const { durationDays = 30, ...rest } = overrides
+  const { durationDays = 30, planPrice = 500, planCurrency = "PEN", ...rest } = overrides
 
   return {
     id: "m-1",
@@ -68,6 +70,8 @@ function buildExisting(overrides: ExistingMembershipOverrides = {}) {
     notes: null,
     createdAt: new Date("2026-10-01T12:00:00.000Z"),
     updatedAt: new Date("2026-10-01T12:00:00.000Z"),
+    planPrice,
+    planCurrency,
     plan: { id: "p-1", durationDays, price: 500, currency: "PEN" },
     user: { gymId: "gym-1" },
     ...rest,
@@ -168,6 +172,31 @@ describe("PATCH /api/memberships/[id]", () => {
       })
     )
     expect(new Date(body.membership.endDate).getTime()).toBeGreaterThan(NOW.getTime())
+  })
+
+  it("requires explicit acceptance when the plan price changed", async () => {
+    loginAs("u-carlos", "MEMBER", "carlos@gymapp.com")
+    mockMembershipFindUnique.mockResolvedValue(
+      buildExisting({
+        status: "EXPIRED",
+        endDate: new Date("2026-10-16T12:00:00.000Z"),
+        planPrice: 400,
+      })
+    )
+
+    const blocked = await PATCH(patchRequest({ renew: true }), routeParams())
+    const blockedBody = await blocked.json()
+    expect(blocked.status).toBe(409)
+    expect(blockedBody.code).toBe("PRICE_CHANGED")
+    expect(mockMembershipUpdate).not.toHaveBeenCalled()
+
+    const accepted = await PATCH(patchRequest({ renew: true, acceptNewPrice: true }), routeParams())
+    expect(accepted.status).toBe(200)
+    expect(mockMembershipUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ planPrice: 500, planCurrency: "PEN" }),
+      })
+    )
   })
 
   it("extends a current ACTIVE membership from its existing endDate and keeps the payment", async () => {

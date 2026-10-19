@@ -62,6 +62,8 @@ export default async function AdminMembershipsPage() {
 
   const serialized = memberships.map((m) => ({
     ...m,
+    planPrice: Number(m.planPrice ?? 0),
+    plan: { ...m.plan, price: Number(m.plan.price) },
     startDate: m.startDate.toISOString(),
     endDate: m.endDate.toISOString(),
     createdAt: m.createdAt.toISOString(),
@@ -70,6 +72,7 @@ export default async function AdminMembershipsPage() {
 
   const serializedPendingPayments = pendingPayments.map((payment) => ({
     ...payment,
+    amount: Number(payment.amount),
     createdAt: payment.createdAt.toISOString(),
   }))
 
@@ -99,6 +102,8 @@ export default async function AdminMembershipsPage() {
     orderBy: { price: "asc" },
   })
 
+  const serializedPlans = plans.map((plan) => ({ ...plan, price: Number(plan.price) }))
+
   return (
     <AppShell>
       <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
@@ -114,7 +119,7 @@ export default async function AdminMembershipsPage() {
           memberships={serialized}
           pendingPayments={serializedPendingPayments}
           members={members}
-          plans={plans}
+          plans={serializedPlans}
         />
       </div>
     </AppShell>

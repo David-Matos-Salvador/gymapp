@@ -18,6 +18,9 @@ interface MembershipData {
     currency: string
     durationDays: number
   }
+  planPrice: number | null
+  planCurrency: string
+  planDurationDays: number
   gym: { name: string } | null
   coach: { name: string | null } | null
   status: string
@@ -143,17 +146,27 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!file) {
+    const free = selectedPlan?.price === 0
+    if (!free && !file) {
       toast.error("Adjuntá un comprobante para que el gimnasio pueda revisarlo")
       return
     }
     setSubmitting(true)
     try {
-      const formData = new FormData()
-      formData.append("planId", planId)
-      formData.append("method", method)
-      formData.append("file", file)
-      const res = await fetch("/api/payments", { method: "POST", body: formData })
+      let res: Response
+      if (free) {
+        res = await fetch("/api/memberships/self", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ planId }),
+        })
+      } else {
+        const formData = new FormData()
+        formData.append("planId", planId)
+        formData.append("method", method)
+        formData.append("file", file!)
+        res = await fetch("/api/payments", { method: "POST", body: formData })
+      }
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         toast.error(data.error || "Error al registrar la membresía")
@@ -172,7 +185,9 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
         <div className="space-y-1">
           <p className="font-semibold">Elegí tu plan</p>
           <p className="text-sm text-muted-foreground">
-            Después de enviar el comprobante, el gimnasio confirmará tu pago.
+            {selectedPlan?.price === 0
+              ? "Este plan es gratuito: se activa al confirmar."
+              : "Después de enviar el comprobante, el gimnasio confirmará tu pago."}
           </p>
         </div>
         <div className="space-y-2">
@@ -190,7 +205,7 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
                 </span>
               </span>
               <span className="text-sm font-semibold">
-                {formatCurrency(plan.price, plan.currency)}
+                {plan.price === 0 ? "Gratis" : formatCurrency(plan.price, plan.currency)}
               </span>
               <input
                 type="radio"
@@ -204,41 +219,45 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
           ))}
         </div>
         <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="space-y-2">
-            <label htmlFor="newPaymentMethod" className="text-sm font-medium">
-              Método de pago
-            </label>
-            <select
-              id="newPaymentMethod"
-              value={method}
-              onChange={(e) => setMethod(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
-            >
-              <option value="YAPE">Yape</option>
-              <option value="TRANSFER">Transferencia</option>
-              <option value="CASH">Efectivo</option>
-              <option value="CARD">Tarjeta</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label htmlFor="newPaymentReceipt" className="text-sm font-medium">
-              Comprobante
-            </label>
-            <input
-              id="newPaymentReceipt"
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm"
-            />
-          </div>
+          {selectedPlan?.price !== 0 && (
+            <div className="space-y-2">
+              <label htmlFor="newPaymentMethod" className="text-sm font-medium">
+                Método de pago
+              </label>
+              <select
+                id="newPaymentMethod"
+                value={method}
+                onChange={(e) => setMethod(e.target.value)}
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs"
+              >
+                <option value="YAPE">Yape</option>
+                <option value="TRANSFER">Transferencia</option>
+                <option value="CASH">Efectivo</option>
+                <option value="CARD">Tarjeta</option>
+              </select>
+            </div>
+          )}
+          {selectedPlan?.price !== 0 && (
+            <div className="space-y-2">
+              <label htmlFor="newPaymentReceipt" className="text-sm font-medium">
+                Comprobante
+              </label>
+              <input
+                id="newPaymentReceipt"
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm"
+              />
+            </div>
+          )}
           <Button type="submit" disabled={submitting || !selectedPlan} className="w-full">
             {submitting ? (
               <Loader2 className="mr-1 h-4 w-4 animate-spin" />
             ) : (
               <Upload className="mr-1 h-4 w-4" />
             )}
-            Enviar comprobante
+            {selectedPlan?.price === 0 ? "Activar plan gratis" : "Enviar comprobante"}
           </Button>
         </form>
       </CardContent>

@@ -80,12 +80,16 @@ export function MembershipPlanManager({
     if (!canManage || !gymId || !form.name.trim()) return
     const price = Number(form.price)
     const durationDays = Number(form.durationDays)
-    if (!Number.isFinite(price) || price <= 0) {
-      toast.error("El precio debe ser mayor a 0")
+    if (!Number.isFinite(price) || price < 0 || price > 1_000_000) {
+      toast.error("El precio debe estar entre 0 y 1.000.000")
       return
     }
-    if (!Number.isInteger(durationDays) || durationDays <= 0) {
-      toast.error("La duración debe ser un entero mayor a 0")
+    if (Math.abs(price * 100 - Math.round(price * 100)) > 1e-9) {
+      toast.error("El precio admite máximo dos decimales")
+      return
+    }
+    if (!Number.isInteger(durationDays) || durationDays < 1 || durationDays > 3650) {
+      toast.error("La duración debe ser un entero entre 1 y 3650 días")
       return
     }
 
@@ -96,7 +100,7 @@ export function MembershipPlanManager({
       name: form.name.trim(),
       description: form.description.trim() || undefined,
       price,
-      currency: form.currency.trim().toUpperCase() || "PEN",
+      currency: "PEN",
       durationDays,
     }
 
@@ -291,20 +295,17 @@ export function MembershipPlanManager({
                 <Input
                   id="planPrice"
                   type="number"
-                  min={0.01}
+                  min={0}
                   step="0.01"
                   value={form.price}
                   onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="planCurrency">Moneda</Label>
-                <Input
-                  id="planCurrency"
-                  value={form.currency}
-                  onChange={(e) => setForm((f) => ({ ...f, currency: e.target.value }))}
-                  placeholder="PEN"
-                />
+                <Label>Moneda</Label>
+                <div className="flex h-9 items-center rounded-md border bg-muted/40 px-3 text-sm">
+                  PEN (soles)
+                </div>
               </div>
             </div>
             <div className="space-y-2">
@@ -313,6 +314,7 @@ export function MembershipPlanManager({
                 id="planDuration"
                 type="number"
                 min={1}
+                max={3650}
                 step={1}
                 value={form.durationDays}
                 onChange={(e) =>

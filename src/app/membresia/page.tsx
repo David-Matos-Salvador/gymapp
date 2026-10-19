@@ -50,7 +50,7 @@ export default async function MembresiaPage() {
         id: membership.id,
         plan: {
           name: membership.plan.name,
-          price: membership.plan.price,
+          price: Number(membership.plan.price),
           currency: membership.plan.currency,
           durationDays: membership.plan.durationDays,
         },
@@ -58,6 +58,9 @@ export default async function MembresiaPage() {
         coach: membership.user.assignedTrainer
           ? { name: membership.user.assignedTrainer.name }
           : null,
+        planPrice: membership.planPrice !== null ? Number(membership.planPrice) : null,
+        planCurrency: membership.planCurrency,
+        planDurationDays: membership.planDurationDays,
         status: membership.status,
         startDate: membership.startDate.toISOString(),
         endDate: membership.endDate.toISOString(),
@@ -71,16 +74,19 @@ export default async function MembresiaPage() {
   const serializedPendingPayment = pendingPayment
     ? {
         ...pendingPayment,
+        amount: Number(pendingPayment.amount),
         createdAt: pendingPayment.createdAt.toISOString(),
       }
     : null
+
+  const serializedPlans = plans.map((plan) => ({ ...plan, price: Number(plan.price) }))
 
   return (
     <AppShell>
       <MembresiaContent
         membership={serializedMembership}
         pendingPayment={serializedPendingPayment}
-        plans={plans}
+        plans={serializedPlans}
       />
     </AppShell>
   )

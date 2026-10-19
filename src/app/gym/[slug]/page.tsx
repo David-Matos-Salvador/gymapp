@@ -109,7 +109,7 @@ export default async function GymPage({ params }: GymPageParams) {
                         )}
                       </div>
                       <Badge variant="secondary" className="shrink-0">
-                        {plan.currency.toUpperCase()} ${plan.price}
+                        {plan.currency.toUpperCase()} ${Number(plan.price)}
                         <span className="text-xs font-normal text-muted-foreground ml-1">
                           / {plan.durationDays}d
                         </span>

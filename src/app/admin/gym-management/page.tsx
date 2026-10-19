@@ -162,7 +162,7 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
     id: payment.id,
     userName: payment.user.name,
     userEmail: payment.user.email,
-    amount: payment.amount,
+    amount: Number(payment.amount),
     currency: payment.currency,
     status: payment.status,
     method: payment.method,

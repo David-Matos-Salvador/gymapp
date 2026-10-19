@@ -3,14 +3,20 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { isSuperAdmin } from "@/lib/authz"
+import {
+  PLAN_CURRENCY,
+  planCurrencySchema,
+  planDurationSchema,
+  planPriceSchema,
+} from "@/lib/membership-pricing"
 
 const createPlanSchema = z.object({
   gymId: z.string().min(1),
-  name: z.string().min(1),
-  description: z.string().optional(),
-  price: z.number().positive(),
-  currency: z.enum(["PEN", "USD", "EUR"]).default("PEN"),
-  durationDays: z.number().int().positive(),
+  name: z.string().trim().min(1).max(100),
+  description: z.string().max(500).optional(),
+  price: planPriceSchema,
+  currency: planCurrencySchema.default(PLAN_CURRENCY),
+  durationDays: planDurationSchema,
 })
 
 export async function GET(request: Request) {

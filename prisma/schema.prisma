@@ -200,6 +200,7 @@ model User {
 
   gym              Gym?              @relation(fields: [gymId], references: [id])
   ownedGym         Gym?              @relation("GymOwner")
+  priceChanges     MembershipPlanPriceHistory[] @relation("PriceChangedBy")
   assignedTrainer  User?             @relation("TrainerClients", fields: [assignedTrainerId], references: [id])
   clients          User[]            @relation("TrainerClients")
   routinePlans            RoutinePlan[]
@@ -262,20 +263,37 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model MembershipPlanPriceHistory {
+  id          String   @id @default(cuid())
+  planId      String
+  oldPrice    Decimal? @db.Decimal(12, 2)
+  newPrice    Decimal  @db.Decimal(12, 2)
+  oldCurrency String?
+  newCurrency String
+  changedById String?
+  createdAt   DateTime @default(now())
+
+  plan      MembershipPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  changedBy User?          @relation("PriceChangedBy", fields: [changedById], references: [id])
+
+  @@index([planId, createdAt])
+}
+
 model MembershipPlan {
   id          String   @id @default(cuid())
   gymId       String
   name        String
   description String?
-  price       Float
+  price       Decimal  @db.Decimal(12, 2)
   currency    String   @default("PEN")
   durationDays Int
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  gym        Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
-  memberships Membership[]
+  gym          Gym          @relation(fields: [gymId], references: [id], onDelete: Cascade)
+  memberships  Membership[]
+  priceHistory MembershipPlanPriceHistory[]
 
   @@unique([gymId, name])
 }
@@ -292,7 +310,7 @@ model Membership {
   paymentMethod   PaymentMethod    @default(CASH)
   paymentRef      String?
   notes           String?
-  planPrice       Float            @default(0)
+  planPrice       Decimal?         @db.Decimal(12, 2)
   planCurrency    String           @default("PEN")
   planDurationDays Int             @default(0)
   createdAt       DateTime         @default(now())
@@ -566,7 +584,7 @@ model Payment {
   id                    String        @id @default(cuid())
   userId                String
   membershipId          String?
-  amount                Float
+  amount                Decimal       @db.Decimal(12, 2)
   currency              String        @default("PEN")
   status                PaymentStatus @default(PENDING)
   method                PaymentMethod @default(CASH)

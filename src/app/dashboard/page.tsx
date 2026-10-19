@@ -350,7 +350,7 @@ export default async function DashboardPage() {
       },
       _sum: { amount: true },
     })
-    const monthlyIncome = monthlyRevenue._sum.amount ?? 0
+    const monthlyIncome = Number(monthlyRevenue._sum.amount ?? 0)
     const avgDailyAttendance = Math.round((weeklyCheckIns / 7) * 10) / 10
 
     const activeEquipment = user.gymId
@@ -460,7 +460,7 @@ export default async function DashboardPage() {
             activeMemberships,
             todayCheckins,
             totalTrainers,
-            totalRevenue: revenueAgg._sum.amount ?? 0,
+            totalRevenue: Number(revenueAgg._sum.amount ?? 0),
           }}
           gyms={gyms.map((g) => ({
             id: g.id,

@@ -55,6 +55,12 @@ export async function POST(request: Request) {
     }
 
     const plan = await prisma.membershipPlan.findUnique({ where: { id: planId } })
+    if (plan && Number(plan.price) === 0) {
+      return NextResponse.json(
+        { error: "Este plan es gratuito: activalo desde Membresía sin comprobante" },
+        { status: 400 }
+      )
+    }
     if (!plan || !plan.active || plan.gymId !== user.gymId) {
       return NextResponse.json({ error: "Plan no encontrado o inactivo" }, { status: 404 })
     }
@@ -159,12 +165,16 @@ export async function POST(request: Request) {
             include: { plan: true },
           }))
 
+        const amount = existingMembership?.planPrice ?? plan.price
+        const currency =
+          existingMembership?.planPrice != null ? existingMembership.planCurrency : plan.currency
+
         const createdPayment = await tx.payment.create({
           data: {
             userId: user.id,
             membershipId: targetMembership.id,
-            amount: plan.price,
-            currency: plan.currency,
+            amount,
+            currency,
             status: "PENDING",
             method: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
             type: "MEMBERSHIP",

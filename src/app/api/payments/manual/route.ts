@@ -61,8 +61,9 @@ export async function POST(request: Request) {
       data: {
         userId: membership.userId,
         membershipId: membership.id,
-        amount: membership.planPrice > 0 ? membership.planPrice : membership.plan.price,
-        currency: membership.planPrice > 0 ? membership.planCurrency : membership.plan.currency,
+        amount: membership.planPrice ?? membership.plan.price,
+        currency:
+          membership.planPrice !== null ? membership.planCurrency : membership.plan.currency,
         status: "COMPLETED",
         method: parsed.data.method,
         type: "MEMBERSHIP",
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
       data: {
         userId: membership.userId,
         title: "Pago registrado",
-        message: `Se registró tu pago de ${membership.plan.currency.toUpperCase()} ${membership.plan.price} (${parsed.data.method}).`,
+        message: `Se registró tu pago de ${(membership.planPrice ?? membership.plan.price).toString()} ${membership.plan.currency.toUpperCase()} (${parsed.data.method}).`,
         type: "PAYMENT",
         metadata: { paymentId: payment.id, membershipId: membership.id },
       },
