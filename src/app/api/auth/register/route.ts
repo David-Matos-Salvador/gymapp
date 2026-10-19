@@ -37,13 +37,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "El email ya esta registrado" }, { status: 409 })
     }
 
-    let gym: { id: string; active: boolean } | null = null
+    let gym: { id: string; active: boolean; isDefault: boolean } | null = null
     if (gymSlug) {
       gym = await prisma.gym.findUnique({
         where: { slug: gymSlug },
-        select: { id: true, active: true },
+        select: { id: true, active: true, isDefault: true },
       })
-      if (!gym || !gym.active) {
+      if (!gym || !gym.active || gym.isDefault) {
         return NextResponse.json(
           { error: "El gimnasio no existe o no está disponible" },
           { status: 400 }

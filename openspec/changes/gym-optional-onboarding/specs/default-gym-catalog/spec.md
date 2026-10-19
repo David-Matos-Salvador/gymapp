@@ -15,7 +15,7 @@ El sistema SHALL tener como máximo un gimnasio con `isDefault = true`. Ese gimn
 
 ### Requirement: Fallback de equipamiento
 
-La resolución de equipamiento SHALL usar primero la configuración del gimnasio del miembro. Si el miembro no tiene gimnasio, o su gimnasio no tiene activación para un equipo, SHALL usar la configuración del gimnasio por defecto. Si tampoco existe, SHALL mostrar el catálogo genérico.
+La resolución de equipamiento SHALL usar la configuración del gimnasio del miembro cuando tiene gimnasio. Solo si el miembro no tiene gimnasio SHALL usar la configuración del gimnasio por defecto o, en su defecto, el catálogo genérico. Un gimnasio real nunca SHALL completar máquinas faltantes con el default.
 
 #### Scenario: Miembro con gimnasio configurado
 

@@ -39,7 +39,7 @@ Consecuencia: todo endpoint que necesite catálogo debe usar el resolver; los en
 Si el miembro no es asistido, no tiene gym y no viene de invitación, el onboarding muestra un gate “¿Tenés un gimnasio?” antes del paso 1:
 
 - “Sí” abre búsqueda por nombre/slug contra gyms activos no-default.
-- Al seleccionar, `POST /api/user/gym` vincula y continúa.
+- Al seleccionar, `POST /api/user/gym` crea una solicitud de pertenencia; el miembro ve el catálogo del gym solicitado mientras espera.
 - “No” continúa con `gymId=null`.
   El gate no se repite en la misma sesión de onboarding. Si el miembro ya tiene gym (invitación), se omite.
 
@@ -63,6 +63,18 @@ Para cada equipo:
 
 El seed no crea planes, clases, membresías ni invitaciones para el default. Los endpoints de creación validan `gym.isDefault=false`. La UI de membresía/clases muestra un CTA para vincular un gym cuando `gymId=null`.
 
+### 7. Coach global solo para miembros sin gym
+
+La elegibilidad trainer→member queda:
+
+- miembro con gym: trainer del mismo gym;
+- miembro sin gym: cualquier trainer de un gym activo.
+  El coach actual se mantiene hasta que una solicitud de cambio sea aprobada. Esto evita que un miembro sin gym quede aislado y mantiene el aislamiento cuando ya tiene sede.
+
+### 8. Cambio de gym como solicitud
+
+`GymJoinRequest` sirve tanto para primera pertenencia como para cambio. Estados `PENDING`, `APPROVED`, `REJECTED`. Solo puede haber una solicitud PENDING por miembro; el gym destino la revisa. La aprobación es transaccional y actualiza `gymId`.
+
 ## Risks / Trade-offs
 
 - **Usuarios existentes con `gymId=null`**: pueden quedar sin catálogo hasta que el resolver esté aplicado en todos los endpoints → auditar rutas de equipamiento/ejercicios y cubrir con tests.
@@ -80,4 +92,4 @@ El seed no crea planes, clases, membresías ni invitaciones para el default. Los
 
 ## Open Questions
 
-Ninguna bloqueante. El cambio de gym posterior al onboarding queda fuera de alcance.
+Ninguna bloqueante. El cambio de gym y de coach se modela con solicitudes pendientes; la UI de aprobación del dueño/ADMIN queda en esta misma iteración.

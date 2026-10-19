@@ -42,6 +42,20 @@ El onboarding SHALL preguntar si la persona está relacionada con un gimnasio. S
 - **WHEN** el miembro selecciona un gimnasio real
 - **THEN** la vinculación se aplica sin requerir aprobación del dueño
 
+### Requirement: Cambio de gimnasio
+
+Un miembro con gimnasio SHALL poder solicitar cambiar a otro gimnasio. La pertenencia actual SHALL mantenerse hasta que el gimnasio destino apruebe el cambio.
+
+#### Scenario: Cambio aprobado
+
+- **WHEN** el miembro solicita otro gimnasio y el destino lo aprueba
+- **THEN** su `gymId` cambia al nuevo gimnasio
+
+#### Scenario: Cambio pendiente
+
+- **WHEN** el miembro tiene una solicitud de cambio pendiente
+- **THEN** sigue operando con su gimnasio actual hasta la aprobación
+
 ### Requirement: Link o invitación de gimnasio
 
 Un link o invitación de gimnasio SHALL preseleccionar el gimnasio y SHALL omitir la pregunta de onboarding.

@@ -24,17 +24,24 @@
 - [x] 3.5 Bloquear membresías, planes, clases, reservas e invitaciones en el default.
 - [ ] 3.6 Empty states/CTA para vincular gym en membresía y clases.
 
-## 4. Pruebas y validación
+## 4. Coach global
 
-- [ ] 4.1 Tests unitarios de fallback de equipamiento/números/ejercicios.
-- [ ] 4.2 Tests de operaciones rechazadas en el default.
-- [ ] 4.3 E2E: cuenta sin gym → onboarding “No” → rutina/equipamiento con default.
-- [ ] 4.4 E2E: onboarding “Sí” → buscar y vincular gym real.
-- [ ] 4.5 E2E: invitación omite la pregunta y conserva el gym.
+- [ ] 4.1 Permitir búsqueda trainer→miembro y solicitud cuando el miembro tiene `gymId=null`.
+- [ ] 4.2 Mantener same-gym cuando el miembro tiene gym.
+- [ ] 4.3 Aceptar solicitud de coach sin cambiar `gymId`.
+- [ ] 4.4 Tests cross-gym y miembro sin gym.
+
+## 5. Pruebas y validación
+
+- [ ] 5.1 Tests unitarios de fallback de equipamiento/números/ejercicios.
+- [ ] 5.2 Tests de operaciones rechazadas en el default.
+- [ ] 5.3 E2E: cuenta sin gym → onboarding “No” → rutina/equipamiento con default.
+- [ ] 5.4 E2E: onboarding “Sí” → buscar y vincular gym real.
+- [ ] 5.5 E2E: invitación omite la pregunta y conserva el gym.
 - [x] 4.6 `npm run validate` y `npm run test:validation`; actualizar reporte.
 
-## 5. Documentación
+## 6. Documentación
 
 - [x] 5.1 Actualizar `docs/decisions/validation-fixes.md` o crear decisión del default.
-- [ ] 5.2 Actualizar `VALIDATION_REPORT.md` y contadores.
-- [ ] 5.3 Documentar el flujo en `ARCHITECTURE.md`.
+- [ ] 6.2 Actualizar `VALIDATION_REPORT.md` y contadores.
+- [ ] 6.3 Documentar el flujo en `ARCHITECTURE.md`.

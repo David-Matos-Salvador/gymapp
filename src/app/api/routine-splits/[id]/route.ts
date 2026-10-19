@@ -96,7 +96,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     })
     activeExerciseIds = new Set(gymExercises.map((e) => e.exerciseId))
   }
-  if (activeExerciseIds.size === 0 && defaultGym) {
+  if (!primaryGymId && activeExerciseIds.size === 0 && defaultGym) {
     const defaultExercises = await prisma.gymExercise.findMany({
       where: { gymId: defaultGym.id, active: true },
       select: { exerciseId: true },
@@ -108,6 +108,8 @@ export async function GET(request: Request, { params }: RouteParams) {
     split.exercises = split.exercises.filter((se) => activeExerciseIds.has(se.exerciseId))
   }
 
+  const fallbackGym = primaryGymId ? null : defaultGym
+
   for (const se of split.exercises) {
     const equip = se.exercise.gymEquipments ?? []
     se.exercise.gymEquipments = equip
@@ -117,7 +119,7 @@ export async function GET(request: Request, { params }: RouteParams) {
         return equipment.activations.some(
           (activation) =>
             activation.active &&
-            (activation.gymId === primaryGymId || activation.gymId === defaultGym?.id)
+            (activation.gymId === primaryGymId || activation.gymId === fallbackGym?.id)
         )
       })
       .map((equipment) => {
@@ -126,7 +128,7 @@ export async function GET(request: Request, { params }: RouteParams) {
           (activation) => activation.active && activation.gymId === primaryGymId
         )
         const defaultActivation = activations.find(
-          (activation) => activation.active && activation.gymId === defaultGym?.id
+          (activation) => activation.active && activation.gymId === fallbackGym?.id
         )
         const activation = primaryActivation ?? defaultActivation
         return {
