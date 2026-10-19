@@ -144,7 +144,20 @@ export async function GET(request: Request, { params }: RouteParams) {
     ? { id: effectiveGym.id, showMachineNumbers: effectiveGym.showMachineNumbers }
     : null
 
-  return NextResponse.json({ split, gym })
+  const lastLog = await prisma.workoutLog.findFirst({
+    where: { userId: user.id, splitId: split.id },
+    orderBy: { date: "desc" },
+    include: { sets: true },
+  })
+  const lastPerformance: Record<string, { weight: number; reps: number }> = {}
+  for (const set of lastLog?.sets ?? []) {
+    const current = lastPerformance[set.exerciseId]
+    if (!current || set.weight > current.weight) {
+      lastPerformance[set.exerciseId] = { weight: set.weight, reps: set.reps }
+    }
+  }
+
+  return NextResponse.json({ split, gym, lastPerformance })
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {

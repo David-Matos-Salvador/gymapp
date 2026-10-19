@@ -20,7 +20,7 @@ import type { SetLog, SplitExercise, GymEquipmentRef } from "@/types/exercise"
 import { ExerciseDetailSheet } from "./exercise-detail-sheet"
 import { ExerciseImage } from "@/components/exercise/exercise-image"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
+import { Input } from "@/components/ui/input"
 
 type ExerciseAppearance = "current" | "pending" | "completed"
 
@@ -34,6 +34,8 @@ interface ExerciseCardProps {
   dragHandleProps?: Record<string, unknown>
   isDragging?: boolean
   onContinue?: () => void
+  onSetUpdate?: (setIdx: number, updates: Partial<SetLog>) => void
+  lastPerformance?: { weight: number; reps: number } | null
   userGymId?: string
   showMachineNumbers?: boolean
 }
@@ -105,10 +107,12 @@ function SetsStepper({
   restTotal,
   expanded,
   onExpandedChange,
+  onSetUpdate,
 }: {
   setsData: SetLog[]
   totalSets: number
   onSetToggle: (setIdx: number) => void
+  onSetUpdate?: (setIdx: number, updates: Partial<SetLog>) => void
   restActive: boolean
   restRemaining: number
   restTotal: number
@@ -220,6 +224,40 @@ function SetsStepper({
               </button>
             </div>
           )}
+          {(() => {
+            const next = setsData.findIndex((set) => !set.completed)
+            if (next < 0) return null
+            const current = setsData[next]
+            return (
+              <div className="flex items-center gap-2 rounded-lg bg-muted/30 p-2 text-xs">
+                <span className="font-medium">Serie {next + 1}:</span>
+                <Input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={current.reps}
+                  onChange={(e) =>
+                    onSetUpdate?.(next, { reps: Math.max(0, Number(e.target.value) || 0) })
+                  }
+                  className="h-7 w-16 text-center text-xs"
+                  aria-label={`Reps serie ${next + 1}`}
+                />
+                <span className="text-muted-foreground">reps</span>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.5"
+                  value={current.weight}
+                  onChange={(e) =>
+                    onSetUpdate?.(next, { weight: Math.max(0, Number(e.target.value) || 0) })
+                  }
+                  className="h-7 w-20 text-center text-xs"
+                  aria-label={`Peso serie ${next + 1}`}
+                />
+                <span className="text-muted-foreground">kg</span>
+              </div>
+            )
+          })()}
         </div>
       )}
     </div>
@@ -237,6 +275,8 @@ export function ExerciseCard({
   dragHandleProps,
   isDragging,
   onContinue,
+  onSetUpdate,
+  lastPerformance,
   userGymId,
   showMachineNumbers = false,
 }: ExerciseCardProps) {
@@ -330,14 +370,16 @@ export function ExerciseCard({
     onSetsCountChange?.(totalSets - 1)
   }, [onSetsCountChange, totalSets])
 
-  const handleContinue = useCallback(() => {
-    if (!allCompleted) {
+  const nextIncomplete = setsData.findIndex((set) => !set.completed)
+
+  const handlePrimaryAction = useCallback(() => {
+    if (nextIncomplete >= 0) {
       setStepperExpanded(true)
-      toast.warning(`Completá las ${totalSets} series antes de continuar`)
+      handleToggleSet(nextIncomplete)
       return
     }
     onContinue?.()
-  }, [allCompleted, onContinue, totalSets])
+  }, [handleToggleSet, nextIncomplete, onContinue])
 
   return (
     <div
@@ -402,6 +444,23 @@ export function ExerciseCard({
                 </>
               )}
             </div>
+            {lastPerformance && isCurrent && (
+              <button
+                type="button"
+                onClick={() => {
+                  onWeightChange?.(lastPerformance.weight)
+                  if (nextIncomplete >= 0) {
+                    onSetUpdate?.(nextIncomplete, {
+                      weight: lastPerformance.weight,
+                      reps: lastPerformance.reps,
+                    })
+                  }
+                }}
+                className="mt-1 text-[10px] text-muted-foreground hover:text-foreground"
+              >
+                Última: {lastPerformance.weight} kg × {lastPerformance.reps} · usar
+              </button>
+            )}
           </div>
         </div>
 
@@ -456,8 +515,11 @@ export function ExerciseCard({
           {/* Continue button */}
           {onContinue && (
             <div>
-              <Button onClick={handleContinue} size="sm" className="w-full gap-2">
-                Continuar <ArrowRight className="h-3.5 w-3.5" />
+              <Button onClick={handlePrimaryAction} size="sm" className="w-full gap-2">
+                {nextIncomplete >= 0
+                  ? `Completar serie ${nextIncomplete + 1} de ${totalSets}`
+                  : "Siguiente ejercicio"}
+                {nextIncomplete < 0 && <ArrowRight className="h-3.5 w-3.5" />}
               </Button>
             </div>
           )}
@@ -472,6 +534,7 @@ export function ExerciseCard({
             restTotal={se.restSeconds}
             expanded={stepperExpanded}
             onExpandedChange={setStepperExpanded}
+            onSetUpdate={onSetUpdate}
           />
         </div>
       )}

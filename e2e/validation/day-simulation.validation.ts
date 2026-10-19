@@ -241,7 +241,7 @@ async function completeWorkout(page: Page) {
       break
     }
 
-    const next = page.getByRole("button", { name: /^Continuar$/i })
+    const next = page.getByRole("button", { name: /^(Siguiente ejercicio|Continuar)$/i })
     if (await next.isVisible({ timeout: 1500 }).catch(() => false)) {
       await next.click()
       await page.waitForTimeout(800)

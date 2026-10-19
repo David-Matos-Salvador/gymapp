@@ -74,36 +74,20 @@ export function useWorkoutSession({
     initialized.current = true
 
     const s = useWorkoutStore.getState()
-    if (s.phase !== "prepare" && s.phase !== "done" && s.savedAt) {
-      const now = Date.now()
-      const delta = (now - s.savedAt) / 1000
-      store.setElapsedSeconds(Math.floor(s.elapsedSeconds + delta))
-
-      if (s.isResting && !s.isRestPaused && s.restUpdatedAt) {
-        const restDelta = (now - s.restUpdatedAt) / 1000
-        const realRest = Math.max(0, Math.floor(s.restRemaining - restDelta))
-        if (realRest <= 0) {
-          store.setResting(false)
-          store.setRestRemaining(0)
-        } else {
-          store.setRestRemaining(realRest)
-        }
-      } else if (s.isRestPaused) {
-        store.setRestRemaining(s.restPausedRemaining)
-        store.setRestUpdatedAt(Date.now())
-      }
-
-      startElapsedTimer()
-      if (soundEnabledRef.current) {
-        ambientRef.current = startAmbient()
-        ambientRef.current(s.phase as AmbientPhase)
-      }
+    if (s.phase !== "prepare" && s.phase !== "done") {
+      // Exiting the workout pauses the session; resume is explicit so the
+      // timer never counts time spent outside the workout.
+      store.setPaused(true)
     }
   }, [store, soundEnabled, startElapsedTimer])
 
   // ── Cleanup on unmount ──
   useEffect(() => {
     return () => {
+      const s = useWorkoutStore.getState()
+      if (s.phase !== "prepare" && s.phase !== "done") {
+        useWorkoutStore.getState().setPaused(true)
+      }
       stopElapsedTimer()
       stopRestTimer()
       stopAmbient()
@@ -164,6 +148,29 @@ export function useWorkoutSession({
     },
     [store, play, startRest]
   )
+
+  const pauseWorkout = useCallback(() => {
+    const s = useWorkoutStore.getState()
+    if (s.phase === "prepare" || s.phase === "done") return
+    store.setPaused(true)
+    store.setResting(false)
+    store.setRestRemaining(0)
+    stopElapsedTimer()
+    stopRestTimer()
+    stopAmbient()
+  }, [store, stopElapsedTimer, stopRestTimer])
+
+  const resumeWorkout = useCallback(() => {
+    const s = useWorkoutStore.getState()
+    if (s.phase === "prepare" || s.phase === "done") return
+    store.setPaused(false)
+    store.setElapsedSeconds(s.elapsedSeconds)
+    startElapsedTimer()
+    if (soundEnabledRef.current) {
+      ambientRef.current = startAmbient()
+      ambientRef.current(s.phase as AmbientPhase)
+    }
+  }, [store, startElapsedTimer])
 
   const startWorkout = useCallback(() => {
     if (store.phase !== "prepare") return
@@ -237,6 +244,8 @@ export function useWorkoutSession({
     isResting: store.isResting,
     isRestPaused: store.isRestPaused,
     startWorkout,
+    pauseWorkout,
+    resumeWorkout,
     markExerciseComplete,
     finishWorkout,
     skipRest,

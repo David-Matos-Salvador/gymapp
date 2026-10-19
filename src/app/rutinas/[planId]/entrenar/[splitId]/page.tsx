@@ -5,14 +5,13 @@ import { useParams, useRouter } from "next/navigation"
 import { useWorkoutSession } from "@/hooks/use-workout-session"
 import { useWorkoutStore } from "@/stores/workout-store"
 import { AppShell } from "@/components/layout/shell"
-import { Breadcrumb } from "@/components/layout/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { CelebrationOverlay } from "@/components/workout/celebration-overlay"
 import { ExerciseCard } from "@/components/workout/exercise-card"
 import { RestTimer } from "@/components/workout/rest-timer"
 import { PHASE_LABELS, PHASE_COLORS } from "@/constants/workout"
-import { ArrowLeft, Save, Dumbbell, Timer, Play, Trophy, ChevronDown } from "lucide-react"
+import { ArrowLeft, Save, Dumbbell, Timer, Play, Trophy, ChevronDown, Pause, X } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import type { SplitExercise, SplitData } from "@/types/exercise"
@@ -41,6 +40,9 @@ export default function LogWorkoutPage() {
   const store = useWorkoutStore()
   const [split, setSplit] = useState<SplitData | null>(null)
   const [gym, setGym] = useState<{ id: string; showMachineNumbers: boolean } | null>(null)
+  const [lastPerformance, setLastPerformance] = useState<
+    Record<string, { weight: number; reps: number }>
+  >({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [notes, setNotes] = useState("")
@@ -73,6 +75,8 @@ export default function LogWorkoutPage() {
     isResting,
     isRestPaused,
     startWorkout,
+    pauseWorkout,
+    resumeWorkout,
     markExerciseComplete,
     finishWorkout,
     skipRest,
@@ -95,6 +99,9 @@ export default function LogWorkoutPage() {
         const s = data.split as SplitData
         setSplit(s)
         setGym((data.gym as { id: string; showMachineNumbers: boolean } | null) ?? null)
+        setLastPerformance(
+          (data.lastPerformance ?? {}) as Record<string, { weight: number; reps: number }>
+        )
 
         const snapshot = useWorkoutStore.getState()
         const exerciseIdSet = new Set(s.exercises.map((e) => e.exerciseId))
@@ -147,6 +154,14 @@ export default function LogWorkoutPage() {
   useEffect(() => {
     if (phase === "warmup") finishTriggered.current = false
   }, [phase])
+
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.hidden) pauseWorkout()
+    }
+    document.addEventListener("visibilitychange", handleVisibility)
+    return () => document.removeEventListener("visibilitychange", handleVisibility)
+  }, [pauseWorkout])
 
   const handleSubmit = useCallback(async () => {
     if (saving) return
@@ -285,16 +300,9 @@ export default function LogWorkoutPage() {
   }, [])
 
   const isActive = phase !== "prepare" && phase !== "done"
+  const isPaused = store.isPaused
   const totalExercises = split?.exercises.length ?? 0
   const setsData = store.setsData
-
-  const breadcrumbItems = useMemo(
-    () => [
-      { label: split?.plan?.name ?? "Rutina", href: `/rutinas/${planId}` },
-      { label: "Entrenar" },
-    ],
-    [split, planId]
-  )
 
   if (loading) return LOADING_SKELETON
 
@@ -315,7 +323,7 @@ export default function LogWorkoutPage() {
   const phaseColor = PHASE_COLORS[phase]
 
   return (
-    <AppShell>
+    <AppShell immersive>
       <CelebrationOverlay
         open={showCelebration}
         weeklyCompleted={celebrationData.weeklyCompleted}
@@ -332,20 +340,30 @@ export default function LogWorkoutPage() {
 
       <div
         className={cn(
-          "container mx-auto px-4 py-6 md:py-8 max-w-2xl space-y-5",
+          "container mx-auto max-w-2xl space-y-5 px-4 py-4 pb-28 md:py-8",
           showCelebration && "hidden"
         )}
       >
-        <Breadcrumb items={breadcrumbItems} className="px-0 pb-1" />
-
-        <button
-          onClick={() => {
-            router.push(`/rutinas/${planId}`)
-          }}
-          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" /> Volver
-        </button>
+        <div className="sticky top-0 z-30 -mx-4 border-b bg-background/95 px-4 py-2 backdrop-blur">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                pauseWorkout()
+                router.push(`/rutinas/${planId}`)
+              }}
+            >
+              <ArrowLeft className="h-4 w-4" /> Salir
+            </Button>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium">{split.name}</span>
+            {isActive && (
+              <span className="font-mono text-sm tabular-nums text-muted-foreground">
+                {elapsedFormatted}
+              </span>
+            )}
+          </div>
+        </div>
 
         <div>
           <div className="flex items-center justify-between flex-wrap gap-2">
@@ -373,11 +391,33 @@ export default function LogWorkoutPage() {
           <p className="text-xs text-muted-foreground mt-0.5">{planName}</p>
         </div>
 
-        {isActive && (
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Timer className="h-3.5 w-3.5" />
-            <span className="font-mono tabular-nums font-medium">{elapsedFormatted}</span>
-          </div>
+        {isActive && isPaused && (
+          <Card className="border-accent-yellow/30 bg-accent-yellow/5">
+            <CardContent className="flex flex-wrap items-center gap-3 py-3">
+              <Pause className="h-5 w-5 text-accent-yellow" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">Entrenamiento en pausa</p>
+                <p className="text-xs text-muted-foreground">
+                  El cronómetro está detenido. Reanudá cuando estés listo.
+                </p>
+              </div>
+              <Button size="sm" onClick={resumeWorkout}>
+                <Play className="mr-1 h-3.5 w-3.5" /> Reanudar
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  if (!window.confirm("¿Descartar este entrenamiento? Se perderán las series."))
+                    return
+                  store.resetWorkout()
+                  router.push(`/rutinas/${planId}`)
+                }}
+              >
+                Descartar
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {phase === "prepare" && (
@@ -392,7 +432,7 @@ export default function LogWorkoutPage() {
           </div>
         )}
 
-        {isActive && (
+        {isActive && !isPaused && (
           <div className="space-y-2">
             {isResting && (
               <RestTimer
@@ -407,7 +447,6 @@ export default function LogWorkoutPage() {
 
             {activeExercises.map((se, idx) => {
               const exerciseSets = setsData[se.exerciseId] ?? []
-              const allCompleted = exerciseSets.length > 0 && exerciseSets.every((s) => s.completed)
               const entry = exerciseMap.get(se.exerciseId)
               const appearance =
                 entry?.origIdx === currentExerciseIdx ? ("current" as const) : ("pending" as const)
@@ -415,7 +454,7 @@ export default function LogWorkoutPage() {
               return (
                 <div
                   key={se.exerciseId}
-                  draggable={!allCompleted}
+                  draggable
                   onDragStart={(e) => handleDragStart(e, idx)}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, idx)}
@@ -463,6 +502,10 @@ export default function LogWorkoutPage() {
                     onWeightChange={(weight) => {
                       store.updateAllSetWeights(se.exerciseId, weight)
                     }}
+                    onSetUpdate={(setIdx, updates) => {
+                      store.updateSet(se.exerciseId, setIdx, updates)
+                    }}
+                    lastPerformance={lastPerformance[se.exerciseId] ?? null}
                   />
                 </div>
               )
@@ -536,32 +579,25 @@ export default function LogWorkoutPage() {
         )}
 
         {isActive && (
-          <div className="flex gap-3 justify-end pb-20">
-            <Button
-              variant="outline"
-              onClick={() => {
-                store.resetWorkout()
-                router.push(`/rutinas/${planId}`)
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button onClick={handleSubmit} disabled={saving} className="gap-2">
-              <Save className="h-4 w-4" /> {saving ? "Guardando..." : "Finalizar entrenamiento"}
-            </Button>
-          </div>
-        )}
-
-        {phase === "prepare" && (
-          <div className="flex gap-3 justify-end pb-20">
-            <Button
-              variant="outline"
-              onClick={() => {
-                router.push(`/rutinas/${planId}`)
-              }}
-            >
-              Volver
-            </Button>
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] backdrop-blur">
+            <div className="mx-auto flex max-w-2xl gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (!window.confirm("¿Descartar este entrenamiento? Se perderán las series."))
+                    return
+                  store.resetWorkout()
+                  router.push(`/rutinas/${planId}`)
+                }}
+              >
+                <X className="mr-1 h-4 w-4" /> Descartar
+              </Button>
+              <Button onClick={handleSubmit} disabled={saving || isPaused} className="flex-1 gap-2">
+                <Save className="h-4 w-4" />
+                {saving ? "Guardando..." : "Finalizar entrenamiento"}
+              </Button>
+            </div>
           </div>
         )}
 

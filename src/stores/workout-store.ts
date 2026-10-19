@@ -24,6 +24,7 @@ interface WorkoutStore {
   completedExerciseIds: string[]
   setsData: Record<string, SetLog[]>
   notes: string
+  isPaused: boolean
 
   isResting: boolean
   restRemaining: number
@@ -44,6 +45,7 @@ interface WorkoutStore {
   updateSet: (exerciseId: string, setIdx: number, updates: Partial<SetLog>) => void
   updateAllSetWeights: (exerciseId: string, weight: number) => void
   setNotes: (notes: string) => void
+  setPaused: (paused: boolean) => void
 
   setResting: (resting: boolean) => void
   setRestRemaining: (s: number) => void
@@ -71,6 +73,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
       completedExerciseIds: [],
       setsData: {},
       notes: "",
+      isPaused: false,
 
       isResting: false,
       restRemaining: 0,
@@ -114,6 +117,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           },
         })),
       setNotes: (notes) => set({ notes }),
+      setPaused: (paused) => set({ isPaused: paused, savedAt: Date.now() }),
 
       setResting: (isResting) => set({ isResting }),
       setRestRemaining: (s) => set({ restRemaining: s, restUpdatedAt: Date.now() }),
@@ -147,6 +151,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           completedExerciseIds: [],
           setsData: Object.keys(s.setsData).length > 0 ? s.setsData : {},
           notes: "",
+          isPaused: false,
           isResting: false,
           restRemaining: 0,
           restUpdatedAt: null,
@@ -202,6 +207,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           completedExerciseIds: [],
           setsData: {},
           notes: "",
+          isPaused: false,
           isResting: false,
           restRemaining: 0,
           restUpdatedAt: null,

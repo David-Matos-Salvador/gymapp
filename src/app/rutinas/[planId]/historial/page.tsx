@@ -45,6 +45,14 @@ export default async function HistorialPage({ params }: PageProps) {
 
   if (!assignment || !plan) redirect("/rutinas")
 
+  const records = new Map<string, number>()
+  for (const log of logs) {
+    for (const set of log.sets) {
+      const current = records.get(set.exerciseName) ?? 0
+      if (set.weight > current) records.set(set.exerciseName, set.weight)
+    }
+  }
+
   return (
     <AppShell>
       <div className="container mx-auto max-w-3xl space-y-6 px-4 py-6 md:py-8">
@@ -117,7 +125,15 @@ export default async function HistorialPage({ params }: PageProps) {
                           key={name}
                           className="flex items-center justify-between rounded-lg border px-3 py-2"
                         >
-                          <span className="text-sm">{name}</span>
+                          <span className="flex items-center gap-1.5 text-sm">
+                            {name}
+                            {records.get(name) === Math.max(...sets.map((set) => set.weight)) &&
+                              (records.get(name) ?? 0) > 0 && (
+                                <Badge className="bg-accent-yellow/15 text-accent-yellow text-[9px]">
+                                  PR
+                                </Badge>
+                              )}
+                          </span>
                           <span className="text-xs text-muted-foreground">
                             {sets.length} series ·{" "}
                             {sets.map((set) => `${set.reps}×${set.weight}kg`).join(", ")}

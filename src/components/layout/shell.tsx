@@ -129,7 +129,13 @@ export function AppBottomNav({
   )
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  immersive = false,
+}: {
+  children: React.ReactNode
+  immersive?: boolean
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const prevPathnameRef = useRef<string | null>(null)
@@ -242,6 +248,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }
 
   const roleChip = user?.role ? userRoleChip[user.role] : null
+
+  if (immersive) {
+    return <div className="min-h-screen bg-background">{children}</div>
+  }
 
   return (
     <div className="flex flex-col h-screen overflow-hidden">

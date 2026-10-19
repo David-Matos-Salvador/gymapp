@@ -1,7 +1,7 @@
 {
-  "runId": "2026-10-19T05-55-13-659Z",
-  "startedAt": "2026-10-19T05:55:13.660Z",
-  "finishedAt": "2026-10-19T05:57:40.889Z",
+  "runId": "2026-10-19T06-59-09-455Z",
+  "startedAt": "2026-10-19T06:59:09.460Z",
+  "finishedAt": "2026-10-19T07:01:32.576Z",
   "baseUrl": "http://localhost:3120",
   "summary": {
     "total": 65,
@@ -31,7 +31,7 @@
       "role": "todos",
       "expected": "12 sesiones simultáneas activas",
       "status": "passed",
-      "durationMs": 28093
+      "durationMs": 28046
     },
     {
       "id": "registro-nuevo-miembro",
@@ -39,7 +39,7 @@
       "role": "anónimo",
       "expected": "Un visitante con el link del gimnasio crea su cuenta y llega al onboarding",
       "status": "passed",
-      "durationMs": 2469
+      "durationMs": 2446
     },
     {
       "id": "login-credenciales-invalidas",
@@ -47,7 +47,7 @@
       "role": "anónimo",
       "expected": "Credenciales incorrectas muestran un error claro",
       "status": "passed",
-      "durationMs": 942
+      "durationMs": 840
     },
     {
       "id": "auth-dashboard-sin-sesion",
@@ -55,7 +55,7 @@
       "role": "anónimo",
       "expected": "El dashboard redirige al login sin sesión",
       "status": "passed",
-      "durationMs": 365
+      "durationMs": 350
     },
     {
       "id": "auth-miembro-no-entra-admin",
@@ -63,7 +63,7 @@
       "role": "carlos",
       "expected": "Un miembro no puede acceder a /admin ni /coach",
       "status": "passed",
-      "durationMs": 1968
+      "durationMs": 1930
     },
     {
       "id": "auth-trainer-no-entra-admin",
@@ -71,7 +71,7 @@
       "role": "trainer",
       "expected": "Un trainer no puede acceder a /admin",
       "status": "passed",
-      "durationMs": 957
+      "durationMs": 989
     },
     {
       "id": "auth-idor-membership",
@@ -79,7 +79,7 @@
       "role": "carlos",
       "expected": "Un miembro no puede modificar la membresía de otro usuario",
       "status": "passed",
-      "durationMs": 628
+      "durationMs": 597
     },
     {
       "id": "admin-dashboard",
@@ -87,7 +87,7 @@
       "role": "admin",
       "expected": "Dashboard con métricas y accesos de administración",
       "status": "passed",
-      "durationMs": 968
+      "durationMs": 957
     },
     {
       "id": "admin-pagos-pendientes",
@@ -95,7 +95,7 @@
       "role": "admin",
       "expected": "Lista de pagos pendientes con el comprobante de Mateo",
       "status": "passed",
-      "durationMs": 945
+      "durationMs": 902
     },
     {
       "id": "admin-membresias",
@@ -103,7 +103,7 @@
       "role": "admin",
       "expected": "Panel de membresías con miembros y estados",
       "status": "passed",
-      "durationMs": 1120
+      "durationMs": 1067
     },
     {
       "id": "admin-gestion-gimnasio",
@@ -111,7 +111,7 @@
       "role": "admin",
       "expected": "Gestión de ejercicios, rutinas y equipamiento",
       "status": "passed",
-      "durationMs": 1460
+      "durationMs": 1141
     },
     {
       "id": "admin-crea-y-elimina-ejercicio",
@@ -119,7 +119,7 @@
       "role": "superadmin",
       "expected": "El superadmin crea un ejercicio global y lo elimina",
       "status": "passed",
-      "durationMs": 4005
+      "durationMs": 2858
     },
     {
       "id": "admin-crea-y-elimina-equipo",
@@ -127,7 +127,7 @@
       "role": "admin",
       "expected": "Crear un equipo y luego eliminarlo",
       "status": "passed",
-      "durationMs": 4387
+      "durationMs": 2938
     },
     {
       "id": "coach-panel",
@@ -135,7 +135,7 @@
       "role": "trainer",
       "expected": "Panel de Coach con clientes, rutinas y clases",
       "status": "passed",
-      "durationMs": 1111
+      "durationMs": 965
     },
     {
       "id": "coach-clientes",
@@ -143,7 +143,7 @@
       "role": "trainer",
       "expected": "Listado de clientes asignados",
       "status": "passed",
-      "durationMs": 1121
+      "durationMs": 1110
     },
     {
       "id": "coach-crea-rutina",
@@ -151,7 +151,7 @@
       "role": "trainer",
       "expected": "El coach crea una rutina nueva con un ejercicio",
       "status": "passed",
-      "durationMs": 2021
+      "durationMs": 2085
     },
     {
       "id": "coach-crea-cliente",
@@ -159,7 +159,7 @@
       "role": "trainer",
       "expected": "El coach invita clientes; no puede crear contraseñas desde el panel",
       "status": "passed",
-      "durationMs": 1188
+      "durationMs": 1146
     },
     {
       "id": "coach-crea-invitacion",
@@ -167,7 +167,7 @@
       "role": "trainer",
       "expected": "El coach genera un link de invitación y el invitado lo abre",
       "status": "passed",
-      "durationMs": 3094
+      "durationMs": 2951
     },
     {
       "id": "coach-crea-clase",
@@ -175,7 +175,7 @@
       "role": "trainer",
       "expected": "El coach crea una clase con capacidad 1",
       "status": "passed",
-      "durationMs": 1651
+      "durationMs": 1633
     },
     {
       "id": "clase-capacidad-y-cancelacion",
@@ -183,7 +183,7 @@
       "role": "carlos/ana",
       "expected": "Carlos reserva, Ana ve clase llena, Carlos cancela y Ana reserva",
       "status": "passed",
-      "durationMs": 6283
+      "durationMs": 6170
     },
     {
       "id": "clase-concurrencia",
@@ -191,7 +191,7 @@
       "role": "carlos/ana",
       "expected": "Con capacidad 1, solo una de dos reservas simultáneas debe ganar",
       "status": "passed",
-      "durationMs": 58
+      "durationMs": 78
     },
     {
       "id": "coach-asignar-rutina",
@@ -199,7 +199,7 @@
       "role": "trainer",
       "expected": "Asignar una rutina a Carlos desde su ficha",
       "status": "passed",
-      "durationMs": 2679
+      "durationMs": 3493
     },
     {
       "id": "member-ve-rutina-asignada",
@@ -207,7 +207,7 @@
       "role": "carlos",
       "expected": "Carlos ve la rutina recién asignada por su coach",
       "status": "passed",
-      "durationMs": 1039
+      "durationMs": 953
     },
     {
       "id": "trainer2-solicita-roberto",
@@ -215,7 +215,7 @@
       "role": "trainer2",
       "expected": "Trainer2 envía una solicitud de coaching a Roberto",
       "status": "passed",
-      "durationMs": 1547
+      "durationMs": 1516
     },
     {
       "id": "roberto-acepta-solicitud",
@@ -223,7 +223,7 @@
       "role": "roberto",
       "expected": "Roberto recibe y acepta la solicitud desde notificaciones",
       "status": "passed",
-      "durationMs": 2566
+      "durationMs": 2396
     },
     {
       "id": "trainer2-ve-roberto",
@@ -231,7 +231,7 @@
       "role": "trainer2",
       "expected": "Roberto aparece como cliente de Trainer2 tras aceptar",
       "status": "passed",
-      "durationMs": 897
+      "durationMs": 962
     },
     {
       "id": "onboarding-inicio",
@@ -239,7 +239,7 @@
       "role": "laura",
       "expected": "Onboarding inicia en el paso de gimnasio",
       "status": "passed",
-      "durationMs": 1204
+      "durationMs": 1197
     },
     {
       "id": "onboarding-primeros-pasos",
@@ -248,7 +248,7 @@
       "expected": "Avanzar objetivo, historial, nivel y frecuencia hasta condiciones físicas",
       "notes": "Parcial: no se completa el onboarding para no generar una rutina nueva",
       "status": "passed",
-      "durationMs": 3770
+      "durationMs": 3852
     },
     {
       "id": "onboarding-completo",
@@ -256,7 +256,7 @@
       "role": "laura",
       "expected": "Completar peso, altura, medidas, horario, confirmación y elegir rutina",
       "status": "passed",
-      "durationMs": 9701
+      "durationMs": 9714
     },
     {
       "id": "workout-carlos",
@@ -264,7 +264,7 @@
       "role": "carlos",
       "expected": "Completar un entrenamiento, persistirlo y volver a la lista de rutinas",
       "status": "passed",
-      "durationMs": 14280
+      "durationMs": 14119
     },
     {
       "id": "workout-historial",
@@ -272,7 +272,7 @@
       "role": "carlos",
       "expected": "El historial del plan muestra las sesiones registradas",
       "status": "passed",
-      "durationMs": 1235
+      "durationMs": 1242
     },
     {
       "id": "progress-carlos",
@@ -280,7 +280,7 @@
       "role": "carlos",
       "expected": "Página de progreso con historial de mediciones",
       "status": "passed",
-      "durationMs": 977
+      "durationMs": 979
     },
     {
       "id": "routine-mateo",
@@ -288,7 +288,7 @@
       "role": "mateo",
       "expected": "Miembro con plan activo ve sus entrenamientos",
       "status": "passed",
-      "durationMs": 1065
+      "durationMs": 955
     },
     {
       "id": "progress-ana",
@@ -296,7 +296,7 @@
       "role": "ana",
       "expected": "Miembro activa ve su progreso e historial",
       "status": "passed",
-      "durationMs": 950
+      "durationMs": 872
     },
     {
       "id": "profile-actualiza-datos",
@@ -304,7 +304,7 @@
       "role": "carlos",
       "expected": "Carlos actualiza nombre y teléfono",
       "status": "passed",
-      "durationMs": 1233
+      "durationMs": 1118
     },
     {
       "id": "profile-avatar",
@@ -312,7 +312,7 @@
       "role": "carlos",
       "expected": "Carlos sube una foto de perfil",
       "status": "passed",
-      "durationMs": 990
+      "durationMs": 984
     },
     {
       "id": "settings-tema-y-sonido",
@@ -328,7 +328,7 @@
       "role": "carlos",
       "expected": "Registrar una nueva medición corporal",
       "status": "passed",
-      "durationMs": 1248
+      "durationMs": 1223
     },
     {
       "id": "timer-funciona",
@@ -336,7 +336,7 @@
       "role": "carlos",
       "expected": "El temporizador inicia, cuenta y pausa",
       "status": "passed",
-      "durationMs": 4073
+      "durationMs": 4109
     },
     {
       "id": "superadmin-dashboard",
@@ -344,7 +344,7 @@
       "role": "superadmin",
       "expected": "Super Admin entra al dashboard sin errores",
       "status": "passed",
-      "durationMs": 941
+      "durationMs": 914
     },
     {
       "id": "requests-redirect",
@@ -352,7 +352,7 @@
       "role": "superadmin",
       "expected": "/requests redirige al dashboard",
       "status": "passed",
-      "durationMs": 1024
+      "durationMs": 965
     },
     {
       "id": "superadmin-crea-gym",
@@ -360,7 +360,7 @@
       "role": "superadmin",
       "expected": "Crear un gym desde la plataforma con provisioning",
       "status": "passed",
-      "durationMs": 1267
+      "durationMs": 1461
     },
     {
       "id": "superadmin-edita-gym",
@@ -368,7 +368,7 @@
       "role": "superadmin",
       "expected": "Editar los datos de un gym",
       "status": "passed",
-      "durationMs": 1153
+      "durationMs": 1230
     },
     {
       "id": "superadmin-crea-admin",
@@ -376,7 +376,7 @@
       "role": "superadmin",
       "expected": "Crear un admin para el gym desde la plataforma",
       "status": "passed",
-      "durationMs": 658
+      "durationMs": 570
     },
     {
       "id": "superadmin-toggle-gym",
@@ -384,7 +384,7 @@
       "role": "superadmin",
       "expected": "Desactivar y reactivar un gym",
       "status": "passed",
-      "durationMs": 946
+      "durationMs": 911
     },
     {
       "id": "superadmin-plan",
@@ -392,7 +392,7 @@
       "role": "superadmin",
       "expected": "Crear, desactivar y eliminar un plan de membresía",
       "status": "passed",
-      "durationMs": 3226
+      "durationMs": 3042
     },
     {
       "id": "error-404",
@@ -400,7 +400,7 @@
       "role": "carlos",
       "expected": "Una ruta inexistente devuelve 404",
       "status": "passed",
-      "durationMs": 204
+      "durationMs": 214
     },
     {
       "id": "responsive-mobile",
@@ -408,7 +408,7 @@
       "role": "carlos",
       "expected": "Mi Rutina usable en viewport móvil sin overflow horizontal",
       "status": "passed",
-      "durationMs": 1003
+      "durationMs": 975
     },
     {
       "id": "mateo-dashboard-pre-pago",
@@ -416,7 +416,7 @@
       "role": "mateo",
       "expected": "Mateo tiene el dashboard abierto antes de la confirmación",
       "status": "passed",
-      "durationMs": 2970
+      "durationMs": 2926
     },
     {
       "id": "admin-confirma-pago",
@@ -424,7 +424,7 @@
       "role": "admin",
       "expected": "Confirmar el pago pendiente de Mateo",
       "status": "passed",
-      "durationMs": 2669
+      "durationMs": 2608
     },
     {
       "id": "mateo-notificacion-sse",
@@ -432,7 +432,7 @@
       "role": "mateo",
       "expected": "El badge de notificaciones de Mateo se actualiza sin recargar",
       "status": "passed",
-      "durationMs": 49
+      "durationMs": 68
     },
     {
       "id": "valentina-membresia-pendiente",
@@ -440,7 +440,7 @@
       "role": "valentina",
       "expected": "Valentina tiene una membresía esperando comprobante",
       "status": "passed",
-      "durationMs": 1033
+      "durationMs": 1019
     },
     {
       "id": "valentina-sube-comprobante",
@@ -448,7 +448,7 @@
       "role": "valentina",
       "expected": "El comprobante queda pendiente de revisión y NO activa la membresía",
       "status": "passed",
-      "durationMs": 180
+      "durationMs": 188
     },
     {
       "id": "admin-rechaza-pago-valentina",
@@ -456,7 +456,7 @@
       "role": "admin",
       "expected": "Rechazar el comprobante deja el pago FAILED y la membresía sin confirmar",
       "status": "passed",
-      "durationMs": 1237
+      "durationMs": 1084
     },
     {
       "id": "valentina-historial-pagos",
@@ -464,7 +464,7 @@
       "role": "valentina",
       "expected": "Valentina ve su historial de pagos",
       "status": "passed",
-      "durationMs": 1089
+      "durationMs": 1081
     },
     {
       "id": "sofia-membresia-vencida",
@@ -472,7 +472,7 @@
       "role": "sofia",
       "expected": "Miembro con membresía vencida no puede reservar clase",
       "status": "passed",
-      "durationMs": 1123
+      "durationMs": 1113
     },
     {
       "id": "sofia-renovacion-y-reserva",
@@ -481,7 +481,7 @@
       "expected": "Tras renovar +30 días, la reserva de clase funciona",
       "notes": "Time travel: endDate pasa de ayer a +30 días en la BD",
       "status": "passed",
-      "durationMs": 1147
+      "durationMs": 1086
     },
     {
       "id": "ricardo-membresia-inactiva",
@@ -489,7 +489,7 @@
       "role": "ricardo",
       "expected": "Miembro inactivo no puede reservar clase",
       "status": "passed",
-      "durationMs": 1069
+      "durationMs": 1083
     },
     {
       "id": "admin-ricardo-inactiva-visible",
@@ -497,7 +497,7 @@
       "role": "admin",
       "expected": "La membresía INACTIVA de Ricardo aparece en el panel de admin",
       "status": "passed",
-      "durationMs": 1061
+      "durationMs": 1020
     },
     {
       "id": "admin-renueva-ricardo",
@@ -506,7 +506,7 @@
       "expected": "El admin renueva una membresía vencida desde el panel",
       "notes": "Time travel: Ricardo pasa de INACTIVE a EXPIRED antes de renovar",
       "status": "passed",
-      "durationMs": 1199
+      "durationMs": 1155
     },
     {
       "id": "invite-expirada",
@@ -515,7 +515,7 @@
       "expected": "Una invitación vencida responde 410",
       "notes": "Time travel: expiresAt se mueve al pasado en la BD",
       "status": "passed",
-      "durationMs": 33
+      "durationMs": 26
     },
     {
       "id": "notificaciones-carlos",
@@ -523,7 +523,7 @@
       "role": "carlos",
       "expected": "Listado de notificaciones accesible",
       "status": "passed",
-      "durationMs": 894
+      "durationMs": 1020
     },
     {
       "id": "admin-membresia-sofia-renovada",
@@ -531,7 +531,7 @@
       "role": "admin",
       "expected": "Sofía aparece como activa tras la renovación",
       "status": "passed",
-      "durationMs": 921
+      "durationMs": 947
     },
     {
       "id": "health-check",
@@ -539,7 +539,7 @@
       "role": "admin",
       "expected": "API de salud responde 200",
       "status": "passed",
-      "durationMs": 35
+      "durationMs": 30
     },
     {
       "id": "sin-errores-500",
