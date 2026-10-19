@@ -203,14 +203,16 @@ export default async function DashboardPage() {
     })
 
     const classes = await prisma.class.findMany({
-      where: { trainerId: user.id },
+      where: { trainerId: user.id, active: true },
       include: { bookings: { where: { status: "CONFIRMED" } } },
       orderBy: { startTime: "asc" },
     })
 
     const now = new Date()
     const activeMemberships = clients.filter((c) =>
-      c.memberShips.some((m) => m.status === "ACTIVE" && new Date(m.endDate) > now)
+      c.memberShips.some(
+        (m) => m.status === "ACTIVE" && new Date(m.endDate) > now && m.paymentConfirmed
+      )
     ).length
     const upcomingClasses = classes.length
 
@@ -226,7 +228,7 @@ export default async function DashboardPage() {
             experienceLevel: c.experienceLevel,
             onboardingCompleted: c.onboardingCompleted,
             hasActiveMembership: c.memberShips.some(
-              (m) => m.status === "ACTIVE" && new Date(m.endDate) > now
+              (m) => m.status === "ACTIVE" && new Date(m.endDate) > now && m.paymentConfirmed
             ),
             membershipPlan: c.memberShips[0]?.plan?.name ?? null,
           }))}

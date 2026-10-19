@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { canReadPlan } from "@/lib/routine-access"
 import { z } from "zod"
 
 interface RouteParams {
@@ -30,6 +31,14 @@ export async function GET(request: Request, { params }: RouteParams) {
   const session = await auth()
   if (!session?.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
+  const currentUser = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
+  if (!currentUser) {
+    return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
   const { id } = await params
@@ -68,14 +77,11 @@ export async function GET(request: Request, { params }: RouteParams) {
     },
   })
 
-  if (!split) {
+  if (!split || !(await canReadPlan(split.planId, currentUser))) {
     return NextResponse.json({ error: "Split no encontrado" }, { status: 404 })
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { gymId: true },
-  })
+  const user = currentUser
 
   let activeExerciseIds: Set<string> | null = null
   if (user?.gymId) {

@@ -109,15 +109,17 @@ export async function POST(request: Request) {
         },
       })
 
-      const acceptedRequest = await prisma.trainerRequest.findFirst({
-        where: { clientId: user.id, status: "ACCEPTED" },
-        include: { trainer: { select: { id: true, name: true } } },
-      })
+      const trainer = user.assignedTrainerId
+        ? await prisma.user.findUnique({
+            where: { id: user.assignedTrainerId },
+            select: { id: true, name: true, gymId: true },
+          })
+        : null
 
-      if (acceptedRequest) {
+      if (trainer && trainer.gymId === user.gymId) {
         await prisma.notification.create({
           data: {
-            userId: acceptedRequest.trainerId,
+            userId: trainer.id,
             title: "Nuevo comprobante de pago",
             message: `${user.name || "Un usuario"} subió un comprobante de ${membership.plan.currency.toUpperCase()} $${membership.plan.price}. Revísalo en Pagos.`,
             type: "PAYMENT",

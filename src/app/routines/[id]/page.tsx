@@ -8,6 +8,7 @@ import Link from "next/link"
 import { Dumbbell } from "lucide-react"
 import { revalidatePath } from "next/cache"
 import { RoutineEditButton } from "@/components/routines/routine-edit-button"
+import { canEditPlan, canReadPlan } from "@/lib/routine-access"
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -18,8 +19,16 @@ async function deletePlan(formData: FormData) {
   const session = await auth()
   if (!session?.user?.email) redirect("/login")
   const id = formData.get("id") as string
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || (user.role !== "ADMIN" && user.role !== "TRAINER")) redirect("/routines")
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
+  if (!user) redirect("/routines")
+  const plan = await prisma.routinePlan.findUnique({
+    where: { id },
+    select: { userId: true },
+  })
+  if (!plan || !canEditPlan(plan.userId, user)) redirect("/routines")
   await prisma.routinePlan.delete({ where: { id } })
   revalidatePath("/routines")
   redirect("/routines")
@@ -29,8 +38,13 @@ export default async function RoutineDetailPage({ params }: PageProps) {
   const session = await auth()
   if (!session?.user?.email) redirect("/login")
   const { id } = await params
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
   if (!user) redirect("/login")
+
+  if (!(await canReadPlan(id, user))) redirect("/routines")
 
   const plan = await prisma.routinePlan.findUnique({
     where: { id },
@@ -43,7 +57,7 @@ export default async function RoutineDetailPage({ params }: PageProps) {
   })
   if (!plan) redirect("/routines")
 
-  const canDelete = user.role === "ADMIN" || user.role === "TRAINER"
+  const canEdit = canEditPlan(plan.userId, user)
 
   return (
     <AppShell>
@@ -56,7 +70,7 @@ export default async function RoutineDetailPage({ params }: PageProps) {
         </Link>
         <div className="flex items-center justify-between">
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{plan.name}</h1>
-          {canDelete && <RoutineEditButton plan={plan} />}
+          {canEdit && <RoutineEditButton plan={plan} />}
         </div>
         {plan.description && <p className="text-muted-foreground">{plan.description}</p>}
 
@@ -96,7 +110,7 @@ export default async function RoutineDetailPage({ params }: PageProps) {
           </Card>
         ))}
 
-        {canDelete && (
+        {canEdit && (
           <div className="border-t pt-6">
             <form action={deletePlan}>
               <input type="hidden" name="id" value={plan.id} />

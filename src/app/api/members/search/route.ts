@@ -8,8 +8,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { role: true, gymId: true },
+  })
+  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
@@ -20,10 +23,19 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Término de búsqueda requerido" }, { status: 400 })
   }
 
+  const gymId = user.role === "SUPER_ADMIN" ? searchParams.get("gymId") : user.gymId
+  if (!gymId) {
+    return NextResponse.json({ error: "Gimnasio requerido" }, { status: 400 })
+  }
+
   const members = await prisma.user.findMany({
     where: {
       role: "MEMBER",
-      email: { contains: q, mode: "insensitive" },
+      gymId,
+      OR: [
+        { name: { contains: q, mode: "insensitive" } },
+        { email: { contains: q, mode: "insensitive" } },
+      ],
     },
     select: {
       id: true,

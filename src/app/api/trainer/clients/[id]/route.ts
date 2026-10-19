@@ -17,10 +17,14 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
+  if (!user.gymId) {
+    return NextResponse.json({ error: "Sin gimnasio asignado" }, { status: 403 })
+  }
+
   const { id } = await params
 
   const client = await prisma.user.findUnique({
-    where: { id, assignedTrainerId: user.id },
+    where: { id, assignedTrainerId: user.id, gymId: user.gymId },
     select: {
       id: true,
       name: true,
@@ -80,8 +84,14 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
+  if (!user.gymId) {
+    return NextResponse.json({ error: "Sin gimnasio asignado" }, { status: 403 })
+  }
+
   const { id } = await params
-  const client = await prisma.user.findUnique({ where: { id, assignedTrainerId: user.id } })
+  const client = await prisma.user.findUnique({
+    where: { id, assignedTrainerId: user.id, gymId: user.gymId },
+  })
   if (!client) {
     return NextResponse.json({ error: "Cliente no encontrado" }, { status: 404 })
   }
@@ -91,6 +101,15 @@ export async function DELETE(request: Request, { params }: RouteParams) {
     prisma.trainerRequest.updateMany({
       where: { clientId: id, trainerId: user.id, status: "ACCEPTED" },
       data: { status: "REJECTED", rejectedAt: new Date() },
+    }),
+    prisma.notification.create({
+      data: {
+        userId: id,
+        title: "Entrenador desasignado",
+        message: `${user.name || "Tu entrenador"} ya no está asignado como tu coach.`,
+        type: "INFO",
+        metadata: { trainerId: user.id },
+      },
     }),
   ])
   return NextResponse.json({ success: true })

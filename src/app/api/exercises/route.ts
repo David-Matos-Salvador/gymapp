@@ -43,8 +43,19 @@ const exerciseCreateSchema = z.object({
 })
 
 export async function GET() {
+  const session = await auth()
+  const user = session?.user?.email
+    ? await prisma.user.findUnique({
+        where: { email: session.user.email },
+        select: { gymId: true },
+      })
+    : null
+
   const exercises = await prisma.exercise.findMany({
-    where: { active: true },
+    where: {
+      active: true,
+      ...(user?.gymId ? { gymExercises: { some: { gymId: user.gymId, active: true } } } : {}),
+    },
     orderBy: { name: "asc" },
     include: {
       creator: { select: { id: true, name: true, role: true } },

@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
   const targetUser = await prisma.user.findUnique({
     where: { id: assignedUserId },
-    select: { id: true, gymId: true, assignedTrainerId: true },
+    select: { id: true, name: true, gymId: true, assignedTrainerId: true },
   })
   if (!targetUser) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
@@ -73,9 +73,44 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sin permisos sobre este plan" }, { status: 403 })
   }
 
+  const existingAssignment = await prisma.assignedRoutinePlan.findFirst({
+    where: { userId: assignedUserId, active: true, plan: { userId: user.id } },
+    select: { planId: true },
+  })
+  if (existingAssignment) {
+    const existingPlan = await prisma.routinePlan.findUnique({
+      where: { id: existingAssignment.planId },
+      include: {
+        splits: {
+          include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
+          orderBy: { order: "asc" },
+        },
+      },
+    })
+    if (existingPlan) {
+      return NextResponse.json({ plan: existingPlan, reused: true })
+    }
+  }
+
+  let planName = sourcePlan.name
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const candidate =
+      attempt === 0
+        ? sourcePlan.name
+        : `${sourcePlan.name} (${targetUser.name || "cliente"})${attempt > 1 ? ` ${attempt}` : ""}`
+    const collision = await prisma.routinePlan.findUnique({
+      where: { name_userId: { name: candidate, userId: user.id } },
+      select: { id: true },
+    })
+    if (!collision) {
+      planName = candidate
+      break
+    }
+  }
+
   const newPlan = await prisma.routinePlan.create({
     data: {
-      name: sourcePlan.name,
+      name: planName,
       description: sourcePlan.description,
       objective: sourcePlan.objective,
       frequency: sourcePlan.frequency,
@@ -112,17 +147,15 @@ export async function POST(request: Request) {
     },
   })
 
-  await prisma.assignedRoutinePlan.updateMany({
-    where: { userId: assignedUserId, active: true },
-    data: { active: false },
-  })
-
-  await prisma.assignedRoutinePlan.create({
-    data: {
-      userId: assignedUserId,
-      planId: newPlan.id,
-    },
-  })
+  await prisma.$transaction([
+    prisma.assignedRoutinePlan.updateMany({
+      where: { userId: assignedUserId, active: true },
+      data: { active: false },
+    }),
+    prisma.assignedRoutinePlan.create({
+      data: { userId: assignedUserId, planId: newPlan.id },
+    }),
+  ])
 
   return NextResponse.json({ plan: newPlan }, { status: 201 })
 }

@@ -19,21 +19,14 @@ export async function GET() {
   let clientIds: string[] = []
 
   if (user.role === "TRAINER") {
-    const trainerRequests = await prisma.trainerRequest.findMany({
-      where: { trainerId: user.id, status: "ACCEPTED" },
-      select: { clientId: true },
-    })
-
+    if (!user.gymId) {
+      return NextResponse.json({ payments: [] })
+    }
     const assignedClients = await prisma.user.findMany({
-      where: { assignedTrainerId: user.id },
+      where: { assignedTrainerId: user.id, gymId: user.gymId },
       select: { id: true },
     })
-
-    const idSet = new Set([
-      ...trainerRequests.map((tr) => tr.clientId),
-      ...assignedClients.map((c) => c.id),
-    ])
-    clientIds = Array.from(idSet)
+    clientIds = assignedClients.map((client) => client.id)
 
     if (clientIds.length === 0) {
       return NextResponse.json({ payments: [] })
@@ -54,6 +47,14 @@ export async function GET() {
     where,
     include: {
       user: { select: { id: true, name: true, email: true, gymId: true } },
+      membership: {
+        select: {
+          id: true,
+          startDate: true,
+          endDate: true,
+          plan: { select: { name: true } },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   })

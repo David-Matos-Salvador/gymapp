@@ -28,8 +28,15 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   const { id } = await params
-  const body = await request.json()
-  const { action, notes } = updateSchema.parse(body)
+  const body = await request.json().catch(() => ({}))
+  const parsed = updateSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    )
+  }
+  const { action, notes } = parsed.data
 
   const payment = await prisma.payment.findUnique({
     where: { id },
@@ -56,19 +63,14 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Sin permisos sobre este gimnasio" }, { status: 403 })
   }
 
-  let hasAcceptedRequest = false
-  if (user.role === "TRAINER") {
-    hasAcceptedRequest = Boolean(
-      await prisma.trainerRequest.findFirst({
-        where: { trainerId: user.id, clientId: payment.userId, status: "ACCEPTED" },
-      })
+  if (
+    user.role === "TRAINER" &&
+    (payment.user.gymId !== user.gymId || payment.user.assignedTrainerId !== user.id)
+  ) {
+    return NextResponse.json(
+      { error: "Solo puedes gestionar pagos de tus clientes" },
+      { status: 403 }
     )
-    if (payment.user.assignedTrainerId !== user.id && !hasAcceptedRequest) {
-      return NextResponse.json(
-        { error: "Solo puedes gestionar pagos de tus clientes" },
-        { status: 403 }
-      )
-    }
   }
 
   // D-07: membership side effects only apply to MEMBERSHIP payments. The
@@ -105,9 +107,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   if (action === "CONFIRM") {
-    const shouldAssignTrainer =
-      !payment.user.assignedTrainerId && hasAcceptedRequest ? user.id : undefined
-
     const updatedPayment = await prisma.$transaction(async (tx) => {
       // Atomic guard: only a PENDING payment can transition.
       const claimed = await tx.payment.updateMany({
@@ -135,17 +134,6 @@ export async function PUT(request: Request, { params }: RouteParams) {
         })
       }
 
-      if (shouldAssignTrainer) {
-        await tx.user.update({
-          where: { id: payment.userId },
-          data: { assignedTrainerId: user.id },
-        })
-        await tx.trainerRequest.updateMany({
-          where: { clientId: payment.userId, trainerId: user.id, status: "ACCEPTED" },
-          data: { status: "REJECTED", rejectedAt: new Date() },
-        })
-      }
-
       return tx.payment.findUnique({ where: { id } })
     })
 
@@ -153,15 +141,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: "Este pago ya fue procesado" }, { status: 409 })
     }
 
-    const notificationMessage = shouldAssignTrainer
-      ? `Tu comprobante fue verificado. ${user.name || "Tu entrenador"} es ahora tu coach asignado. ¡Tu membresía está activa!`
-      : "Tu comprobante de pago fue verificado. ¡Tu membresía está activa!"
-
     await prisma.notification.create({
       data: {
         userId: payment.userId,
         title: "Pago confirmado",
-        message: notificationMessage,
+        message: "Tu comprobante de pago fue verificado. ¡Tu membresía está activa!",
         type: "PAYMENT",
         metadata: { paymentId: id },
       },

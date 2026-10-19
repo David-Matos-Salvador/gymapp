@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server"
 import { randomBytes } from "crypto"
+import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
 const INVITE_TTL_DAYS = 7
+
+const createInviteSchema = z.object({
+  name: z.string().trim().min(2).max(120).optional(),
+  email: z.string().trim().email("Email inválido").max(200).optional(),
+  phone: z.string().trim().min(6).max(30).optional(),
+})
 
 export async function GET() {
   const session = await auth()
@@ -38,7 +45,14 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => ({}))
-  const { name, email, phone } = body as { name?: string; email?: string; phone?: string }
+  const parsed = createInviteSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
+      { status: 400 }
+    )
+  }
+  const { name, email, phone } = parsed.data
 
   if (email) {
     const existing = await prisma.user.findUnique({ where: { email } })

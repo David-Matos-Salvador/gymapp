@@ -1,22 +1,22 @@
 import { prisma } from "@/lib/prisma"
 
-export async function getTrainerClientIds(trainerId: string): Promise<string[]> {
-  const trainerRequests = await prisma.trainerRequest.findMany({
-    where: { trainerId, status: "ACCEPTED" },
-    select: { clientId: true },
-  })
-
-  const assignedClients = await prisma.user.findMany({
-    where: { assignedTrainerId: trainerId },
+/**
+ * A trainer's clients are exactly the members assigned to them. TrainerRequest
+ * is an intention/history record and never defines the relationship.
+ */
+export async function getTrainerClientIds(
+  trainerId: string,
+  gymId?: string | null
+): Promise<string[]> {
+  const clients = await prisma.user.findMany({
+    where: {
+      assignedTrainerId: trainerId,
+      ...(gymId ? { gymId } : {}),
+    },
     select: { id: true },
   })
 
-  const idSet = new Set([
-    ...trainerRequests.map((tr) => tr.clientId),
-    ...assignedClients.map((c) => c.id),
-  ])
-
-  return Array.from(idSet)
+  return clients.map((client) => client.id)
 }
 
 export async function hasAnyTrainer(clientId: string): Promise<boolean> {
@@ -25,11 +25,5 @@ export async function hasAnyTrainer(clientId: string): Promise<boolean> {
     select: { assignedTrainerId: true },
   })
 
-  if (user?.assignedTrainerId) return true
-
-  const acceptedRequest = await prisma.trainerRequest.findFirst({
-    where: { clientId, status: "ACCEPTED" },
-  })
-
-  return !!acceptedRequest
+  return Boolean(user?.assignedTrainerId)
 }

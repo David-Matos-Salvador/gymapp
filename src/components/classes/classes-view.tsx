@@ -5,7 +5,17 @@ import { useSound } from "@/hooks/use-sound"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { CalendarDays, Clock, Users, User, CheckCircle2, X, CalendarPlus } from "lucide-react"
+import Link from "next/link"
+import {
+  CalendarDays,
+  Clock,
+  Users,
+  User,
+  CheckCircle2,
+  X,
+  CalendarPlus,
+  Settings,
+} from "lucide-react"
 import { toast } from "sonner"
 
 interface ClassItem {
@@ -16,6 +26,7 @@ interface ClassItem {
   startTime: string
   duration: number
   capacity: number
+  trainerId: string
   trainer: { name: string | null }
   confirmedCount: number
 }
@@ -30,6 +41,7 @@ interface ClassesViewProps {
   classes: ClassItem[]
   bookings: Booking[]
   userRole: string
+  userId: string
 }
 
 const daysOfWeek: Record<string, string> = {
@@ -83,7 +95,7 @@ function buildCalendarUrl(cls: ClassItem): string {
   return `https://calendar.google.com/calendar/render?${params.toString()}`
 }
 
-export function ClassesView({ classes, bookings, userRole }: ClassesViewProps) {
+export function ClassesView({ classes, bookings, userRole, userId }: ClassesViewProps) {
   const { play } = useSound()
   const [bookingIds, setBookingIds] = useState<Set<string>>(
     new Set(bookings.filter((b) => b.status === "CONFIRMED").map((b) => b.classItem.id))
@@ -139,6 +151,20 @@ export function ClassesView({ classes, bookings, userRole }: ClassesViewProps) {
     (a, b) => dayOrder.indexOf(a.dayOfWeek) - dayOrder.indexOf(b.dayOfWeek)
   )
 
+  if (sorted.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <CalendarDays className="mx-auto mb-4 size-10 text-muted-foreground" />
+          <p className="font-medium">Aún no hay clases programadas</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Cuando el gimnasio publique clases, aparecerán aquí.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {sorted.map((cls, i) => {
@@ -183,7 +209,14 @@ export function ClassesView({ classes, bookings, userRole }: ClassesViewProps) {
                   </span>
                 </div>
 
-                {(userRole === "MEMBER" || userRole === "TRAINER") &&
+                {userRole === "TRAINER" && cls.trainerId === userId ? (
+                  <Button asChild size="sm" variant="outline" className="w-full">
+                    <Link href={`/coach/classes/${cls.id}`}>
+                      <Settings className="mr-1 h-3 w-3" /> Gestionar clase
+                    </Link>
+                  </Button>
+                ) : (
+                  (userRole === "MEMBER" || userRole === "TRAINER") &&
                   (booked ? (
                     <div className="space-y-2">
                       <Button
@@ -212,7 +245,8 @@ export function ClassesView({ classes, bookings, userRole }: ClassesViewProps) {
                     >
                       {isFull ? "Clase llena" : "Reservar lugar"}
                     </Button>
-                  ))}
+                  ))
+                )}
               </CardContent>
             </Card>
           </motion.div>

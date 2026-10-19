@@ -25,7 +25,7 @@ export default async function ClassesPage() {
   if (!user) redirect("/login")
 
   const classes = await prisma.class.findMany({
-    where: { gymId: user.gymId ?? "__no_gym__" },
+    where: { gymId: user.gymId ?? "__no_gym__", active: true },
     include: {
       trainer: { select: { name: true } },
       bookings: { select: { id: true, userId: true, status: true } },
@@ -41,6 +41,7 @@ export default async function ClassesPage() {
     startTime: c.startTime,
     duration: c.duration,
     capacity: c.capacity,
+    trainerId: c.trainerId,
     trainer: { name: c.trainer.name },
     confirmedCount: c.bookings.filter((b) => b.status === "CONFIRMED").length,
   }))
@@ -56,6 +57,7 @@ export default async function ClassesPage() {
       startTime: b.classItem.startTime,
       duration: b.classItem.duration,
       capacity: b.classItem.capacity,
+      trainerId: b.classItem.trainerId,
       trainer: { name: b.classItem.trainer.name },
       confirmedCount: 0,
     },
@@ -72,6 +74,7 @@ export default async function ClassesPage() {
           classes={serializedClasses}
           bookings={serializedBookings}
           userRole={user.role}
+          userId={user.id}
         />
       </div>
     </AppShell>

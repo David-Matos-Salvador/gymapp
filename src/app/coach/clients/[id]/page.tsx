@@ -30,6 +30,7 @@ import {
   Pencil,
   ArrowLeft,
   RefreshCw,
+  UserMinus,
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -94,7 +95,12 @@ interface ClientData {
   bodyMeasurements: BodyMeasurement[]
   assignedRoutinePlans: PlanAssignment[]
   workoutLogs: WorkoutLogData[]
-  memberShips: { status: string; endDate: string; plan: { name: string } | null }[]
+  memberShips: {
+    status: string
+    endDate: string
+    paymentConfirmed: boolean
+    plan: { name: string } | null
+  }[]
 }
 
 export default function CoachClientDetail() {
@@ -106,6 +112,7 @@ export default function CoachClientDetail() {
   const [loading, setLoading] = useState(true)
   const [measureOpen, setMeasureOpen] = useState(false)
   const [routineOpen, setRoutineOpen] = useState(false)
+  const [unassigning, setUnassigning] = useState(false)
   const [measureForm, setMeasureForm] = useState({
     weight: "",
     height: "",
@@ -153,10 +160,30 @@ export default function CoachClientDetail() {
   const age = calculateAge(client?.birthDate ?? null)
   const currentMembership = client?.memberShips[0]
   const isMembershipActive =
-    currentMembership?.status === "ACTIVE" && new Date(currentMembership.endDate) > new Date()
+    currentMembership?.status === "ACTIVE" &&
+    new Date(currentMembership.endDate) > new Date() &&
+    currentMembership.paymentConfirmed
 
   const activeAssignment = client?.assignedRoutinePlans[0]
   const activePlan = activeAssignment?.plan
+
+  async function handleUnassign() {
+    if (!window.confirm("¿Desasignar este cliente? Podrá solicitar otro entrenador.")) return
+    setUnassigning(true)
+    try {
+      const res = await fetch(`/api/trainer/clients/${id}`, { method: "DELETE" })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || "Error al desasignar")
+        return
+      }
+      toast.success("Cliente desasignado")
+      router.push("/coach/clients")
+      router.refresh()
+    } finally {
+      setUnassigning(false)
+    }
+  }
 
   async function handleAddMeasurement() {
     if (!measureForm.weight.trim() && !measureForm.bodyFat.trim()) {
@@ -389,6 +416,16 @@ export default function CoachClientDetail() {
                   <p className="text-xs mt-1">{client.medicalNotes}</p>
                 </div>
               )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full text-destructive hover:text-destructive"
+                onClick={handleUnassign}
+                disabled={unassigning}
+              >
+                <UserMinus className="mr-1 h-4 w-4" />
+                {unassigning ? "Desasignando..." : "Desasignar cliente"}
+              </Button>
             </CardContent>
           </Card>
 

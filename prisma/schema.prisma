@@ -538,6 +538,7 @@ model Class {
   duration    Int
   dayOfWeek   DayOfWeek
   startTime   String
+  active      Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

@@ -17,8 +17,17 @@ interface PendingPayment {
   status: string
   method: string
   receiptUrl: string | null
+  reference: string | null
+  notes: string | null
+  type: string
   createdAt: string
   user: { id: string; name: string | null; email: string }
+  membership: {
+    id: string
+    startDate: string
+    endDate: string
+    plan: { name: string } | null
+  } | null
 }
 
 export default function CoachPaymentsPage() {
@@ -65,6 +74,8 @@ export default function CoachPaymentsPage() {
   }, [])
 
   const handleReject = useCallback(async (paymentId: string) => {
+    const reason = window.prompt("Motivo del rechazo", "Comprobante ilegible")
+    if (!reason?.trim()) return
     setProcessing(paymentId)
     try {
       const res = await fetch(`/api/payments/${paymentId}`, {
@@ -72,7 +83,7 @@ export default function CoachPaymentsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "REJECT",
-          notes: "Comprobante rechazado por el entrenador",
+          notes: reason.trim(),
         }),
       })
       if (!res.ok) {
@@ -152,6 +163,14 @@ export default function CoachPaymentsPage() {
                           <Badge variant="outline" className="text-xs">
                             {payment.method}
                           </Badge>
+                          <Badge variant="secondary" className="text-xs">
+                            {payment.type}
+                          </Badge>
+                          {payment.reference && (
+                            <span className="text-xs text-muted-foreground">
+                              Ref. {payment.reference}
+                            </span>
+                          )}
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Clock className="h-3 w-3" />
                             {new Date(payment.createdAt).toLocaleDateString("es-PE", {
@@ -163,6 +182,16 @@ export default function CoachPaymentsPage() {
                             })}
                           </span>
                         </div>
+                        {payment.membership && (
+                          <p className="text-xs text-muted-foreground">
+                            {payment.membership.plan?.name ?? "Membresía"} ·{" "}
+                            {new Date(payment.membership.startDate).toLocaleDateString("es-PE")} —{" "}
+                            {new Date(payment.membership.endDate).toLocaleDateString("es-PE")}
+                          </p>
+                        )}
+                        {payment.notes && (
+                          <p className="text-xs text-muted-foreground">Nota: {payment.notes}</p>
+                        )}
                       </div>
 
                       {payment.receiptUrl ? (

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { canReadPlan } from "@/lib/routine-access"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -21,7 +22,19 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
   }
 
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { id: true, role: true, gymId: true },
+  })
+  if (!user) {
+    return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+
   const { id } = await params
+
+  if (!(await canReadPlan(id, user))) {
+    return NextResponse.json({ error: "Rutina no encontrada" }, { status: 404 })
+  }
 
   const plan = await prisma.routinePlan.findUnique({
     where: { id },

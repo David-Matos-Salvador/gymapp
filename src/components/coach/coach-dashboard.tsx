@@ -47,7 +47,6 @@ import {
   Copy,
   CheckCircle,
   Check,
-  Sparkles,
 } from "lucide-react"
 import { toast } from "sonner"
 import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
@@ -143,13 +142,11 @@ export function CoachDashboard({
     capacity: "15",
   })
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
-  const [inviteMode, setInviteMode] = useState<"register" | "link">("register")
   const [inviteSaving, setInviteSaving] = useState(false)
-  const [inviteForm, setInviteForm] = useState({ name: "", email: "", phone: "", password: "" })
+  const [inviteForm, setInviteForm] = useState({ name: "", email: "", phone: "" })
   const [inviteUrl, setInviteUrl] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [invites, setInvites] = useState<InviteData[]>([])
-  const [createdMember, setCreatedMember] = useState<{ id: string; name: string } | null>(null)
   const searchRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -255,44 +252,10 @@ export function CoachDashboard({
 
   function openInviteDialog() {
     play("click")
-    setInviteMode("register")
-    setInviteForm({ name: "", email: "", phone: "", password: "" })
+    setInviteForm({ name: "", email: "", phone: "" })
     setInviteUrl(null)
     setCopied(false)
-    setCreatedMember(null)
     setInviteDialogOpen(true)
-  }
-
-  async function handleRegisterMember() {
-    if (!inviteForm.name.trim() || !inviteForm.email.trim() || !inviteForm.password) {
-      toast.error("Completa nombre, email y contraseña")
-      return
-    }
-    setInviteSaving(true)
-    try {
-      const res = await fetch("/api/trainer/members", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: inviteForm.name.trim(),
-          email: inviteForm.email.trim(),
-          phone: inviteForm.phone.trim() || undefined,
-          password: inviteForm.password,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        toast.error(data.error || "Error al crear el miembro")
-        return
-      }
-      play("success")
-      setCreatedMember({ id: data.user.id, name: data.user.name })
-      router.refresh()
-    } catch {
-      toast.error("Error de conexión")
-    } finally {
-      setInviteSaving(false)
-    }
   }
 
   async function handleCreateInvite() {
@@ -777,7 +740,11 @@ export function CoachDashboard({
                 ) : (
                   <div className="space-y-2">
                     {classList.map((c) => (
-                      <div key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
+                      <Link
+                        key={c.id}
+                        href={`/coach/classes/${c.id}`}
+                        className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                      >
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10">
                           <CalendarDays className="h-4 w-4 text-accent-yellow" />
                         </div>
@@ -788,7 +755,7 @@ export function CoachDashboard({
                             {c.duration}min · {c.bookingsCount}/{c.capacity}
                           </p>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 )}
@@ -891,172 +858,87 @@ export function CoachDashboard({
       <Dialog open={inviteDialogOpen} onOpenChange={setInviteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Nuevo cliente</DialogTitle>
+            <DialogTitle>Invitar cliente</DialogTitle>
             <DialogDescription>
-              Registra a un miembro ahora o compártele un link para que se registre él mismo.
+              El miembro completa su registro y define su propia contraseña con este link.
             </DialogDescription>
           </DialogHeader>
 
-          {createdMember ? (
-            <div className="space-y-4">
-              <div className="flex flex-col items-center gap-2 py-4 text-center">
-                <CheckCircle className="h-10 w-10 text-emerald-500" />
-                <p className="font-semibold">{createdMember.name} creado como tu cliente</p>
-                <p className="text-sm text-muted-foreground">
-                  Podés completar su onboarding ahora (incluidas sus medidas corporales) o dejarlo
-                  para que lo haga al iniciar sesión.
-                </p>
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setInviteDialogOpen(false)
-                    setCreatedMember(null)
-                    router.refresh()
-                  }}
-                >
-                  Cerrar
-                </Button>
-                <Button
-                  onClick={() => {
-                    play("click")
-                    router.push(`/onboarding?memberId=${createdMember.id}`)
-                  }}
-                >
-                  <Sparkles className="mr-1 h-4 w-4" /> Completar onboarding ahora
-                </Button>
-              </DialogFooter>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="invName">Nombre (opcional)</Label>
+              <Input
+                id="invName"
+                value={inviteForm.name}
+                onChange={(e) => setInviteForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Nombre completo"
+              />
             </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant={inviteMode === "register" ? "default" : "outline"}
-                  onClick={() => {
-                    play("click")
-                    setInviteMode("register")
-                    setInviteUrl(null)
-                  }}
-                >
-                  <UserPlus className="mr-1 h-4 w-4" /> Registrar ahora
-                </Button>
-                <Button
-                  variant={inviteMode === "link" ? "default" : "outline"}
-                  onClick={() => {
-                    play("click")
-                    setInviteMode("link")
-                    setInviteUrl(null)
-                  }}
-                >
-                  <Link2 className="mr-1 h-4 w-4" /> Enviar link
-                </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="invEmail">Email (opcional)</Label>
+                <Input
+                  id="invEmail"
+                  type="email"
+                  value={inviteForm.email}
+                  onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="cliente@email.com"
+                />
               </div>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="invName">
-                    Nombre{inviteMode === "register" ? "" : " (opcional)"}
-                  </Label>
-                  <Input
-                    id="invName"
-                    value={inviteForm.name}
-                    onChange={(e) => setInviteForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="Nombre completo"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="invEmail">
-                      Email{inviteMode === "register" ? "" : " (opcional)"}
-                    </Label>
-                    <Input
-                      id="invEmail"
-                      type="email"
-                      value={inviteForm.email}
-                      onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
-                      placeholder="cliente@email.com"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="invPhone">Teléfono (opcional)</Label>
-                    <Input
-                      id="invPhone"
-                      type="tel"
-                      value={inviteForm.phone}
-                      onChange={(e) => setInviteForm((f) => ({ ...f, phone: e.target.value }))}
-                      placeholder="+52 55 0000 0000"
-                    />
-                  </div>
-                </div>
-
-                {inviteMode === "register" ? (
-                  <div className="space-y-2">
-                    <Label htmlFor="invPassword">Contraseña inicial</Label>
-                    <Input
-                      id="invPassword"
-                      type="text"
-                      value={inviteForm.password}
-                      onChange={(e) => setInviteForm((f) => ({ ...f, password: e.target.value }))}
-                      placeholder="Min. 8 caracteres, 1 mayuscula, 1 numero"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Comparte esta contraseña con el cliente. Podrá cambiarla después.
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground rounded-lg bg-muted/50 p-3">
-                    El link expira en 7 días. Si llenas nombre y email, el formulario del cliente ya
-                    vendrá pre-cargado. Puede completarlo en el gimnasio o en su casa.
-                  </p>
-                )}
-
-                {inviteUrl && (
-                  <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
-                    <p className="text-xs font-medium">Link de invitación:</p>
-                    <p className="text-xs break-all">{inviteUrl}</p>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => copyInviteLink(inviteUrl)}>
-                        {copied ? (
-                          <Check className="mr-1 h-3 w-3" />
-                        ) : (
-                          <Copy className="mr-1 h-3 w-3" />
-                        )}
-                        {copied ? "Copiado" : "Copiar"}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          const msg = `Únete a la app de tu coach: ${inviteUrl}`
-                          window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank")
-                        }}
-                      >
-                        <Send className="mr-1 h-3 w-3" /> WhatsApp
-                      </Button>
-                    </div>
-                  </div>
-                )}
+              <div className="space-y-2">
+                <Label htmlFor="invPhone">Teléfono (opcional)</Label>
+                <Input
+                  id="invPhone"
+                  type="tel"
+                  value={inviteForm.phone}
+                  onChange={(e) => setInviteForm((f) => ({ ...f, phone: e.target.value }))}
+                  placeholder="+52 55 0000 0000"
+                />
               </div>
+            </div>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
-                  Cerrar
-                </Button>
-                {inviteMode === "register" ? (
-                  <Button onClick={handleRegisterMember} disabled={inviteSaving}>
-                    {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-                    {inviteSaving ? "Creando..." : "Crear miembro"}
+            <p className="text-xs text-muted-foreground rounded-lg bg-muted/50 p-3">
+              El link expira en 7 días. Si llenas nombre y email, el formulario del cliente ya
+              vendrá pre-cargado. Puede completarlo en el gimnasio o en su casa.
+            </p>
+
+            {inviteUrl && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <p className="text-xs font-medium">Link de invitación:</p>
+                <p className="text-xs break-all">{inviteUrl}</p>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => copyInviteLink(inviteUrl)}>
+                    {copied ? (
+                      <Check className="mr-1 h-3 w-3" />
+                    ) : (
+                      <Copy className="mr-1 h-3 w-3" />
+                    )}
+                    {copied ? "Copiado" : "Copiar"}
                   </Button>
-                ) : (
-                  <Button onClick={handleCreateInvite} disabled={inviteSaving}>
-                    {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-                    {inviteSaving ? "Creando..." : "Crear link"}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      const msg = `Únete a la app de tu coach: ${inviteUrl}`
+                      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, "_blank")
+                    }}
+                  >
+                    <Send className="mr-1 h-3 w-3" /> WhatsApp
                   </Button>
-                )}
-              </DialogFooter>
-            </>
-          )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setInviteDialogOpen(false)}>
+              Cerrar
+            </Button>
+            <Button onClick={handleCreateInvite} disabled={inviteSaving}>
+              {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
+              {inviteSaving ? "Creando..." : "Crear link"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

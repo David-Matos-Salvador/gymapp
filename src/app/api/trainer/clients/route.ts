@@ -15,13 +15,16 @@ export async function GET() {
   if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
+  if (!user.gymId) {
+    return NextResponse.json({ error: "Sin gimnasio asignado" }, { status: 403 })
+  }
 
-  const clientIds = await getTrainerClientIds(user.id)
+  const clientIds = await getTrainerClientIds(user.id, user.gymId)
 
   const clients =
     clientIds.length > 0
       ? await prisma.user.findMany({
-          where: { id: { in: clientIds } },
+          where: { id: { in: clientIds }, gymId: user.gymId },
           select: {
             id: true,
             name: true,
@@ -55,19 +58,20 @@ export async function POST(request: Request) {
   if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
+  if (!user.gymId) {
+    return NextResponse.json({ error: "Sin gimnasio asignado" }, { status: 403 })
+  }
 
-  const body = await request.json()
-  const { clientId } = sendRequestSchema.parse(body)
+  const body = await request.json().catch(() => ({}))
+  const parsed = sendRequestSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Datos inválidos" }, { status: 400 })
+  }
+  const { clientId } = parsed.data
 
   const client = await prisma.user.findUnique({ where: { id: clientId } })
-  if (!client) {
+  if (!client || client.role !== "MEMBER" || client.gymId !== user.gymId) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
-  }
-  if (client.role !== "MEMBER") {
-    return NextResponse.json(
-      { error: "Solo se puede enviar solicitud a miembros" },
-      { status: 400 }
-    )
   }
   const hasTrainer = await hasAnyTrainer(clientId)
   if (hasTrainer) {
@@ -87,9 +91,25 @@ export async function POST(request: Request) {
     )
   }
 
-  const trainerRequest = await prisma.trainerRequest.create({
-    data: { trainerId: user.id, clientId },
+  const existingRequest = await prisma.trainerRequest.findUnique({
+    where: { trainerId_clientId: { trainerId: user.id, clientId } },
   })
+
+  if (existingRequest && existingRequest.status !== "REJECTED") {
+    return NextResponse.json(
+      { error: "Ya existe una solicitud para este usuario" },
+      { status: 409 }
+    )
+  }
+
+  const trainerRequest = existingRequest
+    ? await prisma.trainerRequest.update({
+        where: { id: existingRequest.id },
+        data: { status: "PENDING", acceptedAt: null, rejectedAt: null, createdAt: new Date() },
+      })
+    : await prisma.trainerRequest.create({
+        data: { trainerId: user.id, clientId },
+      })
 
   await prisma.notification.create({
     data: {

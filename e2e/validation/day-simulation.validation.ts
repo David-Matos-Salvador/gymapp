@@ -950,26 +950,18 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     {
       phase: "08:25 Mañana",
       role: "trainer",
-      expected: "El coach registra un cliente nuevo desde el dashboard",
+      expected: "El coach invita clientes; no puede crear contraseñas desde el panel",
     },
     trainer.page,
     async () => {
-      const before = await countUsers()
       await visit(trainer.page, "/dashboard")
       await trainer.page.getByRole("button", { name: /Nuevo cliente/i }).click()
-      await expect(trainer.page.getByRole("dialog").getByText(/Nuevo cliente/i)).toBeVisible({
+      await expect(trainer.page.getByRole("dialog").getByText(/Invitar cliente/i)).toBeVisible({
         timeout: 10_000,
       })
       await expect(trainer.page.locator("#invName")).toBeVisible({ timeout: 15_000 })
-      await trainer.page.locator("#invName").fill("Cliente Validación")
-      await trainer.page.locator("#invEmail").fill(NEW_CLIENT_EMAIL)
-      await trainer.page.locator("#invPassword").fill("Demo1234")
-      await trainer.page.getByRole("button", { name: /Crear miembro/i }).click()
-      await expect(trainer.page.getByText(/creado como tu cliente/i)).toBeVisible({
-        timeout: 20_000,
-      })
-      const after = await countUsers()
-      expect(after).toBe(before + 1)
+      await expect(trainer.page.locator("#invPassword")).toHaveCount(0)
+      await expect(trainer.page.getByRole("button", { name: /Crear miembro/i })).toHaveCount(0)
       await trainer.page.getByRole("button", { name: /^Cerrar$/i }).click()
     }
   )
@@ -985,7 +977,6 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     async () => {
       await visit(trainer.page, "/dashboard")
       await trainer.page.getByRole("button", { name: /Nuevo cliente/i }).click()
-      await trainer.page.getByRole("button", { name: /Enviar link/i }).click()
       await expect(trainer.page.locator("#invName")).toBeVisible({ timeout: 15_000 })
       await trainer.page.locator("#invName").fill("Invitado Validación")
       await trainer.page.locator("#invEmail").fill(NEW_INVITE_EMAIL)
@@ -1894,6 +1885,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
         .filter({ hasText: "Valentina Ríos" })
         .first()
       await expect(card).toBeVisible({ timeout: 20_000 })
+      admin.page.once("dialog", (dialog) => dialog.accept("Comprobante ilegible"))
       await card.getByRole("button", { name: /Rechazar/i }).click()
       await toast(admin.page, /Pago rechazado/i)
 

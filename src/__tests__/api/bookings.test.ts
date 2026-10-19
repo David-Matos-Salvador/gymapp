@@ -64,9 +64,11 @@ describe("POST /api/bookings", () => {
     vi.clearAllMocks()
 
     mockAuth.mockResolvedValue({ user: { email: "member@test.com" } })
-    mockUserFindUnique.mockResolvedValue({ id: "user-1", role: "MEMBER" })
+    mockUserFindUnique.mockResolvedValue({ id: "user-1", role: "MEMBER", gymId: "gym-1" })
     mockMembershipFindFirst.mockResolvedValue({ id: "membership-1" })
-    mockQueryRaw.mockResolvedValue([{ id: "class-1", capacity: 1 }])
+    mockQueryRaw.mockResolvedValue([
+      { id: "class-1", capacity: 1, gymId: "gym-1", trainerId: "trainer-1", active: true },
+    ])
     mockBookingFindUnique.mockResolvedValue(null)
     mockBookingCount.mockResolvedValue(0)
     mockBookingCreate.mockResolvedValue(booking)
@@ -74,6 +76,9 @@ describe("POST /api/bookings", () => {
     mockTransaction.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) =>
       fn({
         $queryRaw: mockQueryRaw,
+        membership: {
+          findFirst: mockMembershipFindFirst,
+        },
         booking: {
           findUnique: mockBookingFindUnique,
           count: mockBookingCount,
@@ -125,7 +130,7 @@ describe("POST /api/bookings", () => {
     expect(mockTransaction).not.toHaveBeenCalled()
   })
 
-  it("requires an ACTIVE, unexpired and payment-confirmed membership for MEMBERs", async () => {
+  it("requires an ACTIVE, unexpired and payment-confirmed membership", async () => {
     mockMembershipFindFirst.mockResolvedValue(null)
 
     const response = await postBooking(bookingRequest({ classId: "class-1" }))
@@ -142,7 +147,33 @@ describe("POST /api/bookings", () => {
       },
       orderBy: { endDate: "desc" },
     })
-    expect(mockTransaction).not.toHaveBeenCalled()
+    expect(mockBookingCreate).not.toHaveBeenCalled()
+  })
+
+  it("rejects a class from another gym", async () => {
+    mockQueryRaw.mockResolvedValue([
+      { id: "class-1", capacity: 1, gymId: "gym-2", trainerId: "trainer-1", active: true },
+    ])
+
+    const response = await postBooking(bookingRequest({ classId: "class-1" }))
+    const body = await response.json()
+
+    expect(response.status).toBe(404)
+    expect(body.error).toBe("Clase no encontrada")
+    expect(mockBookingCreate).not.toHaveBeenCalled()
+  })
+
+  it("rejects booking a class taught by the same trainer", async () => {
+    mockQueryRaw.mockResolvedValue([
+      { id: "class-1", capacity: 1, gymId: "gym-1", trainerId: "user-1", active: true },
+    ])
+
+    const response = await postBooking(bookingRequest({ classId: "class-1" }))
+    const body = await response.json()
+
+    expect(response.status).toBe(403)
+    expect(body.error).toBe("No puedes reservar una clase que dictas")
+    expect(mockBookingCreate).not.toHaveBeenCalled()
   })
 
   it("returns 404 when the class does not exist inside the lock", async () => {
@@ -176,7 +207,9 @@ describe("POST /api/bookings", () => {
   })
 
   it("returns 409 when the class is full", async () => {
-    mockQueryRaw.mockResolvedValue([{ id: "class-1", capacity: 1 }])
+    mockQueryRaw.mockResolvedValue([
+      { id: "class-1", capacity: 1, gymId: "gym-1", trainerId: "trainer-1", active: true },
+    ])
     mockBookingCount.mockResolvedValue(1)
 
     const response = await postBooking(bookingRequest({ classId: "class-1" }))
@@ -188,7 +221,9 @@ describe("POST /api/bookings", () => {
   })
 
   it("creates a booking when capacity is available", async () => {
-    mockQueryRaw.mockResolvedValue([{ id: "class-1", capacity: 2 }])
+    mockQueryRaw.mockResolvedValue([
+      { id: "class-1", capacity: 2, gymId: "gym-1", trainerId: "trainer-1", active: true },
+    ])
     mockBookingCount.mockResolvedValue(1)
 
     const response = await postBooking(bookingRequest({ classId: "class-1" }))
@@ -255,12 +290,22 @@ describe("POST /api/bookings", () => {
     })
   })
 
-  it("allows non-MEMBER roles without a membership", async () => {
-    mockUserFindUnique.mockResolvedValue({ id: "user-1", role: "TRAINER" })
+  it("allows staff with a confirmed membership to book another trainer's class", async () => {
+    mockUserFindUnique.mockResolvedValue({ id: "user-1", role: "TRAINER", gymId: "gym-1" })
 
     const response = await postBooking(bookingRequest({ classId: "class-1" }))
 
     expect(response.status).toBe(201)
-    expect(mockMembershipFindFirst).not.toHaveBeenCalled()
+    expect(mockMembershipFindFirst).toHaveBeenCalled()
+  })
+
+  it("rejects staff without a confirmed membership", async () => {
+    mockUserFindUnique.mockResolvedValue({ id: "user-1", role: "TRAINER", gymId: "gym-1" })
+    mockMembershipFindFirst.mockResolvedValue(null)
+
+    const response = await postBooking(bookingRequest({ classId: "class-1" }))
+
+    expect(response.status).toBe(403)
+    expect(mockBookingCreate).not.toHaveBeenCalled()
   })
 })

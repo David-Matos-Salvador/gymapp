@@ -34,36 +34,53 @@ export async function POST(request: Request) {
   if (typeof classId !== "string" || classId.trim().length === 0) {
     return NextResponse.json({ error: "classId es requerido" }, { status: 400 })
   }
-
-  if (user.role === "MEMBER") {
-    const membership = await prisma.membership.findFirst({
-      where: {
-        userId: user.id,
-        status: "ACTIVE",
-        endDate: { gt: new Date() },
-        paymentConfirmed: true,
-      },
-      orderBy: { endDate: "desc" },
-    })
-    if (!membership) {
-      return NextResponse.json(
-        { error: "Necesitas una membresía activa y confirmada para reservar una clase" },
-        { status: 403 }
-      )
-    }
-  }
+  const requestedGymId = (body as { gymId?: unknown } | null)?.gymId
 
   try {
     const result = await prisma.$transaction(async (tx) => {
       // Pessimistic lock on the class row: every capacity check for this class
       // is serialized, so concurrent requests cannot both observe a free seat.
-      const locked = await tx.$queryRaw<Array<{ id: string; capacity: number }>>`
-        SELECT id, capacity FROM "Class" WHERE id = ${classId} FOR UPDATE
+      const locked = await tx.$queryRaw<
+        Array<{ id: string; capacity: number; gymId: string; trainerId: string; active: boolean }>
+      >`
+        SELECT id, capacity, "gymId", "trainerId", active FROM "Class" WHERE id = ${classId} FOR UPDATE
       `
       if (locked.length === 0) {
         return { status: 404, body: { error: "Clase no encontrada" } }
       }
-      const capacity = locked[0].capacity
+
+      const classItem = locked[0]
+      if (!classItem.active) {
+        return { status: 404, body: { error: "Clase no encontrada" } }
+      }
+      const gymId =
+        user.role === "SUPER_ADMIN" && typeof requestedGymId === "string"
+          ? requestedGymId
+          : user.gymId
+      if (!gymId || classItem.gymId !== gymId) {
+        return { status: 404, body: { error: "Clase no encontrada" } }
+      }
+      if (classItem.trainerId === user.id) {
+        return { status: 403, body: { error: "No puedes reservar una clase que dictas" } }
+      }
+
+      const membership = await tx.membership.findFirst({
+        where: {
+          userId: user.id,
+          status: "ACTIVE",
+          endDate: { gt: new Date() },
+          paymentConfirmed: true,
+        },
+        orderBy: { endDate: "desc" },
+      })
+      if (!membership) {
+        return {
+          status: 403,
+          body: { error: "Necesitas una membresía activa y confirmada para reservar una clase" },
+        }
+      }
+
+      const capacity = classItem.capacity
 
       const existing = await tx.booking.findUnique({
         where: { userId_classId: { userId: user.id, classId } },

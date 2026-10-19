@@ -83,23 +83,55 @@ export async function POST(request: Request) {
     const endDate = new Date(now.getTime() + plan.durationDays * 86400000)
 
     try {
-      const [membership, payment] = await prisma.$transaction([
-        prisma.membership.create({
-          data: {
-            userId: user.id,
-            planId: plan.id,
-            status: "ACTIVE",
-            startDate: now,
-            endDate,
-            paymentConfirmed: false,
-            paymentMethod: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
-            paymentRef: null,
+      const existingMembership = await prisma.membership.findFirst({
+        where: {
+          userId: user.id,
+          planId: plan.id,
+          status: "ACTIVE",
+          paymentConfirmed: false,
+        },
+        include: { plan: true },
+        orderBy: { createdAt: "desc" },
+      })
+
+      if (existingMembership) {
+        const pending = await prisma.payment.findFirst({
+          where: {
+            membershipId: existingMembership.id,
+            status: "PENDING",
+            type: "MEMBERSHIP",
           },
-          include: { plan: true },
-        }),
-        prisma.payment.create({
+          select: { id: true },
+        })
+        if (pending) {
+          return NextResponse.json(
+            { error: "Ya hay un comprobante pendiente para esta membresía" },
+            { status: 409 }
+          )
+        }
+      }
+
+      const { membership, payment } = await prisma.$transaction(async (tx) => {
+        const targetMembership =
+          existingMembership ??
+          (await tx.membership.create({
+            data: {
+              userId: user.id,
+              planId: plan.id,
+              status: "ACTIVE",
+              startDate: now,
+              endDate,
+              paymentConfirmed: false,
+              paymentMethod: method as "CASH" | "TRANSFER" | "CARD" | "STRIPE" | "YAPE" | "OTHER",
+              paymentRef: null,
+            },
+            include: { plan: true },
+          }))
+
+        const createdPayment = await tx.payment.create({
           data: {
             userId: user.id,
+            membershipId: targetMembership.id,
             amount: plan.price,
             currency: plan.currency,
             status: "PENDING",
@@ -108,25 +140,28 @@ export async function POST(request: Request) {
             receiptUrl,
             reference: null,
           },
-        }),
-      ])
+        })
 
-      const acceptedRequest = await prisma.trainerRequest.findFirst({
-        where: { clientId: user.id, status: "ACCEPTED" },
-        include: { trainer: { select: { id: true, name: true } } },
+        return { membership: targetMembership, payment: createdPayment }
       })
 
-      if (acceptedRequest) {
-        await prisma.notification.create({
-          data: {
-            userId: acceptedRequest.trainerId,
-            title: "Nuevo comprobante de pago",
-            message: `${user.name || "Un usuario"} subió un comprobante de ${plan.currency.toUpperCase()} $${plan.price}. Revísalo en Pagos.`,
-            type: "PAYMENT",
-            metadata: { paymentId: payment.id, clientId: user.id },
-          },
+      if (user.assignedTrainerId) {
+        const trainer = await prisma.user.findUnique({
+          where: { id: user.assignedTrainerId },
+          select: { id: true, gymId: true },
         })
-        emitRealtime("notifications")
+        if (trainer && trainer.gymId === user.gymId) {
+          await prisma.notification.create({
+            data: {
+              userId: trainer.id,
+              title: "Nuevo comprobante de pago",
+              message: `${user.name || "Un usuario"} subió un comprobante de ${plan.currency.toUpperCase()} $${plan.price}. Revísalo en Pagos.`,
+              type: "PAYMENT",
+              metadata: { paymentId: payment.id, clientId: user.id },
+            },
+          })
+          emitRealtime("notifications")
+        }
       }
 
       emitRealtime("pending-count")

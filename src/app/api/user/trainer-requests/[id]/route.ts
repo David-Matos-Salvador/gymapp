@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { hasAnyTrainer } from "@/lib/trainer-client"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -102,20 +101,42 @@ export async function PUT(request: Request, { params }: RouteParams) {
     return NextResponse.json({ request: updated })
   }
 
-  const alreadyHasTrainer = await hasAnyTrainer(user.id)
-  if (alreadyHasTrainer) {
-    return NextResponse.json(
-      { error: "Ya tienes un entrenador asignado o una solicitud aceptada pendiente" },
-      { status: 409 }
-    )
+  if (!trainerRequest.trainer.gymId || trainerRequest.trainer.gymId !== user.gymId) {
+    return NextResponse.json({ error: "Solicitud no encontrada" }, { status: 404 })
+  }
+  if (trainerRequest.trainer.role !== "TRAINER" && trainerRequest.trainer.role !== "ADMIN") {
+    return NextResponse.json({ error: "Solicitud no encontrada" }, { status: 404 })
   }
 
   const now = new Date()
 
-  const updatedRequest = await prisma.trainerRequest.update({
-    where: { id },
-    data: { status: "ACCEPTED", acceptedAt: now },
+  const accepted = await prisma.$transaction(async (tx) => {
+    const assigned = await tx.user.updateMany({
+      where: {
+        id: user.id,
+        OR: [{ assignedTrainerId: null }, { assignedTrainerId: trainerRequest.trainerId }],
+      },
+      data: { assignedTrainerId: trainerRequest.trainerId },
+    })
+    if (assigned.count === 0) return null
+
+    const updated = await tx.trainerRequest.updateMany({
+      where: { id, status: "PENDING" },
+      data: { status: "ACCEPTED", acceptedAt: now },
+    })
+    if (updated.count === 0) return null
+
+    return tx.trainerRequest.findUnique({ where: { id } })
   })
+
+  if (!accepted) {
+    return NextResponse.json(
+      { error: "Ya tienes otro entrenador asignado o la solicitud ya fue procesada" },
+      { status: 409 }
+    )
+  }
+
+  const updatedRequest = accepted
 
   await prisma.notification.updateMany({
     where: { userId: user.id, type: "TRAINER_REQUEST", read: false },

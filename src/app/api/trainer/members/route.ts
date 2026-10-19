@@ -22,8 +22,11 @@ export async function POST(request: Request) {
   }
 
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  if (!user || (user.role !== "TRAINER" && user.role !== "ADMIN")) {
-    return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
+  if (!user || user.role !== "ADMIN") {
+    return NextResponse.json(
+      { error: "Los entrenadores deben invitar al miembro; no pueden crear contraseñas" },
+      { status: 403 }
+    )
   }
   if (!user.gymId) {
     return NextResponse.json({ error: "Sin gimnasio asignado" }, { status: 403 })
@@ -55,7 +58,7 @@ export async function POST(request: Request) {
       password: passwordHash,
       phone: phone?.trim() || null,
       role: "MEMBER",
-      assignedTrainerId: user.role === "TRAINER" ? user.id : null,
+      assignedTrainerId: null,
       gymId: user.gymId,
     },
   })

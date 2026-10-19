@@ -6,11 +6,11 @@ import { z } from "zod"
 const addExerciseSchema = z.object({
   splitId: z.string().min(1),
   exerciseId: z.string().min(1),
-  sets: z.number().int().default(3),
-  reps: z.string().default("10"),
-  weight: z.number().default(0),
-  restSeconds: z.number().int().default(60),
-  order: z.number().int().default(0),
+  sets: z.number().int().min(1).max(50).default(3),
+  reps: z.string().min(1).default("10"),
+  weight: z.number().min(0).max(1000).default(0),
+  restSeconds: z.number().int().min(0).max(3600).default(60),
+  order: z.number().int().min(0).default(0),
   notes: z.string().nullable().optional(),
 })
 
@@ -49,6 +49,24 @@ export async function POST(request: Request) {
         { error: "No tienes permisos para modificar esta rutina" },
         { status: 403 }
       )
+    }
+
+    if (user.gymId) {
+      const enabled = await prisma.gymExercise.findUnique({
+        where: {
+          gymId_exerciseId: { gymId: user.gymId, exerciseId: parsed.data.exerciseId },
+        },
+        select: { active: true },
+      })
+      if (!enabled?.active) {
+        return NextResponse.json(
+          {
+            error: "El ejercicio no está habilitado para tu gimnasio",
+            details: { exerciseId: ["No habilitado"] },
+          },
+          { status: 400 }
+        )
+      }
     }
 
     const splitExercise = await prisma.routineSplitExercise.create({

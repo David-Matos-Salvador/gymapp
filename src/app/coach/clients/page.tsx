@@ -67,7 +67,7 @@ export default async function CoachClientsListPage() {
           <div className="grid gap-3">
             {clients.map((client) => {
               const isMembershipActive = client.memberShips.some(
-                (m) => m.status === "ACTIVE" && new Date(m.endDate) > now
+                (m) => m.status === "ACTIVE" && new Date(m.endDate) > now && m.paymentConfirmed
               )
               const lastMeasurement = client.bodyMeasurements[0]
               return (
