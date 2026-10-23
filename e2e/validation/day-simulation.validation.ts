@@ -222,7 +222,9 @@ async function completeWorkout(page: Page) {
     for (let action = 0; action < 15; action++) {
       let clickedSet = false
       for (const name of ["1", "2", "3", "4", "5", "6"]) {
-        const setButton = page.getByRole("button", { name, exact: true })
+        const setButton = page.getByRole("button", {
+          name: new RegExp(`^Serie ${name}( actual)?$`),
+        })
         if (!(await setButton.isVisible({ timeout: 300 }).catch(() => false))) continue
         if (await setButton.isDisabled().catch(() => true)) continue
         await setButton.click()

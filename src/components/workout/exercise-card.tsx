@@ -64,14 +64,14 @@ function CounterRow({
 }) {
   return (
     <div className="inline-flex items-center gap-1.5">
-      <span className="text-[10px] text-muted-foreground font-medium">{label}</span>
+      <span className="text-xs text-muted-foreground font-medium">{label}</span>
       <div className="inline-flex items-center gap-1 bg-muted/30 rounded-lg px-1.5 py-0.5">
         <button
           type="button"
           aria-label={`Disminuir ${label}`}
           disabled={disabled}
           onClick={onDecrement}
-          className="flex items-center justify-center h-6 w-6 rounded-full border border-border/40 bg-background hover:bg-muted hover:border-border transition-all active:scale-90 disabled:opacity-30 disabled:pointer-events-none"
+          className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-border/40 bg-background transition-all hover:border-border hover:bg-muted active:scale-90 disabled:pointer-events-none disabled:opacity-30"
         >
           <Minus className="h-3 w-3 text-muted-foreground" />
         </button>
@@ -83,7 +83,7 @@ function CounterRow({
           aria-label={`Aumentar ${label}`}
           disabled={disabled}
           onClick={onIncrement}
-          className="flex items-center justify-center h-6 w-6 rounded-full border border-border/40 bg-background hover:bg-muted hover:border-border transition-all active:scale-90 disabled:opacity-30 disabled:pointer-events-none"
+          className="flex h-11 w-11 touch-manipulation items-center justify-center rounded-full border border-border/40 bg-background transition-all hover:border-border hover:bg-muted active:scale-90 disabled:pointer-events-none disabled:opacity-30"
         >
           <Plus className="h-3 w-3 text-muted-foreground" />
         </button>
@@ -94,7 +94,7 @@ function CounterRow({
 
 /* ── Reps Counter per set ──────────────────────── */
 function RepsDisplay({ value }: { value: number }) {
-  return <span className="text-[10px] text-muted-foreground font-medium">{value} reps</span>
+  return <span className="text-xs text-muted-foreground font-medium">{value} reps</span>
 }
 
 /* ── Sets Stepper (expandable) ────────────────── */
@@ -103,8 +103,6 @@ function SetsStepper({
   totalSets,
   onSetToggle,
   restActive,
-  restRemaining,
-  restTotal,
   expanded,
   onExpandedChange,
   onSetUpdate,
@@ -114,8 +112,6 @@ function SetsStepper({
   onSetToggle: (setIdx: number) => void
   onSetUpdate?: (setIdx: number, updates: Partial<SetLog>) => void
   restActive: boolean
-  restRemaining: number
-  restTotal: number
   expanded: boolean
   onExpandedChange: (v: boolean) => void
 }) {
@@ -126,7 +122,7 @@ function SetsStepper({
       <button
         type="button"
         onClick={() => onExpandedChange(!expanded)}
-        className="w-full flex items-center justify-between py-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+        className="flex min-h-11 w-full items-center justify-between py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
       >
         <span className="font-medium">
           Detalle de series ({completedCount}/{totalSets})
@@ -137,7 +133,7 @@ function SetsStepper({
       {expanded && (
         <div className="space-y-2 mt-2">
           {/* Horizontal stepper */}
-          <div className="flex items-start justify-between gap-0">
+          <div className="flex flex-wrap items-start gap-2">
             {Array.from({ length: totalSets }, (_, i) => {
               const set = setsData[i]
               const isFilled = set?.completed ?? false
@@ -146,11 +142,11 @@ function SetsStepper({
               const isBlocked = !isFilled && !prevCompleted
 
               return (
-                <div key={i} className="flex items-stretch flex-1 min-w-0">
+                <div key={i} className="flex items-stretch">
                   {/* Step block */}
                   <div
                     className={cn(
-                      "flex flex-col items-center gap-1 py-1.5 rounded-lg transition-all flex-1",
+                      "flex flex-col items-center gap-1 rounded-lg p-1 transition-all",
                       isFilled && "bg-accent-yellow/5",
                       isCurrent && "bg-accent-yellow/5 ring-1 ring-accent-yellow/30",
                       isBlocked && "opacity-40"
@@ -163,10 +159,11 @@ function SetsStepper({
                         onSetToggle(i)
                       }}
                       disabled={isBlocked}
+                      aria-label={`Serie ${i + 1}${isFilled ? " completada" : isCurrent ? " actual" : ""}`}
                       className={cn(
-                        "flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center border-2 text-[11px] font-bold font-mono transition-all",
+                        "flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 font-mono text-sm font-bold transition-all",
                         isFilled
-                          ? "bg-accent-yellow border-accent-yellow text-white"
+                          ? "bg-accent-yellow border-accent-yellow text-primary-foreground"
                           : isCurrent
                             ? "border-accent-yellow text-accent-yellow"
                             : "border-muted-foreground/20 text-muted-foreground/50",
@@ -179,32 +176,6 @@ function SetsStepper({
                     </button>
                     <RepsDisplay value={set?.reps ?? 0} />
                   </div>
-
-                  {/* Horizontal rest bar between step i and i+1 */}
-                  {(() => {
-                    if (i >= totalSets - 1) return null
-                    const nextSet = setsData[i + 1]
-                    const nextPrevDone = setsData.slice(0, i + 1).every((s) => s.completed)
-                    const barActive =
-                      isFilled && !nextSet?.completed && nextPrevDone && restActive && restTotal > 0
-                    const progressPct =
-                      restTotal > 0 ? ((restTotal - restRemaining) / restTotal) * 100 : 0
-
-                    return (
-                      <div className="flex items-stretch w-14 shrink-0 px-1">
-                        <div className="flex-1 flex items-center">
-                          <div className="w-full h-1.5 rounded-full bg-muted/50 relative overflow-hidden">
-                            {barActive && (
-                              <div
-                                className="absolute inset-y-0 left-0 bg-accent-yellow/60 rounded-full transition-all duration-1000 ease-linear"
-                                style={{ width: `${progressPct}%` }}
-                              />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })()}
                 </div>
               )
             })}
@@ -218,7 +189,7 @@ function SetsStepper({
                   const nextIncomplete = setsData.findIndex((s) => !s.completed)
                   if (nextIncomplete >= 0) onSetToggle(nextIncomplete)
                 }}
-                className="text-[10px] px-2 py-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="text-xs px-2 py-0.5 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 Saltar descanso
               </button>
@@ -239,7 +210,8 @@ function SetsStepper({
                   onChange={(e) =>
                     onSetUpdate?.(next, { reps: Math.max(0, Number(e.target.value) || 0) })
                   }
-                  className="h-7 w-16 text-center text-xs"
+                  className="h-10 w-16 text-center text-base"
+                  inputMode="numeric"
                   aria-label={`Reps serie ${next + 1}`}
                 />
                 <span className="text-muted-foreground">reps</span>
@@ -251,7 +223,8 @@ function SetsStepper({
                   onChange={(e) =>
                     onSetUpdate?.(next, { weight: Math.max(0, Number(e.target.value) || 0) })
                   }
-                  className="h-7 w-20 text-center text-xs"
+                  className="h-10 w-20 text-center text-base"
+                  inputMode="decimal"
                   aria-label={`Peso serie ${next + 1}`}
                 />
                 <span className="text-muted-foreground">kg</span>
@@ -289,7 +262,6 @@ export function ExerciseCard({
   const [perSetRestRemaining, setPerSetRestRemaining] = useState(0)
   const [perSetRestActive, setPerSetRestActive] = useState(false)
   const [stepperExpanded, setStepperExpanded] = useState(false)
-  const allCompleted = totalSets > 0 && setsData.every((s) => s.completed)
 
   const machineLabel = useMemo(() => {
     const list = se.exercise.gymEquipments ?? []
@@ -425,19 +397,19 @@ export function ExerciseCard({
             </p>
 
             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {MUSCLE_LABELS[se.exercise.muscleGroup] ?? se.exercise.muscleGroup}
               </span>
               {machineLabel && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium px-1.5 py-0.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary text-xs font-medium px-1.5 py-0.5">
                   <Wrench className="h-2.5 w-2.5" />
                   {machineLabel}
                 </span>
               )}
               {se.restSeconds > 0 && (
                 <>
-                  <span className="text-[9px] text-muted-foreground/40">·</span>
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <span className="text-[11px] text-muted-foreground/40">·</span>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock className="h-2.5 w-2.5" />
                     {se.restSeconds}s
                   </span>
@@ -456,7 +428,7 @@ export function ExerciseCard({
                     })
                   }
                 }}
-                className="mt-1 text-[10px] text-muted-foreground hover:text-foreground"
+                className="mt-1 text-xs text-muted-foreground hover:text-foreground"
               >
                 Última: {lastPerformance.weight} kg × {lastPerformance.reps} · usar
               </button>
@@ -515,7 +487,7 @@ export function ExerciseCard({
           {/* Continue button */}
           {onContinue && (
             <div>
-              <Button onClick={handlePrimaryAction} size="sm" className="w-full gap-2">
+              <Button onClick={handlePrimaryAction} className="min-h-11 w-full gap-2">
                 {nextIncomplete >= 0
                   ? `Completar serie ${nextIncomplete + 1} de ${totalSets}`
                   : "Siguiente ejercicio"}
@@ -530,8 +502,6 @@ export function ExerciseCard({
             totalSets={totalSets}
             onSetToggle={(setIdx) => handleToggleSet(setIdx)}
             restActive={perSetRestActive}
-            restRemaining={perSetRestRemaining}
-            restTotal={se.restSeconds}
             expanded={stepperExpanded}
             onExpandedChange={setStepperExpanded}
             onSetUpdate={onSetUpdate}
@@ -541,7 +511,7 @@ export function ExerciseCard({
 
       {/* ── Completed section: summary ──────────── */}
       {isCompleted && (
-        <p className="text-[10px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {completedCount}/{totalSets} series · {localWeight ?? se.weight}kg
         </p>
       )}

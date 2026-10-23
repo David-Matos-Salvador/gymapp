@@ -11,7 +11,7 @@ import { CelebrationOverlay } from "@/components/workout/celebration-overlay"
 import { ExerciseCard } from "@/components/workout/exercise-card"
 import { RestTimer } from "@/components/workout/rest-timer"
 import { PHASE_LABELS, PHASE_COLORS } from "@/constants/workout"
-import { ArrowLeft, Save, Dumbbell, Timer, Play, Trophy, ChevronDown, Pause, X } from "lucide-react"
+import { ArrowLeft, Save, Play, Trophy, ChevronDown, Pause, X, Flame, Zap } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import type { SplitExercise, SplitData } from "@/types/exercise"
@@ -303,6 +303,7 @@ export default function LogWorkoutPage() {
   const isPaused = store.isPaused
   const totalExercises = split?.exercises.length ?? 0
   const setsData = store.setsData
+  const hasCompletedSet = Object.values(setsData).some((sets) => sets.some((set) => set.completed))
 
   if (loading) return LOADING_SKELETON
 
@@ -340,7 +341,7 @@ export default function LogWorkoutPage() {
 
       <div
         className={cn(
-          "container mx-auto max-w-2xl space-y-5 px-4 py-4 pb-28 md:py-8",
+          "container mx-auto max-w-2xl touch-manipulation space-y-5 overscroll-contain px-4 py-4 pb-28 md:py-8",
           showCelebration && "hidden"
         )}
       >
@@ -358,6 +359,11 @@ export default function LogWorkoutPage() {
             </Button>
             <span className="min-w-0 flex-1 truncate text-sm font-medium">{split.name}</span>
             {isActive && (
+              <span className="text-[11px] tabular-nums text-muted-foreground">
+                {Math.min(currentExerciseIdx + 1, totalExercises)}/{totalExercises}
+              </span>
+            )}
+            {isActive && (
               <span className="font-mono text-sm tabular-nums text-muted-foreground">
                 {elapsedFormatted}
               </span>
@@ -367,9 +373,7 @@ export default function LogWorkoutPage() {
 
         <div>
           <div className="flex items-center justify-between flex-wrap gap-2">
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Dumbbell className="h-6 w-6 text-accent-yellow" /> {split.name}
-            </h1>
+            <h1 className="sr-only">{split.name}</h1>
             {isActive && phaseColor && (
               <span
                 className={cn(
@@ -393,29 +397,34 @@ export default function LogWorkoutPage() {
 
         {isActive && isPaused && (
           <Card className="border-accent-yellow/30 bg-accent-yellow/5">
-            <CardContent className="flex flex-wrap items-center gap-3 py-3">
-              <Pause className="h-5 w-5 text-accent-yellow" />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">Entrenamiento en pausa</p>
-                <p className="text-xs text-muted-foreground">
-                  El cronómetro está detenido. Reanudá cuando estés listo.
-                </p>
+            <CardContent className="space-y-3 py-3">
+              <div className="flex items-start gap-2">
+                <Pause className="mt-0.5 h-5 w-5 shrink-0 text-accent-yellow" />
+                <div>
+                  <p className="text-sm font-medium">Entrenamiento en pausa</p>
+                  <p className="text-xs text-muted-foreground">
+                    El cronómetro está detenido. Reanudá cuando estés listo.
+                  </p>
+                </div>
               </div>
-              <Button size="sm" onClick={resumeWorkout}>
-                <Play className="mr-1 h-3.5 w-3.5" /> Reanudar
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  if (!window.confirm("¿Descartar este entrenamiento? Se perderán las series."))
-                    return
-                  store.resetWorkout()
-                  router.push(`/rutinas/${planId}`)
-                }}
-              >
-                Descartar
-              </Button>
+              <div className="flex gap-2">
+                <Button size="sm" className="min-h-11 flex-1" onClick={resumeWorkout}>
+                  <Play className="mr-1 h-3.5 w-3.5" /> Reanudar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="min-h-11 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => {
+                    if (!window.confirm("¿Descartar este entrenamiento? Se perderán las series."))
+                      return
+                    store.resetWorkout()
+                    router.push(`/rutinas/${planId}`)
+                  }}
+                >
+                  Descartar
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -549,16 +558,10 @@ export default function LogWorkoutPage() {
               <p className="text-sm text-muted-foreground">
                 Duración: {elapsedFormatted} · {completedExercises} ejercicios completados
               </p>
-              <div className="flex justify-center gap-1 py-2">
-                {["🎉", "💪", "🔥", "⚡"].map((emoji, i) => (
-                  <span
-                    key={i}
-                    className="text-2xl animate-bounce"
-                    style={{ animationDelay: `${i * 0.15}s` }}
-                  >
-                    {emoji}
-                  </span>
-                ))}
+              <div className="flex justify-center gap-2 py-2 text-accent-yellow">
+                <Trophy className="h-7 w-7" />
+                <Flame className="h-7 w-7" />
+                <Zap className="h-7 w-7" />
               </div>
             </CardContent>
           </Card>
@@ -578,7 +581,7 @@ export default function LogWorkoutPage() {
           </Card>
         )}
 
-        {isActive && (
+        {isActive && !isPaused && (
           <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] backdrop-blur">
             <div className="mx-auto flex max-w-2xl gap-2">
               <Button
@@ -593,7 +596,11 @@ export default function LogWorkoutPage() {
               >
                 <X className="mr-1 h-4 w-4" /> Descartar
               </Button>
-              <Button onClick={handleSubmit} disabled={saving || isPaused} className="flex-1 gap-2">
+              <Button
+                onClick={handleSubmit}
+                disabled={saving || isPaused || !hasCompletedSet}
+                className="min-h-11 flex-1 gap-2"
+              >
                 <Save className="h-4 w-4" />
                 {saving ? "Guardando..." : "Finalizar entrenamiento"}
               </Button>
