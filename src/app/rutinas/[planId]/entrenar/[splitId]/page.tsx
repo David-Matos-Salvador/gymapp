@@ -11,7 +11,7 @@ import { CelebrationOverlay } from "@/components/workout/celebration-overlay"
 import { ExerciseCard } from "@/components/workout/exercise-card"
 import { RestTimer } from "@/components/workout/rest-timer"
 import { PHASE_LABELS, PHASE_COLORS } from "@/constants/workout"
-import { ArrowLeft, Save, Dumbbell, Timer, Play, Trophy, ChevronDown, Pause, X } from "lucide-react"
+import { ArrowLeft, Save, Play, Trophy, ChevronDown, Pause, X, Flame, Zap } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import type { SplitExercise, SplitData } from "@/types/exercise"
@@ -41,8 +41,10 @@ export default function LogWorkoutPage() {
   const [split, setSplit] = useState<SplitData | null>(null)
   const [gym, setGym] = useState<{ id: string; showMachineNumbers: boolean } | null>(null)
   const [lastPerformance, setLastPerformance] = useState<
-    Record<string, { weight: number; reps: number }>
+    Record<string, Array<{ weight: number; reps: number }>>
   >({})
+  const [announcement, setAnnouncement] = useState("")
+  const [saveError, setSaveError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [notes, setNotes] = useState("")
@@ -79,6 +81,7 @@ export default function LogWorkoutPage() {
     resumeWorkout,
     markExerciseComplete,
     finishWorkout,
+    startRest,
     skipRest,
     pauseRest,
     resumeRest,
@@ -100,7 +103,7 @@ export default function LogWorkoutPage() {
         setSplit(s)
         setGym((data.gym as { id: string; showMachineNumbers: boolean } | null) ?? null)
         setLastPerformance(
-          (data.lastPerformance ?? {}) as Record<string, { weight: number; reps: number }>
+          (data.lastPerformance ?? {}) as Record<string, Array<{ weight: number; reps: number }>>
         )
 
         const snapshot = useWorkoutStore.getState()
@@ -163,45 +166,72 @@ export default function LogWorkoutPage() {
     return () => document.removeEventListener("visibilitychange", handleVisibility)
   }, [pauseWorkout])
 
-  const handleSubmit = useCallback(async () => {
-    if (saving) return
-    const allSets = Object.values(store.setsData)
-      .flat()
-      .filter((s) => s.completed)
-    if (allSets.length === 0) {
-      toast.error("Completa al menos una serie")
-      return
-    }
-    setSaving(true)
-    const body = {
-      splitId,
-      duration: Math.max(1, Math.round(elapsedSeconds / 60)),
-      notes: notes.trim() || undefined,
-      sets: allSets.map((s) => ({
-        exerciseId: s.exerciseId,
-        exerciseName: s.exerciseName,
-        setNumber: s.setNumber,
-        reps: s.reps,
-        weight: s.weight,
-        restSeconds: s.restSeconds,
-        completed: s.completed,
-      })),
-    }
-    const res = await fetch("/api/workout-logs", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    })
-    if (res.ok) {
-      finishWorkout()
-      toast.success("Entrenamiento registrado")
-      setSaving(false)
-    } else {
-      const err = await res.json()
-      toast.error(err.error || "Error al guardar")
-      setSaving(false)
-    }
-  }, [store, splitId, elapsedSeconds, notes, finishWorkout, saving])
+  const wasResting = useRef(false)
+  useEffect(() => {
+    if (wasResting.current && !isResting) setAnnouncement("Descanso terminado")
+    wasResting.current = isResting
+  }, [isResting])
+
+  const handleSubmit = useCallback(
+    async (confirmPartial = false) => {
+      if (saving) return
+      const allSets = Object.values(store.setsData)
+        .flat()
+        .filter((s) => s.completed)
+      if (allSets.length === 0) {
+        toast.error("Completa al menos una serie")
+        return
+      }
+
+      const incomplete = (split?.exercises ?? []).filter(
+        (exercise) => !store.setsData[exercise.exerciseId]?.some((set) => set.completed)
+      )
+      if (confirmPartial && incomplete.length > 0) {
+        const names = incomplete.map((exercise) => exercise.exercise.name).join(", ")
+        if (
+          !window.confirm(
+            `Vas a finalizar con ${incomplete.length} ejercicio(s) sin series: ${names}. ¿Continuar?`
+          )
+        ) {
+          return
+        }
+      }
+
+      setSaving(true)
+      setSaveError(null)
+      const body = {
+        splitId,
+        duration: Math.max(1, Math.round(elapsedSeconds / 60)),
+        notes: notes.trim() || undefined,
+        sets: allSets.map((s) => ({
+          exerciseId: s.exerciseId,
+          exerciseName: s.exerciseName,
+          setNumber: s.setNumber,
+          reps: s.reps,
+          weight: s.weight,
+          restSeconds: s.restSeconds,
+          completed: s.completed,
+        })),
+      }
+      const res = await fetch("/api/workout-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      if (res.ok) {
+        finishWorkout()
+        toast.success("Entrenamiento registrado")
+        setSaving(false)
+      } else {
+        const err = await res.json()
+        const message = err.error || "Error al guardar"
+        setSaveError(message)
+        toast.error(message)
+        setSaving(false)
+      }
+    },
+    [store, splitId, elapsedSeconds, notes, finishWorkout, saving, split]
+  )
 
   useEffect(() => {
     if (phase === "done" || phase === "prepare") return
@@ -259,6 +289,16 @@ export default function LogWorkoutPage() {
     return { activeExercises: active, doneExercises: done }
   }, [exerciseOrder, exerciseMap, completedIdSet])
 
+  const handleSkipExercise = useCallback(async () => {
+    const currentId = activeExercises[0]?.exerciseId
+    const entry = currentId ? exerciseMap.get(currentId) : undefined
+    if (!entry || !currentId) return
+    store.addSkippedExercise(currentId)
+    store.addCompletedExercise(currentId)
+    setAnnouncement(`${entry.se.exercise.name} omitido`)
+    markExerciseComplete(entry.origIdx)
+  }, [activeExercises, exerciseMap, markExerciseComplete, store])
+
   const handleContinueExercise = useCallback(
     (exerciseId: string) => {
       const entry = exerciseMap.get(exerciseId)
@@ -312,7 +352,11 @@ export default function LogWorkoutPage() {
       <AppShell>
         <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl text-center">
           <p className="text-muted-foreground py-12">Entrenamiento no encontrado</p>
-          <Button variant="outline" onClick={() => router.push(`/rutinas/${planId}`)}>
+          <Button
+            variant="outline"
+            className="min-h-11"
+            onClick={() => router.push(`/rutinas/${planId}`)}
+          >
             Volver
           </Button>
         </div>
@@ -345,11 +389,16 @@ export default function LogWorkoutPage() {
           showCelebration && "hidden"
         )}
       >
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {announcement}
+        </div>
+
         <div className="sticky top-0 z-30 -mx-4 border-b bg-background/95 px-4 py-2 backdrop-blur">
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
+              className="min-h-11"
               onClick={() => {
                 pauseWorkout()
                 router.push(`/rutinas/${planId}`)
@@ -367,10 +416,8 @@ export default function LogWorkoutPage() {
         </div>
 
         <div>
-          <div className="flex items-center justify-between flex-wrap gap-2">
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Dumbbell className="h-6 w-6 text-accent-yellow" /> {split.name}
-            </h1>
+          <h1 className="sr-only">{split.name}</h1>
+          <div className="flex items-center justify-end flex-wrap gap-2">
             {isActive && phaseColor && (
               <span
                 className={cn(
@@ -402,12 +449,13 @@ export default function LogWorkoutPage() {
                   El cronómetro está detenido. Reanudá cuando estés listo.
                 </p>
               </div>
-              <Button size="sm" onClick={resumeWorkout}>
+              <Button size="sm" className="min-h-11" onClick={resumeWorkout}>
                 <Play className="mr-1 h-3.5 w-3.5" /> Reanudar
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
+                className="min-h-11 text-destructive hover:bg-destructive/10 hover:text-destructive"
                 onClick={() => {
                   if (!window.confirm("¿Descartar este entrenamiento? Se perderán las series."))
                     return
@@ -427,7 +475,7 @@ export default function LogWorkoutPage() {
               {totalExercises} ejercicios · ~
               {split.estimatedDuration ?? Math.round(totalExercises * 2.5)} min estimados
             </p>
-            <Button onClick={startWorkout} className="gap-2">
+            <Button onClick={startWorkout} className="min-h-11 gap-2">
               <Play className="h-4 w-4" /> Iniciar entrenamiento
             </Button>
           </div>
@@ -496,6 +544,7 @@ export default function LogWorkoutPage() {
                     dragHandleProps={{}}
                     onSetComplete={(setIdx) => {
                       if (isResting) skipRest()
+                      setAnnouncement(`Serie ${setIdx + 1} completada`)
                       const updated = [...exerciseSets]
                       updated[setIdx] = { ...updated[setIdx], completed: true }
                       store.setSetsData({ ...store.setsData, [se.exerciseId]: updated })
@@ -506,7 +555,13 @@ export default function LogWorkoutPage() {
                     onSetUpdate={(setIdx, updates) => {
                       store.updateSet(se.exerciseId, setIdx, updates)
                     }}
+                    onStartRest={(seconds) => {
+                      setAnnouncement(`Descanso de ${seconds} segundos`)
+                      startRest(seconds)
+                    }}
                     lastPerformance={lastPerformance[se.exerciseId] ?? null}
+                    onSkip={handleSkipExercise}
+                    skipped={store.skippedExerciseIds.includes(se.exerciseId)}
                   />
                 </div>
               )
@@ -550,16 +605,10 @@ export default function LogWorkoutPage() {
               <p className="text-sm text-muted-foreground">
                 Duración: {elapsedFormatted} · {completedExercises} ejercicios completados
               </p>
-              <div className="flex justify-center gap-1 py-2">
-                {["🎉", "💪", "🔥", "⚡"].map((emoji, i) => (
-                  <span
-                    key={i}
-                    className="text-2xl animate-bounce"
-                    style={{ animationDelay: `${i * 0.15}s` }}
-                  >
-                    {emoji}
-                  </span>
-                ))}
+              <div className="flex justify-center gap-2 py-2 text-accent-yellow">
+                <Trophy className="h-7 w-7" />
+                <Flame className="h-7 w-7" />
+                <Zap className="h-7 w-7" />
               </div>
             </CardContent>
           </Card>
@@ -575,16 +624,34 @@ export default function LogWorkoutPage() {
                 onChange={(e) => setNotes(e.target.value)}
                 className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30 resize-none"
               />
+              <p className="mt-2 text-[11px] text-muted-foreground">
+                Borrador guardado en este dispositivo. Si cambiás de dispositivo, no se sincroniza.
+              </p>
             </CardContent>
           </Card>
         )}
 
         {isActive && (
           <div className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] backdrop-blur">
+            {saveError && (
+              <div className="mx-auto mb-2 flex max-w-2xl items-center justify-between gap-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                <span>No se pudo guardar.</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="min-h-11 border-destructive/30 text-destructive"
+                  onClick={() => void handleSubmit(true)}
+                  disabled={saving}
+                >
+                  Reintentar
+                </Button>
+              </div>
+            )}
             <div className="mx-auto flex max-w-2xl gap-2">
               <Button
                 variant="outline"
                 size="sm"
+                className="min-h-11"
                 onClick={() => {
                   if (!window.confirm("¿Descartar este entrenamiento? Se perderán las series."))
                     return
@@ -595,12 +662,16 @@ export default function LogWorkoutPage() {
                 <X className="mr-1 h-4 w-4" /> Descartar
               </Button>
               <Button
-                onClick={handleSubmit}
+                onClick={() => void handleSubmit(true)}
                 disabled={saving || isPaused || !hasCompletedSet}
-                className="flex-1 gap-2"
+                className="min-h-11 flex-1 gap-2 disabled:opacity-50"
               >
                 <Save className="h-4 w-4" />
-                {saving ? "Guardando..." : "Finalizar entrenamiento"}
+                {!hasCompletedSet
+                  ? "Completá una serie"
+                  : saving
+                    ? "Guardando..."
+                    : "Finalizar entrenamiento"}
               </Button>
             </div>
           </div>
@@ -610,6 +681,7 @@ export default function LogWorkoutPage() {
           <div className="flex gap-3 justify-end pb-20">
             <Button
               variant="outline"
+              className="min-h-11"
               onClick={() => {
                 store.resetWorkout()
                 router.push(`/rutinas/${planId}`)

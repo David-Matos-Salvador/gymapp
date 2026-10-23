@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { Flame, Star, Trophy, Zap } from "lucide-react"
 
 const MOTIVATIONAL_MESSAGES = [
   "¡Sigue así, campeón!",
@@ -14,7 +15,7 @@ const MOTIVATIONAL_MESSAGES = [
   "¡Un paso más hacia tu meta!",
 ]
 
-const EMOJIS = ["🎉", "💪", "🔥", "⚡", "🏆", "⭐", "🚀", "✨"]
+const CELEBRATION_ICONS = [Trophy, Flame, Zap, Star]
 
 interface CelebrationOverlayProps {
   open: boolean
@@ -91,15 +92,15 @@ export function CelebrationOverlay({
           ))}
 
           <div className="flex justify-center gap-1 mb-4">
-            {EMOJIS.slice(0, 4).map((emoji, i) => (
+            {CELEBRATION_ICONS.map((Icon, i) => (
               <motion.span
                 key={i}
-                className="text-3xl"
-                initial={{ y: 10, opacity: 0 }}
+                className="text-accent-yellow"
+                initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 + i * 0.1 }}
+                transition={{ delay: 0.2 + i * 0.08, duration: 0.25 }}
               >
-                {emoji}
+                <Icon className="h-8 w-8" strokeWidth={1.75} />
               </motion.span>
             ))}
           </div>

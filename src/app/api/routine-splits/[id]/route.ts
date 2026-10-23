@@ -149,12 +149,11 @@ export async function GET(request: Request, { params }: RouteParams) {
     orderBy: { date: "desc" },
     include: { sets: true },
   })
-  const lastPerformance: Record<string, { weight: number; reps: number }> = {}
+  const lastPerformance: Record<string, Array<{ weight: number; reps: number }>> = {}
   for (const set of lastLog?.sets ?? []) {
-    const current = lastPerformance[set.exerciseId]
-    if (!current || set.weight > current.weight) {
-      lastPerformance[set.exerciseId] = { weight: set.weight, reps: set.reps }
-    }
+    const list = lastPerformance[set.exerciseId] ?? []
+    list[set.setNumber - 1] = { weight: set.weight, reps: set.reps }
+    lastPerformance[set.exerciseId] = list
   }
 
   return NextResponse.json({ split, gym, lastPerformance })

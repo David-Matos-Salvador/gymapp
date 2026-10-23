@@ -94,32 +94,36 @@ export function useWorkoutSession({
     }
   }, [stopElapsedTimer, stopRestTimer])
 
-  const startRest = useCallback(() => {
-    stopRestTimer()
-    store.setRestRemaining(restSeconds)
-    store.setRestTotalDuration(restSeconds)
-    store.setResting(true)
-    store.setRestPaused(false)
+  const startRest = useCallback(
+    (seconds?: number) => {
+      const duration = seconds ?? restSeconds
+      stopRestTimer()
+      store.setRestRemaining(duration)
+      store.setRestTotalDuration(duration)
+      store.setResting(true)
+      store.setRestPaused(false)
 
-    if (soundEnabledRef.current) play("restStart")
+      if (soundEnabledRef.current) play("restStart")
 
-    restRef.current = setInterval(() => {
-      const s = useWorkoutStore.getState()
-      const next = s.restRemaining - 1
+      restRef.current = setInterval(() => {
+        const s = useWorkoutStore.getState()
+        const next = s.restRemaining - 1
 
-      if (next <= 0) {
-        stopRestTimer()
-        store.setResting(false)
-        store.setRestRemaining(0)
-        if (navigator.vibrate) navigator.vibrate([200, 100, 200])
-        if (soundEnabledRef.current) play("restEnd")
-        return
-      }
+        if (next <= 0) {
+          stopRestTimer()
+          store.setResting(false)
+          store.setRestRemaining(0)
+          if (navigator.vibrate) navigator.vibrate([200, 100, 200])
+          if (soundEnabledRef.current) play("restEnd")
+          return
+        }
 
-      store.decrementRest()
-      if (next <= 3 && soundEnabledRef.current) sounds.restWarning()
-    }, 1000)
-  }, [store, play, restSeconds, stopRestTimer])
+        store.decrementRest()
+        if (next <= 3 && soundEnabledRef.current) sounds.restWarning()
+      }, 1000)
+    },
+    [store, play, restSeconds, stopRestTimer]
+  )
 
   const markExerciseComplete = useCallback(
     (exerciseIdx: number) => {
@@ -173,6 +177,9 @@ export function useWorkoutSession({
   }, [store, startElapsedTimer])
 
   const startWorkout = useCallback(() => {
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      void Notification.requestPermission()
+    }
     if (store.phase !== "prepare") return
 
     store.startWorkout(store.splitId!, totalExercises)
@@ -211,6 +218,13 @@ export function useWorkoutSession({
         store.setRestRemaining(0)
         if (navigator.vibrate) navigator.vibrate([200, 100, 200])
         if (soundEnabledRef.current) play("restEnd")
+        if (
+          typeof Notification !== "undefined" &&
+          Notification.permission === "granted" &&
+          document.hidden
+        ) {
+          new Notification("Descanso terminado", { body: "Empezá la siguiente serie." })
+        }
         return
       }
 
@@ -244,6 +258,7 @@ export function useWorkoutSession({
     isResting: store.isResting,
     isRestPaused: store.isRestPaused,
     startWorkout,
+    startRest,
     pauseWorkout,
     resumeWorkout,
     markExerciseComplete,

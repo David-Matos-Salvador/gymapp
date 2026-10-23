@@ -45,11 +45,13 @@ export default async function HistorialPage({ params }: PageProps) {
 
   if (!assignment || !plan) redirect("/rutinas")
 
-  const records = new Map<string, number>()
-  for (const log of logs) {
+  const records = new Map<string, { weight: number; logId: string }>()
+  for (const log of [...logs].reverse()) {
     for (const set of log.sets) {
-      const current = records.get(set.exerciseName) ?? 0
-      if (set.weight > current) records.set(set.exerciseName, set.weight)
+      const current = records.get(set.exerciseName)
+      if (!current || set.weight > current.weight) {
+        records.set(set.exerciseName, { weight: set.weight, logId: log.id })
+      }
     }
   }
 
@@ -127,9 +129,9 @@ export default async function HistorialPage({ params }: PageProps) {
                         >
                           <span className="flex items-center gap-1.5 text-sm">
                             {name}
-                            {records.get(name) === Math.max(...sets.map((set) => set.weight)) &&
-                              (records.get(name) ?? 0) > 0 && (
-                                <Badge className="bg-accent-yellow/15 text-accent-yellow text-[9px]">
+                            {records.get(name)?.logId === log.id &&
+                              (records.get(name)?.weight ?? 0) > 0 && (
+                                <Badge className="bg-accent-yellow/15 text-accent-yellow text-[11px]">
                                   PR
                                 </Badge>
                               )}

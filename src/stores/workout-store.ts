@@ -22,6 +22,7 @@ interface WorkoutStore {
   savedAt: number | null
   currentExerciseIdx: number
   completedExerciseIds: string[]
+  skippedExerciseIds: string[]
   setsData: Record<string, SetLog[]>
   notes: string
   isPaused: boolean
@@ -40,6 +41,7 @@ interface WorkoutStore {
   incrementElapsed: () => void
   setCurrentExerciseIdx: (idx: number) => void
   addCompletedExercise: (id: string) => void
+  addSkippedExercise: (id: string) => void
   setCompletedExerciseIds: (ids: string[]) => void
   setSetsData: (data: Record<string, SetLog[]>) => void
   updateSet: (exerciseId: string, setIdx: number, updates: Partial<SetLog>) => void
@@ -71,6 +73,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
       savedAt: null,
       currentExerciseIdx: 0,
       completedExerciseIds: [],
+      skippedExerciseIds: [],
       setsData: {},
       notes: "",
       isPaused: false,
@@ -94,6 +97,12 @@ export const useWorkoutStore = create<WorkoutStore>()(
           completedExerciseIds: s.completedExerciseIds.includes(id)
             ? s.completedExerciseIds
             : [...s.completedExerciseIds, id],
+        })),
+      addSkippedExercise: (id) =>
+        set((s) => ({
+          skippedExerciseIds: s.skippedExerciseIds.includes(id)
+            ? s.skippedExerciseIds
+            : [...s.skippedExerciseIds, id],
         })),
       setCompletedExerciseIds: (ids) => set({ completedExerciseIds: ids }),
       setSetsData: (data) => set({ setsData: data }),
@@ -149,6 +158,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           savedAt: Date.now(),
           currentExerciseIdx: 0,
           completedExerciseIds: [],
+          skippedExerciseIds: [],
           setsData: Object.keys(s.setsData).length > 0 ? s.setsData : {},
           notes: "",
           isPaused: false,
@@ -205,6 +215,7 @@ export const useWorkoutStore = create<WorkoutStore>()(
           savedAt: null,
           currentExerciseIdx: 0,
           completedExerciseIds: [],
+          skippedExerciseIds: [],
           setsData: {},
           notes: "",
           isPaused: false,
