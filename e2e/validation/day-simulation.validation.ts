@@ -207,47 +207,29 @@ async function completeWorkout(page: Page) {
   await page.waitForTimeout(1000)
 
   for (let exercise = 0; exercise < 10; exercise++) {
-    const restSkip = page.getByRole("button", { name: /^Saltar$/i })
-    if (await restSkip.isVisible({ timeout: 1000 }).catch(() => false)) {
-      await restSkip.click()
-      await page.waitForTimeout(300)
-    }
-
-    const details = page.getByRole("button", { name: /Detalle de series/i })
-    if (await details.isVisible({ timeout: 1000 }).catch(() => false)) {
-      const label = (await details.textContent().catch(() => "")) ?? ""
-      if (label.includes("(0/")) await details.click()
-    }
-
-    for (let action = 0; action < 15; action++) {
-      let clickedSet = false
-      for (const name of ["1", "2", "3", "4", "5", "6"]) {
-        const setButton = page.getByRole("button", { name, exact: true })
-        if (!(await setButton.isVisible({ timeout: 300 }).catch(() => false))) continue
-        if (await setButton.isDisabled().catch(() => true)) continue
-        await setButton.click()
+    for (let action = 0; action < 20; action++) {
+      const completeSet = page.getByRole("button", { name: /^Completar serie \d+ de \d+$/i })
+      if (await completeSet.isVisible({ timeout: 300 }).catch(() => false)) {
+        await completeSet.click()
         await page.waitForTimeout(300)
-        clickedSet = true
-        break
+        continue
       }
-      if (clickedSet) continue
 
       const skipRest = page.getByRole("button", { name: /Saltar descanso|^Saltar$/i })
-      if (await skipRest.isVisible({ timeout: 500 }).catch(() => false)) {
+      if (await skipRest.isVisible({ timeout: 300 }).catch(() => false)) {
         await skipRest.click()
         await page.waitForTimeout(300)
         continue
       }
+
+      const next = page.getByRole("button", { name: /^Siguiente ejercicio$/i })
+      if (await next.isVisible({ timeout: 500 }).catch(() => false)) {
+        await next.click()
+        await page.waitForTimeout(800)
+        break
+      }
       break
     }
-
-    const next = page.getByRole("button", { name: /^(Siguiente ejercicio|Continuar)$/i })
-    if (await next.isVisible({ timeout: 1500 }).catch(() => false)) {
-      await next.click()
-      await page.waitForTimeout(800)
-      continue
-    }
-    break
   }
 
   await page

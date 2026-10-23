@@ -303,6 +303,7 @@ export default function LogWorkoutPage() {
   const isPaused = store.isPaused
   const totalExercises = split?.exercises.length ?? 0
   const setsData = store.setsData
+  const hasCompletedSet = Object.values(setsData).some((sets) => sets.some((set) => set.completed))
 
   if (loading) return LOADING_SKELETON
 
@@ -593,7 +594,11 @@ export default function LogWorkoutPage() {
               >
                 <X className="mr-1 h-4 w-4" /> Descartar
               </Button>
-              <Button onClick={handleSubmit} disabled={saving || isPaused} className="flex-1 gap-2">
+              <Button
+                onClick={handleSubmit}
+                disabled={saving || isPaused || !hasCompletedSet}
+                className="flex-1 gap-2"
+              >
                 <Save className="h-4 w-4" />
                 {saving ? "Guardando..." : "Finalizar entrenamiento"}
               </Button>
