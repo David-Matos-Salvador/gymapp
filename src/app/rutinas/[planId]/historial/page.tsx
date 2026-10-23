@@ -129,7 +129,7 @@ export default async function HistorialPage({ params }: PageProps) {
                             {name}
                             {records.get(name) === Math.max(...sets.map((set) => set.weight)) &&
                               (records.get(name) ?? 0) > 0 && (
-                                <Badge className="bg-accent-yellow/15 text-accent-yellow text-[11px]">
+                                <Badge className="bg-accent-yellow/15 text-accent-yellow text-[9px]">
                                   PR
                                 </Badge>
                               )}

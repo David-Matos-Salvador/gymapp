@@ -68,7 +68,7 @@ export function RestTimer({ remaining, total, status, onPause, onResume, onSkip 
         <button
           type="button"
           onClick={status === "paused" ? onResume : onPause}
-          className="flex h-11 w-11 items-center justify-center rounded-lg border border-input bg-background transition-colors hover:bg-muted"
+          className="p-1.5 rounded-lg border border-input bg-background hover:bg-muted transition-colors"
           aria-label={status === "paused" ? "Reanudar" : "Pausar"}
         >
           {status === "paused" ? (
@@ -80,7 +80,7 @@ export function RestTimer({ remaining, total, status, onPause, onResume, onSkip 
         <button
           type="button"
           onClick={onSkip}
-          className="flex h-11 items-center gap-1 rounded-lg border border-input bg-background px-3 text-xs transition-colors hover:bg-muted"
+          className="flex items-center gap-1 px-2 py-1.5 text-xs rounded-lg border border-input bg-background hover:bg-muted transition-colors"
         >
           <SkipForward className="h-3 w-3" />
           Saltar

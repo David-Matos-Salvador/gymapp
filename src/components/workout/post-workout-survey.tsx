@@ -76,7 +76,7 @@ export function PostWorkoutSurvey({ open, onClose, onSubmit }: PostWorkoutSurvey
                   >
                     {item.emoji}
                   </span>
-                  <span className="text-xs text-muted-foreground">{item.label}</span>
+                  <span className="text-[10px] text-muted-foreground">{item.label}</span>
                 </motion.button>
               ))}
             </div>

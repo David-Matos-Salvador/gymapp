@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Flame, Star, Trophy, Zap } from "lucide-react"
 
 const MOTIVATIONAL_MESSAGES = [
   "¡Sigue así, campeón!",
@@ -15,7 +14,7 @@ const MOTIVATIONAL_MESSAGES = [
   "¡Un paso más hacia tu meta!",
 ]
 
-const CELEBRATION_ICONS = [Trophy, Flame, Zap, Star]
+const EMOJIS = ["🎉", "💪", "🔥", "⚡", "🏆", "⭐", "🚀", "✨"]
 
 interface CelebrationOverlayProps {
   open: boolean
@@ -72,7 +71,7 @@ export function CelebrationOverlay({
           className="relative w-full max-w-sm mx-4 rounded-2xl border bg-card p-8 shadow-2xl text-center overflow-hidden"
           initial={{ scale: 0.8, opacity: 0, y: 20 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          transition={{ duration: 0.28, ease: [0.25, 1, 0.5, 1] }}
+          transition={{ type: "spring", damping: 20, stiffness: 300 }}
         >
           {confetti.map((c) => (
             <motion.div
@@ -92,15 +91,15 @@ export function CelebrationOverlay({
           ))}
 
           <div className="flex justify-center gap-1 mb-4">
-            {CELEBRATION_ICONS.map((Icon, i) => (
+            {EMOJIS.slice(0, 4).map((emoji, i) => (
               <motion.span
                 key={i}
-                className="text-accent-yellow"
-                initial={{ y: 8, opacity: 0 }}
+                className="text-3xl"
+                initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 + i * 0.08, duration: 0.25 }}
+                transition={{ delay: 0.2 + i * 0.1 }}
               >
-                <Icon className="h-8 w-8" strokeWidth={1.75} />
+                {emoji}
               </motion.span>
             ))}
           </div>
@@ -133,11 +132,11 @@ export function CelebrationOverlay({
               <p className="text-2xl font-bold tabular-nums text-accent-yellow">
                 {weeklyCompleted}/{weeklyTarget}
               </p>
-              <p className="text-xs text-muted-foreground">días esta semana</p>
+              <p className="text-[10px] text-muted-foreground">días esta semana</p>
             </div>
             <div className="rounded-xl bg-muted/50 p-3">
               <p className="text-2xl font-bold tabular-nums text-accent-yellow">{weeklyStreak}</p>
-              <p className="text-xs text-muted-foreground">semanas seguidas</p>
+              <p className="text-[10px] text-muted-foreground">semanas seguidas</p>
             </div>
           </motion.div>
 
@@ -155,7 +154,7 @@ export function CelebrationOverlay({
           <motion.button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-accent-yellow px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-accent-yellow/90"
+            className="inline-flex items-center justify-center rounded-full bg-accent-yellow px-6 py-2.5 text-sm font-semibold text-white hover:bg-accent-yellow/90 transition-colors"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
