@@ -23,6 +23,7 @@ FROM base AS migrator
 WORKDIR /app
 COPY prisma ./prisma
 COPY prisma.config.ts ./
+RUN npx prisma generate
 CMD ["npx", "prisma", "migrate", "deploy"]
 
 # Stage 4: Runner
