@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { rateLimit, requestIp } from "@/lib/rate-limit"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
@@ -17,6 +18,13 @@ const registerSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    if (!(await rateLimit(`register:${requestIp(request)}`, 5, 900))) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Intentá de nuevo en unos minutos." },
+        { status: 429 }
+      )
+    }
+
     const body = await request.json()
     const parsed = registerSchema.safeParse(body)
 

@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials"
 import Google from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { rateLimit } from "@/lib/rate-limit"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -33,6 +34,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = credentials.email as string
         const password = credentials.password as string
+
+        if (!(await rateLimit(`login:${email.toLowerCase()}`, 15, 900))) {
+          return null
+        }
 
         const user = await prisma.user.findUnique({
           where: { email },

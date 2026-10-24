@@ -1,12 +1,56 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { rateLimit } from "@/lib/rate-limit"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 
 const UPLOAD_DIR = join(process.cwd(), "public", "uploads")
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 const MAX_SIZE = 5 * 1024 * 1024
+
+const EXTENSION_BY_TYPE: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+  "image/gif": "gif",
+}
+
+function hasValidSignature(type: string, bytes: Uint8Array): boolean {
+  if (type === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
+  if (type === "image/png")
+    return (
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47 &&
+      bytes[4] === 0x0d &&
+      bytes[5] === 0x0a &&
+      bytes[6] === 0x1a &&
+      bytes[7] === 0x0a
+    )
+  if (type === "image/gif")
+    return (
+      bytes[0] === 0x47 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x38 &&
+      (bytes[4] === 0x37 || bytes[4] === 0x39) &&
+      bytes[5] === 0x61
+    )
+  if (type === "image/webp")
+    return (
+      bytes[0] === 0x52 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x46 &&
+      bytes[8] === 0x57 &&
+      bytes[9] === 0x45 &&
+      bytes[10] === 0x42 &&
+      bytes[11] === 0x50
+    )
+  return false
+}
 
 export async function POST(request: Request) {
   const session = await auth()
@@ -17,6 +61,10 @@ export async function POST(request: Request) {
   const user = await prisma.user.findUnique({ where: { email: session.user.email } })
   if (!user) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+  }
+
+  if (!(await rateLimit(`upload:${user.id}`, 30, 60))) {
+    return NextResponse.json({ error: "Demasiadas subidas. Esperá un momento." }, { status: 429 })
   }
 
   try {
@@ -44,11 +92,14 @@ export async function POST(request: Request) {
 
     await mkdir(folderPath, { recursive: true })
 
-    const ext = file.name.split(".").pop() || "jpg"
+    const bytes = new Uint8Array(await file.arrayBuffer())
+    if (!hasValidSignature(file.type, bytes)) {
+      return NextResponse.json({ error: "El archivo no es una imagen válida" }, { status: 400 })
+    }
+
+    const ext = EXTENSION_BY_TYPE[file.type] ?? "jpg"
     const filename = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "." + ext
     const filePath = join(folderPath, filename)
-
-    const bytes = await file.arrayBuffer()
     await writeFile(filePath, Buffer.from(bytes))
 
     const url = "/uploads/" + folder + "/" + filename

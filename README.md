@@ -89,18 +89,21 @@ Abre [http://localhost:3000](http://localhost:3000).
 
 ## Comandos
 
-| Comando            | Descripción                            |
-| ------------------ | -------------------------------------- |
-| `npm run dev`      | Servidor de desarrollo                 |
-| `npm run build`    | Build de producción                    |
-| `npm run start`    | Iniciar build de producción            |
-| `npm run lint`     | ESLint                                 |
-| `npm run test`     | Tests unitarios (Vitest)               |
-| `npm run test:e2e` | Tests end-to-end (Playwright)          |
-| `npm run test:ci`  | Lint + unitarios + e2e                 |
-| `npm run db:reset` | Reiniciar schema y seed de datos demo  |
-| `npm run db:seed`  | Cargar datos demo sin reiniciar schema |
-| `npm run db:push`  | Sincronizar schema con la DB           |
+| Comando                     | Descripción                                       |
+| --------------------------- | ------------------------------------------------- |
+| `npm run dev`               | Servidor de desarrollo                            |
+| `npm run build`             | Build de producción                               |
+| `npm run start`             | Iniciar build de producción                       |
+| `npm run lint`              | ESLint                                            |
+| `npm run test`              | Tests unitarios (Vitest)                          |
+| `npm run test:e2e`          | Tests end-to-end (Playwright)                     |
+| `npm run test:ci`           | Lint + unitarios + e2e                            |
+| `npm run db:reset`          | **Solo local**: reset con migraciones + seed demo |
+| `npm run db:seed`           | Cargar datos demo sin reiniciar schema            |
+| `npm run db:migrate:dev`    | Crear/aplicar migración en desarrollo             |
+| `npm run db:migrate:deploy` | Aplicar migraciones pendientes (staging/prod)     |
+| `npm run db:migrate:status` | Ver estado de migraciones                         |
+| `npm run db:prototype`      | `db push` para prototipos, nunca producción       |
 
 ## Usuarios demo
 
@@ -108,10 +111,22 @@ Al ejecutar `npm run db:reset`, se crean usuarios de prueba para todos los roles
 
 ## Producción
 
+Nunca usar `db:reset`, `db:prototype` ni `db push` en producción. El flujo es:
+
 ```bash
+# backup de la BD
+# revisar migraciones pendientes
+npm run db:migrate:status
+
+# aplicar migraciones
+npm run db:migrate:deploy
+
+# levantar app
 npm run build
 npm run start
 ```
+
+En Docker, `docker compose up -d` ejecuta primero el servicio `migrate` y luego la app. Las variables sensibles (`POSTGRES_PASSWORD`, `AUTH_SECRET`, `REDIS_PASSWORD`) se leen de `.env`/secret manager y no se commitean.
 
 La app usa `output: "standalone"` y está preparada para desplegar en cualquier plataforma que soporte Node.js y PostgreSQL.
 

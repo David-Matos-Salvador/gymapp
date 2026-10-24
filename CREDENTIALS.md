@@ -36,12 +36,14 @@
 
 ## Auth / Entorno
 
-| Variable                | Valor                                                                      |
-| ----------------------- | -------------------------------------------------------------------------- |
-| `AUTH_SECRET`           | `hiTXOFdVPhNNc0eZoTseTtnAikyix8lU+vk8EUSu4gI=`                             |
-| `AUTH_URL`              | `http://localhost:3000`                                                    |
-| `NEXT_PUBLIC_APP_URL`   | `http://localhost:3000`                                                    |
-| `AUTH_GOOGLE_ID`        | `675239987109-oq1qijd4tof7ilb5ja1jhrgcmc5dvu3n.apps.googleusercontent.com` |
-| `AUTH_GOOGLE_SECRET`    | `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`                                      |
-| `STRIPE_SECRET_KEY`     | _(vacío)_                                                                  |
-| `STRIPE_WEBHOOK_SECRET` | _(vacío)_                                                                  |
+Las credenciales reales viven en `.env.local` o en el gestor de secretos del servidor. No se commitean.
+
+| Variable                | Valor                                 |
+| ----------------------- | ------------------------------------- |
+| `AUTH_SECRET`           | ver `.env.local` / gestor de secretos |
+| `AUTH_URL`              | URL del entorno                       |
+| `NEXT_PUBLIC_APP_URL`   | URL del entorno                       |
+| `AUTH_GOOGLE_ID`        | ver `.env.local` / gestor de secretos |
+| `AUTH_GOOGLE_SECRET`    | ver `.env.local` / gestor de secretos |
+| `STRIPE_SECRET_KEY`     | ver `.env.local` / gestor de secretos |
+| `STRIPE_WEBHOOK_SECRET` | ver `.env.local` / gestor de secretos |

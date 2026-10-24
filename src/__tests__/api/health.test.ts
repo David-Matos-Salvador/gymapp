@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from "vitest"
 import { GET } from "@/app/api/health/route"
 
+vi.mock("@/lib/prisma", () => ({
+  prisma: { $queryRaw: vi.fn().mockResolvedValue([1]) },
+}))
+
 vi.mock("next/server", () => ({
   NextResponse: {
     json: vi.fn((body: unknown, init?: ResponseInit) => {
@@ -18,6 +22,7 @@ vi.mock("next/server", () => ({
 
 describe("GET /api/health", () => {
   it("returns status ok", async () => {
+    delete process.env.REDIS_URL
     const response = await GET()
     const body = await response.json()
     expect(body).toHaveProperty("status", "ok")
