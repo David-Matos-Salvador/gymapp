@@ -7,6 +7,11 @@ describe("imageUrlSchema", () => {
     expect(imageUrlSchema.safeParse("/uploads/equipment/123-abc.webp").success).toBe(true)
   })
 
+  it("acepta archivos servidos por /api/files", () => {
+    expect(isValidImageUrl("/api/files/equipment/123-abc.png")).toBe(true)
+    expect(isValidImageUrl("/api/files/../secreto.png")).toBe(true) // el formato pasa; /api/files valida la clave
+  })
+
   it("acepta URLs http y https", () => {
     expect(imageUrlSchema.safeParse("https://example.com/machine.jpg").success).toBe(true)
     expect(imageUrlSchema.safeParse("http://example.com/machine.png").success).toBe(true)

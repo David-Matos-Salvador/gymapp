@@ -5,10 +5,8 @@ import { prisma } from "@/lib/prisma"
 import { emitRealtime } from "@/lib/realtime"
 import { logger } from "@/lib/logger"
 import { getRequestId } from "@/lib/request-id"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
+import { fileUrl, newKey, saveFile } from "@/lib/storage"
 
-const UPLOAD_DIR = join(process.cwd(), "public", "uploads", "receipts")
 const ALLOWED_TYPES = [
   "image/jpeg",
   "image/png",
@@ -109,12 +107,10 @@ export async function POST(request: Request) {
 
     let receiptUrl: string
     try {
-      await mkdir(UPLOAD_DIR, { recursive: true })
-      const filename = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "." + ext
-      const filePath = join(UPLOAD_DIR, filename)
-      const bytes = await file.arrayBuffer()
-      await writeFile(filePath, Buffer.from(bytes))
-      receiptUrl = "/uploads/receipts/" + filename
+      const key = newKey("receipts", ext)
+      const contentType = file.type || "application/octet-stream"
+      await saveFile(key, new Uint8Array(await file.arrayBuffer()), contentType)
+      receiptUrl = fileUrl(key)
     } catch (err) {
       logger.error("Receipt file write failed", {
         requestId,

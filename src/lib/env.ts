@@ -60,6 +60,12 @@ const envObjectSchema = z.object({
   AUTH_GOOGLE_SECRET: optionalString(),
   STRIPE_SECRET_KEY: optionalString(),
   STRIPE_WEBHOOK_SECRET: optionalString(),
+  S3_ENDPOINT: optionalUrl(["http:", "https:"]),
+  S3_REGION: optionalString(),
+  S3_BUCKET: optionalString(),
+  S3_ACCESS_KEY_ID: optionalString(),
+  S3_SECRET_ACCESS_KEY: optionalString(),
+  S3_FORCE_PATH_STYLE: optionalString(),
 })
 
 export type Env = z.infer<typeof envObjectSchema>
@@ -99,6 +105,19 @@ function createEnvSchema(isProduction: boolean) {
             code: "custom",
             path: [key],
             message: `${key} must use HTTPS and must not point to localhost in production`,
+          })
+        }
+      }
+    }
+
+    // Con S3_ENDPOINT los archivos van a SeaweedFS/S3: hacen falta el bucket y las credenciales.
+    if (env.S3_ENDPOINT) {
+      for (const key of ["S3_BUCKET", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"] as const) {
+        if (!env[key]) {
+          ctx.addIssue({
+            code: "custom",
+            path: [key],
+            message: `${key} is required when S3_ENDPOINT is set`,
           })
         }
       }
