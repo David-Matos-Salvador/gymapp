@@ -23,6 +23,7 @@ FROM base AS migrator
 WORKDIR /app
 COPY prisma ./prisma
 COPY prisma.config.ts ./
+ENV DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
 RUN npx prisma generate
 CMD ["npx", "prisma", "migrate", "deploy"]
 
