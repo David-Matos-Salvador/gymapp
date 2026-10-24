@@ -6,6 +6,7 @@ export default defineConfig({
   testDir: "./e2e/validation",
   testMatch: "**/*.validation.ts",
   fullyParallel: false,
+  forbidOnly: !!process.env.CI,
   workers: 1,
   timeout: 20 * 60_000,
   expect: { timeout: 15_000 },
@@ -27,7 +28,7 @@ export default defineConfig({
   webServer: {
     command: "npm run dev",
     url: baseURL,
-    reuseExistingServer: true,
-    timeout: 120_000,
+    reuseExistingServer: !process.env.CI,
+    timeout: 180_000,
   },
 })

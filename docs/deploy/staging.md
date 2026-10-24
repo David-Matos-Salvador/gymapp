@@ -184,3 +184,46 @@ dropdb --maintenance-db='postgresql://USER:PASSWORD@HOST:5432/postgres' "$STAGIN
 ```
 
 Nunca ejecutes esta limpieza contra Contabo ni contra una base compartida.
+
+## 11. Pipeline CI y equivalentes locales
+
+GitHub Actions (`.github/workflows/ci.yml`) valida migraciones y app en **dos jobs** sobre
+una base nueva. No reemplaza este runbook: el upgrade de un dump legacy (expand + backfill)
+se sigue validando en staging con los pasos 1–10.
+
+| Job       | Pasos                                                                                  |
+| --------- | -------------------------------------------------------------------------------------- |
+| `quality` | `npm ci`, `prisma generate`, `format:check`, `lint`, `typecheck`, unitarios y `build`  |
+| `e2e`     | Postgres 16 + Redis 7, `migrate deploy`, `migrate status`, drift check, seed demo, E2E |
+
+El job `e2e` corre `npm run test:validation` con `VALIDATION_SKIP_RESET=1` porque la base ya
+fue migrada y sembrada en pasos previos. No tiene `continue-on-error`; si falla, el pipeline
+falla. Los reportes y screenshots quedan como artefacto.
+
+Comandos locales equivalentes (base aislada, nunca Contabo):
+
+```bash
+export DATABASE_URL='postgresql://gymuser:gympassword@localhost:5432/gymapp_ci?schema=public'
+export REDIS_URL='redis://localhost:6379'
+export AUTH_SECRET='ci-only-auth-secret-0123456789abcdef0123456789abcdef'
+export AUTH_URL='http://localhost:3000'
+export NEXT_PUBLIC_APP_URL='http://localhost:3000'
+
+npm ci
+npx prisma generate
+npm run db:migrate:deploy
+npm run db:migrate:status
+npx prisma migrate diff --from-schema prisma/schema.prisma --to-config-datasource --exit-code
+npm run db:seed
+npx playwright install --with-deps chromium
+VALIDATION_SKIP_RESET=1 npm run test:validation
+```
+
+Notas:
+
+- `db:seed` es el seed **demo** y solo corresponde a CI/desarrollo. Staging con dump legacy
+  no debe sembrarse con datos ficticios; usá el backfill y `verify-migration.sh`.
+- El drift check compara `prisma/schema.prisma` contra la base migrada. En CI la base nace
+  vacía, así que debe salir sin diferencias. En una base legacy el DDL expand deja tablas y
+  columnas legacy a propósito, por lo que el diff puede mostrar diferencias esperadas.
+- `migrate status` detecta migraciones pendientes o fallidas; no reemplaza al drift check.

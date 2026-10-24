@@ -109,7 +109,7 @@ Abre [http://localhost:3000](http://localhost:3000).
 | `npm run lint`              | ESLint                                            |
 | `npm run test`              | Tests unitarios (Vitest)                          |
 | `npm run test:e2e`          | Tests end-to-end (Playwright)                     |
-| `npm run test:ci`           | Lint + unitarios + e2e                            |
+| `npm run test:ci`           | Quality gate (format + lint + typecheck + unit)   |
 | `npm run db:reset`          | **Solo local**: reset con migraciones + seed demo |
 | `npm run db:seed`           | Alias de `db:seed:dev`                            |
 | `npm run db:seed:dev`       | Cargar datos demo sin reiniciar schema            |
@@ -119,6 +119,52 @@ Abre [http://localhost:3000](http://localhost:3000).
 | `npm run db:migrate:status` | Ver estado de migraciones                         |
 | `npm run db:prototype`      | `db push` para prototipos, nunca producción       |
 | `npm run env:check`         | Validar variables de entorno (CI/deploy)          |
+
+## CI (GitHub Actions)
+
+`.github/workflows/ci.yml` corre en pushes a `main` y en pull requests, con dos jobs:
+
+| Job       | Qué valida                                                                 | Servicios            |
+| --------- | -------------------------------------------------------------------------- | -------------------- |
+| `quality` | `format:check`, `lint`, `typecheck`, tests unitarios y `build`             | ninguno              |
+| `e2e`     | migraciones + seed demo + validación E2E de Playwright (`test:validation`) | Postgres 16, Redis 7 |
+
+El job `e2e` depende de `quality`, no usa `continue-on-error` y publica como artefacto
+`test-results/`, `screenshots/validation/` y `VALIDATION_REPORT.{md,json}`.
+
+Los valores de entorno son dummy/efímeros: no se usan secretos reales ni se despliega a
+producción. El seed demo (`db:seed`) solo se ejecuta en CI; en staging/producción se usa
+`db:seed:prod`.
+
+Comandos locales equivalentes:
+
+```bash
+# Job quality
+npm ci
+npx prisma generate
+npm run format:check
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+
+# Job e2e (con una base PostgreSQL/Redis aisladas y vacías)
+export DATABASE_URL='postgresql://gymuser:gympassword@localhost:5432/gymapp_ci?schema=public'
+export REDIS_URL='redis://localhost:6379'
+export AUTH_SECRET='ci-only-auth-secret-0123456789abcdef0123456789abcdef'
+export AUTH_URL='http://localhost:3000'
+export NEXT_PUBLIC_APP_URL='http://localhost:3000'
+
+npm run db:migrate:deploy
+npm run db:migrate:status
+npx prisma migrate diff --from-schema prisma/schema.prisma --to-config-datasource --exit-code
+npm run db:seed
+npx playwright install --with-deps chromium
+VALIDATION_SKIP_RESET=1 npm run test:validation
+```
+
+`VALIDATION_SKIP_RESET=1` evita que el harness ejecute `db:reset` otra vez. Sin esa variable,
+el test resetea la base por su cuenta: usalo solo contra una base local/aislada.
 
 ## Usuarios demo
 

@@ -1,12 +1,29 @@
 name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  test:
+  quality:
+    name: Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Valores dummy: el job no se conecta a ninguna base real.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci?schema=public
+      AUTH_SECRET: ci-only-auth-secret-0123456789abcdef0123456789abcdef
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -19,11 +36,95 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/test
-          AUTH_SECRET: test-secret
       - run: npm run build
+
+  e2e:
+    name: E2E validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: quality
+    services:
+      postgres:
+        image: postgres:16-alpine
         env:
-          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
-          AUTH_SECRET: build-secret
-          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          POSTGRES_USER: gymuser
+          POSTGRES_PASSWORD: gympassword
+          POSTGRES_DB: gymapp_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U gymuser -d gymapp_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      # Credenciales efímeras del service container, nunca secretos reales.
+      DATABASE_URL: postgresql://gymuser:gympassword@localhost:5432/gymapp_ci?schema=public
+      REDIS_URL: redis://localhost:6379
+      AUTH_SECRET: ci-only-auth-secret-0123456789abcdef0123456789abcdef
+      AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: "npm"
+      - run: npm ci
+      - run: npx prisma generate
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Apply migrations
+        run: npm run db:migrate:deploy
+
+      - name: Check migration status
+        run: npm run db:migrate:status
+
+      - name: Detect schema drift
+        run: >-
+          npx prisma migrate diff
+          --from-schema prisma/schema.prisma
+          --to-config-datasource
+          --exit-code
+
+      - name: Seed demo data (CI only)
+        run: npm run db:seed
+
+      - name: Run validation E2E
+        run: npm run test:validation
+        env:
+          # La DB ya fue migrada y sembrada por los pasos anteriores.
+          VALIDATION_SKIP_RESET: "1"
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-validation
+          path: |
+            test-results/
+            screenshots/validation/
+            VALIDATION_REPORT.md
+            VALIDATION_REPORT.json
+          if-no-files-found: ignore
+          overwrite: true
+          retention-days: 7
