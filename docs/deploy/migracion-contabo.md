@@ -7,6 +7,13 @@ schema actual, usando `scripts/migrate-legacy-contabo.ts`.
 > schema actual ya existe y las estructuras legacy siguen presentes. Tampoco borra tablas ni
 > columnas legacy. El contrato (drop) es una fase posterior y separada.
 
+**Artefactos de este runbook:**
+
+- `prisma/migrations/20261024000001_expand_legacy/migration.sql` — DDL aditivo versionado.
+- `scripts/restore-db.sh` — restore seguro a una base nueva.
+- `scripts/verify-migration.sh` — verificación de schema, consistencia y conteos.
+- [`docs/deploy/staging.md`](./staging.md) — runbook de staging aislado.
+
 ## Reglas no negociables
 
 1. **Backup obligatorio y verificado** antes de cualquier cambio.
@@ -131,37 +138,57 @@ El comando imprime un JSON con:
 
 ## 3. Staging obligatorio
 
-1. Creá una base staging aislada.
-2. Restaurá el backup:
+El runbook completo está en [`docs/deploy/staging.md`](./staging.md). Resumen:
+
+1. Creá una base staging aislada y restaurá el backup con el script seguro (nunca
+   `--clean` sobre una base existente):
 
    ```bash
-   createdb -h "$STAGING_HOST" -U "$STAGING_USER" gymapp_staging
-   pg_restore --clean --if-exists --no-owner --no-privileges \
-     -d "postgresql://.../gymapp_staging" backups/contabo-<timestamp>.dump
+   bash scripts/restore-db.sh \
+     --dump backups/contabo-<timestamp>.dump \
+     --admin-url 'postgresql://USER:PASSWORD@HOST:5432/postgres' \
+     --target-db gymapp_staging_<tag>
    ```
 
-3. Aplicá el **upgrade DDL aditivo** que lleva las tablas compartidas al schema actual.
-   Ese DDL es un paso separado, revisado y versionado; no está incluido en la baseline ni en
-   este script. Debe ser **aditivo** en esta fase:
-   - crear `RoutinePlan`, `RoutineSplit`, `RoutineSplitExercise`, `AssignedRoutinePlan`;
-   - agregar `WorkoutLog.splitId` **sin borrar** `routineId`;
-   - agregar `Class.startTime` **sin borrar** `schedule`;
-   - agregar `Gym.isDefault`, snapshots de `Membership`, `Payment.membershipId` y
-     `Payment.confirmedAt`;
-   - agregar tablas/columnas nuevas restantes del schema actual;
-   - el script completa `GymExercise` para que los ejercicios existentes queden activos en
-     cada gym activo (no modifica filas existentes);
-   - no agregar todavía los índices únicos que hoy fallan por duplicados.
-
-4. Ejecutá el dry-run y luego el apply contra staging:
+2. Tomá un snapshot de conteos legacy:
 
    ```bash
-   export DATABASE_URL='postgresql://.../gymapp_staging'
-   npm run migrate:legacy:dry-run
-   npm run migrate:legacy:apply
+   export DATABASE_URL='postgresql://.../gymapp_staging_<tag>'
+   bash scripts/verify-migration.sh --write-baseline /tmp/legacy-baseline.txt
    ```
 
-5. Verificá con las consultas de la sección 6 y levantá la app contra staging.
+3. Aplicá el **DDL aditivo versionado**:
+
+   ```bash
+   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
+     -f prisma/migrations/20261024000001_expand_legacy/migration.sql
+
+   # o: npm run db:migrate:legacy:expand
+   ```
+
+   El DDL:
+   - crea `RoutinePlan`, `RoutineSplit`, `RoutineSplitExercise`, `AssignedRoutinePlan`,
+     `GymExercise`, `GymEquipmentActivation`, `MembershipPlanPriceHistory`, `TrainerRequest`
+     y `TrainerInvite`;
+   - agrega `WorkoutLog.splitId` **sin borrar** `routineId`;
+   - agrega `Class.startTime` **sin borrar** `schedule`;
+   - agrega `Gym.isDefault`, `Gym.ownerId`, `Gym.showMachineNumbers`, snapshots de
+     `Membership`, `Payment.membershipId/confirmedAt/receiptUrl`, `Exercise.userId/active`,
+     `GymEquipment.isSystem/machineNumber`, `Notification.metadata`, y las columnas nuevas
+     restantes;
+   - es **idempotente** y no borra columnas/tablas legacy;
+   - **no crea** los índices únicos que pueden fallar por duplicados legacy. Quedan para la
+     fase contract y `verify-migration.sh` los reporta.
+
+4. Ejecutá el dry-run, revisá `blockers`, y luego el apply:
+
+   ```bash
+   npm run migrate:legacy:dry-run > /tmp/legacy-dry-run.json
+   npm run migrate:legacy:apply > /tmp/legacy-apply.json
+   ```
+
+5. Verificá con el script (sección 6) y levantá la app contra staging.
+
 6. Recién entonces repetí el mismo procedimiento en Contabo.
 
 ## 4. Flujo de apply en Contabo
@@ -170,7 +197,15 @@ El comando imprime un JSON con:
 2. **Congelá escrituras**: bajá la app o poné la base en modo read-only para que no entren
    pagos, membresías, clases, logs ni rutinas durante el backfill.
 3. Confirmá que el backup de la sección 1 está verificado y fuera del servidor.
-4. Confirmá que el upgrade DDL aditivo ya se aplicó (o que el schema actual ya existe).
+4. Confirmá que el DDL aditivo ya se aplicó (o que el schema actual ya existe):
+
+   ```bash
+   psql "$DATABASE_URL" -v ON_ERROR_STOP=1 \
+     -f prisma/migrations/20261024000001_expand_legacy/migration.sql
+   ```
+
+   Es idempotente; volver a aplicarlo no modifica datos ni estructuras existentes.
+
 5. Dry-run final:
 
    ```bash
@@ -195,7 +230,8 @@ El comando imprime un JSON con:
    `blockers: []`, `errors: []`.
 8. Repetí el apply una vez para confirmar idempotencia. Si vuelve a escribir filas, no
    continúes: revisá los warnings y el estado de la base.
-9. Verificá (sección 6) y hacé smoke test de la app.
+9. Verificá con `bash scripts/verify-migration.sh --baseline /tmp/legacy-baseline.txt`
+   (sección 6) y hacé smoke test de la app.
 10. Recién después, levantá escrituras.
 
 ## 5. Baseline y `migrate resolve`
@@ -231,11 +267,22 @@ Es el caso de Contabo. El camino correcto es:
 
 1. backup,
 2. restauración staging,
-3. upgrade DDL aditivo revisado (sección 3),
+3. DDL aditivo revisado (sección 3),
 4. backfill con este script,
-5. verificación,
-6. recién ahí registrar la baseline con `migrate resolve --applied`,
+5. verificación con `scripts/verify-migration.sh`,
+6. recién ahí registrar la baseline **y el expand** con `migrate resolve --applied`
+   (el DDL ya se aplicó a mano; `resolve` solo registra, no ejecuta),
 7. validar `npm run db:migrate:status` en staging.
+
+```bash
+npx prisma migrate resolve --applied 20261024000000_baseline
+npx prisma migrate resolve --applied 20261024000001_expand_legacy
+```
+
+> En la base legacy el schema todavía **no es exactamente** el baseline: conserva
+> `Routine`, `Class.schedule`, `Class.startTime` nullable, etc. hasta la fase contract.
+> Registrar el baseline es una decisión de bookkeeping para que `migrate deploy` no intente
+> recrear tablas; no crea ni borra nada. Validalo en staging y no lo repitas a ciegas.
 
 La fila de `20260510025951_init` puede quedar en `_prisma_migrations` aunque el archivo ya no
 exista en el repo. Verificá en staging cómo la reporta Prisma 7. **No borres ni reescribas
@@ -244,6 +291,15 @@ explícita. Si Prisma bloquea el deploy por esa migración faltante, la alternat
 una base nueva + ETL o un baseline acordado con el equipo; no un `db push`.
 
 ## 6. Verificación posterior
+
+Comando principal (read-only, falla con exit code distinto de 0 si algo no cuadra):
+
+```bash
+bash scripts/verify-migration.sh --baseline /tmp/legacy-baseline.txt
+# más estricto: --strict también falla por duplicados que bloquean el contract
+```
+
+Consultas manuales de respaldo:
 
 ```sql
 -- Gimnasio default exactamente uno
@@ -300,37 +356,58 @@ Smoke test mínimo en la app:
 
 - **Falla durante `--apply`:** la transacción revierte. La base queda como antes del intento.
   Corregí el blocker y repetí dry-run/apply.
-- **Problema después del apply:** la opción segura es restaurar el backup completo:
+- **Problema después del apply:** restaurá el backup en una **base nueva** y apuntá la app
+  ahí. No uses `--clean` sobre la base productiva:
 
   ```bash
-  pg_restore --clean --if-exists --no-owner --no-privileges \
-    -d "postgresql://.../gymapp" backups/contabo-<timestamp>.dump
+  bash scripts/restore-db.sh \
+    --dump backups/contabo-<timestamp>.dump \
+    --admin-url 'postgresql://USER:PASSWORD@HOST:5432/postgres' \
+    --target-db gymapp_rollback_<timestamp>
   ```
 
-  Luego redeployá la versión anterior de la app.
+  Luego redeployá la versión anterior de la app apuntando a la base restaurada.
 
 - **Rollback selectivo:** las filas nuevas tienen IDs determinísticos
   (`legacy-routine-plan-*`, `legacy-routine-split-*`, `legacy-routine-exercise-*`,
   `legacy-routine-assignment-*`). Se pueden identificar, pero **no borrar en producción**
   sin revisar FKs y sin backup. Preferí restaurar el dump.
 
+- **No hay `down`:** el upgrade es expand/contract. El rollback es restaurar el dump en una
+  base nueva, no ejecutar SQL destructivo.
+
 ## 8. Fase de contrato (posterior)
 
 Cuando la app lleve un período estable usando solo el schema nuevo:
 
-1. backup nuevo,
-2. migración separada que elimine `Routine`, `RoutineExercise`, `WorkoutLog.routineId`,
-   `Class.schedule` y demás columnas legacy,
-3. verificación de que ninguna consulta de la app las usa,
-4. deploy.
+1. backup nuevo y verificado,
+2. `scripts/verify-migration.sh --strict` sin warnings de duplicados,
+3. migración separada (contract) que:
+   - elimine `Routine`, `RoutineExercise`, `WorkoutLog.routineId` y `Class.schedule`;
+   - aplique `NOT NULL` a `Class.gymId` y `Class.startTime` (después del backfill);
+   - cree los índices únicos postergados: `Exercise(name)`,
+     `MembershipPlan(gymId, name)`, `Membership(userId, planId)`, `CheckIn(userId, date)`,
+     `BodyMeasurement(userId, date)`, `Booking(userId, classId)`;
+   - alinee las FKs `Membership_planId_fkey` (CASCADE → RESTRICT) y
+     `Class_gymId_fkey` (SET NULL → RESTRICT);
+4. verificación de que ninguna consulta de la app usa las columnas legacy,
+5. deploy con backup y ventana de mantenimiento.
 
-Este script no hace ese drop.
+Este script y el DDL expand **no hacen ese drop**. Los duplicados que hoy se reportan como
+`WARN` en `verify-migration.sh` bloquearán el contract hasta resolverse por negocio.
 
 ## 9. Riesgos y gaps conocidos
 
-- **No hay upgrade DDL automático en este cambio.** La baseline no puede aplicarse sobre
-  legacy; el DDL aditivo debe generarse/revisarse aparte. Sin él, el script reporta
-  `missing-column:*`/`missing-current-schema:*`.
+- **El DDL aditivo existe, pero no es automático.** La baseline no puede aplicarse sobre
+  legacy; hay que ejecutar `20261024000001_expand_legacy/migration.sql` con `psql` antes del
+  backfill. Sin él, el script reporta `missing-column:*`/`missing-current-schema:*`.
+- **Diferencias deliberadas hasta el contract:** `Class.gymId` y `Class.startTime` siguen
+  nullable; `Routine`, `RoutineExercise`, `Class.schedule` y `WorkoutLog.routineId` siguen
+  existiendo; los índices únicos riesgosos y dos FKs (`Membership_planId_fkey`,
+  `Class_gymId_fkey`) quedan como estaban. No son fallas del expand.
+- **Dry-run de pagos:** antes del apply, `Membership.planCurrency` toma el default `PEN`, así
+  que el dry-run puede reportar pagos `unmatched`. El apply actualiza el snapshot de
+  membresía antes de vincular pagos; la verificación final es la fuente de verdad.
 - **Rutina legacy → un solo split “A”.** El modelo legacy no distinguía días/splits. Si una
   rutina legacy representaba varios días, se pierde esa semántica; revisar nombres/descripciones.
 - **`RoutinePlan` único por `userId` + `name`.** Nombres repetidos en el legacy bloquean el
