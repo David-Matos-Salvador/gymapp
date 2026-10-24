@@ -99,3 +99,23 @@ Quedan fuera de alcance por decisión D-06 de `docs/decisions/validation-fixes.m
 - **Estado actual**: Funcional con polling cada 30s en `src/components/layout/shell.tsx:41-52`.
 - **Tecnologías candidatas**: Server-Sent Events (SSE) nativo de Next.js, WebSockets con Pusher/Socket.io, o React Query con `refetchInterval` + `staleTime`.
 - **Prioridad**: Baja — el polling actual es suficiente para MVP.
+
+---
+
+## Integración de calendarios del coach (Google/Gmail + iCloud)
+
+- **Descripción**: Permitir que un coach conecte su calendario para leer sus bloques ocupados (free/busy) y bloquear automáticamente esas horas al agendar clases o sesiones 1:1. Debe soportar Google Calendar (cuenta Gmail/Google Workspace) e iCloud Calendar.
+- **Estado actual**: No implementado. Solo existe el link “Añadir a Google Calendar” de una clase (`src/components/classes/classes-view.tsx`), que es de una sola vía y no lee la disponibilidad del coach. Tampoco existe agenda 1:1 de clientes: solo clases grupales (`Class` + `Booking`) y rutinas.
+- **Prioridad**: Media.
+- **Esfuerzo**: XL.
+- **Dependencias**: agenda/citas 1:1 de clientes, modelo de disponibilidad, OAuth/CalDAV y cifrado de credenciales.
+- **Alcance propuesto**:
+  - **Google Calendar (Gmail)**: OAuth 2.0 con scope `calendar.freebusy` (preferido) o `calendar.readonly`; refresh token por coach; consulta `freebusy.query`; timezone del calendario; verificación de la app de Google para producción.
+  - **iCloud Calendar**: CalDAV con contraseña específica de app (app-specific password); descubrimiento de principal y calendarios; `free-busy-query`/`REPORT`; credenciales cifradas en reposo; manejo de 2FA y rate limits.
+  - **Modelo**: `CoachCalendarConnection` (provider, credenciales cifradas, calendarId, timezone, status, lastSyncAt) y caché `BusyBlock`/`Availability` para no consultar el proveedor en cada request.
+  - **API**: `/api/coach/calendar/connect`, `/callback`, `/sync`, `/availability`, `/disconnect`; validación de conflictos al crear `Class` o cita.
+  - **UI**: sección “Calendario” en `/profile/settings` o `/coach/agenda`: conectar/desconectar, estado, última sincronización, selector de calendarios y fallback manual de bloqueos.
+  - **Privacidad**: leer solo free/busy, no títulos ni detalles de eventos; explicar el scope; permitir revocar el acceso; no guardar credenciales en texto plano.
+  - **Casos borde**: zonas horarias/DST, eventos de todo el día, calendarios compartidos, token expirado, proveedor caído, sync incremental y fallback si no hay conexión.
+  - **Fases sugeridas**: (1) bloqueos manuales + clases internas del coach; (2) Google freebusy; (3) iCloud CalDAV.
+- **Tests**: parsing de free/busy, conflicto de horario, token refresh/revoke, cifrado/descifrado, integración con proveedores mockeados y E2E conectar → sincronizar → intentar agendar en horario ocupado → bloqueo.
