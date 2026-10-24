@@ -1,6 +1,7 @@
 import { z } from "zod"
 
-const UPLOAD_PATH = /^\/uploads\/[A-Za-z0-9/_.-]+$/
+// Archivos subidos: los nuevos se sirven por /api/files/; /uploads/ queda por compatibilidad.
+const UPLOAD_PATH = /^\/(api\/files|uploads)\/[A-Za-z0-9/_.-]+$/
 const HTTP_URL = /^https?:\/\/\S+$/
 
 export function isValidImageUrl(value: string): boolean {

@@ -4,10 +4,8 @@ import { prisma } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
 import { logger } from "@/lib/logger"
 import { getRequestId } from "@/lib/request-id"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
+import { fileUrl, newKey, saveFile } from "@/lib/storage"
 
-const UPLOAD_DIR = join(process.cwd(), "public", "uploads")
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"]
 const MAX_SIZE = 5 * 1024 * 1024
 
@@ -91,21 +89,14 @@ export async function POST(request: Request) {
     }
 
     const folder = type === "profile" ? "profiles" : type === "equipment" ? "equipment" : "general"
-    const folderPath = join(UPLOAD_DIR, folder)
-
-    await mkdir(folderPath, { recursive: true })
-
     const bytes = new Uint8Array(await file.arrayBuffer())
     if (!hasValidSignature(file.type, bytes)) {
       return NextResponse.json({ error: "El archivo no es una imagen válida" }, { status: 400 })
     }
 
-    const ext = EXTENSION_BY_TYPE[file.type] ?? "jpg"
-    const filename = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + "." + ext
-    const filePath = join(folderPath, filename)
-    await writeFile(filePath, Buffer.from(bytes))
-
-    const url = "/uploads/" + folder + "/" + filename
+    const key = newKey(folder, EXTENSION_BY_TYPE[file.type] ?? "jpg")
+    await saveFile(key, bytes, file.type)
+    const url = fileUrl(key)
 
     if (type === "profile") {
       await prisma.user.update({ where: { id: user.id }, data: { image: url } })
