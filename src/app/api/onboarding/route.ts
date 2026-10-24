@@ -1,6 +1,8 @@
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getTrainerClientIds } from "@/lib/trainer-client"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 import { NextResponse } from "next/server"
 
 const userSelect = {
@@ -142,6 +144,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
+
   try {
     const session = await auth()
     if (!session?.user?.email) {
@@ -259,7 +263,11 @@ export async function POST(request: Request) {
       { status: 200 }
     )
   } catch (error) {
-    console.error("[onboarding] POST error:", error)
+    logger.error("Onboarding update failed", {
+      requestId,
+      context: { route: "POST /api/onboarding" },
+      error,
+    })
     return NextResponse.json(
       {
         error: "Error interno del servidor",

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { Prisma } from "@prisma/client"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 
 const BOOKING_INCLUDE = {
   classItem: {
@@ -13,6 +15,7 @@ const BOOKING_INCLUDE = {
 const TRANSACTION_OPTIONS = { maxWait: 10_000, timeout: 15_000 } as const
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
   const session = await auth()
   if (!session?.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
@@ -120,6 +123,11 @@ export async function POST(request: Request) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return NextResponse.json({ error: "Ya tienes una reserva en esta clase" }, { status: 409 })
     }
+    logger.error("Booking creation failed", {
+      requestId,
+      context: { route: "POST /api/bookings", classId },
+      error,
+    })
     throw error
   }
 }

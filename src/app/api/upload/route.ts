@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 
@@ -53,6 +55,7 @@ function hasValidSignature(type: string, bytes: Uint8Array): boolean {
 }
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
   const session = await auth()
   if (!session?.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
@@ -110,7 +113,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url })
   } catch (error) {
-    console.error("Upload error:", error)
+    logger.error("File upload failed", {
+      requestId,
+      context: { route: "POST /api/upload", userId: user.id },
+      error,
+    })
     return NextResponse.json({ error: "Error al subir archivo" }, { status: 500 })
   }
 }

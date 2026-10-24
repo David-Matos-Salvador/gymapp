@@ -2,10 +2,13 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 
 const selfMembershipSchema = z.object({ planId: z.string().min(1) })
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
   const session = await auth()
   if (!session?.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
@@ -78,6 +81,11 @@ export async function POST(request: Request) {
     if (code === "P2002") {
       return NextResponse.json({ error: "Ya tenés una membresía con ese plan" }, { status: 409 })
     }
+    logger.error("Self membership creation failed", {
+      requestId,
+      context: { route: "POST /api/memberships/self", userId: user.id },
+      error,
+    })
     throw error
   }
 }

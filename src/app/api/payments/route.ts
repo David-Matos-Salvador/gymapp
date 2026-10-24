@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { emitRealtime } from "@/lib/realtime"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 
@@ -19,6 +21,7 @@ const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "gif", "heic", "heif"]
 const MAX_SIZE = 5 * 1024 * 1024
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
   const session = await auth()
   if (!session?.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
@@ -81,7 +84,11 @@ export async function POST(request: Request) {
 
       receiptUrl = "/uploads/receipts/" + filename
     } catch (err) {
-      console.error("File write error:", err)
+      logger.error("Receipt file write failed", {
+        requestId,
+        context: { route: "POST /api/payments", userId: user.id },
+        error: err,
+      })
       return NextResponse.json({ error: "Error al guardar el comprobante" }, { status: 500 })
     }
 
@@ -220,11 +227,19 @@ export async function POST(request: Request) {
           { status: 409 }
         )
       }
-      console.error("Payment DB error:", err)
+      logger.error("Payment database operation failed", {
+        requestId,
+        context: { route: "POST /api/payments", userId: user.id },
+        error: err,
+      })
       return NextResponse.json({ error: "Error al registrar el pago" }, { status: 500 })
     }
   } catch (error) {
-    console.error("Payment upload error:", error)
+    logger.error("Payment upload failed", {
+      requestId,
+      context: { route: "POST /api/payments", userId: user.id },
+      error,
+    })
     return NextResponse.json({ error: "Error al procesar el pago" }, { status: 500 })
   }
 }

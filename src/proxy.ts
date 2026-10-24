@@ -1,10 +1,11 @@
 import { auth } from "@/lib/auth"
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
+import { REQUEST_ID_HEADER, appendRequestId, getRequestId } from "@/lib/request-id"
 
 /**
  * Paths that are always public (no auth required).
- * Note: /api, /_next/*, /favicon.ico, /icons, /manifest are already excluded
+ * Note: /_next/*, /favicon.ico, /icons, /manifest are already excluded
  * by the config.matcher below and never reach this function.
  */
 const PUBLIC_PATHS = ["/login", "/register", "/invite"]
@@ -20,17 +21,38 @@ const ROLE_ROUTES: Record<string, string[]> = {
   "/coach": ["TRAINER", "ADMIN", "SUPER_ADMIN"],
 }
 
+function nextWithRequestId(request: NextRequest, requestId: string) {
+  const response = NextResponse.next({
+    request: { headers: appendRequestId(request.headers, requestId) },
+  })
+  response.headers.set(REQUEST_ID_HEADER, requestId)
+  return response
+}
+
+function redirectWithRequestId(url: URL, requestId: string) {
+  const response = NextResponse.redirect(url)
+  response.headers.set(REQUEST_ID_HEADER, requestId)
+  return response
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
+  const requestId = getRequestId(request)
+
+  // API routes authenticate themselves. Only propagate the request id so
+  // route handlers and logs share the same correlation value.
+  if (pathname.startsWith("/api")) {
+    return nextWithRequestId(request, requestId)
+  }
 
   // ----- Public routes (no auth required) -----
   if (pathname === "/" || PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next()
+    return nextWithRequestId(request, requestId)
   }
 
   // Allow unauthenticated access to onboarding (needed for first-time setup)
   if (pathname.startsWith("/onboarding")) {
-    return NextResponse.next()
+    return nextWithRequestId(request, requestId)
   }
 
   // ----- Auth check -----
@@ -39,7 +61,7 @@ export async function proxy(request: NextRequest) {
   if (!session?.user) {
     const loginUrl = new URL("/login", request.url)
     loginUrl.searchParams.set("callbackUrl", pathname)
-    return NextResponse.redirect(loginUrl)
+    return redirectWithRequestId(loginUrl, requestId)
   }
 
   const role = (session.user as { role?: string }).role
@@ -52,24 +74,24 @@ export async function proxy(request: NextRequest) {
   // ----- Onboarding gate (MEMBER only) -----
   // Members who haven't completed onboarding must go through /onboarding
   if (role === "MEMBER" && !onboardingCompleted && !pathname.startsWith("/onboarding")) {
-    return NextResponse.redirect(new URL("/onboarding", request.url))
+    return redirectWithRequestId(new URL("/onboarding", request.url), requestId)
   }
 
   // Redirect away from /onboarding if already completed
   if (pathname.startsWith("/onboarding") && onboardingCompleted) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
+    return redirectWithRequestId(new URL("/dashboard", request.url), requestId)
   }
 
   // ----- Optimistic role checks -----
   for (const [prefix, allowedRoles] of Object.entries(ROLE_ROUTES)) {
     if (pathname.startsWith(prefix) && !allowedRoles.includes(role ?? "")) {
-      return NextResponse.redirect(new URL("/dashboard", request.url))
+      return redirectWithRequestId(new URL("/dashboard", request.url), requestId)
     }
   }
 
-  return NextResponse.next()
+  return nextWithRequestId(request, requestId)
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|icons|manifest).*)"],
+  matcher: ["/api/:path*", "/((?!api|_next/static|_next/image|favicon.ico|icons|manifest).*)"],
 }

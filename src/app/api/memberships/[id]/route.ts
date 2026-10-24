@@ -3,6 +3,8 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { calculateRenewal } from "@/lib/membership-dates"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -48,6 +50,7 @@ const membershipInclude = {
 } as const
 
 export async function PATCH(request: Request, { params }: RouteParams) {
+  const requestId = getRequestId(request)
   const session = await auth()
   if (!session?.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
@@ -205,6 +208,11 @@ export async function PATCH(request: Request, { params }: RouteParams) {
       if (error instanceof RangeError) {
         return NextResponse.json({ error: error.message }, { status: 400 })
       }
+      logger.error("Membership renewal failed", {
+        requestId,
+        context: { route: "PATCH /api/memberships/[id]", membershipId: existing.id },
+        error,
+      })
       throw error
     }
   }

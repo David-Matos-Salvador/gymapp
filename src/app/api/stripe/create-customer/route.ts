@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 import Stripe from "stripe"
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY
 // @ts-expect-error apiVersion basil is valid at runtime
 const stripe = stripeSecret ? new Stripe(stripeSecret, { apiVersion: "2025-04-30.basil" }) : null
 
-export async function POST() {
+export async function POST(request: Request) {
+  const requestId = getRequestId(request)
+
   if (!stripe) {
     return NextResponse.json(
       { error: "Stripe no está configurado. Agrega STRIPE_SECRET_KEY al .env" },
@@ -38,7 +42,11 @@ export async function POST() {
 
     return NextResponse.json({ customerId: customer.id })
   } catch (error) {
-    console.error("Error al crear customer en Stripe:", error)
+    logger.error("Stripe customer creation failed", {
+      requestId,
+      context: { route: "POST /api/stripe/create-customer", userId: user.id },
+      error,
+    })
     return NextResponse.json({ error: "Error al crear cliente en Stripe" }, { status: 500 })
   }
 }

@@ -3,16 +3,24 @@
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { AlertTriangle } from "lucide-react"
+import { logger } from "@/lib/logger"
 
 export default function Error({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
+  unstable_retry: () => void
 }) {
   useEffect(() => {
-    console.error(error)
+    logger.error("Unhandled UI error", {
+      context: {
+        boundary: "app/error",
+        digest: error.digest,
+        path: typeof window !== "undefined" ? window.location.pathname : undefined,
+      },
+      error,
+    })
   }, [error])
 
   return (
@@ -24,7 +32,7 @@ export default function Error({
       <p className="text-muted-foreground mb-6 max-w-md">
         Ocurrió un error inesperado. Intentá de nuevo.
       </p>
-      <Button onClick={() => reset()}>Reintentar</Button>
+      <Button onClick={() => unstable_retry()}>Reintentar</Button>
     </div>
   )
 }

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 
 const createMembershipSchema = z.object({
   userId: z.string().min(1),
@@ -33,6 +35,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
   const session = await auth()
   if (!session?.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
@@ -118,6 +121,11 @@ export async function POST(request: Request) {
           ? (error as { code?: string }).code
           : undefined
       if (code === "P2002") return null
+      logger.error("Membership creation failed", {
+        requestId,
+        context: { route: "POST /api/memberships", userId: user.id },
+        error,
+      })
       throw error
     })
 

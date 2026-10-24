@@ -3,6 +3,8 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { emitRealtime } from "@/lib/realtime"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 import { writeFile, mkdir } from "fs/promises"
 import { join } from "path"
 
@@ -22,6 +24,7 @@ const MAX_SIZE = 5 * 1024 * 1024
 const paymentMethodSchema = z.enum(["CASH", "TRANSFER", "CARD", "STRIPE", "YAPE", "OTHER"])
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
   const session = await auth()
   if (!session?.user?.email) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 })
@@ -113,7 +116,11 @@ export async function POST(request: Request) {
       await writeFile(filePath, Buffer.from(bytes))
       receiptUrl = "/uploads/receipts/" + filename
     } catch (err) {
-      console.error("File write error:", err)
+      logger.error("Receipt file write failed", {
+        requestId,
+        context: { route: "POST /api/payments/receipt", userId: user.id },
+        error: err,
+      })
       return NextResponse.json({ error: "Error al guardar el comprobante" }, { status: 500 })
     }
 
@@ -160,11 +167,19 @@ export async function POST(request: Request) {
 
       return NextResponse.json({ payment }, { status: 201 })
     } catch (err) {
-      console.error("Payment receipt error:", err)
+      logger.error("Payment receipt registration failed", {
+        requestId,
+        context: { route: "POST /api/payments/receipt", userId: user.id },
+        error: err,
+      })
       return NextResponse.json({ error: "Error al registrar el pago" }, { status: 500 })
     }
   } catch (error) {
-    console.error("Receipt upload error:", error)
+    logger.error("Receipt upload failed", {
+      requestId,
+      context: { route: "POST /api/payments/receipt", userId: user.id },
+      error,
+    })
     return NextResponse.json({ error: "Error al procesar el comprobante" }, { status: 500 })
   }
 }

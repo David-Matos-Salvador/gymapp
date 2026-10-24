@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 import Stripe from "stripe"
 
 export const dynamic = "force-dynamic"
@@ -10,8 +12,13 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
 const stripe = stripeSecret ? new Stripe(stripeSecret, { apiVersion: "2025-04-30.basil" }) : null
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
+
   if (!stripe || !webhookSecret) {
-    console.error("Stripe o webhook secret no configurado")
+    logger.error("Stripe webhook is not configured", {
+      requestId,
+      context: { route: "POST /api/stripe/webhook" },
+    })
     return NextResponse.json({ error: "Configuración de Stripe incompleta" }, { status: 500 })
   }
 
@@ -26,7 +33,11 @@ export async function POST(request: Request) {
   try {
     event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
   } catch (err) {
-    console.error("Error de firma webhook:", err)
+    logger.error("Stripe webhook signature verification failed", {
+      requestId,
+      context: { route: "POST /api/stripe/webhook" },
+      error: err,
+    })
     return NextResponse.json({ error: "Firma inválida" }, { status: 400 })
   }
 
@@ -37,7 +48,10 @@ export async function POST(request: Request) {
         const { userId, planId } = session.metadata || {}
 
         if (!userId || !planId || !session.id) {
-          console.error("Metadata faltante en sesión de checkout")
+          logger.error("Stripe checkout metadata is incomplete", {
+            requestId,
+            context: { route: "POST /api/stripe/webhook", checkout: session.id },
+          })
           return NextResponse.json({ error: "Metadata incompleta" }, { status: 400 })
         }
 
@@ -46,7 +60,10 @@ export async function POST(request: Request) {
         })
 
         if (!payment) {
-          console.error("Pago no encontrado para sesión:", session.id)
+          logger.error("Stripe payment not found", {
+            requestId,
+            context: { route: "POST /api/stripe/webhook", checkout: session.id },
+          })
           return NextResponse.json({ error: "Pago no encontrado" }, { status: 404 })
         }
 
@@ -63,7 +80,10 @@ export async function POST(request: Request) {
 
         const plan = await prisma.membershipPlan.findUnique({ where: { id: planId } })
         if (!plan) {
-          console.error("Plan no encontrado:", planId)
+          logger.error("Stripe membership plan not found", {
+            requestId,
+            context: { route: "POST /api/stripe/webhook", planId },
+          })
           return NextResponse.json({ error: "Plan no encontrado" }, { status: 400 })
         }
 
@@ -89,17 +109,27 @@ export async function POST(request: Request) {
 
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent
-        console.error("Pago fallido:", paymentIntent.id)
+        logger.warn("Stripe payment failed", {
+          requestId,
+          context: { route: "POST /api/stripe/webhook", paymentIntent: paymentIntent.id },
+        })
         break
       }
 
       default:
-        console.log("Evento no manejado:", event.type)
+        logger.info("Unhandled Stripe event", {
+          requestId,
+          context: { route: "POST /api/stripe/webhook", eventType: event.type },
+        })
     }
 
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error("Error procesando webhook:", error)
+    logger.error("Stripe webhook processing failed", {
+      requestId,
+      context: { route: "POST /api/stripe/webhook", eventType: event.type },
+      error,
+    })
     return NextResponse.json({ error: "Error interno al procesar webhook" }, { status: 500 })
   }
 }

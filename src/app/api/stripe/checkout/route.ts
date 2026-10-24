@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 import Stripe from "stripe"
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY
@@ -8,6 +10,8 @@ const stripeSecret = process.env.STRIPE_SECRET_KEY
 const stripe = stripeSecret ? new Stripe(stripeSecret, { apiVersion: "2025-04-30.basil" }) : null
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
+
   if (!stripe) {
     return NextResponse.json(
       { error: "Stripe no está configurado. Agrega STRIPE_SECRET_KEY al .env" },
@@ -58,7 +62,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ url: checkoutSession.url })
   } catch (error) {
-    console.error("Stripe checkout error:", error)
+    logger.error("Stripe checkout creation failed", {
+      requestId,
+      context: { route: "POST /api/stripe/checkout", userId: user.id, planId },
+      error,
+    })
     return NextResponse.json({ error: "Error al crear sesión de pago" }, { status: 500 })
   }
 }

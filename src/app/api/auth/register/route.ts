@@ -3,6 +3,8 @@ import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { rateLimit, requestIp } from "@/lib/rate-limit"
+import { logger } from "@/lib/logger"
+import { getRequestId } from "@/lib/request-id"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
@@ -17,6 +19,8 @@ const registerSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  const requestId = getRequestId(request)
+
   try {
     if (!(await rateLimit(`register:${requestIp(request)}`, 5, 900))) {
       return NextResponse.json(
@@ -79,7 +83,11 @@ export async function POST(request: Request) {
       { status: 201 }
     )
   } catch (error) {
-    console.error("Register error:", error)
+    logger.error("Register failed", {
+      requestId,
+      context: { route: "POST /api/auth/register" },
+      error,
+    })
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 })
   }
 }
