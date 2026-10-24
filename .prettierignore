@@ -17,3 +17,6 @@ next-env.d.ts
 *.tsbuildinfo
 VALIDATION_REPORT.md
 VALIDATION_REPORT.json
+
+# Caddyfile (Caddy 2 syntax, no Prettier parser)
+Caddyfile

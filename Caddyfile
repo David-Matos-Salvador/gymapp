@@ -1,0 +1,61 @@
+# Reverse proxy de producción.
+# Requiere DOMAIN en el entorno del contenedor (docker-compose.prod.yml).
+# Runbook: docs/deploy/produccion.md
+{
+	# API de administración solo dentro del contenedor (healthcheck local).
+	admin 127.0.0.1:2019
+
+	# Contacto para la cuenta ACME (opcional, recomendado en producción).
+	# email ops@gymapp.pe
+
+	servers {
+		# Sin timeout `write` duro: /api/events es SSE de larga duración y
+		# manda heartbeats cada 25 s. write_idle alcanza para cortar clientes
+		# que dejan de leer sin matar el stream.
+		timeouts {
+			read_body 5m
+			read_body_idle 30s
+			read_header 10s
+			write_idle 60s
+			idle 2m
+		}
+		max_header_size 32KiB
+	}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+	request_body {
+		max_size 10MB
+	}
+
+	reverse_proxy app:3000 {
+		# Caddy agrega X-Forwarded-For/Proto/Host e ignora los valores que
+		# mande el cliente, así que no hace falta declararlos.
+		header_up X-Real-IP {remote_host}
+		# UUID nuevo por request; la app valida y reutiliza el header.
+		header_up X-Request-Id {http.request.uuid}
+
+		health_uri /api/health
+		health_interval 30s
+		health_timeout 5s
+		health_status 200
+
+		transport http {
+			dial_timeout 5s
+			response_header_timeout 60s
+			read_timeout 300s
+			write_timeout 300s
+		}
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}

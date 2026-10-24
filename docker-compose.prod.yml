@@ -1,0 +1,78 @@
+# Override de producción. No usar solo: siempre junto al compose base.
+#
+#   docker compose --env-file .env.production \
+#     -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Requiere DOMAIN, AUTH_URL y NEXT_PUBLIC_APP_URL (HTTPS) en el entorno.
+# Runbook: docs/deploy/produccion.md
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  app:
+    restart: unless-stopped
+    logging: *default-logging
+    # En producción nadie llega directo a la app: solo Caddy.
+    ports: !reset []
+    environment:
+      AUTH_URL: ${AUTH_URL:?AUTH_URL is required (https://...)}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:?NEXT_PUBLIC_APP_URL is required (https://...)}
+      # Deja ~512 MiB de overhead fuera del heap de V8 dentro de mem_limit 2g.
+      NODE_OPTIONS: "--max-old-space-size=1536"
+    # Next.js + Prisma. Si hay OOM, subir primero este límite.
+    mem_limit: 2g
+    cpus: 2.0
+    pids_limit: 512
+
+  db:
+    restart: unless-stopped
+    logging: *default-logging
+    ports: !reset []
+    # Postgres con shared_buffers por defecto (~128 MB) entra cómodo en 1 GiB.
+    mem_limit: 1g
+    cpus: 2.0
+    shm_size: 256mb
+
+  redis:
+    restart: unless-stopped
+    logging: *default-logging
+    ports: !reset []
+    # Cache/sesiones. Límite del cgroup; si el dataset crece de más, OOM kill.
+    # Monitorear `docker stats`; para eviction habría que fijar --maxmemory.
+    mem_limit: 256m
+    cpus: 0.5
+
+  caddy:
+    image: caddy:2.11-alpine
+    container_name: gymapp-caddy
+    restart: unless-stopped
+    logging: *default-logging
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN is required}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:2019/config/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    mem_limit: 256m
+    cpus: 0.5
+
+volumes:
+  caddy_data:
+  caddy_config:
