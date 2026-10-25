@@ -29,3 +29,20 @@ npm run validate
 ```
 
 This runs `format:check`, `lint`, `typecheck` and unit tests. Full rules in `.kilo/rules/engineering-standards.md`.
+
+## Cómo se trabaja en este repo
+
+- **Tareas:** en GitHub Issues de este repo (etiquetas `prioridad-*` y de área). No crear listas de
+  pendientes en archivos `.md`. `FEATURES_PENDIENTES.md` es la especificación detallada de algunas
+  features y se enlaza desde sus issues.
+- **Nunca hacer push directo a `main`.** Rama nueva desde `main` actualizado → PR → CI verde
+  (Quality + E2E validation) → fusionar. Si la E2E falla en algo ajeno al cambio, reintentar una
+  vez y anotar el caso intermitente como issue.
+- **QA:** GitHub → Actions → Deploy → elegir la rama. **Producción:** solo con un tag `vX.Y.Z`
+  sobre `main`. Un solo `Dockerfile` para todos los ambientes.
+- **Migraciones:** se aplican solas al arrancar (`docker-entrypoint.sh`). Cuando exista
+  producción, una migración publicada **no se edita ni se borra nunca**: solo se agregan nuevas.
+- **Archivos subidos:** `src/lib/storage.ts` (SeaweedFS/S3 en servidor, `uploads/` en local).
+- **Secretos:** solo en `.env` local y en Coolify. Nunca en el repo.
+- **Mapa del servidor** (bases, Redis, SeaweedFS, dominios) y decisiones: repo `infra`,
+  `PROJECTS.md` y `docs/decisions/` (ver 0008 para los ambientes de gymapp).
