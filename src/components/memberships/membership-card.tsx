@@ -17,7 +17,7 @@ import {
   UserRound,
 } from "lucide-react"
 import { toast } from "sonner"
-import { formatDate } from "@/lib/utils"
+import { formatDate, formatCurrency, formatDays } from "@/lib/utils"
 import { canRenewMembership } from "@/lib/membership-status"
 
 interface MembershipPlan {
@@ -191,9 +191,9 @@ export function MembershipCard({ membership }: MembershipCardProps) {
             {paymentRef && <p className="text-xs text-muted-foreground">Ref: {paymentRef}</p>}
           </div>
           <span className="text-lg font-semibold tabular-nums">
-            {planCurrency.toUpperCase()} ${planPrice ?? plan.price}
+            {formatCurrency(Number(planPrice ?? plan.price), planCurrency)}
             <span className="text-xs font-normal text-muted-foreground ml-1">
-              / {planDurationDays || plan.durationDays}d
+              / {formatDays(planDurationDays || plan.durationDays)}
             </span>
           </span>
         </div>

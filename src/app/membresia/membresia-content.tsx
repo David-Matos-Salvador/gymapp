@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Clock, CreditCard, Eye, Loader2, Upload } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatDays } from "@/lib/utils"
 
 interface MembershipData {
   id: string
@@ -201,7 +201,7 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
               <span>
                 <span className="block text-sm font-medium">{plan.name}</span>
                 <span className="block text-xs text-muted-foreground">
-                  {plan.durationDays} días
+                  {formatDays(plan.durationDays)}
                 </span>
               </span>
               <span className="text-sm font-semibold">

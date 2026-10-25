@@ -456,7 +456,7 @@ export function MembershipPanel({
                       <Banknote className="h-3 w-3" />
                       {m.planPrice > 0
                         ? formatCurrency(m.planPrice, m.planCurrency)
-                        : `${m.plan.currency.toUpperCase()} $${m.plan.price}`}
+                        : formatCurrency(Number(m.plan.price), m.plan.currency)}
                     </span>
                     <span className="flex items-center gap-1">
                       <Building2 className="h-3 w-3" />
