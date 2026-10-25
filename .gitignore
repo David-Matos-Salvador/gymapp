@@ -56,3 +56,6 @@ next-env.d.ts
 
 # Local uploads
 public/uploads/
+
+# Credenciales locales: solo en tu máquina (plantilla en CREDENTIALS.example.md)
+CREDENTIALS.md
