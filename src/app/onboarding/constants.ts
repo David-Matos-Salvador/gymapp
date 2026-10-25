@@ -227,7 +227,7 @@ export const scheduleOptions = [
   { value: "2PM_5PM", label: "Tarde", time: "2pm - 5pm", icon: "🌤️" },
   { value: "5PM_7PM", label: "Atardecer", time: "5pm - 7pm", icon: "🌅" },
   { value: "7PM_9PM", label: "Noche", time: "7pm - 9pm", icon: "🌙" },
-  { value: "AFTER_9PM", label: "Madrugada", time: "9pm+", icon: "🌑" },
+  { value: "AFTER_9PM", label: "Trasnoche", time: "9pm+", icon: "🌑" },
 ]
 
 export const loadingMessages = [
@@ -282,5 +282,5 @@ export const scheduleLabelMap: Record<string, string> = {
   "2PM_5PM": "Tarde (2pm-5pm)",
   "5PM_7PM": "Atardecer (5pm-7pm)",
   "7PM_9PM": "Noche (7pm-9pm)",
-  AFTER_9PM: "Noche (después de 9pm)",
+  AFTER_9PM: "Trasnoche (9pm+)",
 }
