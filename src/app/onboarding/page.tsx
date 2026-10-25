@@ -270,6 +270,13 @@ export default function OnboardingPage() {
       return
     }
     if (step >= TOTAL_STEPS) return
+    // Condiciones físicas: continuar sin elegir ninguna equivale a "No poseo".
+    // Así el dato queda explícito en el perfil y en el resumen.
+    if (step === 6) {
+      setData((prev) =>
+        prev.physicalConditions.length > 0 ? prev : { ...prev, physicalConditions: ["No poseo"] }
+      )
+    }
     play("click")
     setDirection(1)
     setStep((s) => s + 1)
@@ -565,7 +572,8 @@ export default function OnboardingPage() {
   const canProceedStep2 = data.trainingHistory !== null
   const canProceedStep3 = data.experienceLevel !== null
   const canProceedStep4 = data.trainingFrequency !== null
-  const canProceedStep5 = data.physicalConditions.length > 0
+  // Condiciones físicas es opcional: sin selección se guarda "No poseo" al continuar.
+  const canProceedStep5 = true
   const canProceedStep6 =
     data.weight !== null && data.height !== null && !weightError && !heightError
   const canProceedStep7 = true
@@ -864,7 +872,9 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
               <h2 className="text-2xl font-bold tracking-tight">Condiciones físicas</h2>
-              <p className="text-muted-foreground">Selecciona las condiciones que te apliquen</p>
+              <p className="text-muted-foreground">
+                Selecciona las que te apliquen. Si no tienes ninguna, toca Continuar.
+              </p>
             </div>
             <div className="flex flex-wrap gap-2.5">
               {physicalConditionOptions.map((condition) => {
