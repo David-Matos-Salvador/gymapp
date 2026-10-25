@@ -304,7 +304,7 @@ export function ProfileForm({ user }: { user: User }) {
             </button>
             <div>
               <p className="text-sm font-medium">Foto de perfil</p>
-              <p className="text-xs text-muted-foreground">JPEG, PNG, WebP o GIF (m\u00e1x. 5MB)</p>
+              <p className="text-xs text-muted-foreground">JPEG, PNG, WebP o GIF (máx. 5MB)</p>
             </div>
           </div>
           <Separator />

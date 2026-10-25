@@ -1275,7 +1275,7 @@ export default function OnboardingPage() {
             <div className="text-center space-y-2 pb-1">
               <h2 className="text-2xl font-bold tracking-tight">Tu rutina personalizada</h2>
               <p className="text-muted-foreground">
-                Toc\u00e1 para ver detalles \u00b7 doble toque para elegir
+                Tocá para ver detalles · doble toque para elegir
               </p>
             </div>
 
@@ -1359,7 +1359,7 @@ export default function OnboardingPage() {
                               <div className="space-y-0.5">
                                 {split.exercises.slice(0, 4).map((ex) => (
                                   <div key={ex.id} className="flex items-center gap-2 text-[10px]">
-                                    <span className="text-muted-foreground">\u00b7</span>
+                                    <span className="text-muted-foreground">·</span>
                                     <span className="truncate">{ex.name}</span>
                                     <span className="text-muted-foreground ml-auto">
                                       {ex.sets}\u00d7{ex.reps}
@@ -1417,7 +1417,7 @@ export default function OnboardingPage() {
                                   : "bg-accent-yellow/10 text-accent-yellow"
                               }`}
                             >
-                              {plan.difficulty}
+                              {experienceLabelMap[plan.difficulty] ?? plan.difficulty}
                             </span>
                           </div>
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
@@ -1471,7 +1471,7 @@ export default function OnboardingPage() {
                                       key={ex.id}
                                       className="flex items-center gap-2 text-[10px]"
                                     >
-                                      <span className="text-muted-foreground">\u00b7</span>
+                                      <span className="text-muted-foreground">·</span>
                                       <span className="truncate">{ex.name}</span>
                                       <span className="text-muted-foreground ml-auto">
                                         {ex.sets}\u00d7{ex.reps}
