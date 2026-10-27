@@ -456,14 +456,16 @@ async function main() {
       paymentConfirmed: true,
       paymentMethod: "CASH" as const,
     },
+    // Mateo subió su comprobante de Yape y espera la confirmación del coach o el admin:
+    // membresía sin confirmar + un Payment PENDING (más abajo, "Payment example").
     {
       userId: mateo.id,
       planId: plans[1].id,
       status: "ACTIVE" as const,
       startDate: now,
       endDate: endDate30,
-      paymentConfirmed: true,
-      paymentMethod: "CARD" as const,
+      paymentConfirmed: false,
+      paymentMethod: "YAPE" as const,
     },
     {
       userId: diego.id,
@@ -503,6 +505,39 @@ async function main() {
       where: { userId_planId: { userId: m.userId, planId: m.planId } },
       update: {},
       create: m,
+    })
+  }
+
+  // Cada membresía pagada tiene su Payment COMPLETED: la tabla Payment es el registro de los
+  // pagos (de ahí salen los ingresos del dashboard) y debe coincidir con paymentConfirmed.
+  // `npm run db:check:payments` verifica esta regla.
+  for (const m of memberships) {
+    if (!m.paymentConfirmed) continue
+    const plan = plans.find((p) => p.id === m.planId)
+    if (!plan || Number(plan.price) === 0) continue
+    const membership = await prisma.membership.findUnique({
+      where: { userId_planId: { userId: m.userId, planId: m.planId } },
+      select: { id: true },
+    })
+    if (!membership) continue
+    const alreadyPaid = await prisma.payment.findFirst({
+      where: { membershipId: membership.id, status: "COMPLETED" },
+      select: { id: true },
+    })
+    if (alreadyPaid) continue
+    await prisma.payment.create({
+      data: {
+        userId: m.userId,
+        membershipId: membership.id,
+        amount: plan.price,
+        currency: plan.currency,
+        status: "COMPLETED",
+        method: m.paymentMethod,
+        type: "MEMBERSHIP",
+        reference: "paymentRef" in m ? m.paymentRef : undefined,
+        confirmedAt: m.startDate,
+        createdAt: m.startDate,
+      },
     })
   }
 
@@ -3225,12 +3260,13 @@ async function main() {
   console.log("✅ Trainer invites created")
 
   // ── Payment example (pending Yape payment) ──────────
+  // Comprobante de Mateo esperando confirmación (su membresía está sin confirmar).
   const mateoMembership = await prisma.membership.findFirst({
     where: { userId: mateo.id },
     select: { id: true },
   })
   const existingPayment = await prisma.payment.findFirst({
-    where: { userId: mateo.id, type: "MEMBERSHIP" },
+    where: { userId: mateo.id, type: "MEMBERSHIP", status: "PENDING" },
   })
   if (!existingPayment) {
     await prisma.payment.create({
