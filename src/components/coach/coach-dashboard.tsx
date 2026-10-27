@@ -663,7 +663,8 @@ export function CoachDashboard({
                 <div className="text-center pt-1">
                   <Button variant="link" size="sm" asChild onClick={() => play("click")}>
                     <Link href="/coach/clients" className="text-muted-foreground">
-                      + {clients.length - 5} clientes más — Ver todos
+                      + {clients.length - 5} {clients.length - 5 === 1 ? "cliente" : "clientes"} más
+                      — Ver todos
                     </Link>
                   </Button>
                 </div>

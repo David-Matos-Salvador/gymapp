@@ -6,6 +6,7 @@ import { Dumbbell, MapPin, Phone, Mail, ChevronRight, Sparkles } from "lucide-re
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { formatCurrency, formatDays } from "@/lib/utils"
 
 interface GymPageParams {
   params: Promise<{ slug: string }>
@@ -109,9 +110,9 @@ export default async function GymPage({ params }: GymPageParams) {
                         )}
                       </div>
                       <Badge variant="secondary" className="shrink-0">
-                        {plan.currency.toUpperCase()} ${Number(plan.price)}
+                        {formatCurrency(Number(plan.price), plan.currency)}
                         <span className="text-xs font-normal text-muted-foreground ml-1">
-                          / {plan.durationDays}d
+                          / {formatDays(plan.durationDays)}
                         </span>
                       </Badge>
                     </div>
