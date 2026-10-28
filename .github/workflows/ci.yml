@@ -17,7 +17,8 @@ permissions:
 jobs:
   quality:
     name: Quality
-    runs-on: ubuntu-latest
+    # Versión fija: ubuntu-latest pasó a 26.04 y Playwright aún no tiene Chromium para esa versión.
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     env:
       # Valores dummy: el job no se conecta a ninguna base real.
@@ -40,7 +41,8 @@ jobs:
 
   e2e:
     name: E2E validation
-    runs-on: ubuntu-latest
+    # Versión fija: ubuntu-latest pasó a 26.04 y Playwright aún no tiene Chromium para esa versión.
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     needs: quality
     services:
