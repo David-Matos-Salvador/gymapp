@@ -388,9 +388,7 @@ export default function CoachClientDetail() {
                 )}
                 <div className="flex items-center gap-2">
                   <Calendar className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-muted-foreground">
-                    {age ? `${age} años` : "Edad no registrada"}
-                  </span>
+                  <span className="text-muted-foreground">{age ?? "Edad no registrada"}</span>
                 </div>
                 {client.objective && (
                   <div className="flex items-center gap-2">
