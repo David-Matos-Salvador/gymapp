@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useSound } from "@/hooks/use-sound"
 import { calculateBMI, getBMICategory } from "@/lib/health"
+import { formatMuscleGroups } from "@/constants/user"
 import {
   type Objective,
   type TrainingHistory,
@@ -1333,11 +1334,11 @@ export default function OnboardingPage() {
                         animate={{ height: "auto", opacity: 1 }}
                         className="mt-4 pt-4 border-t"
                       >
-                        <p className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
+                        <p className="text-xs font-semibold text-muted-foreground mb-2">
                           Grupos musculares:{" "}
-                          {[...new Set(coachPlan.splits.flatMap((s) => s.muscleGroups))]
-                            .join(", ")
-                            .toLowerCase()}
+                          {formatMuscleGroups([
+                            ...new Set(coachPlan.splits.flatMap((s) => s.muscleGroups)),
+                          ])}
                         </p>
                         <div className="space-y-2.5 mb-3">
                           {coachPlan.splits.map((split) => (
@@ -1354,7 +1355,7 @@ export default function OnboardingPage() {
                                 )}
                               </div>
                               <p className="text-[10px] text-muted-foreground mb-1.5">
-                                {split.muscleGroups.join(" \u00b7 ")}
+                                {formatMuscleGroups(split.muscleGroups, " · ")}
                               </p>
                               <div className="space-y-0.5">
                                 {split.exercises.slice(0, 4).map((ex) => (
@@ -1362,7 +1363,7 @@ export default function OnboardingPage() {
                                     <span className="text-muted-foreground">·</span>
                                     <span className="truncate">{ex.name}</span>
                                     <span className="text-muted-foreground ml-auto">
-                                      {ex.sets}\u00d7{ex.reps}
+                                      {ex.sets}×{ex.reps}
                                     </span>
                                   </div>
                                 ))}
@@ -1445,8 +1446,8 @@ export default function OnboardingPage() {
                           animate={{ height: "auto", opacity: 1 }}
                           className="mt-4 pt-4 border-t"
                         >
-                          <p className="text-xs font-semibold text-muted-foreground mb-2 capitalize">
-                            Grupos musculares: {allMuscleGroups.join(", ").toLowerCase()}
+                          <p className="text-xs font-semibold text-muted-foreground mb-2">
+                            Grupos musculares: {formatMuscleGroups(allMuscleGroups)}
                           </p>
                           <div className="space-y-2.5 mb-3">
                             {plan.splits.map((split) => (
@@ -1463,7 +1464,7 @@ export default function OnboardingPage() {
                                   )}
                                 </div>
                                 <p className="text-[10px] text-muted-foreground mb-1.5">
-                                  {split.muscleGroups.join(" \u00b7 ")}
+                                  {formatMuscleGroups(split.muscleGroups, " · ")}
                                 </p>
                                 <div className="space-y-0.5">
                                   {split.exercises.slice(0, 4).map((ex) => (
@@ -1474,7 +1475,7 @@ export default function OnboardingPage() {
                                       <span className="text-muted-foreground">·</span>
                                       <span className="truncate">{ex.name}</span>
                                       <span className="text-muted-foreground ml-auto">
-                                        {ex.sets}\u00d7{ex.reps}
+                                        {ex.sets}×{ex.reps}
                                       </span>
                                     </div>
                                   ))}

@@ -52,6 +52,10 @@ export const MUSCLE_LABELS: Record<string, string> = {
   CARDIO: "Cardio",
 }
 
+export function formatMuscleGroups(groups: string[], separator = ", "): string {
+  return groups.map((g) => MUSCLE_LABELS[g] ?? g).join(separator)
+}
+
 export const OBJECTIVES = Object.entries(OBJECTIVE_LABELS).map(([value, label]) => ({
   value,
   label,

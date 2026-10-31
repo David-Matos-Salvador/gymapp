@@ -25,13 +25,14 @@ describe("onboarding schedule options", () => {
 
 describe("JSX text", () => {
   // React does not interpret \uXXXX inside JSX text, so it shows up literally on screen.
+  // Catches text after a tag (`>\u00b7`) and after an expression (`{a}\u00d7{b}`).
   it("does not contain unicode escapes", () => {
     const srcDir = path.resolve(__dirname, "../..")
     const offenders = tsxFiles(srcDir).flatMap((file) =>
       readFileSync(file, "utf8")
         .split("\n")
         .map((line, i) => ({ line, i }))
-        .filter(({ line }) => />[^<{]*\\u[0-9a-fA-F]{4}/.test(line))
+        .filter(({ line }) => /(>|^\s*\{[^}]*\})[^<{"'`]*\\u[0-9a-fA-F]{4}/.test(line))
         .map(({ i }) => `${path.relative(srcDir, file)}:${i + 1}`)
     )
     expect(offenders).toEqual([])
