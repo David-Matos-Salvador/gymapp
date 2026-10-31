@@ -5,6 +5,7 @@ import { emitRealtime } from "@/lib/realtime"
 import { logger } from "@/lib/logger"
 import { getRequestId } from "@/lib/request-id"
 import { fileUrl, newKey, saveFile } from "@/lib/storage"
+import { formatCurrency } from "@/lib/utils"
 
 const ALLOWED_TYPES = [
   "image/jpeg",
@@ -196,7 +197,7 @@ export async function POST(request: Request) {
             data: {
               userId: trainer.id,
               title: "Nuevo comprobante de pago",
-              message: `${user.name || "Un usuario"} subió un comprobante de ${plan.currency.toUpperCase()} $${plan.price}. Revísalo en Pagos.`,
+              message: `${user.name || "Un usuario"} subió un comprobante de ${formatCurrency(Number(plan.price), plan.currency)}. Revísalo en Pagos.`,
               type: "PAYMENT",
               metadata: { paymentId: payment.id, clientId: user.id },
             },

@@ -15,6 +15,10 @@ export function formatDate(iso: string | Date, options?: { includeTime?: boolean
   })
 }
 
+export function formatDays(days: number): string {
+  return `${days} ${days === 1 ? "día" : "días"}`
+}
+
 export function formatCurrency(amount: number, currency = "PEN"): string {
   const fmt = new Intl.NumberFormat("es-PE", {
     style: "currency",

@@ -22,6 +22,7 @@ import {
   Upload,
   Smartphone,
 } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
 interface MembershipPlan {
   name: string
@@ -124,7 +125,7 @@ export function PaymentForm({
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">{plan.name}</span>
             <span className="text-sm tabular-nums">
-              {plan.currency.toUpperCase()} ${plan.price}
+              {formatCurrency(Number(plan.price), plan.currency)}
             </span>
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">

@@ -19,7 +19,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { useSound } from "@/hooks/use-sound"
 import { toast } from "sonner"
 import { CreditCard, Loader2, Pencil, Plus, Power, PowerOff, Trash2 } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, formatDays } from "@/lib/utils"
 
 export interface MembershipPlan {
   id: string
@@ -219,7 +219,7 @@ export function MembershipPlanManager({
                       {formatCurrency(plan.price, plan.currency)}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      / {plan.durationDays} días
+                      / {formatDays(plan.durationDays)}
                     </span>
                   </div>
                   {canManage && (
