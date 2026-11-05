@@ -12,6 +12,7 @@ const userSelect = {
   onboardingCompleted: true,
   onboardingCompletedAt: true,
   trainingFrequency: true,
+  onboardingData: true,
 }
 
 async function resolveUser(sessionEmail: string, memberId: string | null) {
@@ -130,6 +131,8 @@ export async function GET(request: Request) {
   return NextResponse.json({
     onboardingCompleted: user.onboardingCompleted,
     onboardingCompletedAt: user.onboardingCompletedAt?.toISOString() ?? null,
+    // Respuestas guardadas de un onboarding sin terminar: la persona retoma en las recomendaciones
+    savedData: user.onboardingCompleted ? null : (user.onboardingData ?? null),
     gymId: user.gymId,
     gymName: user.gymId
       ? ((await prisma.gym.findUnique({ where: { id: user.gymId }, select: { name: true } }))
@@ -178,14 +181,16 @@ export async function POST(request: Request) {
         ? weight / ((height / 100) * (height / 100))
         : null
 
+    // Solo se marca terminado al elegir una rutina; `complete: false` guarda las respuestas
+    const complete = body.complete !== false
     const onboardingBody = { ...body }
     delete onboardingBody.memberId
+    delete onboardingBody.complete
 
     await prisma.user.update({
       where: { id: target.id },
       data: {
-        onboardingCompleted: true,
-        onboardingCompletedAt: new Date(),
+        ...(complete ? { onboardingCompleted: true, onboardingCompletedAt: new Date() } : {}),
         onboardingData: {
           ...onboardingBody,
           bmi: bmi ? Math.round(bmi * 10) / 10 : null,

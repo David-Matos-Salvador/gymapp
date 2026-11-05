@@ -200,6 +200,28 @@ export default function OnboardingPage() {
           if (d.onboardingCompleted) {
             router.push("/dashboard")
           } else {
+            if (d.savedData && !d.coachPlan) {
+              // Respuestas ya guardadas, sin rutina elegida: volver a las recomendaciones
+              const saved = d.savedData as OnboardingData
+              setData((prev) => ({ ...prev, ...saved }))
+              fetch("/api/fitness-coach", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  objective: saved.objective ?? "UNSURE",
+                  experienceLevel: saved.experienceLevel ?? "BEGINNER",
+                  trainingFrequency: saved.trainingFrequency ?? 3,
+                }),
+              })
+                .then((r) => (r.ok ? r.json() : null))
+                .then((result) => {
+                  if (result?.plans?.length > 0) {
+                    setGeneratedPlans(result.plans)
+                    setStep(11)
+                  }
+                })
+                .catch(() => {})
+            }
             if (d.gymId) {
               setGymId(d.gymId)
               setGymName(d.gymName ?? null)
@@ -346,7 +368,7 @@ export default function OnboardingPage() {
         const res = await fetch("/api/onboarding", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...data, memberId: memberId ?? undefined }),
+          body: JSON.stringify({ ...data, complete: false, memberId: memberId ?? undefined }),
         })
 
         let errorMsg = "Error al guardar"
@@ -389,17 +411,6 @@ export default function OnboardingPage() {
 
     const plans = await fetchPromise
 
-    if (!assisted) {
-      try {
-        await updateSession({
-          onboardingCompleted: true,
-          onboardingCompletedAt: new Date().toISOString(),
-        })
-      } catch {
-        // silent
-      }
-    }
-
     if (plans?.length) {
       setExpandedPlanId(null)
     }
@@ -410,7 +421,7 @@ export default function OnboardingPage() {
 
     setDirection(1)
     setStep(11)
-  }, [data, play, fetchGeneratedPlans, memberId, assisted, updateSession])
+  }, [data, play, fetchGeneratedPlans, memberId])
 
   const assignPlan = useCallback(
     async (planId: string) => {
@@ -420,7 +431,7 @@ export default function OnboardingPage() {
       await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, memberId: memberId ?? undefined }),
+        body: JSON.stringify({ ...data, complete: false, memberId: memberId ?? undefined }),
       })
 
       const res = await fetch("/api/onboarding/assign-routine", {
@@ -433,6 +444,11 @@ export default function OnboardingPage() {
         setIsSubmitting(false)
         return
       }
+      await fetch("/api/onboarding", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, memberId: memberId ?? undefined }),
+      })
       play("success")
       if (assisted) {
         await new Promise((r) => setTimeout(r, 600))
