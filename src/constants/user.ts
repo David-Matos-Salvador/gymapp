@@ -52,6 +52,15 @@ export const MUSCLE_LABELS: Record<string, string> = {
   CARDIO: "Cardio",
 }
 
+// La categoría del ejercicio es texto libre: el seed trae "Strength" y "Core" en inglés.
+const CATEGORY_LABELS: Record<string, string> = {
+  strength: "Fuerza",
+}
+
+export function formatExerciseCategory(category: string): string {
+  return CATEGORY_LABELS[category.trim().toLowerCase()] ?? category
+}
+
 export function formatMuscleGroups(groups: string[], separator = ", "): string {
   return groups.map((g) => MUSCLE_LABELS[g] ?? g).join(separator)
 }

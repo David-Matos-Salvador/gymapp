@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import { EQUIPMENT_LABELS } from "@/constants/ui"
-import { MUSCLE_LABELS } from "@/constants/user"
+import { MUSCLE_LABELS, formatExerciseCategory } from "@/constants/user"
 import { Plus, Pencil, Trash2, Upload, ExternalLink, Dumbbell, Power, PowerOff } from "lucide-react"
 
 export interface Exercise {
@@ -313,7 +313,7 @@ export function ExerciseManagement({
                   </Badge>
                   {ex.category && (
                     <Badge variant="outline" className="text-xs">
-                      {ex.category}
+                      {formatExerciseCategory(ex.category)}
                     </Badge>
                   )}
                 </div>
