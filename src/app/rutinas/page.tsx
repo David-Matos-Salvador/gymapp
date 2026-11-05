@@ -9,6 +9,7 @@ import {
   getWorkoutsThisWeek,
   getUser,
 } from "@/lib/weekly-progress"
+import { ChooseRoutineButton } from "@/components/rutina/choose-routine-button"
 import { RutinaClient } from "./rutina-client"
 
 export default async function RutinasPage() {
@@ -75,6 +76,7 @@ export default async function RutinasPage() {
           <p className="text-sm text-muted-foreground">
             No tienes una rutina personalizada asignada.
           </p>
+          <ChooseRoutineButton />
         </div>
       </AppShell>
     )
