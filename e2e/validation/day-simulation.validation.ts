@@ -1336,6 +1336,14 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
         laura.page.getByRole("heading", { name: /Tu rutina personalizada/i })
       ).toBeVisible({ timeout: 45_000 })
 
+      // Cerrar en las recomendaciones y volver a entrar (#42): el onboarding no está terminado,
+      // así que debe caer de nuevo en las recomendaciones y no en el dashboard.
+      await visit(laura.page, "/onboarding")
+      await expect(
+        laura.page.getByRole("heading", { name: /Tu rutina personalizada/i })
+      ).toBeVisible({ timeout: 45_000 })
+      expect(laura.page.url()).toMatch(/\/onboarding/)
+
       const planCard = laura.page
         .getByRole("button")
         .filter({ hasText: /ejercicios/i })
