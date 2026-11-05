@@ -65,7 +65,7 @@ export async function POST(request: Request) {
   }
 
   if (!(await rateLimit(`upload:${user.id}`, 30, 60))) {
-    return NextResponse.json({ error: "Demasiadas subidas. Esperá un momento." }, { status: 429 })
+    return NextResponse.json({ error: "Demasiadas subidas. Espera un momento." }, { status: 429 })
   }
 
   try {

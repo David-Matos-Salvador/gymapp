@@ -2932,7 +2932,7 @@ async function main() {
           splitId: pplSplits[0].id,
           date: new Date(Date.now() - 2 * 86400000),
           duration: 65,
-          notes: "Subí peso en press de banca.",
+          notes: "Sube peso en press de banca.",
         },
       })
     )
@@ -3205,13 +3205,13 @@ async function main() {
       {
         userId: sofia.id,
         title: "Membresía vencida",
-        message: "Tu membresía expiró. Renová para seguir entrenando.",
+        message: "Tu membresía expiró. Renueva para seguir entrenando.",
         type: "WARNING",
       },
       {
         userId: ricardo.id,
         title: "Membresía suspendida",
-        message: "Tu cuenta está temporalmente inactiva. Contactá al administrador.",
+        message: "Tu cuenta está temporalmente inactiva. Contacta al administrador.",
         type: "WARNING",
       },
     ],

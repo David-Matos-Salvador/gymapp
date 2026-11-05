@@ -69,7 +69,7 @@ export async function POST(request: Request) {
   if (currentUser.role === "TRAINER") {
     const clientIds = await getTrainerClientIds(currentUser.id)
     if (!clientIds.includes(targetUser.id)) {
-      return NextResponse.json({ error: "Solo podés notificar a tus clientes" }, { status: 403 })
+      return NextResponse.json({ error: "Solo puedes notificar a tus clientes" }, { status: 403 })
     }
   }
 

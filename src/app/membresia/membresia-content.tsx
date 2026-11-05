@@ -75,7 +75,7 @@ export function MembresiaContent({
               <div className="space-y-1">
                 <p className="font-semibold">Sin planes disponibles</p>
                 <p className="text-sm text-muted-foreground max-w-xs">
-                  Tu gimnasio todavía no publicó planes. Consultá en recepción.
+                  Tu gimnasio todavía no publicó planes. Consulta en recepción.
                 </p>
               </div>
             </CardContent>
@@ -91,7 +91,7 @@ export function MembresiaContent({
     <div className="container mx-auto px-4 py-8 max-w-lg space-y-6">
       <div className="text-center space-y-2">
         <h2 className="text-xl font-bold">Mi Membresía</h2>
-        <p className="text-sm text-muted-foreground">Gestioná tu plan y métodos de pago</p>
+        <p className="text-sm text-muted-foreground">Gestiona tu plan y métodos de pago</p>
       </div>
 
       <MembershipCard membership={membership} />
@@ -108,7 +108,7 @@ export function MembresiaContent({
               <p className="text-sm text-muted-foreground">
                 Recibimos tu comprobante por{" "}
                 {formatCurrency(pendingPayment.amount, pendingPayment.currency)}. El equipo lo
-                revisará y confirmará tu membresía. No necesitás subir otro comprobante.
+                revisará y confirmará tu membresía. No necesitas subir otro comprobante.
               </p>
               {pendingPayment.receiptUrl && (
                 <a
@@ -148,7 +148,7 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
     e.preventDefault()
     const free = selectedPlan?.price === 0
     if (!free && !file) {
-      toast.error("Adjuntá un comprobante para que el gimnasio pueda revisarlo")
+      toast.error("Adjunta un comprobante para que el gimnasio pueda revisarlo")
       return
     }
     setSubmitting(true)
@@ -183,7 +183,7 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
     <Card>
       <CardContent className="space-y-4 py-6">
         <div className="space-y-1">
-          <p className="font-semibold">Elegí tu plan</p>
+          <p className="font-semibold">Elige tu plan</p>
           <p className="text-sm text-muted-foreground">
             {selectedPlan?.price === 0
               ? "Este plan es gratuito: se activa al confirmar."

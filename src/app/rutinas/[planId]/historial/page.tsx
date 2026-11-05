@@ -77,7 +77,7 @@ export default async function HistorialPage({ params }: PageProps) {
               <Dumbbell className="mx-auto mb-3 h-10 w-10 text-muted-foreground" />
               <p className="font-medium">Todavía no registraste entrenamientos</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Completá una rutina y finalizala para verla acá.
+                Completa una rutina y finalízala para verla aquí.
               </p>
             </CardContent>
           </Card>

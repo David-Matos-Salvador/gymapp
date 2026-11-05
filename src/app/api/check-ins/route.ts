@@ -53,7 +53,7 @@ export async function POST(request: Request) {
 
   if (user.gymId && requestedGymId && requestedGymId !== user.gymId) {
     return NextResponse.json(
-      { error: "No podés registrar check-in en otro gimnasio" },
+      { error: "No puedes registrar check-in en otro gimnasio" },
       { status: 400 }
     )
   }

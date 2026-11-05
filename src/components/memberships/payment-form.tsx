@@ -67,7 +67,7 @@ export function PaymentForm({
     // the admin to review, so the form must never confirm the membership by
     // itself.
     if (!receiptFile) {
-      toast.error("Adjuntá un comprobante para que tu pago pueda ser revisado")
+      toast.error("Adjunta un comprobante para que tu pago pueda ser revisado")
       return
     }
 

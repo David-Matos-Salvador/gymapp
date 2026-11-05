@@ -388,7 +388,7 @@ export function ExerciseCard({
               variant="ghost"
               className="min-h-11 w-full text-muted-foreground"
               onClick={() => {
-                if (window.confirm("¿Saltar este ejercicio? Podés retomarlo en otra sesión.")) {
+                if (window.confirm("¿Saltar este ejercicio? Puedes retomarlo en otra sesión.")) {
                   onSkip()
                 }
               }}

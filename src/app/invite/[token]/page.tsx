@@ -74,8 +74,8 @@ export default function InvitePage() {
 
   const passwordChecks = [
     { label: "8 caracteres minimo", met: form.password.length >= 8 },
-    { label: "1 mayuscula", met: /[A-Z]/.test(form.password) },
-    { label: "1 numero", met: /[0-9]/.test(form.password) },
+    { label: "1 mayúscula", met: /[A-Z]/.test(form.password) },
+    { label: "1 número", met: /[0-9]/.test(form.password) },
   ]
 
   async function handleSubmit(e: React.FormEvent) {
@@ -248,7 +248,7 @@ export default function InvitePage() {
                 id="invPassword"
                 type="password"
                 autoComplete="new-password"
-                placeholder="Min. 8 caracteres, 1 mayuscula, 1 numero"
+                placeholder="Mín. 8 caracteres, 1 mayúscula, 1 número"
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
               />

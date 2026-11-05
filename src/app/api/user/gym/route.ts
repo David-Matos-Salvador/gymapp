@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
   if (user.gymId && user.gymId !== parsed.data.gymId) {
     return NextResponse.json(
-      { error: "Ya pertenecés a un gimnasio. Contactá al gimnasio para cambiarlo." },
+      { error: "Ya perteneces a un gimnasio. Contacta al gimnasio para cambiarlo." },
       { status: 409 }
     )
   }

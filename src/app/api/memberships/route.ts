@@ -66,7 +66,7 @@ export async function POST(request: Request) {
   }
   if (!plan.active) {
     return NextResponse.json(
-      { error: "El plan está inactivo; elegí un plan activo" },
+      { error: "El plan está inactivo; elige un plan activo" },
       { status: 409 }
     )
   }
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
   })
   if (activeMembership) {
     return NextResponse.json(
-      { error: "El miembro ya tiene una membresía vigente. Renovala en lugar de crear otra." },
+      { error: "El miembro ya tiene una membresía vigente. Renuévala en lugar de crear otra." },
       { status: 409 }
     )
   }
@@ -132,7 +132,7 @@ export async function POST(request: Request) {
   if (!membership) {
     return NextResponse.json(
       {
-        error: "Ya existe una membresía para ese miembro y plan. Usá renovar o elegí otro plan.",
+        error: "Ya existe una membresía para ese miembro y plan. Usa renovar o elige otro plan.",
       },
       { status: 409 }
     )

@@ -10,4 +10,4 @@ export function isValidImageUrl(value: string): boolean {
 
 export const imageUrlSchema = z
   .string()
-  .refine(isValidImageUrl, "Usá una imagen subida o una URL http(s) válida")
+  .refine(isValidImageUrl, "Usa una imagen subida o una URL http(s) válida")

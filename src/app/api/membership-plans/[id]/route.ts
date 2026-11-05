@@ -124,7 +124,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
         data: members.map((member) => ({
           userId: member.userId,
           title: "Nuevo precio de membresía",
-          message: `El precio de ${plan.name} cambió a ${plan.currency} ${Number(plan.price).toFixed(2)}. Al renovar podés aceptarlo o rechazarlo.`,
+          message: `El precio de ${plan.name} cambió a ${plan.currency} ${Number(plan.price).toFixed(2)}. Al renovar puedes aceptarlo o rechazarlo.`,
           type: "MEMBERSHIP",
           metadata: {
             planId: plan.id,

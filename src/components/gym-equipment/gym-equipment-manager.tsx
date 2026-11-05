@@ -112,7 +112,7 @@ export function GymEquipmentManager({
   const machineNumberError =
     machineNumberValue !== null &&
     (!Number.isInteger(machineNumberValue) || machineNumberValue < 1 || machineNumberValue > 9999)
-      ? "Ingresá un número entero entre 1 y 9999"
+      ? "Ingresa un número entero entre 1 y 9999"
       : null
 
   function resetForm() {
@@ -131,7 +131,7 @@ export function GymEquipmentManager({
     if (!file) return
 
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      setImageError("Formato no permitido. Usá JPEG, PNG, WebP o GIF.")
+      setImageError("Formato no permitido. Usa JPEG, PNG, WebP o GIF.")
       return
     }
     if (file.size > MAX_IMAGE_SIZE) {
@@ -586,7 +586,7 @@ export function GymEquipmentManager({
               <p className="text-xs text-muted-foreground">JPEG, PNG, WebP o GIF. Máx. 5 MB.</p>
               {editingSystem && (
                 <p className="text-xs text-muted-foreground">
-                  Si la quitás, se usa la imagen del catálogo.
+                  Si la quitas, se usa la imagen del catálogo.
                 </p>
               )}
               {imageError && <p className="text-xs text-destructive">{imageError}</p>}

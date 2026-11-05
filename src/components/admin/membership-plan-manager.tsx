@@ -267,7 +267,7 @@ export function MembershipPlanManager({
           <DialogHeader>
             <DialogTitle>{editing ? "Editar plan" : "Nuevo plan"}</DialogTitle>
             <DialogDescription>
-              Definí el precio y la duración. Los cambios aplican a nuevas membresías.
+              Define el precio y la duración. Los cambios aplican a nuevas membresías.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -340,7 +340,7 @@ export function MembershipPlanManager({
           <DialogHeader>
             <DialogTitle>Eliminar plan</DialogTitle>
             <DialogDescription>
-              Si el plan tiene membresías, no se podrá eliminar. Podés desactivarlo en su lugar.
+              Si el plan tiene membresías, no se podrá eliminar. Puedes desactivarlo en su lugar.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

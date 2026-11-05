@@ -30,12 +30,12 @@ const registerSchema = z
     password: z
       .string()
       .min(8, "Minimo 8 caracteres")
-      .regex(/[A-Z]/, "Debe contener una mayuscula")
-      .regex(/[0-9]/, "Debe contener un numero"),
+      .regex(/[A-Z]/, "Debe contener una mayúscula")
+      .regex(/[0-9]/, "Debe contener un número"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Las contrasenas no coinciden",
+    message: "Las contraseñas no coinciden",
     path: ["confirmPassword"],
   })
 
@@ -93,7 +93,7 @@ export default function RegisterPage() {
 
     if (result?.error) {
       setError(
-        "Registro exitoso pero fallo el inicio de sesion automatico. Intenta iniciar sesion."
+        "Registro exitoso pero falló el inicio de sesión automatico. Intenta iniciar sesión."
       )
       setSuccess(false)
     } else {
@@ -125,8 +125,8 @@ export default function RegisterPage() {
 
   const passwordChecks = [
     { label: "8 caracteres minimo", met: password.length >= 8 },
-    { label: "1 mayuscula", met: /[A-Z]/.test(password) },
-    { label: "1 numero", met: /[0-9]/.test(password) },
+    { label: "1 mayúscula", met: /[A-Z]/.test(password) },
+    { label: "1 número", met: /[0-9]/.test(password) },
   ]
 
   return (
@@ -160,7 +160,7 @@ export default function RegisterPage() {
                 id="password"
                 type="password"
                 autoComplete="new-password"
-                placeholder="Min. 8 caracteres, 1 mayuscula, 1 numero"
+                placeholder="Mín. 8 caracteres, 1 mayúscula, 1 número"
                 {...register("password")}
               />
               {password.length > 0 && (
@@ -216,9 +216,9 @@ export default function RegisterPage() {
         </CardContent>
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
-            Ya tienes cuenta?{" "}
+            ¿Ya tienes cuenta?{" "}
             <Link href="/login" className="font-medium text-primary hover:underline">
-              Inicia sesion
+              Inicia sesión
             </Link>
           </p>
         </CardFooter>

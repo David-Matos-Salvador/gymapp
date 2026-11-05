@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   })
   if (!user || user.role !== "MEMBER" || !user.gymId) {
     return NextResponse.json(
-      { error: "Necesitás un gimnasio para adquirir un plan" },
+      { error: "Necesitas un gimnasio para adquirir un plan" },
       { status: 403 }
     )
   }
@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   })
   if (active) {
     return NextResponse.json(
-      { error: "Ya tenés una membresía vigente. Renovala en lugar de comprar otra." },
+      { error: "Ya tienes una membresía vigente. Renuévala en lugar de comprar otra." },
       { status: 409 }
     )
   }
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
         ? (error as { code?: string }).code
         : undefined
     if (code === "P2002") {
-      return NextResponse.json({ error: "Ya tenés una membresía con ese plan" }, { status: 409 })
+      return NextResponse.json({ error: "Ya tienes una membresía con ese plan" }, { status: 409 })
     }
     logger.error("Self membership creation failed", {
       requestId,

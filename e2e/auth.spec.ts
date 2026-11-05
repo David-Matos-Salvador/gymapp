@@ -58,6 +58,6 @@ test.describe("Auth flows", () => {
 
   test("register page has link to login", async ({ page }) => {
     await page.goto("/register")
-    await expect(page.getByRole("link", { name: /Inicia sesion/i })).toBeVisible()
+    await expect(page.getByRole("link", { name: /Inicia sesión/i })).toBeVisible()
   })
 })

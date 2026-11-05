@@ -81,7 +81,7 @@ export function ShareProgress({ workout, open, onClose }: ShareProgressProps) {
           </div>
           <DialogTitle className="text-center">Entrenamiento completado</DialogTitle>
           <DialogDescription className="text-center">
-            Compartí tu progreso con amigos
+            Comparte tu progreso con amigos
           </DialogDescription>
         </DialogHeader>
 

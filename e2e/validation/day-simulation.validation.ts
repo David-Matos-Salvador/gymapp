@@ -608,7 +608,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
         await page.locator("#confirmPassword").fill("Demo1234")
         await page.getByRole("button", { name: /^Crear cuenta$/i }).click()
         await page.waitForURL(/\/onboarding/, { timeout: 25_000 })
-        await expect(page.getByRole("heading", { name: /¿Entrenás en un gimnasio?/i })).toBeVisible(
+        await expect(page.getByRole("heading", { name: /¿Entrenas en un gimnasio?/i })).toBeVisible(
           { timeout: 20_000 }
         )
         await page.getByRole("button", { name: /^Continuar$/i }).click()
@@ -1257,7 +1257,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     async () => {
       await visit(laura.page, "/onboarding")
       await expect(
-        laura.page.getByRole("heading", { name: /¿Entrenás en un gimnasio?/i })
+        laura.page.getByRole("heading", { name: /¿Entrenas en un gimnasio?/i })
       ).toBeVisible({ timeout: 20_000 })
       await laura.page.getByRole("button", { name: /^Continuar$/i }).click()
       await expect(laura.page.getByRole("heading", { name: /¿Cuál es tu objetivo?/i })).toBeVisible(

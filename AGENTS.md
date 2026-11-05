@@ -10,6 +10,12 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 Este proyecto tiene **un solo sistema de tema**. `src/app/globals.css` es la única fuente de verdad para design tokens. No se permite: crear `tailwind.config.ts`, agregar otro sistema de temas (MUI, styled-components, etc.), ni definir variables de tema en otros archivos CSS. Ver regla completa en `.kilo/rules/theme.md`.
 
+## Textos — se habla de tú
+
+La app trata al usuario de **tú**, en español neutro de Perú y LATAM: nada de "vos" ni "usted"
+(`Elige`, `Puedes`, `Intenta`; no `Elegí`, `Podés`, `Intentá`). Con tildes y signos de apertura
+(¿ ¡) completos, también en mensajes de error de la API.
+
 ## DB Reset Rule
 
 After implementing any feature or change that affects Prisma schema, API routes, or seed data, run:

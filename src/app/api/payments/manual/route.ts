@@ -48,7 +48,7 @@ export async function POST(request: Request) {
   }
   if (membership.status !== "ACTIVE" || membership.endDate.getTime() <= Date.now()) {
     return NextResponse.json(
-      { error: "La membresía está vencida. Renovala antes de registrar el pago." },
+      { error: "La membresía está vencida. Renuévala antes de registrar el pago." },
       { status: 409 }
     )
   }

@@ -446,7 +446,7 @@ export default function LogWorkoutPage() {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">Entrenamiento en pausa</p>
                 <p className="text-xs text-muted-foreground">
-                  El cronómetro está detenido. Reanudá cuando estés listo.
+                  El cronómetro está detenido. Reanuda cuando estés listo.
                 </p>
               </div>
               <Button size="sm" className="min-h-11" onClick={resumeWorkout}>
@@ -625,7 +625,7 @@ export default function LogWorkoutPage() {
                 className="w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30 resize-none"
               />
               <p className="mt-2 text-[11px] text-muted-foreground">
-                Borrador guardado en este dispositivo. Si cambiás de dispositivo, no se sincroniza.
+                Borrador guardado en este dispositivo. Si cambias de dispositivo, no se sincroniza.
               </p>
             </CardContent>
           </Card>
@@ -668,7 +668,7 @@ export default function LogWorkoutPage() {
               >
                 <Save className="h-4 w-4" />
                 {!hasCompletedSet
-                  ? "Completá una serie"
+                  ? "Completa una serie"
                   : saving
                     ? "Guardando..."
                     : "Finalizar entrenamiento"}

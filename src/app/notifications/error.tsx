@@ -22,7 +22,7 @@ export default function Error({
       </div>
       <h2 className="text-xl font-semibold mb-2">Algo salió mal</h2>
       <p className="text-muted-foreground mb-6 max-w-md">
-        Ocurrió un error al cargar las notificaciones. Intentá de nuevo.
+        Ocurrió un error al cargar las notificaciones. Intenta de nuevo.
       </p>
       <Button onClick={() => reset()}>Reintentar</Button>
     </div>

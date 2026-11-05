@@ -10,8 +10,8 @@ const createMemberSchema = z.object({
   password: z
     .string()
     .min(8, "Minimo 8 caracteres")
-    .regex(/[A-Z]/, "Debe contener una mayuscula")
-    .regex(/[0-9]/, "Debe contener un numero"),
+    .regex(/[A-Z]/, "Debe contener una mayúscula")
+    .regex(/[0-9]/, "Debe contener un número"),
   phone: z.string().optional(),
 })
 
