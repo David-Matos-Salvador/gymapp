@@ -617,9 +617,9 @@ export default function OnboardingPage() {
         return (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h2 className="text-2xl font-bold">¿Entrenás en un gimnasio?</h2>
+              <h2 className="text-2xl font-bold">¿Entrenas en un gimnasio?</h2>
               <p className="text-sm text-muted-foreground">
-                Si tu gimnasio usa GymApp, buscalo para ver sus máquinas y ejercicios. Si no, seguí
+                Si tu gimnasio usa GymApp, búscalo para ver sus máquinas y ejercicios. Si no, sigue
                 con el catálogo por defecto.
               </p>
             </div>
@@ -680,7 +680,7 @@ export default function OnboardingPage() {
                 )}
 
                 <p className="text-center text-xs text-muted-foreground">
-                  Podés continuar sin gimnasio y usar el catálogo por defecto.
+                  Puedes continuar sin gimnasio y usar el catálogo por defecto.
                 </p>
               </>
             )}
@@ -999,7 +999,7 @@ export default function OnboardingPage() {
               <h2 className="text-2xl font-bold tracking-tight">Medidas corporales</h2>
               <p className="text-muted-foreground">
                 {assisted
-                  ? "Tomá las medidas del cliente — todas son opcionales"
+                  ? "Toma las medidas del cliente — todas son opcionales"
                   : "Todas las medidas son opcionales, tu coach puede completarlas más tarde"}
               </p>
             </div>
@@ -1036,7 +1036,7 @@ export default function OnboardingPage() {
             </div>
 
             <p className="text-center text-xs text-muted-foreground">
-              Podés saltear este paso: las medidas se podrán registrar después.
+              Puedes omitir este paso: las medidas se podrán registrar después.
             </p>
           </div>
         )
@@ -1046,7 +1046,7 @@ export default function OnboardingPage() {
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
               <h2 className="text-2xl font-bold tracking-tight">Horario habitual</h2>
-              <p className="text-muted-foreground">¿A qué hora suele entrenar?</p>
+              <p className="text-muted-foreground">¿A qué hora sueles entrenar?</p>
             </div>
             <div className="space-y-2.5">
               {scheduleOptions.map((opt) => {
@@ -1276,7 +1276,7 @@ export default function OnboardingPage() {
             <div className="text-center space-y-2 pb-1">
               <h2 className="text-2xl font-bold tracking-tight">Tu rutina personalizada</h2>
               <p className="text-muted-foreground">
-                Tocá para ver detalles · doble toque para elegir
+                Toca para ver detalles · doble toque para elegir
               </p>
             </div>
 

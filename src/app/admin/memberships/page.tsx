@@ -111,7 +111,7 @@ export default async function AdminMembershipsPage() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Membresías</h1>
           <p className="text-muted-foreground">
             Estado y vigencia de cada membresía (plan, gym, coach, fechas). Si hay un comprobante
-            pendiente, usá <strong>Revisar comprobante</strong> para ver la captura y confirmar el
+            pendiente, usa <strong>Revisar comprobante</strong> para ver la captura y confirmar el
             pago. <strong>Registrar pago manual</strong> es solo para efectivo, sin comprobante.
           </p>
         </div>

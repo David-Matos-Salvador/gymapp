@@ -124,7 +124,7 @@ export function MembershipCard({ membership }: MembershipCardProps) {
         const data = await res.json()
         if (data.code === "PRICE_CHANGED" && data.current) {
           const accepted = window.confirm(
-            `El nuevo precio es ${data.current.currency} ${Number(data.current.price).toFixed(2)} por ${data.current.durationDays} días (antes ${data.current.previousCurrency} ${Number(data.current.previousPrice).toFixed(2)}). ¿Aceptás renovar con el nuevo precio?`
+            `El nuevo precio es ${data.current.currency} ${Number(data.current.price).toFixed(2)} por ${data.current.durationDays} días (antes ${data.current.previousCurrency} ${Number(data.current.previousPrice).toFixed(2)}). ¿Aceptas renovar con el nuevo precio?`
           )
           if (!accepted) {
             toast.info("No se renovó. Tu membresía vence en la fecha actual.")

@@ -223,7 +223,7 @@ export function useWorkoutSession({
           Notification.permission === "granted" &&
           document.hidden
         ) {
-          new Notification("Descanso terminado", { body: "Empezá la siguiente serie." })
+          new Notification("Descanso terminado", { body: "Empieza la siguiente serie." })
         }
         return
       }

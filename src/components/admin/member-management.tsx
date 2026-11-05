@@ -59,7 +59,7 @@ export function MemberManagement({ initialMembers, canManage }: MemberManagement
 
   async function handleCreate() {
     if (!form.name.trim() || !form.email.trim() || !form.password) {
-      setError("Completá nombre, email y contraseña inicial")
+      setError("Completa nombre, email y contraseña inicial")
       return
     }
     setSaving(true)
@@ -158,7 +158,7 @@ export function MemberManagement({ initialMembers, canManage }: MemberManagement
           <DialogHeader>
             <DialogTitle>Nuevo miembro</DialogTitle>
             <DialogDescription>
-              Se crea en este gimnasio sin coach asignado. Compartí la contraseña inicial por un
+              Se crea en este gimnasio sin coach asignado. Comparte la contraseña inicial por un
               canal seguro; el miembro puede cambiarla luego.
             </DialogDescription>
           </DialogHeader>

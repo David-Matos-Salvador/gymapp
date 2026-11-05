@@ -538,7 +538,7 @@ export function SuperAdminDashboard({
           <DialogHeader>
             <DialogTitle>Editar gimnasio</DialogTitle>
             <DialogDescription>
-              Actualizá los datos del gimnasio y su configuración de plataforma.
+              Actualiza los datos del gimnasio y su configuración de plataforma.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -651,7 +651,7 @@ export function SuperAdminDashboard({
           <DialogHeader>
             <DialogTitle>Crear admin</DialogTitle>
             <DialogDescription>
-              Creá un administrador o entrenador para {adminGym?.name}.
+              Crea un administrador o entrenador para {adminGym?.name}.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

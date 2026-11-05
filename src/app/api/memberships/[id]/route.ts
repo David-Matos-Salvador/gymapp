@@ -115,7 +115,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     )
     if (forbiddenField) {
       return NextResponse.json(
-        { error: "Usá el cobro de pago o la renovación; no edites esos campos directamente" },
+        { error: "Usa el cobro de pago o la renovación; no edites esos campos directamente" },
         { status: 403 }
       )
     }
@@ -162,7 +162,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
 
     if (!isAdmin && existing.plan.active === false) {
       return NextResponse.json(
-        { error: "El plan está inactivo. Elegí un plan activo o contactá al gimnasio." },
+        { error: "El plan está inactivo. Elige un plan activo o contacta al gimnasio." },
         { status: 409 }
       )
     }
@@ -175,7 +175,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     if (!isAdmin && priceChanged && input.acceptNewPrice !== true) {
       return NextResponse.json(
         {
-          error: "El precio de tu plan cambió. Aceptá el nuevo precio para renovar.",
+          error: "El precio de tu plan cambió. Acepta el nuevo precio para renovar.",
           code: "PRICE_CHANGED",
           current: {
             price: Number(existing.plan.price),

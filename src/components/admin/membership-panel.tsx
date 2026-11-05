@@ -295,7 +295,7 @@ export function MembershipPanel({
 
   async function handleCreateMembership() {
     if (!newMemberId || !newPlanId) {
-      setNewError("Elegí un miembro y un plan")
+      setNewError("Elige un miembro y un plan")
       return
     }
 
@@ -738,7 +738,7 @@ export function MembershipPanel({
           <DialogHeader>
             <DialogTitle>Nueva membresía</DialogTitle>
             <DialogDescription>
-              Elegí un miembro del gimnasio y un plan activo. La membresía queda con el pago
+              Elige un miembro del gimnasio y un plan activo. La membresía queda con el pago
               pendiente.
             </DialogDescription>
           </DialogHeader>

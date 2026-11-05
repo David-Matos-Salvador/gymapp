@@ -43,7 +43,7 @@ export default function GlobalError({
             Algo salió mal
           </h1>
           <p style={{ marginBottom: "1.5rem", opacity: 0.75 }}>
-            Ocurrió un error inesperado. Intentá de nuevo.
+            Ocurrió un error inesperado. Intenta de nuevo.
           </p>
           <button
             type="button"

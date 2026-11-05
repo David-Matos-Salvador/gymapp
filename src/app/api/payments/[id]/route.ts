@@ -91,7 +91,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
       }
       if (target.endDate <= new Date()) {
         return NextResponse.json(
-          { error: "La membresía venció. Renovala antes de confirmar el pago." },
+          { error: "La membresía venció. Renuévala antes de confirmar el pago." },
           { status: 409 }
         )
       }

@@ -12,8 +12,8 @@ const registerSchema = z.object({
   password: z
     .string()
     .min(8, "Minimo 8 caracteres")
-    .regex(/[A-Z]/, "Debe contener una mayuscula")
-    .regex(/[0-9]/, "Debe contener un numero"),
+    .regex(/[A-Z]/, "Debe contener una mayúscula")
+    .regex(/[0-9]/, "Debe contener un número"),
   role: z.literal("MEMBER").default("MEMBER"),
   gymSlug: z.string().optional(),
 })
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
   try {
     if (!(await rateLimit(`register:${requestIp(request)}`, 5, 900))) {
       return NextResponse.json(
-        { error: "Demasiados intentos. Intentá de nuevo en unos minutos." },
+        { error: "Demasiados intentos. Intenta de nuevo en unos minutos." },
         { status: 429 }
       )
     }

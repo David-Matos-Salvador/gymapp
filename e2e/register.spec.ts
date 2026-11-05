@@ -17,7 +17,7 @@ test.describe("Register page — mode selection", () => {
   })
 
   test("has link to login page", async ({ page }) => {
-    await expect(page.getByRole("link", { name: /Inicia sesion/i })).toBeVisible()
+    await expect(page.getByRole("link", { name: /Inicia sesión/i })).toBeVisible()
   })
 })
 
@@ -51,15 +51,15 @@ test.describe("Register form — member mode", () => {
   test("shows password strength indicator when typing", async ({ page }) => {
     await page.locator(PWD_INPUT).fill("abc")
     await expect(page.getByText(/8 caracteres/i)).toBeVisible()
-    await expect(page.getByText(/1 mayuscula/i)).toBeVisible()
-    await expect(page.getByText(/1 numero/i)).toBeVisible()
+    await expect(page.getByText(/1 mayúscula/i)).toBeVisible()
+    await expect(page.getByText(/1 número/i)).toBeVisible()
   })
 
   test("password checks turn green when requirements met", async ({ page }) => {
     await page.locator(PWD_INPUT).fill("Abcdefg1")
     await expect(page.getByText("8 caracteres minimo")).toBeVisible()
-    await expect(page.getByText("1 mayuscula")).toBeVisible()
-    await expect(page.getByText("1 numero")).toBeVisible()
+    await expect(page.getByText("1 mayúscula")).toBeVisible()
+    await expect(page.getByText("1 número")).toBeVisible()
   })
 
   test("shows password mismatch error", async ({ page }) => {

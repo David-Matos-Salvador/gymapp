@@ -115,7 +115,7 @@ export default function CoachPaymentsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Comprobantes</h1>
           <p className="text-muted-foreground">
-            Bandeja de comprobantes: revisá la captura y confirmá o rechazá el pago. El estado de la
+            Bandeja de comprobantes: revisa la captura y confirma o rechaza el pago. El estado de la
             membresía lo gestiona el administrador.
           </p>
         </div>

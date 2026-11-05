@@ -38,7 +38,7 @@ export default function SettingsPage() {
         {/* Page Header */}
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Configuración</h1>
-          <p className="text-muted-foreground">Personalizá tu experiencia</p>
+          <p className="text-muted-foreground">Personaliza tu experiencia</p>
         </div>
 
         {/* Appearance Card */}
@@ -88,7 +88,7 @@ export default function SettingsPage() {
                 <Volume2 className="h-5 w-5 text-accent-yellow" />
                 Sonido
               </CardTitle>
-              <CardDescription>Activá o desactivá los efectos de sonido</CardDescription>
+              <CardDescription>Activa o desactiva los efectos de sonido</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <button

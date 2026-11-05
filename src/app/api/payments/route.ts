@@ -108,26 +108,26 @@ export async function POST(request: Request) {
       })
       if (otherActive) {
         return NextResponse.json(
-          { error: "Ya tenés una membresía vigente. Renovala en lugar de comprar otra." },
+          { error: "Ya tienes una membresía vigente. Renuévala en lugar de comprar otra." },
           { status: 409 }
         )
       }
 
       if (existingMembership?.status === "ACTIVE" && existingMembership.endDate <= now) {
         return NextResponse.json(
-          { error: "Tu membresía venció. Renovala antes de subir un nuevo comprobante." },
+          { error: "Tu membresía venció. Renuévala antes de subir un nuevo comprobante." },
           { status: 409 }
         )
       }
       if (existingMembership?.status && existingMembership.status !== "ACTIVE") {
         return NextResponse.json(
-          { error: "Ese plan ya tiene una membresía cerrada. Renovala desde Membresía." },
+          { error: "Ese plan ya tiene una membresía cerrada. Renuévala desde Membresía." },
           { status: 409 }
         )
       }
       if (existingMembership?.paymentConfirmed) {
         return NextResponse.json(
-          { error: "Ya tenés una membresía activa con este plan." },
+          { error: "Ya tienes una membresía activa con este plan." },
           { status: 409 }
         )
       }
@@ -217,7 +217,7 @@ export async function POST(request: Request) {
         (err as { code?: string }).code === "P2002"
       ) {
         return NextResponse.json(
-          { error: "Ya existe una membresía para ese plan. Renovala desde Membresía." },
+          { error: "Ya existe una membresía para ese plan. Renuévala desde Membresía." },
           { status: 409 }
         )
       }

@@ -270,7 +270,7 @@ export function ProfileForm({ user }: { user: User }) {
       <Card>
         <CardHeader className="border-b">
           <CardTitle className="text-lg">Editar información</CardTitle>
-          <CardDescription>Actualizá tu nombre y teléfono</CardDescription>
+          <CardDescription>Actualiza tu nombre y teléfono</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-4">
           <div className="flex items-center gap-4">
@@ -348,7 +348,7 @@ export function ProfileForm({ user }: { user: User }) {
           <Separator />
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
-              {hasChanges ? "Tenés cambios sin guardar" : "No hay cambios pendientes"}
+              {hasChanges ? "Tienes cambios sin guardar" : "No hay cambios pendientes"}
             </p>
             <Button
               onClick={handleSave}

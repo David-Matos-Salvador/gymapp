@@ -30,7 +30,7 @@ export default function Error({
       </div>
       <h2 className="text-xl font-semibold mb-2">Algo salió mal</h2>
       <p className="text-muted-foreground mb-6 max-w-md">
-        Ocurrió un error inesperado. Intentá de nuevo.
+        Ocurrió un error inesperado. Intenta de nuevo.
       </p>
       <Button onClick={() => unstable_retry()}>Reintentar</Button>
     </div>

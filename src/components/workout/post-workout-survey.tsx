@@ -47,7 +47,7 @@ export function PostWorkoutSurvey({ open, onClose, onSubmit }: PostWorkoutSurvey
           >
             <h2 className="text-xl font-bold text-center mb-2">¿Cómo te sentiste?</h2>
             <p className="text-sm text-muted-foreground text-center mb-6">
-              Valorá tu entrenamiento de hoy
+              Valora tu entrenamiento de hoy
             </p>
 
             <div className="flex items-center justify-center gap-3">

@@ -22,7 +22,7 @@ export default function Error({
       </div>
       <h2 className="text-xl font-semibold mb-2">Algo salió mal</h2>
       <p className="text-muted-foreground mb-6 max-w-md">
-        No se pudo cargar la página del ejercicio. Intentá de nuevo.
+        No se pudo cargar la página del ejercicio. Intenta de nuevo.
       </p>
       <Button onClick={() => reset()}>Reintentar</Button>
     </div>

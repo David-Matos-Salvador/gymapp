@@ -77,7 +77,7 @@ export async function POST(request: Request) {
     }
     if (membership.endDate <= new Date()) {
       return NextResponse.json(
-        { error: "Tu membresía venció. Renovala antes de subir un comprobante." },
+        { error: "Tu membresía venció. Renuévala antes de subir un comprobante." },
         { status: 409 }
       )
     }

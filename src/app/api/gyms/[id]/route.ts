@@ -74,7 +74,7 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     if (forbidden.length > 0) {
       return NextResponse.json(
         {
-          error: "No podés modificar esos campos de este gimnasio",
+          error: "No puedes modificar esos campos de este gimnasio",
           details: { forbidden },
         },
         { status: 403 }

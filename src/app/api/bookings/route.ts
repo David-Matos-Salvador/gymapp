@@ -155,7 +155,7 @@ export async function DELETE(request: Request) {
   }
   if (booking.status !== "CONFIRMED") {
     return NextResponse.json(
-      { error: "Solo podés cancelar una reserva confirmada" },
+      { error: "Solo puedes cancelar una reserva confirmada" },
       { status: 409 }
     )
   }
