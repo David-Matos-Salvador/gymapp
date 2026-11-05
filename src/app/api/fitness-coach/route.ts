@@ -365,7 +365,10 @@ function pickExercisesForMuscleGroup(
   const pool = (MUSCLE_POOL[mainGroup] ?? MUSCLE_POOL.FULL_BODY).filter(
     (ex) => !allowedNames || allowedNames.has(ex.name)
   )
-  const available = pool.filter((ex) => !usedNames.has(ex.name)).slice(0, 4)
+  // En cuerpo completo los ejercicios se repiten entre días: el pool es corto.
+  const available = pool
+    .filter((ex) => mainGroup === "FULL_BODY" || !usedNames.has(ex.name))
+    .slice(0, 4)
 
   const count = Math.min(available.length, Math.max(2, Math.floor(3 * multiplier)))
   const chosen = available.slice(0, count)

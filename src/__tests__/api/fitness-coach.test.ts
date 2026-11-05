@@ -205,6 +205,34 @@ describe("POST /api/fitness-coach", () => {
     expect(new Set(normalizedNames).size).toBe(names.length)
   })
 
+  it("repite ejercicios entre días en Full Body para que ninguna división quede corta", async () => {
+    const response = await POST(
+      new Request("http://localhost:3115/api/fitness-coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          objective: "MUSCLE_GAIN",
+          experienceLevel: "BEGINNER",
+          trainingFrequency: 3,
+        }),
+      })
+    )
+    expect(response.status).toBe(200)
+
+    const fullBodyCall = h.planCreate.mock.calls.find(([args]) =>
+      args.data.name.startsWith("Full Body")
+    )
+    const splits = (
+      fullBodyCall![0].data as unknown as {
+        splits: { create: { exercises: { create: unknown[] } }[] }
+      }
+    ).splits.create
+    expect(splits).toHaveLength(3)
+    for (const split of splits) {
+      expect(split.exercises.create).toHaveLength(3)
+    }
+  })
+
   it("canonicalizes pool names to the seed spelling", async () => {
     const response = await POST(onboardingRequest())
     expect(response.status).toBe(200)
