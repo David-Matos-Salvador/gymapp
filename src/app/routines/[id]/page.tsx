@@ -8,6 +8,7 @@ import Link from "next/link"
 import { Dumbbell } from "lucide-react"
 import { revalidatePath } from "next/cache"
 import { RoutineEditButton } from "@/components/routines/routine-edit-button"
+import { formatMuscleGroups } from "@/constants/user"
 import { canEditPlan, canReadPlan } from "@/lib/routine-access"
 
 interface PageProps {
@@ -84,7 +85,9 @@ export default async function RoutineDetailPage({ params }: PageProps) {
                 {split.name}
               </CardTitle>
               {split.muscleGroups.length > 0 && (
-                <p className="text-xs text-muted-foreground">{split.muscleGroups.join(", ")}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatMuscleGroups(split.muscleGroups)}
+                </p>
               )}
             </CardHeader>
             <CardContent>
