@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, GripVertical } from "lucide-react"
 import { toast } from "sonner"
+import { MUSCLE_LABELS } from "@/constants/user"
 import { useAuth } from "@/hooks/use-auth"
 
 interface Exercise {
@@ -121,7 +122,8 @@ export default function NewRoutinePage() {
     .filter(
       (e) =>
         e.name.toLowerCase().includes(search.toLowerCase()) ||
-        e.muscleGroup.toLowerCase().includes(search.toLowerCase())
+        e.muscleGroup.toLowerCase().includes(search.toLowerCase()) ||
+        (MUSCLE_LABELS[e.muscleGroup] ?? "").toLowerCase().includes(search.toLowerCase())
     )
     .slice(0, 15)
 
@@ -265,7 +267,7 @@ export default function NewRoutinePage() {
                           <div>
                             <p className="text-sm font-medium">{ex.name}</p>
                             <p className="text-[10px] text-muted-foreground">
-                              {ex.muscleGroup} · {ex.equipment}
+                              {MUSCLE_LABELS[ex.muscleGroup] ?? ex.muscleGroup} · {ex.equipment}
                             </p>
                           </div>
                         </button>
@@ -283,7 +285,7 @@ export default function NewRoutinePage() {
                     className="rounded-full border px-2.5 py-0.5 text-xs hover:bg-muted transition-colors"
                     onClick={() => setSearch(group)}
                   >
-                    {group}
+                    {MUSCLE_LABELS[group] ?? group}
                   </button>
                 ))}
               </div>
