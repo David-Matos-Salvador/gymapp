@@ -471,10 +471,7 @@ export default function LogWorkoutPage() {
 
         {phase === "prepare" && (
           <div className="flex flex-col items-center gap-3 py-6 px-4 rounded-xl bg-accent-yellow/5 border border-accent-yellow/30">
-            <p className="text-sm text-muted-foreground">
-              {totalExercises} ejercicios · ~
-              {split.estimatedDuration ?? Math.round(totalExercises * 2.5)} min estimados
-            </p>
+            <p className="text-sm text-muted-foreground">{totalExercises} ejercicios</p>
             <Button onClick={startWorkout} className="min-h-11 gap-2">
               <Play className="h-4 w-4" /> Iniciar entrenamiento
             </Button>

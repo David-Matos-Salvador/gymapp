@@ -26,7 +26,6 @@ const mockRoutines = [
     description: "Enfocada en pectorales",
     exerciseCount: 5,
     muscleGroups: ["CHEST", "TRICEPS"],
-    totalDuration: 45,
   },
   {
     id: "2",
@@ -34,7 +33,6 @@ const mockRoutines = [
     description: null,
     exerciseCount: 4,
     muscleGroups: ["LEGS", "GLUTES"],
-    totalDuration: undefined,
   },
 ]
 
