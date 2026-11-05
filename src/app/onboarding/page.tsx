@@ -948,11 +948,12 @@ export default function OnboardingPage() {
 
             <div className="space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-muted-foreground">
+                <label htmlFor="onb-weight" className="text-sm font-semibold text-muted-foreground">
                   ¿Cuánto pesas?
                 </label>
                 <div className="relative">
                   <input
+                    id="onb-weight"
                     type="text"
                     inputMode="decimal"
                     value={weightInput}
@@ -968,11 +969,12 @@ export default function OnboardingPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-muted-foreground">
+                <label htmlFor="onb-height" className="text-sm font-semibold text-muted-foreground">
                   ¿Cuánto mides?
                 </label>
                 <div className="relative">
                   <input
+                    id="onb-height"
                     type="text"
                     inputMode="decimal"
                     value={heightInput}
@@ -1023,10 +1025,14 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-2 gap-3">
               {measurementFields.map((f) => (
                 <div key={f.key} className="space-y-1.5">
-                  <label className="text-xs font-semibold text-muted-foreground">
+                  <label
+                    htmlFor={`onb-measure-${f.key}`}
+                    className="text-xs font-semibold text-muted-foreground"
+                  >
                     {f.label} ({f.unit})
                   </label>
                   <input
+                    id={`onb-measure-${f.key}`}
                     type="text"
                     inputMode="decimal"
                     value={measurementInputs[f.key] ?? ""}
@@ -1263,7 +1269,7 @@ export default function OnboardingPage() {
             <div className="flex gap-3 pt-2">
               <Button variant="outline" className="flex-1 h-12 rounded-xl" onClick={goBack}>
                 <ChevronLeft className="mr-2 h-4 w-4" />
-                Editar
+                Volver
               </Button>
               <Button
                 className="flex-1 h-12 rounded-xl bg-primary hover:bg-primary/90"
@@ -1535,6 +1541,7 @@ export default function OnboardingPage() {
               step <= 1 || isSubmitting || isGenerating ? "invisible" : ""
             }`}
             disabled={isSubmitting || isGenerating}
+            aria-label="Volver"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
@@ -1559,6 +1566,7 @@ export default function OnboardingPage() {
               className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
               disabled={isGenerating}
               title="Salir del onboarding asistido"
+              aria-label="Salir del onboarding asistido"
             >
               <X className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -1567,6 +1575,7 @@ export default function OnboardingPage() {
               onClick={() => signOut({ callbackUrl: "/login" })}
               className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
               disabled={isGenerating}
+              aria-label="Cerrar sesión"
             >
               <LogOut className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -1634,6 +1643,7 @@ function SummaryRow({
       </div>
       <button
         onClick={onEdit}
+        aria-label={`Editar ${label}`}
         className="ml-3 text-xs font-semibold text-primary hover:underline shrink-0"
       >
         Editar
