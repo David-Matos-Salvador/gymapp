@@ -238,7 +238,6 @@ export function RutinaClient({
               description={split.description}
               muscleGroups={split.muscleGroups}
               exerciseCount={split.exerciseCount}
-              estimatedDuration={split.estimatedDuration}
               onClick={() => handleSplitClick(split.id)}
               {...getSplitVariant(split.id)}
             />

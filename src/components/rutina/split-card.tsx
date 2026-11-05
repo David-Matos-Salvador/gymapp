@@ -18,12 +18,11 @@ type SplitCardProps = {
   description: string | null
   muscleGroups: string[]
   exerciseCount: number
-  estimatedDuration: number | null
   onClick: () => void
 } & SplitVariant
 
 export function SplitCard(props: SplitCardProps) {
-  const { label, name, muscleGroups, exerciseCount, estimatedDuration, onClick } = props
+  const { label, name, muscleGroups, exerciseCount, onClick } = props
 
   const variant = props.variant
   const isLocked = variant === "locked"
@@ -109,7 +108,6 @@ export function SplitCard(props: SplitCardProps) {
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Dumbbell className="h-3 w-3" />
               {exerciseCount} ejercicios
-              {estimatedDuration ? ` · ~${estimatedDuration} min` : ""}
             </p>
           </div>
         </div>

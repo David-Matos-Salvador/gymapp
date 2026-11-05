@@ -570,15 +570,6 @@ export function RoutineEditorContent({
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="rsDuration">Duración (min)</Label>
-              <Input
-                id="rsDuration"
-                type="number"
-                value={splitForm.estimatedDuration}
-                onChange={(e) => setSplitForm((p) => ({ ...p, estimatedDuration: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-1.5">
               <Label htmlFor="rsDifficulty">Dificultad</Label>
               <Select
                 value={splitForm.difficulty}

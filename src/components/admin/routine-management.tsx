@@ -778,17 +778,6 @@ export function RoutineManagement({
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Duración estimada (min)</Label>
-                <Input
-                  type="number"
-                  value={splitForm.estimatedDuration}
-                  onChange={(e) =>
-                    setSplitForm((s) => ({ ...s, estimatedDuration: e.target.value }))
-                  }
-                  placeholder="45"
-                />
-              </div>
-              <div className="space-y-2">
                 <Label>Dificultad</Label>
                 <Select
                   value={splitForm.difficulty || "__none__"}

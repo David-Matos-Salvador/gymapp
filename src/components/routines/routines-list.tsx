@@ -6,7 +6,7 @@ import { motion } from "framer-motion"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Dumbbell, Plus, Clock } from "lucide-react"
+import { Dumbbell, Plus } from "lucide-react"
 
 interface BaseRoutine {
   id: string
@@ -14,7 +14,6 @@ interface BaseRoutine {
   description?: string | null
   exerciseCount: number
   muscleGroups: string[]
-  totalDuration?: number
 }
 
 interface RoutinesListProps {
@@ -95,11 +94,6 @@ export function RoutinesList({ routines, isCoach, recommended }: RoutinesListPro
                         <Dumbbell className="h-3 w-3" />
                         {routine.exerciseCount} ejercicios
                       </span>
-                      {routine.totalDuration && (
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />~{routine.totalDuration}min
-                        </span>
-                      )}
                     </div>
                     {routine.muscleGroups.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1">
