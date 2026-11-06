@@ -4,8 +4,12 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-# Reintentos ante cortes de red del registro (ECONNRESET intermitente, #43)
-RUN npm ci --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
+# Caché de npm entre builds: los paquetes ya descargados no se vuelven a pedir al registro,
+# que corta la conexión a mitad de descarga (ECONNRESET, #43 y #58). La caché sobrevive
+# aunque el build se haga sin caché de capas.
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --prefer-offline --no-audit --no-fund \
+    --fetch-retries=5 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 
 # Stage 2: Builder
 FROM base AS builder
