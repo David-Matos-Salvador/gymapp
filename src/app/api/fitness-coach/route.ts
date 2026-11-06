@@ -365,7 +365,10 @@ function pickExercisesForMuscleGroup(
   const pool = (MUSCLE_POOL[mainGroup] ?? MUSCLE_POOL.FULL_BODY).filter(
     (ex) => !allowedNames || allowedNames.has(ex.name)
   )
-  const available = pool.filter((ex) => !usedNames.has(ex.name)).slice(0, 4)
+  // En cuerpo completo los ejercicios se repiten entre días: el pool es corto.
+  const available = pool
+    .filter((ex) => mainGroup === "FULL_BODY" || !usedNames.has(ex.name))
+    .slice(0, 4)
 
   const count = Math.min(available.length, Math.max(2, Math.floor(3 * multiplier)))
   const chosen = available.slice(0, count)
@@ -539,7 +542,53 @@ export async function POST(request: Request) {
         },
       })
 
-      if (existingPlan) return existingPlan
+      if (existingPlan) {
+        // Rutinas guardadas con el bug de Full Body: se rehacen solo las divisiones cortas
+        // (sin borrar el plan, para no perder asignaciones ni historial).
+        const shortSplits = existingPlan.splits.filter((s) => s.exercises.length < 2)
+        if (shortSplits.length === 0) return existingPlan
+
+        const usedExercises = new Set<string>()
+        for (const split of shortSplits) {
+          const picked = pickExercisesForMuscleGroup(
+            split.muscleGroups,
+            difficultyMultiplier,
+            usedExercises,
+            allowedNames
+          )
+          const create = await Promise.all(
+            picked.map(async (ex, exIdx) => {
+              const dbExercise = await resolveExercise(
+                ex,
+                split.muscleGroups[0] as MuscleGroup,
+                superadmin?.id
+              )
+              return {
+                exerciseId: dbExercise.id,
+                sets: ex.sets as number,
+                reps: String(ex.reps),
+                weight: 0,
+                restSeconds: ex.restSeconds,
+                order: exIdx,
+              }
+            })
+          )
+          await prisma.routineSplit.update({
+            where: { id: split.id },
+            data: { exercises: { deleteMany: {}, create } },
+          })
+        }
+
+        return prisma.routinePlan.findUniqueOrThrow({
+          where: { id: existingPlan.id },
+          include: {
+            splits: {
+              include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
+              orderBy: { order: "asc" },
+            },
+          },
+        })
+      }
 
       const usedExercises = new Set<string>()
       const splitData = template.muscleGroups.map((mg, i) => ({
