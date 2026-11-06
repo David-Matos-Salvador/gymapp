@@ -64,6 +64,11 @@ const h = vi.hoisted(() => {
     difficulty: args.data.difficulty ?? null,
     splits: [],
   }))
+  const splitUpdate = vi.fn(async (_args: unknown) => ({}))
+  const planFindUniqueOrThrow = vi.fn(async (_args: unknown) => ({
+    name: "Full Body · Ganancia muscular · 3d",
+    splits: [],
+  }))
   const assignedFindMany = vi.fn(async () => [])
 
   const exerciseFindFirst = vi.fn(async (args: ExerciseFindFirstArgs) => {
@@ -104,6 +109,8 @@ const h = vi.hoisted(() => {
     userFindFirst,
     planFindFirst,
     planCreate,
+    splitUpdate,
+    planFindUniqueOrThrow,
     assignedFindMany,
     exerciseFindFirst,
     exerciseUpsert,
@@ -141,6 +148,10 @@ vi.mock("@/lib/prisma", () => ({
     routinePlan: {
       findFirst: h.planFindFirst,
       create: h.planCreate,
+      findUniqueOrThrow: h.planFindUniqueOrThrow,
+    },
+    routineSplit: {
+      update: h.splitUpdate,
     },
     assignedRoutinePlan: {
       findMany: h.assignedFindMany,
@@ -231,6 +242,36 @@ describe("POST /api/fitness-coach", () => {
     for (const split of splits) {
       expect(split.exercises.create).toHaveLength(3)
     }
+  })
+
+  it("regenera las divisiones cortas de una rutina guardada sin borrar el plan", async () => {
+    const mkSplit = (id: string, count: number) => ({
+      id,
+      muscleGroups: ["FULL_BODY"],
+      exercises: Array.from({ length: count }, (_, i) => ({ id: `e${i}` })),
+    })
+    h.planFindFirst.mockResolvedValueOnce({
+      id: "plan-viejo",
+      splits: [mkSplit("s1", 3), mkSplit("s2", 0), mkSplit("s3", 1)],
+    } as never)
+
+    const response = await POST(
+      new Request("http://localhost:3115/api/fitness-coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          objective: "MUSCLE_GAIN",
+          experienceLevel: "BEGINNER",
+          trainingFrequency: 3,
+        }),
+      })
+    )
+    expect(response.status).toBe(200)
+
+    type UpdateArgs = { where: { id: string }; data: { exercises: { create: unknown[] } } }
+    const calls = h.splitUpdate.mock.calls.map(([args]) => args as UpdateArgs)
+    expect(calls.map((c) => c.where.id)).toEqual(["s2", "s3"])
+    expect(calls[0].data.exercises.create.length).toBeGreaterThanOrEqual(2)
   })
 
   it("canonicalizes pool names to the seed spelling", async () => {
