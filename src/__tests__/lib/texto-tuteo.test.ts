@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest"
 // La app habla de tú (ver AGENTS.md). Esta prueba evita que vuelva el voseo, el usted
 // o las faltas de tilde más comunes en los textos.
 const PROHIBIDAS =
-  /\b(vos|usted|tenés|podés|querés|necesitás|entrenás|Intentá|Elegí|Usá|Completá|Contactá|Actualizá|Renová|Subí|Ingresá|Gestioná|Esperá|Creá|Activá|Aceptá|mayuscula|numero|contrasenas|sesion)\b/i
+  /\b(vos|usted|tenés|podés|querés|necesitás|entrenás|Intentá|Elegí|Usá|Completá|Contactá|Actualizá|Renová|Subí|Ingresá|Gestioná|Esperá|Creá|Activá|Aceptá|mayuscula|numero|contrasena|contrasenas|sesion)\b/i
 
 function archivos(dir: string): string[] {
   return readdirSync(dir).flatMap((nombre) => {

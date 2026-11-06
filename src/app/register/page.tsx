@@ -189,7 +189,7 @@ export default function RegisterPage() {
                 id="confirmPassword"
                 type="password"
                 autoComplete="new-password"
-                placeholder="Repite tu contrasena"
+                placeholder="Repite tu contraseña"
                 {...register("confirmPassword")}
               />
               {errors.confirmPassword && (
