@@ -1,5 +1,6 @@
 "use client"
 
+import { pluralize } from "@/lib/utils"
 import { MUSCLE_LABELS } from "@/constants/user"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
@@ -92,7 +93,7 @@ export function RoutinesList({ routines, isCoach, recommended }: RoutinesListPro
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Dumbbell className="h-3 w-3" />
-                        {routine.exerciseCount} ejercicios
+                        {pluralize(routine.exerciseCount, "ejercicio", "ejercicios")}
                       </span>
                     </div>
                     {routine.muscleGroups.length > 0 && (

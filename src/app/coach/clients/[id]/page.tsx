@@ -34,6 +34,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { pluralize } from "@/lib/utils"
 import { OBJECTIVE_LABELS, EXPERIENCE_LABELS, calculateAge } from "@/constants/user"
 
 interface BodyMeasurement {
@@ -568,7 +569,8 @@ export default function CoachClientDetail() {
                         <div>
                           <p className="text-sm font-medium">{s.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {s.exercises.length} ejercicios · {s.muscleGroups.join(", ")}
+                            {pluralize(s.exercises.length, "ejercicio", "ejercicios")} ·
+                            {s.muscleGroups.join(", ")}
                           </p>
                         </div>
                       </Link>

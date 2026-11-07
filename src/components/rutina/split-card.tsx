@@ -1,6 +1,6 @@
 "use client"
 
-import { cn } from "@/lib/utils"
+import { cn, pluralize } from "@/lib/utils"
 import { Dumbbell, CheckCircle, Sparkles, Lock } from "lucide-react"
 import { MUSCLE_LABELS } from "@/constants/user"
 
@@ -107,7 +107,7 @@ export function SplitCard(props: SplitCardProps) {
           <div className="flex items-center gap-2 mt-1">
             <p className="text-xs text-muted-foreground flex items-center gap-1">
               <Dumbbell className="h-3 w-3" />
-              {exerciseCount} ejercicios
+              {pluralize(exerciseCount, "ejercicio", "ejercicios")}
             </p>
           </div>
         </div>

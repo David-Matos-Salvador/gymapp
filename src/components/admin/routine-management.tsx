@@ -1,5 +1,6 @@
 "use client"
 
+import { pluralize } from "@/lib/utils"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -536,7 +537,7 @@ export function RoutineManagement({
                             {split.label} — {split.name}
                           </span>
                           <span className="text-xs text-muted-foreground ml-auto">
-                            {split.exercises.length} ejercicios
+                            {pluralize(split.exercises.length, "ejercicio", "ejercicios")}
                           </span>
                           <div
                             className="flex items-center gap-0.5 shrink-0 ml-1"

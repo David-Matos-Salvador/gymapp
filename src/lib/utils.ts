@@ -19,6 +19,10 @@ export function formatDays(days: number): string {
   return `${days} ${days === 1 ? "día" : "días"}`
 }
 
+export function pluralize(count: number, singular: string, plural: string): string {
+  return `${count} ${count === 1 ? singular : plural}`
+}
+
 export function formatCurrency(amount: number, currency = "PEN"): string {
   const fmt = new Intl.NumberFormat("es-PE", {
     style: "currency",
