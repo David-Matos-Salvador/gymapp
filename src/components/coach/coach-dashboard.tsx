@@ -563,6 +563,7 @@ export function CoachDashboard({
 
       <div className="grid gap-6 lg:grid-cols-2">
         <motion.div
+          className="min-w-0"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
@@ -587,7 +588,7 @@ export function CoachDashboard({
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.04 }}
                   >
-                    <div className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group">
+                    <div className="flex flex-wrap items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors group sm:flex-nowrap">
                       <Link
                         href={`/coach/clients/${client.id}`}
                         className="flex flex-1 min-w-0 items-start gap-3"
@@ -645,7 +646,7 @@ export function CoachDashboard({
                         <Button
                           size="sm"
                           variant="outline"
-                          className="shrink-0"
+                          className="w-full shrink-0 sm:w-auto"
                           onClick={() => {
                             play("click")
                             router.push(`/onboarding?memberId=${client.id}`)
