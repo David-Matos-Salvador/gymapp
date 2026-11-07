@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { pluralize } from "@/lib/utils"
 import { AppShell } from "@/components/layout/shell"
 import { Breadcrumb } from "@/components/layout/breadcrumb"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -112,7 +113,8 @@ export default async function HistorialPage({ params }: PageProps) {
                             {log.duration ?? 0} min
                           </span>
                           <span>
-                            {totalSets} series · {exercises.length} ejercicios
+                            {pluralize(totalSets, "serie", "series")} ·{" "}
+                            {pluralize(exercises.length, "ejercicio", "ejercicios")}
                           </span>
                         </p>
                       </div>

@@ -1,5 +1,6 @@
 "use client"
 
+import { pluralize } from "@/lib/utils"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
@@ -706,7 +707,7 @@ export function CoachDashboard({
                         <div>
                           <p className="text-sm font-medium">{r.name}</p>
                           <p className="text-xs text-muted-foreground">
-                            {r.exerciseCount} ejercicios
+                            {pluralize(r.exerciseCount, "ejercicio", "ejercicios")}
                           </p>
                         </div>
                       </Link>

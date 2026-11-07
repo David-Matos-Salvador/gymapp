@@ -1,5 +1,6 @@
 "use client"
 
+import { pluralize } from "@/lib/utils"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -435,7 +436,7 @@ export function RoutineEditorContent({
                       <div>
                         <p className="text-sm font-medium">{split.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {split.exercises.length} ejercicios
+                          {pluralize(split.exercises.length, "ejercicio", "ejercicios")}
                           {split.muscleGroups.length > 0 &&
                             ` · ${split.muscleGroups.map((g) => MUSCLE_LABELS[g] ?? g).join(", ")}`}
                         </p>
