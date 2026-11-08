@@ -23,7 +23,7 @@ export async function GET() {
       return NextResponse.json({ payments: [] })
     }
     const assignedClients = await prisma.user.findMany({
-      where: { assignedTrainerId: user.id, gymId: user.gymId },
+      where: { assignedTrainerId: user.id, gymId: user.gymId, deletedAt: null },
       select: { id: true },
     })
     clientIds = assignedClients.map((client) => client.id)

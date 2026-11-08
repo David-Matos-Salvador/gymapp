@@ -20,7 +20,7 @@ export default async function CoachClientsListPage() {
   const clients =
     clientIds.length > 0
       ? await prisma.user.findMany({
-          where: { id: { in: clientIds } },
+          where: { id: { in: clientIds }, deletedAt: null },
           select: {
             id: true,
             name: true,

@@ -25,7 +25,7 @@ export async function GET() {
       select: { clientId: true },
     })
     const assignedClients = await prisma.user.findMany({
-      where: { assignedTrainerId: user.id },
+      where: { assignedTrainerId: user.id, deletedAt: null },
       select: { id: true },
     })
     const idSet = new Set([

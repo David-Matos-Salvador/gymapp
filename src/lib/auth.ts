@@ -5,6 +5,7 @@ import Google from "next-auth/providers/google"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rate-limit"
+import { canSignIn } from "@/lib/user-lifecycle"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -44,7 +45,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           include: { ownedGym: { select: { id: true } } },
         })
 
-        if (!user || !user.password) {
+        if (!user || !user.password || !canSignIn(user)) {
           return null
         }
 
@@ -76,6 +77,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
+    async signIn({ user }) {
+      if (!user.id) return true
+      const found = await prisma.user.findUnique({
+        where: { id: user.id },
+        select: { deletedAt: true },
+      })
+      return !found || canSignIn(found)
+    },
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.role = (user as { role?: string }).role

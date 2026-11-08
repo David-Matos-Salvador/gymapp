@@ -120,7 +120,7 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
   })
 
   const members = await prisma.user.findMany({
-    where: { role: "MEMBER", ...(selectedGymId ? { gymId: selectedGymId } : {}) },
+    where: { role: "MEMBER", deletedAt: null, ...(selectedGymId ? { gymId: selectedGymId } : {}) },
     select: {
       id: true,
       name: true,
@@ -174,7 +174,7 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
 
   const trainers = selectedGymId
     ? await prisma.user.findMany({
-        where: { role: "TRAINER", gymId: selectedGymId },
+        where: { role: "TRAINER", gymId: selectedGymId, deletedAt: null },
         select: {
           id: true,
           name: true,

@@ -11,6 +11,7 @@ export async function getTrainerClientIds(
   const clients = await prisma.user.findMany({
     where: {
       assignedTrainerId: trainerId,
+      deletedAt: null,
       ...(gymId ? { gymId } : {}),
     },
     select: { id: true },

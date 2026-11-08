@@ -24,7 +24,7 @@ export async function GET() {
   const clients =
     clientIds.length > 0
       ? await prisma.user.findMany({
-          where: { id: { in: clientIds }, gymId: user.gymId },
+          where: { id: { in: clientIds }, gymId: user.gymId, deletedAt: null },
           select: {
             id: true,
             name: true,
