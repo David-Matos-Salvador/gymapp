@@ -142,7 +142,7 @@ async function main() {
     },
   })
 
-  // Scenario 3: Onboarding marcado como terminado pero sin rutina (caso de respaldo: /rutinas
+  // Scenario 3: Onboarding marcado como terminado pero sin rutina (caso de respaldo: /my-routine
   // muestra "Elegir una rutina"). Un onboarding nuevo ya no queda así: se termina al elegir rutina.
   const valentina = await prisma.user.upsert({
     where: { email: "valentina@gymapp.com" },

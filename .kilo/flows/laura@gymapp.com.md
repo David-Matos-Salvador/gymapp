@@ -26,7 +26,7 @@
 - Step 9: browse AI-generated plans — select "Cuerpo Completo Principiante" (double-tap)
 
 ### 3. Post-Onboarding
-- expect: redirect to /dashboard → /rutinas
+- expect: redirect to /dashboard → /my-routine
 - verify heading "Hola, Laura"
 - verify plan assigned: "Cuerpo Completo Principiante"
 

@@ -9,13 +9,10 @@ import {
   getWorkoutsThisWeek,
   getUser,
 } from "@/lib/weekly-progress"
-import { RutinaClient } from "../rutina-client"
+import { ChooseRoutineButton } from "@/components/rutina/choose-routine-button"
+import { RutinaClient } from "./my-routine-client"
 
-interface PageProps {
-  params: Promise<{ planId: string }>
-}
-
-export default async function RutinaDetailPage({ params }: PageProps) {
+export default async function RutinasPage() {
   const session = await auth()
   if (!session?.user?.email) redirect("/login")
 
@@ -27,10 +24,21 @@ export default async function RutinaDetailPage({ params }: PageProps) {
   }
   if (!user.onboardingCompleted) redirect("/onboarding")
 
-  const { planId } = await params
+  const membership = await prisma.membership.findFirst({
+    where: { userId: user.id },
+    select: { status: true, endDate: true, paymentConfirmed: true },
+    orderBy: { endDate: "desc" },
+  })
+  const membershipStatus = membership
+    ? membership.status !== "ACTIVE" || membership.endDate <= new Date()
+      ? "EXPIRED"
+      : !membership.paymentConfirmed
+        ? "PENDING_PAYMENT"
+        : "ACTIVE"
+    : "ACTIVE"
 
   const assignment = await prisma.assignedRoutinePlan.findFirst({
-    where: { userId: user.id, planId, active: true },
+    where: { userId: user.id, active: true },
     select: {
       expiresAt: true,
       plan: {
@@ -60,13 +68,15 @@ export default async function RutinaDetailPage({ params }: PageProps) {
   })
 
   if (!assignment?.plan) {
+    const firstName = user.name?.split(" ")[0] ?? "Atleta"
     return (
       <AppShell>
         <div className="mx-auto max-w-lg px-4 py-12 text-center space-y-4">
-          <h2 className="text-xl font-bold">Rutina no encontrada</h2>
+          <h2 className="text-xl font-bold">Hola, {firstName}</h2>
           <p className="text-sm text-muted-foreground">
-            Esta rutina no está disponible o no te fue asignada.
+            No tienes una rutina personalizada asignada.
           </p>
+          <ChooseRoutineButton />
         </div>
       </AppShell>
     )
@@ -74,18 +84,6 @@ export default async function RutinaDetailPage({ params }: PageProps) {
 
   const plan = assignment.plan
   const frequency = plan.frequency ?? 3
-  const membership = await prisma.membership.findFirst({
-    where: { userId: user.id },
-    select: { status: true, endDate: true, paymentConfirmed: true },
-    orderBy: { endDate: "desc" },
-  })
-  const membershipStatus = membership
-    ? membership.status !== "ACTIVE" || membership.endDate <= new Date()
-      ? "EXPIRED"
-      : !membership.paymentConfirmed
-        ? "PENDING_PAYMENT"
-        : "ACTIVE"
-    : "ACTIVE"
 
   const [propuestoSplitId, weeklyProgress, weeklyStreakData, workoutDates] = await Promise.all([
     getNextPropuestoSplit(user.id, plan.id),

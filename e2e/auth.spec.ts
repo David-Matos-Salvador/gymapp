@@ -8,7 +8,7 @@ async function login(page: Page) {
   await page.fill('input[type="email"]', EMAIL)
   await page.fill('input[type="password"]', PASSWORD)
   await page.getByRole("button", { name: /iniciar sesión/i }).click()
-  await page.waitForURL(/\/rutinas/)
+  await page.waitForURL(/\/my-routine/)
 }
 
 test.describe("Auth flows", () => {
@@ -44,9 +44,9 @@ test.describe("Auth flows", () => {
     await expect(page.getByText(/Credenciales inválidas/i)).toBeVisible()
   })
 
-  test("login redirects to rutinas after successful login", async ({ page }) => {
+  test("login redirects to my-routine after successful login", async ({ page }) => {
     await login(page)
-    await expect(page).toHaveURL(/\/rutinas/)
+    await expect(page).toHaveURL(/\/my-routine/)
     await expect(page.getByText(/Hola,/i)).toBeVisible()
   })
 

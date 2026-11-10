@@ -11,7 +11,7 @@
 - fill email: pedro@gymapp.com
 - fill password: demo123
 - click "Iniciar sesión"
-- expect: redirect to /rutinas
+- expect: redirect to /my-routine
 
 ### 2. Rutinas Dashboard
 - wait for page load

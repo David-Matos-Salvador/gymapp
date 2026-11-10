@@ -2,11 +2,6 @@ import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  async redirects() {
-    return [
-      { source: "/workout/log/:splitId", destination: "/entrenamiento/:splitId", permanent: true },
-    ]
-  },
   async headers() {
     const csp = [
       "default-src 'self'",

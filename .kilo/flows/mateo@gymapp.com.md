@@ -11,7 +11,7 @@
 - fill email: mateo@gymapp.com
 - fill password: demo123
 - click "Iniciar sesión"
-- expect: redirect to /rutinas (onboarding done, plan assigned, active membership)
+- expect: redirect to /my-routine (onboarding done, plan assigned, active membership)
 
 ### 2. Rutinas Dashboard
 - wait for page load

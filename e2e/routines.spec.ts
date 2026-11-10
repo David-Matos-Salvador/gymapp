@@ -8,7 +8,7 @@ async function login(page: Page) {
   await page.fill('input[type="email"]', EMAIL)
   await page.fill('input[type="password"]', PASSWORD)
   await page.getByRole("button", { name: /iniciar sesión/i }).click()
-  await page.waitForURL(/\/rutinas/)
+  await page.waitForURL(/\/my-routine/)
 }
 
 test.describe("Routines Flow", () => {
@@ -47,7 +47,7 @@ test.describe("Routines Flow", () => {
       .filter({ hasNot: page.locator("[disabled]") })
       .first()
       .click()
-    await expect(page).toHaveURL(/\/entrenar\//, { timeout: 10000 })
+    await expect(page).toHaveURL(/\/workout\//, { timeout: 10000 })
     await expect(page.getByRole("button", { name: /iniciar entrenamiento/i })).toBeVisible()
   })
 })

@@ -11,7 +11,7 @@
 - fill email: carlos@gymapp.com
 - fill password: demo123
 - click "Iniciar sesión"
-- expect: redirect to /rutinas (onboarding completed, active plan)
+- expect: redirect to /my-routine (onboarding completed, active plan)
 
 ### 2. Rutinas Dashboard
 - wait for page load
@@ -23,7 +23,7 @@
 
 ### 3. Start Workout — Push (Split A)
 - click on "Push (Empuje)" split card
-- verify navigate to /rutinas/[planId]/entrenar/[splitId]
+- verify navigate to /my-routine/[planId]/workout/[splitId]
 - verify prepare phase: exercise count (6), estimated time (~65min)
 - click "Iniciar entrenamiento"
 - verify warmup/active phase with exercises list

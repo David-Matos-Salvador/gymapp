@@ -108,7 +108,7 @@ export function MemberDashboard({
           </p>
         </StatCard>
 
-        <StatCard label="Esta semana" icon={Dumbbell} href="/rutinas" delay={0.05}>
+        <StatCard label="Esta semana" icon={Dumbbell} href="/my-routine" delay={0.05}>
           <p className="mt-1 text-2xl md:text-3xl font-bold tracking-tight tabular-nums leading-none">
             {weeklyProgress.completed}
             <span className="ml-1.5 text-xs md:text-sm font-normal text-muted-foreground">
@@ -208,7 +208,7 @@ export function MemberDashboard({
               </CardTitle>
               {nextWorkout && (
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/rutinas?planId=${nextWorkout.planId}`}>
+                  <Link href={`/my-routine?planId=${nextWorkout.planId}`}>
                     Ir a rutina <ArrowRight className="ml-1 h-3 w-3" />
                   </Link>
                 </Button>

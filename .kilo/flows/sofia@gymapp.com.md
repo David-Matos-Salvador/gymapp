@@ -12,7 +12,7 @@
 - fill email: sofia@gymapp.com
 - fill password: demo123
 - click "Iniciar sesión"
-- expect: redirect to /rutinas (onboarding done, but membership EXPIRED)
+- expect: redirect to /my-routine (onboarding done, but membership EXPIRED)
 
 ### 2. Rutinas Dashboard — Membership Warning
 - wait for page load

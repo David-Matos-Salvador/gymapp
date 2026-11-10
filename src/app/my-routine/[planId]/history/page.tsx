@@ -44,7 +44,7 @@ export default async function HistorialPage({ params }: PageProps) {
     }),
   ])
 
-  if (!assignment || !plan) redirect("/rutinas")
+  if (!assignment || !plan) redirect("/my-routine")
 
   const records = new Map<string, { weight: number; logId: string }>()
   for (const log of [...logs].reverse()) {
@@ -60,7 +60,7 @@ export default async function HistorialPage({ params }: PageProps) {
     <AppShell>
       <div className="container mx-auto max-w-3xl space-y-6 px-4 py-6 md:py-8">
         <Breadcrumb
-          items={[{ label: "Rutina", href: `/rutinas/${planId}` }, { label: "Historial" }]}
+          items={[{ label: "Rutina", href: `/my-routine/${planId}` }, { label: "Historial" }]}
           className="px-0 pb-1"
         />
 

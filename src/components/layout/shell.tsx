@@ -50,7 +50,7 @@ export function AppBottomNav({
 
   // Mi Rutina — MEMBER only
   if (isMember) {
-    tabs.push({ label: "Mi Rutina", href: "/rutinas", icon: Dumbbell })
+    tabs.push({ label: "Mi Rutina", href: "/my-routine", icon: Dumbbell })
   }
 
   // Progreso — MEMBER only
