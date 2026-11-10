@@ -13,7 +13,7 @@ export default function NotFound() {
         Puede que la dirección esté mal escrita o que la página ya no exista.
       </p>
       <Button asChild>
-        <Link href="/">Ir al inicio</Link>
+        <Link href="/dashboard">Ir al inicio</Link>
       </Button>
     </div>
   )

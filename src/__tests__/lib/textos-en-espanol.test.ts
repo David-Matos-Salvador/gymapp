@@ -29,9 +29,10 @@ describe("método y tipo de pago", () => {
 })
 
 describe("página no encontrada", () => {
-  it("existe y está en español", () => {
+  it("existe, está en español y lleva al inicio de la app", () => {
     expect(existsSync(path.join(process.cwd(), "src/app/not-found.tsx"))).toBe(true)
     expect(leer("src/app/not-found.tsx")).toContain("No encontramos esta página")
+    expect(leer("src/app/not-found.tsx")).toContain('href="/dashboard"')
   })
 })
 
