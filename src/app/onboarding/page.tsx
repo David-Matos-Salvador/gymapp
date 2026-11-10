@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useSound } from "@/hooks/use-sound"
 import { calculateBMI, getBMICategory } from "@/lib/health"
+import { createDoubleTap } from "@/lib/double-tap"
 import { formatMuscleGroups } from "@/constants/user"
 import {
   type Objective,
@@ -102,7 +103,8 @@ export default function OnboardingPage() {
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationPhase, setGenerationPhase] = useState(0)
-  const lastClickRef = useRef<{ id: string; time: number } | null>(null)
+  const [doubleTap] = useState(createDoubleTap)
+  useEffect(() => doubleTap.cancel, [doubleTap])
 
   const [data, setData] = useState<OnboardingData>({
     objective: null,
@@ -516,42 +518,32 @@ export default function OnboardingPage() {
     }
   }, [data, play, router, updateSession, memberId, assisted])
 
-  const handlePlanClick = useCallback(
-    (plan: GeneratedPlanData) => {
-      const now = Date.now()
-      const prev = lastClickRef.current
-
-      if (prev && prev.id === plan.id && now - prev.time < 300) {
-        lastClickRef.current = null
-        assignPlan(plan.id)
-        return
-      }
-
-      lastClickRef.current = { id: plan.id, time: now }
-
-      play("select")
-      setExpandedPlanId((prev) => (prev === plan.id ? null : plan.id))
+  // Un toque abre o cierra la tarjeta; dos toques seguidos la eligen. Con una tarjeta ya
+  // abierta, el toque simple espera a ver si llega el segundo: abrir o cerrar mueve la lista
+  // y el segundo toque caería sobre otra tarjeta (issue #76).
+  const handleCardTap = useCallback(
+    (id: string, choose: () => void) => {
+      doubleTap.tap(id, {
+        onSingle: () => {
+          play("select")
+          setExpandedPlanId((prev) => (prev === id ? null : id))
+        },
+        onDouble: choose,
+        defer: expandedPlanId !== null,
+      })
     },
-    [assignPlan, play]
+    [doubleTap, expandedPlanId, play]
+  )
+
+  const handlePlanClick = useCallback(
+    (plan: GeneratedPlanData) => handleCardTap(plan.id, () => assignPlan(plan.id)),
+    [assignPlan, handleCardTap]
   )
 
   const handleCoachCardClick = useCallback(() => {
     if (!coachPlan) return
-    const id = `coach-${coachPlan.id}`
-    const now = Date.now()
-    const prev = lastClickRef.current
-
-    if (prev && prev.id === id && now - prev.time < 300) {
-      lastClickRef.current = null
-      finishWithCoachPlan()
-      return
-    }
-
-    lastClickRef.current = { id, time: now }
-
-    play("select")
-    setExpandedPlanId((prev) => (prev === id ? null : id))
-  }, [coachPlan, finishWithCoachPlan, play])
+    handleCardTap(`coach-${coachPlan.id}`, finishWithCoachPlan)
+  }, [coachPlan, finishWithCoachPlan, handleCardTap])
 
   const handleWeightChange = (value: string) => {
     const cleaned = value.replace(/[^0-9.]/g, "")
