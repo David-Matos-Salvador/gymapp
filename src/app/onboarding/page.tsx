@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { useSound } from "@/hooks/use-sound"
 import { calculateBMI, getBMICategory } from "@/lib/health"
 import { createDoubleTap } from "@/lib/double-tap"
+import { isMeasurementInRange, measurementRangeMessage } from "@/constants/measurements"
 import { formatMuscleGroups } from "@/constants/user"
 import {
   type Objective,
@@ -345,7 +346,7 @@ export default function OnboardingPage() {
       if (cleaned.split(".").length > 2) return
       setMeasurementInputs((prev) => ({ ...prev, [key]: cleaned }))
       const num = parseFloat(cleaned)
-      updateMeasurement(key, cleaned === "" || isNaN(num) || num <= 0 ? null : num)
+      updateMeasurement(key, isMeasurementInRange(key, num) ? num : null)
     },
     [updateMeasurement]
   )
@@ -585,7 +586,16 @@ export default function OnboardingPage() {
   const canProceedStep5 = true
   const canProceedStep6 =
     data.weight !== null && data.height !== null && !weightError && !heightError
-  const canProceedStep7 = true
+  // Las medidas son opcionales, pero una fuera de rango no deja continuar.
+  const measurementErrors = Object.fromEntries(
+    measurementFields
+      .filter((f) => {
+        const raw = measurementInputs[f.key] ?? ""
+        return raw !== "" && !isMeasurementInRange(f.key, parseFloat(raw))
+      })
+      .map((f) => [f.key, measurementRangeMessage(f.key)])
+  )
+  const canProceedStep7 = Object.keys(measurementErrors).length === 0
   const canProceedStep8 = data.usualSchedule !== null
 
   const canProceedMap: Record<number, boolean> = {
@@ -1030,8 +1040,12 @@ export default function OnboardingPage() {
                     value={measurementInputs[f.key] ?? ""}
                     onChange={(e) => handleMeasurementChange(f.key, e.target.value)}
                     placeholder={f.placeholder}
+                    aria-invalid={Boolean(measurementErrors[f.key])}
                     className="w-full h-12 rounded-xl border-2 border-border bg-card px-4 text-base font-semibold placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                   />
+                  {measurementErrors[f.key] && (
+                    <p className="text-xs text-red-500">{measurementErrors[f.key]}</p>
+                  )}
                 </div>
               ))}
             </div>
