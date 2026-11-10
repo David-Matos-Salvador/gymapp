@@ -81,7 +81,7 @@ export function RutinaClient({
     const belongsToPlan = hasActive && splits.some((s) => s.id === state.splitId)
 
     if (belongsToPlan && state.splitId === splitId) {
-      router.push(`/rutinas/${planId}/entrenar/${splitId}`)
+      router.push(`/my-routine/${planId}/workout/${splitId}`)
       return
     }
 
@@ -90,7 +90,7 @@ export function RutinaClient({
     }
 
     useWorkoutStore.getState().resetWorkout()
-    router.push(`/rutinas/${planId}/entrenar/${splitId}`)
+    router.push(`/my-routine/${planId}/workout/${splitId}`)
   }
 
   const inProgressSplitId =
@@ -141,7 +141,7 @@ export function RutinaClient({
           <p className="text-muted-foreground">{planName}</p>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/rutinas/${planId}/historial`}>
+          <Link href={`/my-routine/${planId}/history`}>
             <History className="mr-1 h-4 w-4" />
             Historial
           </Link>

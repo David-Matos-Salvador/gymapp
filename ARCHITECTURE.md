@@ -43,11 +43,14 @@ src/
 │   ├── login/page.tsx              # Login (credentials + Google OAuth)
 │   ├── register/page.tsx           # Registro de usuarios
 │   ├── dashboard/page.tsx          # Dashboard del miembro
-│   ├── routines/
+│   ├── my-routine/                 # Rutina del miembro
+│   │   ├── page.tsx                # Rutina activa y sus días
+│   │   ├── [planId]/workout/[splitId]  # Logger de entrenamiento interactivo
+│   │   └── [planId]/history        # Historial de entrenamientos
+│   ├── routines/                   # Gestión de rutinas (coach y admin)
 │   │   ├── page.tsx                # Lista de rutinas (propias + recomendadas)
 │   │   ├── [id]/page.tsx           # Detalle de rutina (server component)
 │   │   └── new/page.tsx            # Crear rutina (entrenadores)
-│   ├── workout/log/[routineId]     # Logger de entrenamiento interactivo
 │   ├── progress/page.tsx           # Tracking corporal + gráficos
 │   ├── classes/page.tsx            # Clases grupales
 │   ├── equipment/page.tsx          # Catálogo de equipos del gym

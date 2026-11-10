@@ -113,9 +113,9 @@ Los 403 de sofia y ricardo son esperados: corresponden a los tests negativos de 
 
 - **Severidad:** Baja
 - **Área:** Historial
-- **Detalle:** La ruta /rutinas/[planId]/historial muestra 'en construcción' en lugar del historial real de sesiones.
+- **Detalle:** La ruta /my-routine/[planId]/history muestra 'en construcción' en lugar del historial real de sesiones.
 - **Evidencia:** Paso workout-historial
-- **Archivo probable:** `src/app/rutinas/[planId]/historial/page.tsx`
+- **Archivo probable:** `src/app/my-routine/[planId]/history/page.tsx`
 - **Fix sugerido:** Implementar la consulta de WorkoutLog del plan y renderizar el historial.
 
 ### F-10 — CardTitle no renderiza un heading semántico

@@ -14,7 +14,7 @@ export default async function RoutinesPage() {
 
   if (!user) redirect("/login")
 
-  if (user.role === "MEMBER") redirect("/rutinas")
+  if (user.role === "MEMBER") redirect("/my-routine")
 
   const userPlans = await prisma.routinePlan.findMany({
     where: {

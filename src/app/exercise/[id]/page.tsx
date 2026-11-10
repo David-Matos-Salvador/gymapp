@@ -77,7 +77,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
     <AppShell>
       <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl space-y-6">
         <Link
-          href={user.role === "MEMBER" ? "/rutinas" : "/routines/new"}
+          href={user.role === "MEMBER" ? "/my-routine" : "/routines/new"}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />

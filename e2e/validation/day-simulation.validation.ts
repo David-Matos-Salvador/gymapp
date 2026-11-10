@@ -131,7 +131,7 @@ async function login(browser: Browser, email: string): Promise<Session> {
     throw new Error("El login se envió por GET nativo: la página no estaba hidratada")
   }
 
-  await page.waitForURL(/\/(dashboard|rutinas|onboarding|admin)/, { timeout: 25_000 })
+  await page.waitForURL(/\/(dashboard|my-routine|onboarding|admin)/, { timeout: 25_000 })
   await page.waitForTimeout(500)
 
   return { context, page, errors }
@@ -191,7 +191,7 @@ async function runStep(
 }
 
 async function completeWorkout(page: Page) {
-  await visit(page, "/rutinas")
+  await visit(page, "/my-routine")
   await expect(page.getByText(/Hola,/i)).toBeVisible({ timeout: 20_000 })
   await expect(page.getByText(/Mis entrenamientos/i)).toBeVisible({ timeout: 20_000 })
 
@@ -201,8 +201,8 @@ async function completeWorkout(page: Page) {
     .first()
   await expect(split).toBeVisible({ timeout: 20_000 })
   await split.click()
-  await page.waitForURL(/\/entrenar\//, { timeout: 20_000 })
-  const planId = page.url().match(/\/rutinas\/([^/]+)\/entrenar\//)?.[1] ?? ""
+  await page.waitForURL(/\/workout\//, { timeout: 20_000 })
+  const planId = page.url().match(/\/my-routine\/([^/]+)\/workout\//)?.[1] ?? ""
   await page.getByRole("button", { name: /iniciar entrenamiento/i }).click()
   await page.waitForTimeout(1000)
 
@@ -239,7 +239,7 @@ async function completeWorkout(page: Page) {
     .catch(() => {})
   await page.waitForTimeout(1000)
 
-  await visit(page, "/rutinas")
+  await visit(page, "/my-routine")
   await expect(page.getByText(/Hola,/i)).toBeVisible({ timeout: 20_000 })
   return planId
 }
@@ -305,9 +305,9 @@ test.afterAll(async () => {
       area: "Historial",
       title: "El historial de entrenamientos es un placeholder",
       detail:
-        "La ruta /rutinas/[planId]/historial muestra 'en construcción' en lugar del historial real de sesiones.",
+        "La ruta /my-routine/[planId]/history muestra 'en construcción' en lugar del historial real de sesiones.",
       evidence: "Paso workout-historial",
-      file: "src/app/rutinas/[planId]/historial/page.tsx",
+      file: "src/app/my-routine/[planId]/history/page.tsx",
       fix: "Implementar la consulta de WorkoutLog del plan y renderizar el historial.",
     },
     {
@@ -1173,7 +1173,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     requireSession("carlos").page,
     async () => {
       const carlos = requireSession("carlos")
-      await visit(carlos.page, "/rutinas")
+      await visit(carlos.page, "/my-routine")
       await expect(carlos.page.getByText(/Hola,/i)).toBeVisible({ timeout: 20_000 })
       await expect(
         carlos.page.getByText(/Definición 4x por Semana|Fuerza 5x5 Modificada/i)
@@ -1358,7 +1358,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       await planCard.dblclick()
 
       await laura.page.waitForURL(/\/dashboard/, { timeout: 30_000 })
-      await visit(laura.page, "/rutinas")
+      await visit(laura.page, "/my-routine")
       await expect(laura.page.getByText(/Hola,/i)).toBeVisible({ timeout: 20_000 })
       await expect(laura.page.getByText(/Mis entrenamientos/i)).toBeVisible({ timeout: 20_000 })
     }
@@ -1396,7 +1396,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     },
     carlos.page,
     async () => {
-      await visit(carlos.page, `/rutinas/${carlosPlanId}/historial`)
+      await visit(carlos.page, `/my-routine/${carlosPlanId}/history`)
       await expect(
         carlos.page.getByRole("heading", { name: /Historial de entrenamientos/i })
       ).toBeVisible({ timeout: 20_000 })
@@ -1435,7 +1435,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     },
     mateo.page,
     async () => {
-      await visit(mateo.page, "/rutinas")
+      await visit(mateo.page, "/my-routine")
       await expect(mateo.page.getByText(/Hola,/i)).toBeVisible({ timeout: 20_000 })
       await expect(mateo.page.getByText(/Mis entrenamientos/i)).toBeVisible()
     }
@@ -1570,7 +1570,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       await expect(carlos.page.getByRole("button", { name: /^Iniciar$/i })).toBeVisible({
         timeout: 10_000,
       })
-      await visit(carlos.page, "/rutinas")
+      await visit(carlos.page, "/my-routine")
     }
   )
 
@@ -1752,7 +1752,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     carlos.page,
     async () => {
       await carlos.page.setViewportSize({ width: 390, height: 844 })
-      await visit(carlos.page, "/rutinas")
+      await visit(carlos.page, "/my-routine")
       await expect(carlos.page.getByText(/Hola,/i)).toBeVisible({ timeout: 20_000 })
       await expect(carlos.page.getByText(/Mi Rutina/i).first()).toBeVisible()
       const overflow = await carlos.page.evaluate(

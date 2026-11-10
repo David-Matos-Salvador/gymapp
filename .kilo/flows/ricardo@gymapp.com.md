@@ -12,7 +12,7 @@
 - fill email: ricardo@gymapp.com
 - fill password: demo123
 - click "Iniciar sesión"
-- expect: redirect to /rutinas (onboarding done, membership INACTIVE)
+- expect: redirect to /my-routine (onboarding done, membership INACTIVE)
 
 ### 2. Rutinas Dashboard — Inactive Warning
 - wait for page load

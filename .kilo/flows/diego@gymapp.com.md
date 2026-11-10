@@ -26,7 +26,7 @@
 - Step 9: select plan "Fuerza 5x5 Modificada" (assigned by coach) — this is coachPlan1
 
 ### 3. Post-Onboarding Redirect
-- expect: redirect to /dashboard → /rutinas
+- expect: redirect to /dashboard → /my-routine
 - verify heading "Hola, Diego"
 - verify plan assigned: "Fuerza 5x5 Modificada"
 
