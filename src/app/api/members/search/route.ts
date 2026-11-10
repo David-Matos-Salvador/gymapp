@@ -31,6 +31,7 @@ export async function GET(request: Request) {
   const members = await prisma.user.findMany({
     where: {
       role: "MEMBER",
+      deletedAt: null,
       gymId,
       OR: [
         { name: { contains: q, mode: "insensitive" } },

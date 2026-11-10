@@ -79,6 +79,7 @@ export default async function AdminMembershipsPage() {
   const members = await prisma.user.findMany({
     where: {
       role: "MEMBER",
+      deletedAt: null,
       ...(superadmin ? {} : { gymId: user.gymId ?? "__no_gym__" }),
     },
     select: { id: true, name: true, email: true, gymId: true },
