@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Dumbbell,
   CalendarDays,
+  CalendarClock,
   UserCog,
   Users,
   BarChart3,
@@ -65,6 +66,7 @@ export function AppBottomNav({
   // Clientes — TRAINER only
   if (isTrainer && !isAdmin) {
     tabs.push({ label: "Clientes", href: "/coach/clients", icon: Users })
+    tabs.push({ label: "Agenda", href: "/coach/schedule", icon: CalendarClock })
   }
 
   // Admin — ADMIN, SUPER_ADMIN, gym owners (links to gym management)

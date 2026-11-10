@@ -92,6 +92,12 @@ enum BookingStatus {
   ATTENDED
 }
 
+enum AppointmentStatus {
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
 enum PaymentStatus {
   PENDING
   COMPLETED
@@ -150,6 +156,8 @@ model Gym {
   active              Boolean  @default(true)
   isDefault           Boolean  @default(false)
   showMachineNumbers  Boolean  @default(false)
+  // Zona horaria IANA del gimnasio: la agenda 1:1 convierte horas locales a UTC con ella.
+  timezone            String   @default("America/Lima")
   ownerId             String?  @unique
   owner               User?    @relation("GymOwner", fields: [ownerId], references: [id])
   createdAt           DateTime @default(now())
@@ -162,6 +170,7 @@ model Gym {
   gymExercises           GymExercise[]
   gymEquipmentActivations GymEquipmentActivation[]
   trainerInvites         TrainerInvite[]
+  appointments           Appointment[]
 }
 
 model User {
@@ -216,6 +225,10 @@ model User {
   bodyMeasurements BodyMeasurement[]
   progressPhotos   ProgressPhoto[]
   classes          Class[]           @relation("TrainerClasses")
+  coachAvailability     CoachAvailability[]
+  trainerAppointments   Appointment[] @relation("TrainerAppointments")
+  clientAppointments    Appointment[] @relation("ClientAppointments")
+  cancelledAppointments Appointment[] @relation("AppointmentCanceller")
 
   trainerRequestsSent     TrainerRequest[] @relation("TrainerRequestSender")
   trainerRequestsReceived TrainerRequest[] @relation("TrainerRequestReceiver")
@@ -578,6 +591,45 @@ model Booking {
   classItem Class @relation(fields: [classId], references: [id], onDelete: Cascade)
 
   @@unique([userId, classId])
+}
+
+// Bloque semanal en el que el coach atiende sesiones 1:1 (hora local del gimnasio, "HH:mm").
+model CoachAvailability {
+  id        String    @id @default(cuid())
+  trainerId String
+  dayOfWeek DayOfWeek
+  startTime String
+  endTime   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  trainer User @relation(fields: [trainerId], references: [id], onDelete: Restrict)
+
+  @@unique([trainerId, dayOfWeek, startTime])
+  @@index([trainerId])
+}
+
+// Sesión 1:1 entre un coach y su cliente. Se cancela cambiando el estado: nunca se borra.
+model Appointment {
+  id              String            @id @default(cuid())
+  gymId           String
+  trainerId       String
+  clientId        String
+  startsAt        DateTime
+  durationMinutes Int               @default(60)
+  status          AppointmentStatus @default(CONFIRMED)
+  cancelledById   String?
+  cancelledAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  gym         Gym   @relation(fields: [gymId], references: [id], onDelete: Restrict)
+  trainer     User  @relation("TrainerAppointments", fields: [trainerId], references: [id], onDelete: Restrict)
+  client      User  @relation("ClientAppointments", fields: [clientId], references: [id], onDelete: Restrict)
+  cancelledBy User? @relation("AppointmentCanceller", fields: [cancelledById], references: [id], onDelete: Restrict)
+
+  @@index([trainerId, startsAt])
+  @@index([clientId, startsAt])
 }
 
 model Payment {

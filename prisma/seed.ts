@@ -2884,6 +2884,22 @@ async function main() {
   }
   console.log("✅ Classes created")
 
+  // ── Agenda 1:1 del coach ────────────────────────────
+  // Horas de atención de lunes a sábado (el domingo queda libre para la E2E de agenda), en la hora local del gimnasio.
+  await prisma.coachAvailability.deleteMany({ where: { trainerId: trainer.id } })
+  await prisma.coachAvailability.createMany({
+    data: [
+      ...(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"] as const).flatMap(
+        (dayOfWeek) => [
+          { trainerId: trainer.id, dayOfWeek, startTime: "09:00", endTime: "12:00" },
+          { trainerId: trainer.id, dayOfWeek, startTime: "16:00", endTime: "20:00" },
+        ]
+      ),
+      { trainerId: trainer.id, dayOfWeek: "SATURDAY", startTime: "09:00", endTime: "12:00" },
+    ],
+  })
+  console.log("✅ Coach availability created")
+
   // ── Bookings ────────────────────────────────────────
   await prisma.booking.deleteMany({})
   await prisma.booking.create({

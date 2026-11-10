@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AppShell } from "@/components/layout/shell"
+import Link from "next/link"
+import { ArrowRight, CalendarClock } from "lucide-react"
 import { ClassesView } from "@/components/classes/classes-view"
 
 export default async function ClassesPage() {
@@ -70,6 +72,21 @@ export default async function ClassesPage() {
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Clases</h1>
           <p className="text-muted-foreground">Reserva tu lugar en clases grupales</p>
         </div>
+        {user.assignedTrainerId && user.role !== "TRAINER" && (
+          <Link
+            href="/sessions"
+            className="flex items-center justify-between gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-accent/50"
+          >
+            <div className="flex items-center gap-3">
+              <CalendarClock className="h-5 w-5 text-accent-yellow" />
+              <div>
+                <p className="font-medium">Sesiones 1:1 con tu coach</p>
+                <p className="text-sm text-muted-foreground">Reserva una hora a solas</p>
+              </div>
+            </div>
+            <ArrowRight className="h-4 w-4 text-muted-foreground" />
+          </Link>
+        )}
         <ClassesView
           classes={serializedClasses}
           bookings={serializedBookings}
