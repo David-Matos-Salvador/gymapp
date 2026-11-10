@@ -3,27 +3,9 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getTrainerClientIds } from "@/lib/trainer-client"
+import { bodyMeasurementSchema } from "@/lib/validation"
 
-const createMeasurementSchema = z.object({
-  weight: z.number().positive().optional(),
-  height: z.number().positive().optional(),
-  bodyFat: z.number().min(0).max(100).optional(),
-  muscleMass: z.number().positive().optional(),
-  bmi: z.number().optional(),
-  neck: z.number().positive().optional(),
-  shoulders: z.number().positive().optional(),
-  chest: z.number().positive().optional(),
-  leftArm: z.number().positive().optional(),
-  rightArm: z.number().positive().optional(),
-  leftForearm: z.number().positive().optional(),
-  rightForearm: z.number().positive().optional(),
-  waist: z.number().positive().optional(),
-  hips: z.number().positive().optional(),
-  leftThigh: z.number().positive().optional(),
-  rightThigh: z.number().positive().optional(),
-  leftCalf: z.number().positive().optional(),
-  rightCalf: z.number().positive().optional(),
-  notes: z.string().optional(),
+const createMeasurementSchema = bodyMeasurementSchema.extend({
   userId: z.string().optional(),
 })
 

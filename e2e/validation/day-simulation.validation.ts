@@ -1757,7 +1757,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
         waitUntil: "domcontentloaded",
       })
       expect(response?.status()).toBe(404)
-      await expect(carlos.page.getByText(/404|not found|no encontrada/i).first()).toBeVisible({
+      await expect(carlos.page.getByText(/no encontramos esta página/i).first()).toBeVisible({
         timeout: 10_000,
       })
     }

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { getTrainerClientIds } from "@/lib/trainer-client"
 import { logger } from "@/lib/logger"
 import { getRequestId } from "@/lib/request-id"
+import { isMeasurementInRange, type MeasurementKey } from "@/constants/measurements"
 import { NextResponse } from "next/server"
 
 const userSelect = {
@@ -208,26 +209,30 @@ export async function POST(request: Request) {
     const measurementCount = await prisma.bodyMeasurement.count({ where: { userId: target.id } })
     if (measurementCount === 0) {
       const m = (measurements ?? {}) as Record<string, unknown>
-      const num = (v: unknown) => (typeof v === "number" && v > 0 ? v : null)
+      // Un valor fuera de rango se descarta en vez de guardarse (ver constants/measurements)
+      const num = (key: MeasurementKey) => {
+        const v = m[key]
+        return typeof v === "number" && isMeasurementInRange(key, v) ? v : null
+      }
       const w = typeof weight === "number" ? weight : null
       const h = typeof height === "number" ? height : null
       const notes = typeof m.notes === "string" && m.notes.trim() ? m.notes.trim() : null
       const hasAny = [
-        num(m.bodyFat),
-        num(m.muscleMass),
-        num(m.neck),
-        num(m.shoulders),
-        num(m.chest),
-        num(m.waist),
-        num(m.hips),
-        num(m.leftArm),
-        num(m.rightArm),
-        num(m.leftForearm),
-        num(m.rightForearm),
-        num(m.leftThigh),
-        num(m.rightThigh),
-        num(m.leftCalf),
-        num(m.rightCalf),
+        num("bodyFat"),
+        num("muscleMass"),
+        num("neck"),
+        num("shoulders"),
+        num("chest"),
+        num("waist"),
+        num("hips"),
+        num("leftArm"),
+        num("rightArm"),
+        num("leftForearm"),
+        num("rightForearm"),
+        num("leftThigh"),
+        num("rightThigh"),
+        num("leftCalf"),
+        num("rightCalf"),
       ].some((v) => v !== null)
 
       if (w !== null || h !== null || hasAny || notes) {
@@ -238,21 +243,21 @@ export async function POST(request: Request) {
             weight: w,
             height: h,
             bmi: bmi ? Math.round(bmi * 10) / 10 : null,
-            bodyFat: num(m.bodyFat),
-            muscleMass: num(m.muscleMass),
-            neck: num(m.neck),
-            shoulders: num(m.shoulders),
-            chest: num(m.chest),
-            waist: num(m.waist),
-            hips: num(m.hips),
-            leftArm: num(m.leftArm),
-            rightArm: num(m.rightArm),
-            leftForearm: num(m.leftForearm),
-            rightForearm: num(m.rightForearm),
-            leftThigh: num(m.leftThigh),
-            rightThigh: num(m.rightThigh),
-            leftCalf: num(m.leftCalf),
-            rightCalf: num(m.rightCalf),
+            bodyFat: num("bodyFat"),
+            muscleMass: num("muscleMass"),
+            neck: num("neck"),
+            shoulders: num("shoulders"),
+            chest: num("chest"),
+            waist: num("waist"),
+            hips: num("hips"),
+            leftArm: num("leftArm"),
+            rightArm: num("rightArm"),
+            leftForearm: num("leftForearm"),
+            rightForearm: num("rightForearm"),
+            leftThigh: num("leftThigh"),
+            rightThigh: num("rightThigh"),
+            leftCalf: num("leftCalf"),
+            rightCalf: num("rightCalf"),
             notes,
           },
         })

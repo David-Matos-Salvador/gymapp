@@ -57,7 +57,7 @@ test.describe("Register form — member mode", () => {
 
   test("password checks turn green when requirements met", async ({ page }) => {
     await page.locator(PWD_INPUT).fill("Abcdefg1")
-    await expect(page.getByText("8 caracteres minimo")).toBeVisible()
+    await expect(page.getByText("8 caracteres mínimo")).toBeVisible()
     await expect(page.getByText("1 mayúscula")).toBeVisible()
     await expect(page.getByText("1 número")).toBeVisible()
   })
