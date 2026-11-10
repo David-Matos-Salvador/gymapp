@@ -37,6 +37,7 @@ import {
   UserPlus,
 } from "lucide-react"
 import { ROLE_LABELS } from "@/constants/user"
+import { formatCurrency } from "@/lib/utils"
 
 interface GymData {
   id: string
@@ -277,11 +278,11 @@ export function SuperAdminDashboard({
             <Globe className="h-7 w-7 text-accent-yellow" />
             Panel de Plataforma
           </h1>
-          <p className="text-muted-foreground">Super Admin — Gestión global de GymApp</p>
+          <p className="text-muted-foreground">Súper Admin — Gestión global de GymApp</p>
         </div>
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-accent-yellow" />
-          <span className="text-sm font-medium text-accent-yellow">Super Admin</span>
+          <span className="text-sm font-medium text-accent-yellow">Súper Admin</span>
         </div>
       </div>
 
@@ -305,7 +306,7 @@ export function SuperAdminDashboard({
         />
         <StatCard
           label="Ingresos totales"
-          value={`$${stats.totalRevenue.toLocaleString()}`}
+          value={formatCurrency(stats.totalRevenue)}
           icon={TrendingUp}
           iconColor="text-primary"
           borderColor="border-t-primary"
@@ -332,7 +333,7 @@ export function SuperAdminDashboard({
                   setDialogOpen(true)
                 }}
               >
-                <Plus className="h-4 w-4 mr-1" /> Crear gym
+                <Plus className="h-4 w-4 mr-1" /> Crear gimnasio
               </Button>
             </CardHeader>
             <CardContent className="space-y-3">

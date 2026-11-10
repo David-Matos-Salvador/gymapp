@@ -1639,10 +1639,13 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     superadmin.page,
     async () => {
       await visit(superadmin.page, "/dashboard")
-      await superadmin.page.getByRole("button", { name: /Crear gym/i }).click()
+      await superadmin.page.getByRole("button", { name: /Crear gimnasio/i }).click()
       await superadmin.page.locator("#gymName").fill(NEW_GYM)
       await superadmin.page.locator("#gymAddress").fill("Av. Validación 123")
-      await superadmin.page.getByRole("button", { name: /Crear gimnasio/i }).click()
+      await superadmin.page
+        .getByRole("dialog")
+        .getByRole("button", { name: /Crear gimnasio/i })
+        .click()
       await toast(superadmin.page, /Gimnasio creado/i)
       await expect(superadmin.page.getByText(NEW_GYM, { exact: true })).toBeVisible({
         timeout: 20_000,
