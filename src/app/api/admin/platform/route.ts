@@ -14,9 +14,9 @@ export async function GET() {
   }
 
   const totalGyms = await prisma.gym.count()
-  const totalUsers = await prisma.user.count()
-  const totalMembers = await prisma.user.count({ where: { role: "MEMBER" } })
-  const totalTrainers = await prisma.user.count({ where: { role: "TRAINER" } })
+  const totalUsers = await prisma.user.count({ where: { deletedAt: null } })
+  const totalMembers = await prisma.user.count({ where: { role: "MEMBER", deletedAt: null } })
+  const totalTrainers = await prisma.user.count({ where: { role: "TRAINER", deletedAt: null } })
   const activeMemberships = await prisma.membership.count({
     where: { status: "ACTIVE", paymentConfirmed: true, endDate: { gt: new Date() } },
   })
@@ -34,6 +34,7 @@ export async function GET() {
   })
 
   const recentUsers = await prisma.user.findMany({
+    where: { deletedAt: null },
     select: { id: true, name: true, email: true, role: true, createdAt: true, gymId: true },
     orderBy: { createdAt: "desc" },
     take: 10,

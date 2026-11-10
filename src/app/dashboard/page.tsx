@@ -186,7 +186,7 @@ export default async function DashboardPage() {
 
   if (user.role === "TRAINER") {
     const clients = await prisma.user.findMany({
-      where: { assignedTrainerId: user.id },
+      where: { assignedTrainerId: user.id, deletedAt: null },
       select: {
         id: true,
         name: true,
@@ -298,6 +298,7 @@ export default async function DashboardPage() {
       prisma.user.count({
         where: {
           role: { in: ["MEMBER", "TRAINER"] },
+          deletedAt: null,
           createdAt: { gte: startOfMonth },
           gymId: adminGymId,
         },
@@ -378,7 +379,9 @@ export default async function DashboardPage() {
         })
       : 0
 
-    const totalMembers = user.gymId ? await prisma.user.count({ where: { gymId: user.gymId } }) : 0
+    const totalMembers = user.gymId
+      ? await prisma.user.count({ where: { gymId: user.gymId, deletedAt: null } })
+      : 0
 
     const pendingPayments = user.gymId
       ? await prisma.payment.count({
@@ -437,11 +440,11 @@ export default async function DashboardPage() {
       recentUsers,
     ] = await Promise.all([
       prisma.gym.count(),
-      prisma.user.count(),
+      prisma.user.count({ where: { deletedAt: null } }),
       prisma.membership.count({
         where: { status: "ACTIVE", endDate: { gt: now }, paymentConfirmed: true },
       }),
-      prisma.user.count({ where: { role: "TRAINER" } }),
+      prisma.user.count({ where: { role: "TRAINER", deletedAt: null } }),
       prisma.checkIn.count({ where: { date: { gte: todayStart } } }),
       prisma.payment.aggregate({
         where: { status: "COMPLETED", type: "MEMBERSHIP" },
@@ -452,6 +455,7 @@ export default async function DashboardPage() {
         orderBy: { createdAt: "desc" },
       }),
       prisma.user.findMany({
+        where: { deletedAt: null },
         select: { id: true, name: true, email: true, role: true, createdAt: true, gymId: true },
         orderBy: { createdAt: "desc" },
         take: 10,
