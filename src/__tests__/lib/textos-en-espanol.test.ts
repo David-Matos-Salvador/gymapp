@@ -45,3 +45,14 @@ describe("plurales del inicio del miembro", () => {
     expect(inicio).toContain("formatDays(membership.daysRemaining)")
   })
 })
+
+// Issue #80: el panel del súper admin mostraba los ingresos con "$" y "Crear gym".
+describe("panel del súper admin", () => {
+  it("muestra los ingresos en soles y los textos en español", () => {
+    const panel = leer("src/components/dashboard/super-admin-dashboard.tsx")
+    expect(panel).toContain("formatCurrency(stats.totalRevenue)")
+    expect(panel).not.toContain("`$$")
+    expect(panel).not.toContain("Crear gym")
+    expect(panel).not.toContain("Super Admin")
+  })
+})

@@ -20,7 +20,7 @@ export const ROLE_LABELS: Record<string, string> = {
   ADMIN: "Administrador",
   TRAINER: "Coach",
   MEMBER: "Miembro",
-  SUPER_ADMIN: "Super Admin",
+  SUPER_ADMIN: "Súper Admin",
 }
 
 export const ROLE_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
