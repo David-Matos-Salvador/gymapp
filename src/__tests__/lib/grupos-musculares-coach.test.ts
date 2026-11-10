@@ -18,4 +18,10 @@ describe("grupos musculares en las pantallas del coach", () => {
     expect(fuente).toContain("MUSCLE_LABELS[group]")
     expect(fuente).toContain("MUSCLE_LABELS[ex.muscleGroup]")
   })
+
+  it("el detalle del cliente usa formatMuscleGroups (issue #74)", () => {
+    const fuente = leer("src/app/coach/clients/[id]/page.tsx")
+    expect(fuente).toContain("formatMuscleGroups(s.muscleGroups)")
+    expect(fuente).not.toContain("muscleGroups.join(")
+  })
 })

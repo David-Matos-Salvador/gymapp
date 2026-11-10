@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { EmptyState } from "@/components/ui/empty-state"
 import { StatCard } from "@/components/ui/stat-card"
 import { DAY_OF_WEEK_LABELS } from "@/constants/ui"
+import { formatDays, pluralize } from "@/lib/utils"
 import {
   Flame,
   Dumbbell,
@@ -99,11 +100,11 @@ export function MemberDashboard({
           <p className="mt-1 text-2xl md:text-3xl font-bold tracking-tight tabular-nums leading-none">
             {weeklyStreak.streak}
             <span className="ml-1.5 text-xs md:text-sm font-normal text-muted-foreground">
-              semanas
+              {weeklyStreak.streak === 1 ? "semana" : "semanas"}
             </span>
           </p>
           <p className="mt-1.5 text-xs text-muted-foreground">
-            Mejor: {weeklyStreak.bestStreak} semanas
+            Mejor: {pluralize(weeklyStreak.bestStreak, "semana", "semanas")}
           </p>
         </StatCard>
 
@@ -155,9 +156,13 @@ export function MemberDashboard({
                 <p className="text-xs text-muted-foreground mt-1.5">{membership.planName}</p>
                 {membership.daysRemaining !== null && membership.daysRemaining > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    {membership.isExpiring ? "Vence en " : "Restan "}
+                    {membership.isExpiring
+                      ? "Vence en "
+                      : membership.daysRemaining === 1
+                        ? "Resta "
+                        : "Restan "}
                     <span className="font-medium text-accent-yellow">
-                      {membership.daysRemaining} días
+                      {formatDays(membership.daysRemaining)}
                     </span>
                   </p>
                 )}

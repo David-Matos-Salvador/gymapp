@@ -18,6 +18,7 @@ import {
   Calendar,
 } from "lucide-react"
 import { formatDate, formatCurrency } from "@/lib/utils"
+import { formatPaymentMethod, formatPaymentType } from "@/constants/payment"
 
 interface Payment {
   id: string
@@ -56,21 +57,6 @@ const methodIcons: Record<string, typeof Banknote> = {
   OTHER: CreditCard,
 }
 
-const methodLabels: Record<string, string> = {
-  CASH: "Efectivo",
-  TRANSFER: "Transferencia",
-  CARD: "Tarjeta",
-  STRIPE: "Stripe",
-  YAPE: "Yape",
-  OTHER: "Otro",
-}
-
-const typeLabels: Record<string, string> = {
-  MEMBERSHIP: "Membresía",
-  CLASS_BOOKING: "Reserva de clase",
-  OTHER: "Otro",
-}
-
 function PaymentCard({ payment }: { payment: Payment }) {
   const statusInfo = statusConfig[payment.status] ?? {
     label: payment.status,
@@ -89,7 +75,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
               <ReceiptText className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-sm font-medium">{typeLabels[payment.type] ?? payment.type}</p>
+              <p className="text-sm font-medium">{formatPaymentType(payment.type)}</p>
               <p className="text-xs text-muted-foreground">
                 {formatDate(payment.createdAt, { includeTime: true })}
               </p>
@@ -104,7 +90,7 @@ function PaymentCard({ payment }: { payment: Payment }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <MethodIcon className="h-3.5 w-3.5" />
-            <span>{methodLabels[payment.method] ?? payment.method}</span>
+            <span>{formatPaymentMethod(payment.method)}</span>
           </div>
           <span className="text-lg font-semibold tabular-nums">
             {formatCurrency(payment.amount, payment.currency)}

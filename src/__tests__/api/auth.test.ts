@@ -129,7 +129,7 @@ describe("POST /api/auth/register", () => {
     const body = await response.json()
 
     expect(response.status).toBe(400)
-    expect(body.error).toBe("Datos invalidos")
+    expect(body.error).toBe("Datos inválidos")
     expect(body.details).toBeDefined()
   })
 
@@ -146,7 +146,7 @@ describe("POST /api/auth/register", () => {
     const body = await response.json()
 
     expect(response.status).toBe(400)
-    expect(body.error).toBe("Datos invalidos")
+    expect(body.error).toBe("Datos inválidos")
   })
 
   it("returns 400 with invalid data - bad email", async () => {
@@ -162,6 +162,6 @@ describe("POST /api/auth/register", () => {
     const body = await response.json()
 
     expect(response.status).toBe(400)
-    expect(body.error).toBe("Datos invalidos")
+    expect(body.error).toBe("Datos inválidos")
   })
 })

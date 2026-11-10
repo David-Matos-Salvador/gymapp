@@ -73,7 +73,7 @@ export default function InvitePage() {
   }, [token])
 
   const passwordChecks = [
-    { label: "8 caracteres minimo", met: form.password.length >= 8 },
+    { label: "8 caracteres mínimo", met: form.password.length >= 8 },
     { label: "1 mayúscula", met: /[A-Z]/.test(form.password) },
     { label: "1 número", met: /[0-9]/.test(form.password) },
   ]
