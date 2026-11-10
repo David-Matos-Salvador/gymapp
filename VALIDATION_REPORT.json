@@ -582,9 +582,9 @@
       "severity": "Baja",
       "area": "Historial",
       "title": "El historial de entrenamientos es un placeholder",
-      "detail": "La ruta /rutinas/[planId]/historial muestra 'en construcción' en lugar del historial real de sesiones.",
+      "detail": "La ruta /my-routine/[planId]/history muestra 'en construcción' en lugar del historial real de sesiones.",
       "evidence": "Paso workout-historial",
-      "file": "src/app/rutinas/[planId]/historial/page.tsx",
+      "file": "src/app/my-routine/[planId]/history/page.tsx",
       "fix": "Implementar la consulta de WorkoutLog del plan y renderizar el historial."
     },
     {

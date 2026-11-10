@@ -12,7 +12,7 @@
 - fill email: valentina@gymapp.com
 - fill password: demo123
 - click "Iniciar sesión"
-- expect: redirect to /rutinas (onboarding completed)
+- expect: redirect to /my-routine (onboarding completed)
 
 ### 2. Rutinas Dashboard
 - wait for page load
@@ -42,7 +42,7 @@
 
 ### 7. Post-Confirmation (after trainer2 confirms payment + assigns plan)
 - verify notification: "Coach Andrea te ha asignado una rutina"
-- navigate: {baseUrl}/rutinas
+- navigate: {baseUrl}/my-routine
 - verify plan visible
 - start first workout
 - complete first set

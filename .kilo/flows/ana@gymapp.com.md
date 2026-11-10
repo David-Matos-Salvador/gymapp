@@ -11,7 +11,7 @@
 - fill email: ana@gymapp.com
 - fill password: demo123
 - click "Iniciar sesión"
-- expect: redirect to /rutinas
+- expect: redirect to /my-routine
 
 ### 2. Rutinas Dashboard
 - wait for page load
@@ -22,7 +22,7 @@
 
 ### 3. Start Workout — Circuito B
 - click on "Circuito B" split card
-- verify navigate to /rutinas/[planId]/entrenar/[splitId]
+- verify navigate to /my-routine/[planId]/workout/[splitId]
 - click "Iniciar entrenamiento"
 - verify exercises: Fondos, Press banca, Elevaciones laterales, Press francés, Plancha
 - complete first exercise (Fondos, 4×10-12, bodyweight)

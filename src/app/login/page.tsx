@@ -37,7 +37,7 @@ const getServerMounted = () => false
 function LoginFormInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/rutinas"
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/my-routine"
   const [error, setError] = useState("")
   // false during SSR/hydration, true once React has mounted on the client.
   const mounted = useSyncExternalStore(subscribeToNothing, getClientMounted, getServerMounted)

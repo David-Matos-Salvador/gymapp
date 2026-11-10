@@ -7,7 +7,7 @@
  * - SplitData / SplitPlan → used for workout session page data fetching
  *
  * Used by:
- *   src/app/rutinas/[planId]/entrenar/[splitId]/page.tsx
+ *   src/app/my-routine/[planId]/workout/[splitId]/page.tsx
  *   src/components/workout/exercise-card.tsx
  *   src/components/workout/exercise-detail-sheet.tsx
  */

@@ -8,7 +8,7 @@ async function login(page: Page) {
   await page.fill('input[type="email"]', EMAIL)
   await page.fill('input[type="password"]', PASSWORD)
   await page.getByRole("button", { name: /iniciar sesión/i }).click()
-  await page.waitForURL(/\/rutinas/)
+  await page.waitForURL(/\/my-routine/)
 }
 
 test.describe("Workout Flow", () => {
@@ -19,7 +19,7 @@ test.describe("Workout Flow", () => {
       .filter({ hasNot: page.locator("[disabled]") })
       .first()
       .click()
-    await page.waitForURL(/\/entrenar\//)
+    await page.waitForURL(/\/workout\//)
     await expect(page.getByRole("button", { name: /iniciar entrenamiento/i })).toBeVisible()
     await expect(page.getByText("kg")).not.toBeVisible()
   })
@@ -31,7 +31,7 @@ test.describe("Workout Flow", () => {
       .filter({ hasNot: page.locator("[disabled]") })
       .first()
       .click()
-    await page.waitForURL(/\/entrenar\//)
+    await page.waitForURL(/\/workout\//)
 
     await page.getByRole("button", { name: /iniciar entrenamiento/i }).click()
     await page.waitForTimeout(1000)
@@ -68,7 +68,7 @@ test.describe("Workout Flow", () => {
       await irBtn.first().click()
     }
 
-    await page.waitForURL(/\/rutinas/, { timeout: 5000 })
+    await page.waitForURL(/\/my-routine/, { timeout: 5000 })
   })
 
   test("all splits unlocked after workout completion", async ({ page }) => {
@@ -78,7 +78,7 @@ test.describe("Workout Flow", () => {
       .filter({ hasNot: page.locator("[disabled]") })
       .first()
       .click()
-    await page.waitForURL(/\/entrenar\//)
+    await page.waitForURL(/\/workout\//)
 
     await page.getByRole("button", { name: /iniciar entrenamiento/i }).click()
     await page.waitForTimeout(1000)
@@ -115,7 +115,7 @@ test.describe("Workout Flow", () => {
       await irBtn.first().click()
     }
 
-    await page.waitForURL(/\/rutinas/, { timeout: 5000 })
+    await page.waitForURL(/\/my-routine/, { timeout: 5000 })
 
     const disabled = page.locator("button[disabled]:has(p.font-medium)")
     await expect(disabled).toHaveCount(0)

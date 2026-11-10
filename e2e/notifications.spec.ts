@@ -8,7 +8,7 @@ async function login(page: Page) {
   await page.fill('input[type="email"]', EMAIL)
   await page.fill('input[type="password"]', PASSWORD)
   await page.getByRole("button", { name: /iniciar sesión/i }).click()
-  await page.waitForURL(/\/rutinas/)
+  await page.waitForURL(/\/my-routine/)
 }
 
 test.describe("Notifications Flow", () => {

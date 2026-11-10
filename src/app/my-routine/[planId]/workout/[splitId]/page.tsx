@@ -355,7 +355,7 @@ export default function LogWorkoutPage() {
           <Button
             variant="outline"
             className="min-h-11"
-            onClick={() => router.push(`/rutinas/${planId}`)}
+            onClick={() => router.push(`/my-routine/${planId}`)}
           >
             Volver
           </Button>
@@ -378,7 +378,7 @@ export default function LogWorkoutPage() {
         onClose={() => {
           setShowCelebration(false)
           store.resetWorkout()
-          router.push(`/rutinas/${planId}`)
+          router.push(`/my-routine/${planId}`)
           router.refresh()
         }}
       />
@@ -401,7 +401,7 @@ export default function LogWorkoutPage() {
               className="min-h-11"
               onClick={() => {
                 pauseWorkout()
-                router.push(`/rutinas/${planId}`)
+                router.push(`/my-routine/${planId}`)
               }}
             >
               <ArrowLeft className="h-4 w-4" /> Salir
@@ -460,7 +460,7 @@ export default function LogWorkoutPage() {
                   if (!window.confirm("¿Descartar este entrenamiento? Se perderán las series."))
                     return
                   store.resetWorkout()
-                  router.push(`/rutinas/${planId}`)
+                  router.push(`/my-routine/${planId}`)
                 }}
               >
                 Descartar
@@ -653,7 +653,7 @@ export default function LogWorkoutPage() {
                   if (!window.confirm("¿Descartar este entrenamiento? Se perderán las series."))
                     return
                   store.resetWorkout()
-                  router.push(`/rutinas/${planId}`)
+                  router.push(`/my-routine/${planId}`)
                 }}
               >
                 <X className="mr-1 h-4 w-4" /> Descartar
@@ -681,7 +681,7 @@ export default function LogWorkoutPage() {
               className="min-h-11"
               onClick={() => {
                 store.resetWorkout()
-                router.push(`/rutinas/${planId}`)
+                router.push(`/my-routine/${planId}`)
                 router.refresh()
               }}
             >

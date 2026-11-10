@@ -33,7 +33,7 @@ test.describe("Login hardening (F-01)", () => {
     await page.locator('input[type="password"]').fill(PASSWORD)
     await page.getByRole("button", { name: /iniciar sesión/i }).click()
 
-    await page.waitForURL(/\/(dashboard|rutinas)/)
+    await page.waitForURL(/\/(dashboard|my-routine)/)
   })
 
   test("credenciales inválidas muestran un error y no navegan", async ({ page }) => {
@@ -53,7 +53,7 @@ test.describe("Progress charts (F-02)", () => {
     await page.locator('input[type="email"]').fill(EMAIL)
     await page.locator('input[type="password"]').fill(PASSWORD)
     await page.getByRole("button", { name: /iniciar sesión/i }).click()
-    await page.waitForURL(/\/(dashboard|rutinas)/)
+    await page.waitForURL(/\/(dashboard|my-routine)/)
 
     const chartWarnings: string[] = []
     page.on("console", (message) => {

@@ -43,7 +43,7 @@ export default function NewRoutinePage() {
 
   useEffect(() => {
     if (!isLoading && isMember) {
-      router.replace("/rutinas")
+      router.replace("/my-routine")
       return
     }
     fetch("/api/exercises")
