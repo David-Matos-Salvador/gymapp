@@ -203,41 +203,62 @@ async function completeWorkout(page: Page) {
   await split.click()
   await page.waitForURL(/\/entrenar\//, { timeout: 20_000 })
   const planId = page.url().match(/\/rutinas\/([^/]+)\/entrenar\//)?.[1] ?? ""
+
+  // El entrenamiento se guarda solo al completar el último ejercicio. Se espera esa respuesta
+  // y no un tiempo fijo: en CI la pantalla o el primer POST pueden tardar más de lo normal (#63).
+  let isSaved = false
+  const saved = page.waitForResponse(
+    (response) =>
+      new URL(response.url()).pathname === "/api/workout-logs" &&
+      response.request().method() === "POST",
+    { timeout: 180_000 }
+  )
+  const savedOrTimedOut = saved.then(
+    () => {
+      isSaved = true
+    },
+    () => {}
+  )
   await page.getByRole("button", { name: /iniciar entrenamiento/i }).click()
-  await page.waitForTimeout(1000)
 
-  for (let exercise = 0; exercise < 10; exercise++) {
-    for (let action = 0; action < 20; action++) {
-      const completeSet = page.getByRole("button", { name: /^Completar serie \d+ de \d+$/i })
-      if (await completeSet.isVisible({ timeout: 300 }).catch(() => false)) {
-        await completeSet.click()
-        await page.waitForTimeout(300)
-        continue
-      }
+  const completeSet = page.getByRole("button", { name: /^Completar serie \d+ de \d+$/i })
+  const skipRest = page.getByRole("button", { name: /Saltar descanso|^Saltar$/i })
+  const next = page.getByRole("button", { name: /^Siguiente ejercicio$/i })
+  const anyControl = completeSet.or(skipRest).or(next).first()
 
-      const skipRest = page.getByRole("button", { name: /Saltar descanso|^Saltar$/i })
-      if (await skipRest.isVisible({ timeout: 300 }).catch(() => false)) {
-        await skipRest.click()
-        await page.waitForTimeout(300)
-        continue
-      }
+  for (let action = 0; action < 200 && !isSaved; action++) {
+    // Espera a que haya un botón que pulsar (o a que se guarde) en vez de mirar una sola vez.
+    const state = await Promise.race([
+      anyControl.waitFor({ state: "visible", timeout: 30_000 }).then(
+        () => "control" as const,
+        () => "none" as const
+      ),
+      savedOrTimedOut.then(() => "saved" as const),
+    ])
+    if (state !== "control") break
 
-      const next = page.getByRole("button", { name: /^Siguiente ejercicio$/i })
-      if (await next.isVisible({ timeout: 500 }).catch(() => false)) {
-        await next.click()
-        await page.waitForTimeout(800)
-        break
-      }
-      break
+    // Tras cada clic se espera a que el botón cambie: un segundo clic sobre el mismo botón
+    // desmarcaría la serie o saltaría un ejercicio.
+    if (await completeSet.isVisible()) {
+      const label = (await completeSet.innerText()).trim()
+      await completeSet.click()
+      await expect(page.getByRole("button", { name: label, exact: true })).toHaveCount(0)
+    } else if (await skipRest.isVisible()) {
+      await skipRest.click()
+      await expect(skipRest).toBeHidden()
+    } else if (await next.isVisible()) {
+      await next.click()
+      await expect(next).toBeHidden()
     }
   }
 
-  await page
-    .getByText(/Entrenamiento registrado|Entrenamiento completado/i)
-    .first()
-    .waitFor({ state: "visible", timeout: 15_000 })
-    .catch(() => {})
-  await page.waitForTimeout(1000)
+  const response = await saved.catch(() => null)
+  if (!response) {
+    throw new Error(
+      "El entrenamiento no llegó a guardarse: no hubo POST /api/workout-logs (¿quedó un ejercicio sin completar?)"
+    )
+  }
+  expect(response.ok(), `POST /api/workout-logs respondió ${response.status()}`).toBe(true)
 
   await visit(page, "/rutinas")
   await expect(page.getByText(/Hola,/i)).toBeVisible({ timeout: 20_000 })
@@ -2130,8 +2151,13 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
 
   const failedSteps = results.filter((item) => item.status === "failed")
   if (failedSteps.length > 0) {
+    // El detalle va también al log del CI: el artefacto con el reporte se pisa al reintentar
+    // el job y la causa del fallo se perdía (#63).
+    const detail = failedSteps
+      .map((item) => `- ${item.id} (${item.url ?? "sin URL"}): ${item.error ?? "sin detalle"}`)
+      .join("\n")
     throw new Error(
-      `${failedSteps.length} pasos fallaron: ${failedSteps.map((item) => item.id).join(", ")}. Ver VALIDATION_REPORT.md para el detalle y los fixes sugeridos.`
+      `${failedSteps.length} pasos fallaron: ${failedSteps.map((item) => item.id).join(", ")}. Ver VALIDATION_REPORT.md para el detalle y los fixes sugeridos.\n${detail}`
     )
   }
 })
