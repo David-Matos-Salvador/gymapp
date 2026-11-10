@@ -44,6 +44,7 @@ import {
   getMembershipStatusLabel,
   getMembershipTab,
 } from "@/lib/membership-status"
+import { PAYMENT_METHOD_LABELS as paymentMethodLabels } from "@/constants/payment"
 
 interface MembershipUser {
   id: string
@@ -117,15 +118,6 @@ interface MembershipPanelProps {
   pendingPayments: PendingPayment[]
   members: MemberOption[]
   plans: PlanOption[]
-}
-
-const paymentMethodLabels: Record<string, string> = {
-  CASH: "Efectivo",
-  TRANSFER: "Transferencia",
-  CARD: "Tarjeta",
-  STRIPE: "Stripe",
-  YAPE: "Yape",
-  OTHER: "Otro",
 }
 
 export function MembershipPanel({

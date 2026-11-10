@@ -9,6 +9,7 @@ import { motion } from "framer-motion"
 import { CreditCard, Check, X, Loader2, Mail, Clock, Eye } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
+import { formatPaymentMethod, formatPaymentType } from "@/constants/payment"
 
 interface PendingPayment {
   id: string
@@ -161,10 +162,10 @@ export default function CoachPaymentsPage() {
                             {formatCurrency(payment.amount, payment.currency)}
                           </span>
                           <Badge variant="outline" className="text-xs">
-                            {payment.method}
+                            {formatPaymentMethod(payment.method)}
                           </Badge>
                           <Badge variant="secondary" className="text-xs">
-                            {payment.type}
+                            {formatPaymentType(payment.type)}
                           </Badge>
                           {payment.reference && (
                             <span className="text-xs text-muted-foreground">

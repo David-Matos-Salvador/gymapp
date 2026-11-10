@@ -19,6 +19,7 @@ import {
 import { toast } from "sonner"
 import { formatDate, formatCurrency, formatDays } from "@/lib/utils"
 import { canRenewMembership } from "@/lib/membership-status"
+import { PAYMENT_METHOD_LABELS as paymentMethodLabels } from "@/constants/payment"
 
 interface MembershipPlan {
   name: string
@@ -67,15 +68,6 @@ const paymentMethodIcons: Record<string, typeof Banknote> = {
   STRIPE: CreditCard,
   YAPE: Smartphone,
   OTHER: CreditCard,
-}
-
-const paymentMethodLabels: Record<string, string> = {
-  CASH: "Efectivo",
-  TRANSFER: "Transferencia",
-  CARD: "Tarjeta",
-  STRIPE: "Stripe",
-  YAPE: "Yape",
-  OTHER: "Otro",
 }
 
 export function MembershipCard({ membership }: MembershipCardProps) {

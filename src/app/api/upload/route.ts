@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     }
 
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "Archivo muy grande. Maximo 5MB" }, { status: 400 })
+      return NextResponse.json({ error: "Archivo muy grande. Máximo 5MB" }, { status: 400 })
     }
 
     const folder = type === "profile" ? "profiles" : type === "equipment" ? "equipment" : "general"

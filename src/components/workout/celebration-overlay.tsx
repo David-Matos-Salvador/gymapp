@@ -137,7 +137,9 @@ export function CelebrationOverlay({
             </div>
             <div className="rounded-xl bg-muted/50 p-3">
               <p className="text-2xl font-bold tabular-nums text-accent-yellow">{weeklyStreak}</p>
-              <p className="text-[10px] text-muted-foreground">semanas seguidas</p>
+              <p className="text-[10px] text-muted-foreground">
+                {weeklyStreak === 1 ? "semana seguida" : "semanas seguidas"}
+              </p>
             </div>
           </motion.div>
 

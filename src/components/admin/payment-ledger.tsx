@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { EmptyState } from "@/components/ui/empty-state"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatPaymentMethod } from "@/constants/payment"
 import { CreditCard, ExternalLink, Search } from "lucide-react"
 
 export interface PaymentRow {
@@ -102,7 +103,7 @@ export function PaymentLedger({ payments }: { payments: PaymentRow[] }) {
                   {payment.userName ?? payment.userEmail}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {formatDate(payment.createdAt)} · {payment.method}
+                  {formatDate(payment.createdAt)} · {formatPaymentMethod(payment.method)}
                   {payment.reference ? ` · ${payment.reference}` : ""}
                 </p>
                 {payment.confirmedByName && (

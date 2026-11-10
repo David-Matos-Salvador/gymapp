@@ -26,10 +26,10 @@ import { Check, X, CheckCircle } from "lucide-react"
 const registerSchema = z
   .object({
     name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-    email: z.string().email("Email invalido"),
+    email: z.string().email("Email inválido"),
     password: z
       .string()
-      .min(8, "Minimo 8 caracteres")
+      .min(8, "Mínimo 8 caracteres")
       .regex(/[A-Z]/, "Debe contener una mayúscula")
       .regex(/[0-9]/, "Debe contener un número"),
     confirmPassword: z.string(),
@@ -93,7 +93,7 @@ export default function RegisterPage() {
 
     if (result?.error) {
       setError(
-        "Registro exitoso pero falló el inicio de sesión automatico. Intenta iniciar sesión."
+        "Registro exitoso pero falló el inicio de sesión automático. Intenta iniciar sesión."
       )
       setSuccess(false)
     } else {
@@ -124,7 +124,7 @@ export default function RegisterPage() {
   }
 
   const passwordChecks = [
-    { label: "8 caracteres minimo", met: password.length >= 8 },
+    { label: "8 caracteres mínimo", met: password.length >= 8 },
     { label: "1 mayúscula", met: /[A-Z]/.test(password) },
     { label: "1 número", met: /[0-9]/.test(password) },
   ]

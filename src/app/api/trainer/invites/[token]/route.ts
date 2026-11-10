@@ -9,10 +9,10 @@ interface RouteParams {
 
 const completeSchema = z.object({
   name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Email invalido"),
+  email: z.string().email("Email inválido"),
   password: z
     .string()
-    .min(8, "Minimo 8 caracteres")
+    .min(8, "Mínimo 8 caracteres")
     .regex(/[A-Z]/, "Debe contener una mayúscula")
     .regex(/[0-9]/, "Debe contener un número"),
   phone: z.string().optional(),
@@ -89,7 +89,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Datos invalidos", details: parsed.error.flatten().fieldErrors },
+      { error: "Datos inválidos", details: parsed.error.flatten().fieldErrors },
       { status: 400 }
     )
   }
