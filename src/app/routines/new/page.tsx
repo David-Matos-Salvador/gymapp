@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Plus, Trash2, GripVertical } from "lucide-react"
 import { toast } from "sonner"
+import { EQUIPMENT_LABELS } from "@/constants/ui"
 import { MUSCLE_LABELS } from "@/constants/user"
 import { useAuth } from "@/hooks/use-auth"
 
@@ -267,7 +268,8 @@ export default function NewRoutinePage() {
                           <div>
                             <p className="text-sm font-medium">{ex.name}</p>
                             <p className="text-[10px] text-muted-foreground">
-                              {MUSCLE_LABELS[ex.muscleGroup] ?? ex.muscleGroup} · {ex.equipment}
+                              {MUSCLE_LABELS[ex.muscleGroup] ?? ex.muscleGroup} ·{" "}
+                              {EQUIPMENT_LABELS[ex.equipment] ?? ex.equipment}
                             </p>
                           </div>
                         </button>
@@ -279,11 +281,11 @@ export default function NewRoutinePage() {
 
             {!search && (
               <div className="flex flex-wrap gap-1">
-                {muscleGroups.slice(0, 8).map((group) => (
+                {muscleGroups.map((group) => (
                   <button
                     key={group}
                     className="rounded-full border px-2.5 py-0.5 text-xs hover:bg-muted transition-colors"
-                    onClick={() => setSearch(group)}
+                    onClick={() => setSearch(MUSCLE_LABELS[group] ?? group)}
                   >
                     {MUSCLE_LABELS[group] ?? group}
                   </button>
