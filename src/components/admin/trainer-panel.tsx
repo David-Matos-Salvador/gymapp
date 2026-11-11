@@ -15,7 +15,7 @@ export function TrainerPanel({ trainers }: { trainers: TrainerRow[] }) {
       <div>
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <Dumbbell className="h-5 w-5 text-accent-yellow" />
-          Trainers del gimnasio
+          Coaches del gimnasio
         </h2>
         <p className="text-sm text-muted-foreground">
           Coaches asignados a este gimnasio y cantidad de clientes.
@@ -25,7 +25,7 @@ export function TrainerPanel({ trainers }: { trainers: TrainerRow[] }) {
       {trainers.length === 0 ? (
         <Card>
           <CardContent className="py-8">
-            <EmptyState message="No hay trainers en este gimnasio" />
+            <EmptyState message="No hay coaches en este gimnasio" />
           </CardContent>
         </Card>
       ) : (

@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { describe, it, expect } from "vitest"
 import { formatPaymentMethod, formatPaymentType } from "@/constants/payment"
+import { getMembershipStatusLabel } from "@/lib/membership-status"
 
 // Issue #74: los valores internos (YAPE, MEMBERSHIP) y los textos por defecto en inglés
 // no se muestran al usuario, y los contadores usan singular cuando es 1.
@@ -54,5 +55,50 @@ describe("panel del súper admin", () => {
     expect(panel).not.toContain("`$$")
     expect(panel).not.toContain("Crear gym")
     expect(panel).not.toContain("Super Admin")
+  })
+})
+
+// Issue #83: el inicio del miembro mostraba "INACTIVE", y quedaban "Trainers", "Coach Panel"
+// y "ya esta registrado" sin tilde.
+describe("estado de la membresía en el inicio del miembro", () => {
+  it("todos los estados tienen nombre en español", () => {
+    for (const estado of [
+      "ACTIVE",
+      "PENDING_PAYMENT",
+      "INACTIVE",
+      "EXPIRED",
+      "SUSPENDED",
+      "CANCELLED",
+    ]) {
+      expect(getMembershipStatusLabel(estado), estado).not.toBe(estado)
+    }
+    expect(getMembershipStatusLabel("PENDING_PAYMENT")).toBe("Pago pendiente")
+  })
+
+  it("el inicio usa esos nombres y no el valor interno", () => {
+    const inicio = leer("src/components/dashboard/member-dashboard.tsx")
+    expect(inicio).toContain("getMembershipStatusLabel(membership.status)")
+    expect(inicio).not.toContain("Expirada")
+  })
+})
+
+describe("textos sueltos en inglés o sin tilde", () => {
+  it("el admin ve Coaches y no Trainers", () => {
+    expect(leer("src/components/admin/gym-management-tabs.tsx")).not.toMatch(/^\s*Trainers$/m)
+    expect(leer("src/components/admin/trainer-panel.tsx")).not.toMatch(/trainers? (del|en) /i)
+  })
+
+  it("el coach sin clientes lee Panel de Coach", () => {
+    expect(leer("src/app/coach/clients/page.tsx")).not.toContain("Coach Panel")
+  })
+
+  it("el correo repetido se avisa con tilde", () => {
+    for (const ruta of [
+      "src/app/api/auth/register/route.ts",
+      "src/app/api/trainer/members/route.ts",
+      "src/app/api/trainer/invites/[token]/route.ts",
+    ]) {
+      expect(leer(ruta), ruta).toContain("El email ya está registrado")
+    }
   })
 })

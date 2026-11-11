@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/empty-state"
 import { StatCard } from "@/components/ui/stat-card"
 import { DAY_OF_WEEK_LABELS } from "@/constants/ui"
 import { formatDays, pluralize } from "@/lib/utils"
+import { getMembershipStatusLabel } from "@/lib/membership-status"
 import {
   Flame,
   Dumbbell,
@@ -145,13 +146,7 @@ export function MemberDashboard({
                       : ""
                   }
                 >
-                  {membershipActive
-                    ? "Activa"
-                    : membership.status === "EXPIRED"
-                      ? "Expirada"
-                      : membership.status === "PENDING_PAYMENT"
-                        ? "Pago pendiente"
-                        : membership.status}
+                  {getMembershipStatusLabel(membership.status)}
                 </Badge>
                 <p className="text-xs text-muted-foreground mt-1.5">{membership.planName}</p>
                 {membership.daysRemaining !== null && membership.daysRemaining > 0 && (

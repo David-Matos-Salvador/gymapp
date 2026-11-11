@@ -159,7 +159,7 @@ export function GymManagementTabs({
           </TabsTrigger>
           <TabsTrigger value="trainers" className="gap-2">
             <Dumbbell className="size-4" />
-            Trainers
+            Coaches
           </TabsTrigger>
           {gym && (
             <TabsTrigger value="profile" className="gap-2">
