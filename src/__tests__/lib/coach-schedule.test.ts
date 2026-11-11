@@ -1,7 +1,10 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
 import { describe, expect, it } from "vitest"
 import {
   addDays,
   bookingWindow,
+  cancelAppointmentQuestion,
   computeFreeSlots,
   dayOfWeekOf,
   formatAppointment,
@@ -72,6 +75,25 @@ describe("fechas y horas", () => {
     expect(text).toContain("lunes")
     expect(text).toContain("16 de noviembre")
     expect(text).toContain("09:00")
+  })
+})
+
+// Issue #85: un toque en Cancelar cancelaba la sesión y avisaba a la otra persona, sin preguntar.
+describe("cancelar una sesión pide confirmación", () => {
+  it("la pregunta dice qué sesión es y que la otra persona recibe el aviso", () => {
+    expect(cancelAppointmentQuestion("lunes 16 de noviembre, 09:00", "Coach Martínez")).toBe(
+      "¿Cancelar la sesión del lunes 16 de noviembre, 09:00 con Coach Martínez? Se le avisará."
+    )
+  })
+
+  it("la lista de sesiones pregunta antes de llamar a la API", () => {
+    const source = readFileSync(
+      path.join(process.cwd(), "src/components/sessions/appointment-list.tsx"),
+      "utf8"
+    )
+    const question = source.indexOf("window.confirm(cancelAppointmentQuestion(")
+    expect(question).toBeGreaterThan(-1)
+    expect(question).toBeLessThan(source.indexOf("fetch("))
   })
 })
 

@@ -7,6 +7,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
+import { cancelAppointmentQuestion } from "@/lib/coach-schedule"
 
 export interface AppointmentItem {
   id: string
@@ -26,7 +27,8 @@ export function AppointmentList({
   const router = useRouter()
   const [cancellingId, setCancellingId] = useState<string | null>(null)
 
-  async function cancel(id: string) {
+  async function cancel({ id, when, withName }: AppointmentItem) {
+    if (!window.confirm(cancelAppointmentQuestion(when, withName))) return
     setCancellingId(id)
     try {
       const res = await fetch(`/api/appointments/${id}`, {
@@ -74,7 +76,7 @@ export function AppointmentList({
                 variant="outline"
                 size="sm"
                 disabled={cancellingId === item.id}
-                onClick={() => cancel(item.id)}
+                onClick={() => cancel(item)}
                 aria-label={`Cancelar la sesión del ${item.when}`}
               >
                 <X className="mr-1 h-4 w-4" />

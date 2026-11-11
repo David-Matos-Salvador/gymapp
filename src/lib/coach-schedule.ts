@@ -253,3 +253,8 @@ export function formatAppointment(startsAt: Date, timeZone: string): string {
   }).format(startsAt)
   return `${day}, ${utcToZoned(startsAt, timeZone).time}`
 }
+
+/** Pregunta antes de cancelar una sesión: dice cuál es y que la otra persona recibe el aviso. */
+export function cancelAppointmentQuestion(when: string, withName: string): string {
+  return `¿Cancelar la sesión del ${when} con ${withName}? Se le avisará.`
+}
