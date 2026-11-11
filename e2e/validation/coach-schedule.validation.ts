@@ -119,11 +119,24 @@ test("agenda 1:1: el coach abre horas, un cliente reserva y la hora queda bloque
     expect(conflict.status()).toBe(409)
     expect((await conflict.json()).error).toBe("Esa hora ya no está disponible. Elige otra.")
 
-    // 4. El coach ve la sesión en su agenda y la cancela.
+    // 4. El coach ve la sesión en su agenda. Cancelar pregunta antes: si dice que no,
+    //    la sesión sigue; si dice que sí, se cancela.
     await openSchedule(coach)
     const sessions = coach.getByTestId("appointment-list")
     await expect(sessions.getByText(/Con Carlos Rodríguez/)).toBeVisible()
-    await sessions.getByRole("button", { name: /Cancelar la sesión del domingo/i }).click()
+    const cancelButton = sessions.getByRole("button", { name: /Cancelar la sesión del domingo/i })
+    const questions: string[] = []
+    coach.once("dialog", (dialog) => {
+      questions.push(dialog.message())
+      void dialog.dismiss()
+    })
+    await cancelButton.click()
+    await expect
+      .poll(() => questions[0])
+      .toMatch(/¿Cancelar la sesión del domingo.*con Carlos Rodríguez\? Se le avisará\./)
+    await expect(sessions.getByText(/Con Carlos Rodríguez/)).toBeVisible()
+    coach.once("dialog", (dialog) => void dialog.accept())
+    await cancelButton.click()
     await expect(coach.getByText("Sesión cancelada")).toBeVisible()
     await expect(coach.getByText("Todavía no tienes sesiones reservadas")).toBeVisible()
 
