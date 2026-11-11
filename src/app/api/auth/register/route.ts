@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     })
 
     if (existingUser) {
-      return NextResponse.json({ error: "El email ya esta registrado" }, { status: 409 })
+      return NextResponse.json({ error: "El email ya está registrado" }, { status: 409 })
     }
 
     let gym: { id: string; active: boolean; isDefault: boolean } | null = null

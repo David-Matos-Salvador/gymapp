@@ -112,7 +112,7 @@ describe("POST /api/auth/register", () => {
     const body = await response.json()
 
     expect(response.status).toBe(409)
-    expect(body.error).toBe("El email ya esta registrado")
+    expect(body.error).toBe("El email ya está registrado")
     expect(mockCreate).not.toHaveBeenCalled()
   })
 

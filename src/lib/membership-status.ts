@@ -8,6 +8,7 @@ export interface MembershipTiming {
 
 export const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
   ACTIVE: "Activa",
+  PENDING_PAYMENT: "Pago pendiente",
   INACTIVE: "Inactiva",
   EXPIRED: "Vencida",
   SUSPENDED: "Suspendida",

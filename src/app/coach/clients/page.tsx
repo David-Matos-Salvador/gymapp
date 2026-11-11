@@ -59,7 +59,7 @@ export default async function CoachClientsListPage() {
               <Users className="h-12 w-12 text-muted-foreground" />
               <p className="text-lg font-medium">No tienes clientes asignados</p>
               <p className="text-sm text-muted-foreground">
-                Ve al Coach Panel para buscar y asignar miembros.
+                Ve al Panel de Coach para buscar y asignar miembros.
               </p>
             </CardContent>
           </Card>

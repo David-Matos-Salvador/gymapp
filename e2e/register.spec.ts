@@ -77,7 +77,7 @@ test.describe("Register form — member mode", () => {
     await page.locator(PWD_INPUT).fill("Abcdefg1")
     await page.locator(CONFIRM_INPUT).fill("Abcdefg1")
     await page.getByRole("button", { name: /Crear cuenta/i }).click()
-    await expect(page.getByText(/ya esta registrado/i)).toBeVisible()
+    await expect(page.getByText(/ya está registrado/i)).toBeVisible()
   })
 
   test("successful member registration shows success view", async ({ page }) => {
