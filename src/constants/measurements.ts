@@ -39,3 +39,44 @@ export function measurementRangeMessage(key: MeasurementKey): string {
   const { min, max, unit } = MEASUREMENT_RANGES[key]
   return `Entre ${min} y ${max} ${unit}`
 }
+
+const MEASUREMENT_NAMES: Record<MeasurementKey, string> = {
+  weight: "Peso",
+  height: "Altura",
+  bodyFat: "% de grasa",
+  muscleMass: "Masa muscular",
+  neck: "Cuello",
+  shoulders: "Hombros",
+  chest: "Pecho",
+  waist: "Cintura",
+  hips: "Cadera",
+  leftArm: "Bíceps izq.",
+  rightArm: "Bíceps der.",
+  leftForearm: "Antebrazo izq.",
+  rightForearm: "Antebrazo der.",
+  leftThigh: "Muslo izq.",
+  rightThigh: "Muslo der.",
+  leftCalf: "Pantorrilla izq.",
+  rightCalf: "Pantorrilla der.",
+}
+
+// Revisa un formulario de medidas tal como se escribió (los campos vacíos se ignoran) y
+// devuelve el aviso del primer campo fuera de rango, para decir qué corregir antes de enviar.
+export function measurementFormError(form: Record<string, string | undefined>): string | null {
+  for (const key of Object.keys(MEASUREMENT_RANGES) as MeasurementKey[]) {
+    const raw = form[key]?.trim()
+    if (!raw) continue
+    if (!isMeasurementInRange(key, parseFloat(raw))) {
+      const { min, max, unit } = MEASUREMENT_RANGES[key]
+      return `${MEASUREMENT_NAMES[key]}: ingresa un valor entre ${min} y ${max} ${unit}`
+    }
+  }
+  return null
+}
+
+// Limpia lo que se escribe en un campo decimal. Acepta coma o punto (los teclados en español
+// traen coma) y devuelve null si quedaría más de un separador.
+export function cleanDecimalInput(value: string): string | null {
+  const cleaned = value.replace(/,/g, ".").replace(/[^0-9.]/g, "")
+  return cleaned.split(".").length > 2 ? null : cleaned
+}

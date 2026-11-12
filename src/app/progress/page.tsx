@@ -34,6 +34,7 @@ import {
 import { toast } from "sonner"
 import { useSound } from "@/hooks/use-sound"
 import { cn, formatDate } from "@/lib/utils"
+import { measurementFormError } from "@/constants/measurements"
 
 interface BodyMeasurement {
   id: string
@@ -192,6 +193,11 @@ export default function ProgressPage() {
     )
     if (!hasAnyValue) {
       toast.error("Agrega al menos un valor")
+      return
+    }
+    const rangeError = measurementFormError(form)
+    if (rangeError) {
+      toast.error(rangeError)
       return
     }
     setSaving(true)
