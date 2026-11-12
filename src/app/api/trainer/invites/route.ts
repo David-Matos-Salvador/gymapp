@@ -3,6 +3,7 @@ import { randomBytes } from "crypto"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { buildInviteUrl, publicOrigin } from "@/lib/public-url"
 
 const INVITE_TTL_DAYS = 7
 
@@ -76,8 +77,7 @@ export async function POST(request: Request) {
     },
   })
 
-  const origin = new URL(request.url).origin
-  const url = `${origin}/invite/${invite.token}`
+  const url = buildInviteUrl(publicOrigin(request), invite.token)
 
   return NextResponse.json({ invite, url }, { status: 201 })
 }
