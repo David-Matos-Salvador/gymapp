@@ -35,6 +35,7 @@ import {
 import Link from "next/link"
 import { toast } from "sonner"
 import { pluralize } from "@/lib/utils"
+import { measurementFormError } from "@/constants/measurements"
 import {
   OBJECTIVE_LABELS,
   EXPERIENCE_LABELS,
@@ -194,6 +195,11 @@ export default function CoachClientDetail() {
   async function handleAddMeasurement() {
     if (!measureForm.weight.trim() && !measureForm.bodyFat.trim()) {
       toast.error("Agrega al menos peso o % de grasa")
+      return
+    }
+    const rangeError = measurementFormError(measureForm)
+    if (rangeError) {
+      toast.error(rangeError)
       return
     }
     setMeasureSaving(true)

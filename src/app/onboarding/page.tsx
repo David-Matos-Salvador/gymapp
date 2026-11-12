@@ -9,7 +9,11 @@ import { Input } from "@/components/ui/input"
 import { useSound } from "@/hooks/use-sound"
 import { calculateBMI, getBMICategory } from "@/lib/health"
 import { createDoubleTap } from "@/lib/double-tap"
-import { isMeasurementInRange, measurementRangeMessage } from "@/constants/measurements"
+import {
+  cleanDecimalInput,
+  isMeasurementInRange,
+  measurementRangeMessage,
+} from "@/constants/measurements"
 import { formatMuscleGroups } from "@/constants/user"
 import {
   type Objective,
@@ -342,8 +346,8 @@ export default function OnboardingPage() {
 
   const handleMeasurementChange = useCallback(
     (key: Exclude<keyof MeasurementsInput, "notes">, value: string) => {
-      const cleaned = value.replace(/[^0-9.]/g, "")
-      if (cleaned.split(".").length > 2) return
+      const cleaned = cleanDecimalInput(value)
+      if (cleaned === null) return
       setMeasurementInputs((prev) => ({ ...prev, [key]: cleaned }))
       const num = parseFloat(cleaned)
       updateMeasurement(key, isMeasurementInRange(key, num) ? num : null)
@@ -547,8 +551,8 @@ export default function OnboardingPage() {
   }, [coachPlan, finishWithCoachPlan, handleCardTap])
 
   const handleWeightChange = (value: string) => {
-    const cleaned = value.replace(/[^0-9.]/g, "")
-    if (cleaned.split(".").length > 2) return
+    const cleaned = cleanDecimalInput(value)
+    if (cleaned === null) return
     setWeightInput(cleaned)
     const num = parseFloat(cleaned)
     if (cleaned === "") {
@@ -563,8 +567,8 @@ export default function OnboardingPage() {
   }
 
   const handleHeightChange = (value: string) => {
-    const cleaned = value.replace(/[^0-9.]/g, "")
-    if (cleaned.split(".").length > 2) return
+    const cleaned = cleanDecimalInput(value)
+    if (cleaned === null) return
     setHeightInput(cleaned)
     const num = parseFloat(cleaned)
     if (cleaned === "") {
