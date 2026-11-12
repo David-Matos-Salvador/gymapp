@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CelebrationOverlay } from "@/components/workout/celebration-overlay"
 import { ExerciseCard } from "@/components/workout/exercise-card"
 import { RestTimer } from "@/components/workout/rest-timer"
-import { PHASE_LABELS, PHASE_COLORS } from "@/constants/workout"
+import { PHASE_LABELS, PHASE_COLORS, setLimitError } from "@/constants/workout"
 import { ArrowLeft, Save, Play, Trophy, ChevronDown, Pause, X, Flame, Zap } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -180,6 +180,13 @@ export default function LogWorkoutPage() {
         .filter((s) => s.completed)
       if (allSets.length === 0) {
         toast.error("Completa al menos una serie")
+        return
+      }
+      const outOfRange = allSets.find((s) => setLimitError(s))
+      if (outOfRange) {
+        toast.error(
+          `${outOfRange.exerciseName}, serie ${outOfRange.setNumber}: ${setLimitError(outOfRange)}`
+        )
         return
       }
 
@@ -685,7 +692,7 @@ export default function LogWorkoutPage() {
                 router.refresh()
               }}
             >
-              Ir al inicio
+              Volver a mi rutina
             </Button>
           </div>
         )}

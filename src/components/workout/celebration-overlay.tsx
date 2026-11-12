@@ -162,7 +162,7 @@ export function CelebrationOverlay({
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
           >
-            Ir al inicio
+            Volver a mi rutina
           </motion.button>
         </motion.div>
       </motion.div>

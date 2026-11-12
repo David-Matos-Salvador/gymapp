@@ -1,6 +1,8 @@
 "use client"
 
 import { MUSCLE_LABELS } from "@/constants/user"
+import { SET_LIMITS, clampSetValue, setLimitError } from "@/constants/workout"
+import { toast } from "sonner"
 import { useState, useCallback, useMemo } from "react"
 import {
   Check,
@@ -135,10 +137,14 @@ function SetsStepper({
             <Input
               type="number"
               inputMode="numeric"
-              min={1}
-              max={100}
+              min={SET_LIMITS.reps.min}
+              max={SET_LIMITS.reps.max}
               value={set.reps}
-              onChange={(e) => onSetUpdate?.(i, { reps: Math.max(0, Number(e.target.value) || 0) })}
+              onChange={(e) =>
+                onSetUpdate?.(i, {
+                  reps: clampSetValue("reps", Math.trunc(Number(e.target.value))),
+                })
+              }
               className="h-11 w-16 text-center text-base"
               aria-label={`Reps serie ${i + 1}`}
             />
@@ -146,11 +152,12 @@ function SetsStepper({
             <Input
               type="number"
               inputMode="decimal"
-              min={0}
+              min={SET_LIMITS.weight.min}
+              max={SET_LIMITS.weight.max}
               step="0.5"
               value={set.weight}
               onChange={(e) =>
-                onSetUpdate?.(i, { weight: Math.max(0, Number(e.target.value) || 0) })
+                onSetUpdate?.(i, { weight: clampSetValue("weight", Number(e.target.value)) })
               }
               className="h-11 w-20 text-center text-base"
               aria-label={`Peso serie ${i + 1}`}
@@ -196,6 +203,11 @@ export function ExerciseCard({
     (setIdx: number) => {
       const isAlreadyCompleted = setsData[setIdx]?.completed ?? false
       if (!isAlreadyCompleted) {
+        const limitError = setsData[setIdx] ? setLimitError(setsData[setIdx]) : null
+        if (limitError) {
+          toast.error(`Serie ${setIdx + 1}: ${limitError}`)
+          return
+        }
         const newCount = completedCount + 1
         if (newCount < totalSets && se.restSeconds > 0) {
           onStartRest?.(se.restSeconds)
@@ -214,9 +226,9 @@ export function ExerciseCard({
   )
 
   const incrementWeight = useCallback(() => {
-    const curr = localWeight ?? 0
-    setLocalWeight(curr + 2.5)
-    applyWeight(curr + 2.5)
+    const next = clampSetValue("weight", (localWeight ?? 0) + 2.5)
+    setLocalWeight(next)
+    applyWeight(next)
   }, [localWeight, applyWeight])
 
   const decrementWeight = useCallback(() => {
