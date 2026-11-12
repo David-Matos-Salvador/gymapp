@@ -1,6 +1,7 @@
 "use client"
 
 import { pluralize } from "@/lib/utils"
+import { buildInviteUrl } from "@/lib/public-url"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
@@ -277,7 +278,8 @@ export function CoachDashboard({
         return
       }
       play("success")
-      setInviteUrl(data.url)
+      // El dominio se toma del navegador: es el que el coach puede compartir.
+      setInviteUrl(buildInviteUrl(window.location.origin, data.invite.token))
       setInvites((prev) => [data.invite, ...prev])
       toast.success("Link de invitación creado")
     } catch {
@@ -541,7 +543,7 @@ export function CoachDashboard({
                           variant="outline"
                           className="shrink-0"
                           onClick={() =>
-                            copyInviteLink(`${window.location.origin}/invite/${inv.token}`)
+                            copyInviteLink(buildInviteUrl(window.location.origin, inv.token))
                           }
                         >
                           {copied ? (
