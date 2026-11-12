@@ -355,7 +355,7 @@ export default function CoachClientDetail() {
           <ArrowLeft className="h-3 w-3" /> Volver a clientes
         </Link>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           <Card className="md:col-span-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

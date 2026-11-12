@@ -563,7 +563,7 @@ export function CoachDashboard({
         </Card>
       </motion.div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <motion.div
           className="min-w-0"
           initial={{ opacity: 0, y: 12 }}
