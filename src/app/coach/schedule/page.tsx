@@ -3,11 +3,27 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AppShell } from "@/components/layout/shell"
 import { BackButton } from "@/components/back-button"
+import { CalendarConnectionCard } from "@/components/coach/calendar-connection-card"
 import { ScheduleEditor } from "@/components/coach/schedule-editor"
 import { AppointmentList } from "@/components/sessions/appointment-list"
 import { DEFAULT_TIMEZONE, formatAppointment } from "@/lib/coach-schedule"
+import { isGoogleCalendarEnabled } from "@/lib/google-calendar"
 
-export default async function CoachSchedulePage() {
+const CALENDAR_NOTICES: Record<string, { tone: "ok" | "error"; text: string }> = {
+  connected: { tone: "ok", text: "Tu calendario de Google quedó conectado." },
+  denied: { tone: "error", text: "No diste permiso en Google, así que no se conectó nada." },
+  error: { tone: "error", text: "No pudimos conectar tu calendario. Intenta de nuevo." },
+  unavailable: {
+    tone: "error",
+    text: "La conexión con Google Calendar todavía no está disponible en este ambiente.",
+  },
+}
+
+export default async function CoachSchedulePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ calendar?: string }>
+}) {
   const session = await auth()
   if (!session?.user?.email) redirect("/login")
   const user = await prisma.user.findUnique({
@@ -18,7 +34,11 @@ export default async function CoachSchedulePage() {
 
   const timeZone = user.gym?.timezone || DEFAULT_TIMEZONE
 
-  const [blocks, appointments] = await Promise.all([
+  const { calendar } = await searchParams
+  const notice = calendar ? (CALENDAR_NOTICES[calendar] ?? null) : null
+  const calendarEnabled = isGoogleCalendarEnabled()
+
+  const [blocks, appointments, connection] = await Promise.all([
     prisma.coachAvailability.findMany({
       where: { trainerId: user.id },
       select: { dayOfWeek: true, startTime: true, endTime: true },
@@ -28,6 +48,11 @@ export default async function CoachSchedulePage() {
       where: { trainerId: user.id, status: "CONFIRMED", startsAt: { gte: new Date() } },
       include: { client: { select: { name: true } } },
       orderBy: { startsAt: "asc" },
+    }),
+    // Solo estado y fechas: la credencial cifrada nunca sale hacia la página.
+    prisma.coachCalendarConnection.findUnique({
+      where: { trainerId: user.id },
+      select: { status: true, lastSyncAt: true, _count: { select: { busyBlocks: true } } },
     }),
   ])
 
@@ -61,6 +86,26 @@ export default async function CoachSchedulePage() {
           <h2 className="text-lg font-semibold">Horas de atención</h2>
           <ScheduleEditor initialBlocks={blocks} />
         </section>
+
+        {(calendarEnabled || connection) && (
+          <section className="space-y-3">
+            <h2 className="text-lg font-semibold">Calendario de Google</h2>
+            <CalendarConnectionCard
+              notice={notice}
+              connection={
+                connection
+                  ? {
+                      status: connection.status,
+                      lastSync: connection.lastSyncAt
+                        ? formatAppointment(connection.lastSyncAt, timeZone)
+                        : null,
+                      busyCount: connection._count.busyBlocks,
+                    }
+                  : null
+              }
+            />
+          </section>
+        )}
       </div>
     </AppShell>
   )

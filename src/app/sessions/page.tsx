@@ -11,6 +11,7 @@ import { AppointmentList } from "@/components/sessions/appointment-list"
 import { SlotPicker } from "@/components/sessions/slot-picker"
 import { getBookableCoach, hasActiveMembership } from "@/lib/appointments"
 import { DEFAULT_TIMEZONE, formatAppointment } from "@/lib/coach-schedule"
+import { refreshCalendarCacheIfStale } from "@/lib/calendar-sync"
 import { getFreeSlots } from "@/lib/coach-schedule-db"
 
 export default async function SessionsPage() {
@@ -26,6 +27,8 @@ export default async function SessionsPage() {
 
   const timeZone = user.gym?.timezone || DEFAULT_TIMEZONE
   const lookup = await getBookableCoach(user)
+  // Si el coach conectó su calendario, se lee de nuevo cuando la caché ya venció.
+  if (lookup.ok) await refreshCalendarCacheIfStale(lookup.coach.id)
 
   const [appointments, membershipActive, free] = await Promise.all([
     prisma.appointment.findMany({

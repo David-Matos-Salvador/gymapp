@@ -44,6 +44,11 @@ vi.mock("@/lib/coach-schedule-db", () => ({
   getFreeSlots: (...args: unknown[]) => mockGetFreeSlots(...args),
 }))
 
+const mockRefreshCalendarCache = vi.fn()
+vi.mock("@/lib/calendar-sync", () => ({
+  refreshCalendarCacheIfStale: (...args: unknown[]) => mockRefreshCalendarCache(...args),
+}))
+
 vi.mock("@/lib/realtime", () => ({
   emitRealtime: (...args: unknown[]) => mockEmitRealtime(...args),
 }))
@@ -155,6 +160,11 @@ describe("POST /api/appointments", () => {
     )
     expect(response.status).toBe(201)
     expect(mockQueryRaw).toHaveBeenCalledTimes(1)
+    // La caché del calendario del coach se renueva antes de abrir la transacción.
+    expect(mockRefreshCalendarCache).toHaveBeenCalledWith("coach-1")
+    expect(mockRefreshCalendarCache.mock.invocationCallOrder[0]).toBeLessThan(
+      mockQueryRaw.mock.invocationCallOrder[0]
+    )
     // Las horas libres se recalculan dentro de la transacción, después del bloqueo.
     expect(mockQueryRaw.mock.invocationCallOrder[0]).toBeLessThan(
       mockGetFreeSlots.mock.invocationCallOrder[0]

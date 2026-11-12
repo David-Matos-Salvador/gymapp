@@ -105,7 +105,7 @@ Quedan fuera de alcance por decisión D-06 de `docs/decisions/validation-fixes.m
 ## Integración de calendarios del coach (Google/Gmail + iCloud)
 
 - **Descripción**: Permitir que un coach conecte su calendario para leer sus bloques ocupados (free/busy) y bloquear automáticamente esas horas al agendar clases o sesiones 1:1. Debe soportar Google Calendar (cuenta Gmail/Google Workspace) e iCloud Calendar.
-- **Estado actual**: En curso (issue #16). **Hecho:** disponibilidad semanal del coach y agenda 1:1 con validación de conflictos (`CoachAvailability`, `Appointment`, `/coach/schedule`, `/sessions`, lógica en `src/lib/coach-schedule.ts`). **Pendiente:** conectar Google Calendar para bloquear las horas ocupadas (free/busy). **Descartado por ahora (9/11/2026):** iCloud/CalDAV.
+- **Estado actual**: Hecho para Google Calendar (issue #16). Agenda 1:1 con disponibilidad del coach (`/coach/schedule`, `/sessions`) y conexión de Google Calendar por OAuth en solo lectura (alcance `calendar.freebusy`): refresh token cifrado (`src/lib/calendar-crypto.ts`), caché de horas ocupadas de 5 minutos (`CalendarBusyBlock`, `src/lib/calendar-sync.ts`), sincronizar y desconectar desde "Mi agenda". Variables: `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `CALENDAR_TOKEN_ENCRYPTION_KEY` (ver `.env.example`). **Fuera por ahora:** iCloud/CalDAV (descartado el 9/11/2026), selector de calendarios (solo se lee el principal), bloqueos manuales y verificación de la app de Google para producción.
 - **Prioridad**: Media.
 - **Esfuerzo**: XL.
 - **Dependencias**: agenda/citas 1:1 de clientes, modelo de disponibilidad, OAuth/CalDAV y cifrado de credenciales.

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getBookableCoach } from "@/lib/appointments"
+import { refreshCalendarCacheIfStale } from "@/lib/calendar-sync"
 import { getFreeSlots } from "@/lib/coach-schedule-db"
 
 /** Horas libres del coach asignado al usuario, para los próximos días. */
@@ -20,6 +21,7 @@ export async function GET() {
     return NextResponse.json({ error: lookup.error }, { status: lookup.status })
   }
 
+  await refreshCalendarCacheIfStale(lookup.coach.id)
   const result = await getFreeSlots(prisma, lookup.coach)
   return NextResponse.json({
     coach: { id: lookup.coach.id, name: lookup.coach.name },

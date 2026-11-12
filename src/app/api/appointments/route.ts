@@ -7,6 +7,7 @@ import { getRequestId } from "@/lib/request-id"
 import { emitRealtime } from "@/lib/realtime"
 import { getBookableCoach, hasActiveMembership } from "@/lib/appointments"
 import { formatAppointment } from "@/lib/coach-schedule"
+import { refreshCalendarCacheIfStale } from "@/lib/calendar-sync"
 import { getFreeSlots } from "@/lib/coach-schedule-db"
 
 const createSchema = z.object({ startsAt: z.iso.datetime() })
@@ -73,6 +74,9 @@ export async function POST(request: Request) {
       { status: 403 }
     )
   }
+
+  // Fuera de la transacción porque habla con Google: deja al día la caché del calendario del coach.
+  await refreshCalendarCacheIfStale(coach.id)
 
   try {
     const result = await prisma.$transaction(async (tx) => {
