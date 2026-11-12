@@ -265,8 +265,9 @@ async function completeWorkout(page: Page) {
   return planId
 }
 
-async function toast(page: Page, text: RegExp) {
-  await expect(page.getByText(text).first()).toBeVisible({ timeout: 15_000 })
+// timeout: algunas rutas se compilan en su primera llamada y el aviso tarda más de lo normal.
+async function toast(page: Page, text: RegExp, timeout = 15_000) {
+  await expect(page.getByText(text).first()).toBeVisible({ timeout })
 }
 
 test.beforeAll(async () => {
@@ -1608,7 +1609,8 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     async () => {
       await visit(superadmin.page, "/super-admin")
       await superadmin.page.waitForURL(/\/dashboard/, { timeout: 20_000 })
-      await expect(superadmin.page.locator("h1")).toContainText(
+      // .first(): durante la redirección quedan un instante dos <h1> en la página.
+      await expect(superadmin.page.locator("h1").first()).toContainText(
         /Fitness Total|Panel de Plataforma|Panel/i,
         { timeout: 20_000 }
       )
@@ -1668,7 +1670,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       await row.getByRole("button", { name: "Editar gimnasio" }).click()
       await superadmin.page.locator("#editGymAddress").fill("Av. Editada 456")
       await superadmin.page.getByRole("button", { name: /Guardar cambios/i }).click()
-      await toast(superadmin.page, /Gimnasio actualizado/i)
+      await toast(superadmin.page, /Gimnasio actualizado/i, 30_000)
     }
   )
 
