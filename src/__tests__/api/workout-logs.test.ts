@@ -182,6 +182,29 @@ describe("POST /api/workout-logs", () => {
     expect(body.error).toBe("Datos inválidos")
   })
 
+  it.each([
+    ["sin repeticiones", { reps: 0, weight: 60 }],
+    ["con un peso imposible", { reps: 8, weight: 99999 }],
+    ["con demasiadas repeticiones", { reps: 5000, weight: 60 }],
+  ])("returns 400 y no guarda una serie %s", async (_caso, values) => {
+    mockAuth.mockResolvedValue({ user: { email: "user@test.com" } })
+    mockFindUnique.mockResolvedValue({ id: "user-1", email: "user@test.com", role: "MEMBER" })
+
+    const req = new Request("http://localhost:3000/api/workout-logs", {
+      method: "POST",
+      body: JSON.stringify({
+        splitId: "split-1",
+        sets: [{ exerciseId: "ex-1", exerciseName: "Squat", setNumber: 1, ...values }],
+      }),
+    })
+    const response = await POST(req)
+    const body = await response.json()
+
+    expect(response.status).toBe(400)
+    expect(body.error).toBe("Datos inválidos")
+    expect(mockCreate).not.toHaveBeenCalled()
+  })
+
   it("returns 400 when sets are missing completely", async () => {
     mockAuth.mockResolvedValue({ user: { email: "user@test.com" } })
     mockFindUnique.mockResolvedValue({ id: "user-1", email: "user@test.com", role: "MEMBER" })

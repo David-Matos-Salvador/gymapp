@@ -139,7 +139,7 @@ export default async function HistorialPage({ params }: PageProps) {
                               )}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {sets.length} series ·{" "}
+                            {pluralize(sets.length, "serie", "series")} ·{" "}
                             {sets.map((set) => `${set.reps}×${set.weight}kg`).join(", ")}
                           </span>
                         </div>

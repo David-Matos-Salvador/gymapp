@@ -2,13 +2,14 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { SET_LIMITS } from "@/constants/workout"
 
 const setLogSchema = z.object({
   exerciseId: z.string().min(1),
   exerciseName: z.string().min(1),
   setNumber: z.number().int().positive(),
-  reps: z.number().int().min(0).default(0),
-  weight: z.number().min(0).default(0),
+  reps: z.number().int().min(SET_LIMITS.reps.min).max(SET_LIMITS.reps.max),
+  weight: z.number().min(SET_LIMITS.weight.min).max(SET_LIMITS.weight.max).default(0),
   restSeconds: z.number().int().min(0).default(60),
   completed: z.boolean().default(true),
   notes: z.string().optional(),

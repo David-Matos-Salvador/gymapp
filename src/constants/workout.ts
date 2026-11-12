@@ -32,3 +32,27 @@ export const PHASE_COLORS: Record<
 }
 
 export const DEFAULT_REST_SECONDS = 60
+
+// Límites de una serie registrada. Los usan la pantalla de entrenar y la API para que un
+// error de tipeo (0 repeticiones, 99999 kg) no se guarde ni cuente como récord.
+export const SET_LIMITS = {
+  reps: { min: 1, max: 300 },
+  weight: { min: 0, max: 500 },
+} as const
+
+// Mientras se escribe se permite 0 (campo vacío); el mínimo se exige al completar la serie.
+export function clampSetValue(field: keyof typeof SET_LIMITS, value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.min(SET_LIMITS[field].max, Math.max(0, value))
+}
+
+export function setLimitError(set: { reps: number; weight: number }): string | null {
+  const { reps, weight } = SET_LIMITS
+  if (!Number.isInteger(set.reps) || set.reps < reps.min || set.reps > reps.max) {
+    return `Ingresa entre ${reps.min} y ${reps.max} repeticiones`
+  }
+  if (!Number.isFinite(set.weight) || set.weight < weight.min || set.weight > weight.max) {
+    return `Ingresa un peso entre ${weight.min} y ${weight.max} kg`
+  }
+  return null
+}
