@@ -342,7 +342,7 @@ export function ProfileForm({ user }: { user: User }) {
                 setPhone(e.target.value)
                 if (!phoneTouched) setPhoneTouched(true)
               }}
-              placeholder="+52 999 123 4567"
+              placeholder="+51 999 123 456"
             />
           </div>
           <Separator />

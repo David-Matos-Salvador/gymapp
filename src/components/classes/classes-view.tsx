@@ -197,7 +197,7 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {cls.startTime} · {cls.duration}min
+                    {cls.startTime} · {cls.duration} min
                   </span>
                   <span className="flex items-center gap-1">
                     <Users className="h-3 w-3" />

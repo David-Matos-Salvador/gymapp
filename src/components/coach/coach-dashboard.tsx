@@ -551,7 +551,7 @@ export function CoachDashboard({
                           ) : (
                             <Copy className="mr-1 h-3 w-3" />
                           )}
-                          {copied ? "Copiado" : "Copiar link"}
+                          {copied ? "Copiado" : "Copiar enlace"}
                         </Button>
                       )}
                     </div>
@@ -757,7 +757,7 @@ export function CoachDashboard({
                           <p className="text-sm font-medium truncate">{c.name}</p>
                           <p className="text-xs text-muted-foreground">
                             {DAY_OF_WEEK_LABELS[c.dayOfWeek] || c.dayOfWeek} · {c.startTime} ·{" "}
-                            {c.duration}min · {c.bookingsCount}/{c.capacity}
+                            {c.duration} min · {c.bookingsCount}/{c.capacity}
                           </p>
                         </div>
                       </Link>
@@ -897,7 +897,7 @@ export function CoachDashboard({
                   type="tel"
                   value={inviteForm.phone}
                   onChange={(e) => setInviteForm((f) => ({ ...f, phone: e.target.value }))}
-                  placeholder="+52 55 0000 0000"
+                  placeholder="+51 999 000 000"
                 />
               </div>
             </div>

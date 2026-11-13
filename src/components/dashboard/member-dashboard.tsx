@@ -216,7 +216,7 @@ export function MemberDashboard({
                   {nextWorkout.splitName ? (
                     <div className="flex items-center gap-2 text-sm">
                       <Dumbbell className="h-4 w-4 text-accent-yellow" />
-                      <span className="text-muted-foreground">Siguiente split:</span>
+                      <span className="text-muted-foreground">Siguiente entrenamiento:</span>
                       <span className="font-medium">{nextWorkout.splitName}</span>
                     </div>
                   ) : (
@@ -275,7 +275,7 @@ export function MemberDashboard({
                         <p className="text-sm font-medium truncate">{booking.className}</p>
                         <p className="text-xs text-muted-foreground">
                           {DAY_LABELS[booking.dayOfWeek] ?? booking.dayOfWeek} · {booking.startTime}{" "}
-                          · {booking.duration}min · {booking.trainerName ?? "Coach"}
+                          · {booking.duration} min · {booking.trainerName ?? "Coach"}
                         </p>
                       </div>
                       <Badge

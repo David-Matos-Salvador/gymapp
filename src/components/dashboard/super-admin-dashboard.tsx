@@ -488,7 +488,7 @@ export function SuperAdminDashboard({
                 id="gymPhone"
                 value={gymForm.phone}
                 onChange={(e) => setGymForm((f) => ({ ...f, phone: e.target.value }))}
-                placeholder="+525512345678"
+                placeholder="+51999123456"
               />
             </div>
             <div className="space-y-2">
