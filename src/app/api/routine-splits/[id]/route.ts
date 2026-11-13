@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { canReadPlan } from "@/lib/routine-access"
-import { getDefaultGym, getEffectiveGym } from "@/lib/effective-gym"
+import { getSplitForWorkout } from "@/lib/workout-split"
 import { z } from "zod"
 
 interface RouteParams {
@@ -44,119 +43,12 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const { id } = await params
 
-  const split = await prisma.routineSplit.findUnique({
-    where: { id },
-    include: {
-      exercises: {
-        include: {
-          exercise: {
-            include: {
-              gymEquipments: {
-                select: {
-                  id: true,
-                  name: true,
-                  machineNumber: true,
-                  location: true,
-                  gymId: true,
-                  imageUrl: true,
-                  activations: {
-                    select: {
-                      gymId: true,
-                      machineNumber: true,
-                      imageUrl: true,
-                      active: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        orderBy: { order: "asc" },
-      },
-      plan: { select: { id: true, name: true } },
-    },
-  })
-
-  if (!split || !(await canReadPlan(split.planId, currentUser))) {
+  const data = await getSplitForWorkout(id, currentUser)
+  if (!data) {
     return NextResponse.json({ error: "Split no encontrado" }, { status: 404 })
   }
 
-  const user = currentUser
-
-  const effectiveGym = await getEffectiveGym(user)
-  const defaultGym = await getDefaultGym()
-  const primaryGymId = user.gymId
-
-  let activeExerciseIds = new Set<string>()
-  if (primaryGymId) {
-    const gymExercises = await prisma.gymExercise.findMany({
-      where: { gymId: primaryGymId, active: true },
-      select: { exerciseId: true },
-    })
-    activeExerciseIds = new Set(gymExercises.map((e) => e.exerciseId))
-  }
-  if (!primaryGymId && activeExerciseIds.size === 0 && defaultGym) {
-    const defaultExercises = await prisma.gymExercise.findMany({
-      where: { gymId: defaultGym.id, active: true },
-      select: { exerciseId: true },
-    })
-    activeExerciseIds = new Set(defaultExercises.map((e) => e.exerciseId))
-  }
-
-  if (activeExerciseIds.size > 0) {
-    split.exercises = split.exercises.filter((se) => activeExerciseIds.has(se.exerciseId))
-  }
-
-  const fallbackGym = primaryGymId ? null : defaultGym
-
-  for (const se of split.exercises) {
-    const equip = se.exercise.gymEquipments ?? []
-    se.exercise.gymEquipments = equip
-      .filter((equipment) => {
-        if (primaryGymId && equipment.gymId === primaryGymId) return true
-        if (equipment.gymId !== null) return false
-        return equipment.activations.some(
-          (activation) =>
-            activation.active &&
-            (activation.gymId === primaryGymId || activation.gymId === fallbackGym?.id)
-        )
-      })
-      .map((equipment) => {
-        const { activations, ...rest } = equipment
-        const primaryActivation = activations.find(
-          (activation) => activation.active && activation.gymId === primaryGymId
-        )
-        const defaultActivation = activations.find(
-          (activation) => activation.active && activation.gymId === fallbackGym?.id
-        )
-        const activation = primaryActivation ?? defaultActivation
-        return {
-          ...rest,
-          activations: [],
-          machineNumber: activation?.machineNumber ?? equipment.machineNumber,
-          imageUrl: activation?.imageUrl ?? equipment.imageUrl,
-        }
-      })
-  }
-
-  const gym = effectiveGym
-    ? { id: effectiveGym.id, showMachineNumbers: effectiveGym.showMachineNumbers }
-    : null
-
-  const lastLog = await prisma.workoutLog.findFirst({
-    where: { userId: user.id, splitId: split.id },
-    orderBy: { date: "desc" },
-    include: { sets: true },
-  })
-  const lastPerformance: Record<string, Array<{ weight: number; reps: number }>> = {}
-  for (const set of lastLog?.sets ?? []) {
-    const list = lastPerformance[set.exerciseId] ?? []
-    list[set.setNumber - 1] = { weight: set.weight, reps: set.reps }
-    lastPerformance[set.exerciseId] = list
-  }
-
-  return NextResponse.json({ split, gym, lastPerformance })
+  return NextResponse.json(data)
 }
 
 export async function PATCH(request: Request, { params }: RouteParams) {
