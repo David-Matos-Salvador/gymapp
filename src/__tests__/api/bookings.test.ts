@@ -138,6 +138,7 @@ describe("POST /api/bookings", () => {
 
     expect(response.status).toBe(403)
     expect(body.error).toBe("Necesitas una membresía activa y confirmada para reservar una clase")
+    expect(body.code).toBe("MEMBERSHIP_REQUIRED")
     expect(mockMembershipFindFirst).toHaveBeenCalledWith({
       where: {
         userId: "user-1",

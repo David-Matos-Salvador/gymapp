@@ -79,7 +79,10 @@ export async function POST(request: Request) {
       if (!membership) {
         return {
           status: 403,
-          body: { error: "Necesitas una membresía activa y confirmada para reservar una clase" },
+          body: {
+            error: "Necesitas una membresía activa y confirmada para reservar una clase",
+            code: "MEMBERSHIP_REQUIRED",
+          },
         }
       }
 

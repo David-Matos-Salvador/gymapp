@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   CalendarDays,
   Clock,
@@ -96,6 +97,7 @@ function buildCalendarUrl(cls: ClassItem): string {
 }
 
 export function ClassesView({ classes, bookings, userRole, userId }: ClassesViewProps) {
+  const router = useRouter()
   const { play } = useSound()
   const [bookingIds, setBookingIds] = useState<Set<string>>(
     new Set(bookings.filter((b) => b.status === "CONFIRMED").map((b) => b.classItem.id))
@@ -117,7 +119,14 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
       toast.success("Clase reservada")
     } else {
       const data = await res.json()
-      toast.error(data.error ?? "Error al reservar")
+      // Sin membresía activa: el aviso del miembro lo lleva a donde se resuelve.
+      const goToMembership = data.code === "MEMBERSHIP_REQUIRED" && userRole === "MEMBER"
+      toast.error(
+        data.error ?? "Error al reservar",
+        goToMembership
+          ? { action: { label: "Ver membresía", onClick: () => router.push("/membresia") } }
+          : undefined
+      )
     }
     setLoading(null)
   }
