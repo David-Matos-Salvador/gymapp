@@ -7,7 +7,7 @@
  * - SplitData / SplitPlan → used for workout session page data fetching
  *
  * Used by:
- *   src/app/my-routine/[planId]/workout/[splitId]/page.tsx
+ *   src/app/my-routine/[planId]/workout/[splitId]/workout-client.tsx
  *   src/components/workout/exercise-card.tsx
  *   src/components/workout/exercise-detail-sheet.tsx
  */
@@ -16,7 +16,8 @@ export interface GymEquipmentRef {
   name: string
   machineNumber: number | null
   location: string | null
-  gymId: string
+  // null: equipo del catálogo global, activado para el gimnasio
+  gymId: string | null
   imageUrl: string | null
 }
 
