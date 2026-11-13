@@ -28,6 +28,8 @@ describe("estado de una reserva de clase", () => {
 describe("textos sueltos", () => {
   it.each([
     ["src/components/coach/coach-dashboard.tsx", "Copiar link"],
+    ["src/components/coach/coach-dashboard.tsx", "Crear link"],
+    ["src/components/coach/coach-dashboard.tsx", "El link expira"],
     ["src/components/admin/member-management.tsx", "socios"],
     ["src/components/admin/membership-plan-manager.tsx", "socios"],
     ["src/components/dashboard/member-dashboard.tsx", "Siguiente split"],
