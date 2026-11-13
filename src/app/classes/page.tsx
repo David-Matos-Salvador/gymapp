@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout/shell"
 import Link from "next/link"
 import { ArrowRight, CalendarClock } from "lucide-react"
 import { ClassesView } from "@/components/classes/classes-view"
+import { getClassesSubtitle } from "@/lib/classes-subtitle"
 
 export default async function ClassesPage() {
   const session = await auth()
@@ -70,7 +71,7 @@ export default async function ClassesPage() {
       <div className="container mx-auto px-4 py-6 md:py-8 space-y-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Clases</h1>
-          <p className="text-muted-foreground">Reserva tu lugar en clases grupales</p>
+          <p className="text-muted-foreground">{getClassesSubtitle(user.role)}</p>
         </div>
         {user.assignedTrainerId && user.role !== "TRAINER" && (
           <Link
