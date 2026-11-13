@@ -204,7 +204,7 @@ export function CoachDashboard({
         setSearchResults(data.members)
         setShowResults(true)
       } catch {
-        setSearchError("Error de conexion")
+        setSearchError("Error de conexión")
       } finally {
         setSearchLoading(false)
       }
@@ -244,7 +244,7 @@ export function CoachDashboard({
         setSentRequests((prev) => [newRequest, ...prev])
         toast.success("Solicitud enviada al miembro")
       } catch {
-        toast.error("Error de conexion")
+        toast.error("Error de conexión")
       } finally {
         setAssignLoading(null)
       }

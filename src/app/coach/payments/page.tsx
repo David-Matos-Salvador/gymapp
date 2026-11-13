@@ -68,7 +68,7 @@ export default function CoachPaymentsPage() {
       toast.success("Pago confirmado")
       setPayments((prev) => prev.filter((p) => p.id !== paymentId))
     } catch {
-      toast.error("Error de conexion")
+      toast.error("Error de conexión")
     } finally {
       setProcessing(null)
     }
@@ -94,7 +94,7 @@ export default function CoachPaymentsPage() {
       toast.success("Pago rechazado")
       setPayments((prev) => prev.filter((p) => p.id !== paymentId))
     } catch {
-      toast.error("Error de conexion")
+      toast.error("Error de conexión")
     } finally {
       setProcessing(null)
     }

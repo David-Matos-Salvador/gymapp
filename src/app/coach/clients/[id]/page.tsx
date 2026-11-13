@@ -272,7 +272,7 @@ export default function CoachClientDetail() {
         toast.error("Error al guardar medición")
       }
     } catch {
-      toast.error("Error de conexion")
+      toast.error("Error de conexión")
     }
     setMeasureSaving(false)
   }
@@ -311,7 +311,7 @@ export default function CoachClientDetail() {
         toast.error("Error al asignar rutina")
       }
     } catch {
-      toast.error("Error de conexion")
+      toast.error("Error de conexión")
     }
   }
 
