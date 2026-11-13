@@ -1,7 +1,4 @@
-"use client"
-
-import { motion } from "framer-motion"
-import { fadeIn } from "@/constants/landing"
+import { Reveal } from "@/components/landing/reveal"
 import type { LucideIcon } from "lucide-react"
 
 interface Step {
@@ -21,7 +18,7 @@ export function HowItWorksSection({ steps }: HowItWorksSectionProps) {
   return (
     <section className="relative py-20 md:py-32">
       <div className="container mx-auto px-4">
-        <motion.div {...fadeIn} className="text-center mb-16">
+        <Reveal className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
             ¿Cómo <span className="text-accent-yellow">funciona</span>?
           </h2>
@@ -29,18 +26,11 @@ export function HowItWorksSection({ steps }: HowItWorksSectionProps) {
             Digitaliza tu gimnasio en tres simples pasos. Sin instalaciones complicadas ni hardware
             especializado.
           </p>
-        </motion.div>
+        </Reveal>
 
         <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto">
           {steps.map((step, i) => (
-            <motion.div
-              key={step.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.15 }}
-              className="relative text-center"
-            >
+            <Reveal key={step.title} delay={i * 150} className="relative text-center">
               {i < steps.length - 1 && (
                 <div className="hidden md:block absolute top-10 left-[calc(50%+3rem)] w-[calc(100%-6rem)] h-px bg-border" />
               )}
@@ -58,7 +48,7 @@ export function HowItWorksSection({ steps }: HowItWorksSectionProps) {
                   {step.description}
                 </p>
               </div>
-            </motion.div>
+            </Reveal>
           ))}
         </div>
       </div>
