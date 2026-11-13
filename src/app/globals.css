@@ -141,3 +141,25 @@
     @apply font-sans;
   }
 }
+
+/* Portada: el fondo del hero baja y se desvanece al hacer scroll. Es CSS puro para no cargar
+   una librería de animación en la primera pantalla; donde el navegador no lo soporta, queda fijo. */
+@keyframes hero-parallax {
+  50% {
+    opacity: 0;
+  }
+  to {
+    translate: 0 150px;
+    opacity: 0;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-parallax {
+      animation: hero-parallax linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+  }
+}

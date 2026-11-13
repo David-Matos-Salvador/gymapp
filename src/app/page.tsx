@@ -1,5 +1,3 @@
-"use client"
-
 import { HeaderSection } from "@/components/landing/header-section"
 import { HeroSection } from "@/components/landing/hero-section"
 import { FeaturesSection } from "@/components/landing/features-section"
