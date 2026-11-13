@@ -134,46 +134,49 @@ export function GymManagementTabs({
       </div>
 
       <Tabs defaultValue="exercises">
-        <TabsList variant="line" className="w-full justify-start border-b pb-0 rounded-none">
-          <TabsTrigger value="exercises" className="gap-2">
-            <Dumbbell className="size-4" />
-            Ejercicios
-          </TabsTrigger>
-          <TabsTrigger value="routines" className="gap-2">
-            <ListTodo className="size-4" />
-            Rutinas
-          </TabsTrigger>
-          {canManagePlans && (
-            <TabsTrigger value="plans" className="gap-2">
-              <CreditCard className="size-4" />
-              Planes
+        {/* En móvil las pestañas no caben: se deslizan dentro de su tira, no con toda la página. */}
+        <div className="overflow-x-auto border-b pb-1">
+          <TabsList variant="line" className="w-max min-w-full justify-start pb-0 rounded-none">
+            <TabsTrigger value="exercises" className="gap-2">
+              <Dumbbell className="size-4" />
+              Ejercicios
             </TabsTrigger>
-          )}
-          <TabsTrigger value="members" className="gap-2">
-            <Users className="size-4" />
-            Miembros
-          </TabsTrigger>
-          <TabsTrigger value="payments" className="gap-2">
-            <Receipt className="size-4" />
-            Pagos
-          </TabsTrigger>
-          <TabsTrigger value="trainers" className="gap-2">
-            <Dumbbell className="size-4" />
-            Coaches
-          </TabsTrigger>
-          {gym && (
-            <TabsTrigger value="profile" className="gap-2">
-              <Building2 className="size-4" />
-              Perfil
+            <TabsTrigger value="routines" className="gap-2">
+              <ListTodo className="size-4" />
+              Rutinas
             </TabsTrigger>
-          )}
-          {canManageEquipment && (
-            <TabsTrigger value="equipment" className="gap-2">
-              <Wrench className="size-4" />
-              Equipamiento
+            {canManagePlans && (
+              <TabsTrigger value="plans" className="gap-2">
+                <CreditCard className="size-4" />
+                Planes
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="members" className="gap-2">
+              <Users className="size-4" />
+              Miembros
             </TabsTrigger>
-          )}
-        </TabsList>
+            <TabsTrigger value="payments" className="gap-2">
+              <Receipt className="size-4" />
+              Pagos
+            </TabsTrigger>
+            <TabsTrigger value="trainers" className="gap-2">
+              <Dumbbell className="size-4" />
+              Coaches
+            </TabsTrigger>
+            {gym && (
+              <TabsTrigger value="profile" className="gap-2">
+                <Building2 className="size-4" />
+                Perfil
+              </TabsTrigger>
+            )}
+            {canManageEquipment && (
+              <TabsTrigger value="equipment" className="gap-2">
+                <Wrench className="size-4" />
+                Equipamiento
+              </TabsTrigger>
+            )}
+          </TabsList>
+        </div>
 
         <TabsContent value="exercises" className="mt-6">
           <ExerciseManagement
