@@ -60,29 +60,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Sin permisos sobre este plan" }, { status: 403 })
   }
 
-  // Deactivate old assignments
-  await prisma.assignedRoutinePlan.updateMany({
-    where: { userId: assignToUserId, active: true },
-    data: { active: false },
-  })
-
-  // Create new assignment
-  const assignment = await prisma.assignedRoutinePlan.create({
-    data: {
-      userId: assignToUserId,
-      planId: plan.id,
-    },
-    include: {
-      plan: {
-        include: {
-          splits: {
-            include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
-            orderBy: { order: "asc" },
+  // Solo hay una asignación por usuario y plan: si el cliente ya tuvo esta rutina, se reactiva
+  // en vez de crear otra. Todo en una transacción para que nunca quede sin rutina activa.
+  const [, assignment] = await prisma.$transaction([
+    prisma.assignedRoutinePlan.updateMany({
+      where: { userId: assignToUserId, active: true, planId: { not: plan.id } },
+      data: { active: false },
+    }),
+    prisma.assignedRoutinePlan.upsert({
+      where: { userId_planId: { userId: assignToUserId, planId: plan.id } },
+      update: { active: true, startedAt: new Date() },
+      create: { userId: assignToUserId, planId: plan.id },
+      include: {
+        plan: {
+          include: {
+            splits: {
+              include: { exercises: { include: { exercise: true }, orderBy: { order: "asc" } } },
+              orderBy: { order: "asc" },
+            },
           },
         },
       },
-    },
-  })
+    }),
+  ])
 
   return NextResponse.json({ assignment }, { status: 201 })
 }
