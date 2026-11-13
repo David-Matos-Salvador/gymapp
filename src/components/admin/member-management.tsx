@@ -108,7 +108,7 @@ export function MemberManagement({ initialMembers, canManage }: MemberManagement
             <Users className="h-5 w-5 text-accent-yellow" />
             Miembros
           </h2>
-          <p className="text-sm text-muted-foreground">Directorio de socios del gimnasio.</p>
+          <p className="text-sm text-muted-foreground">Directorio de miembros del gimnasio.</p>
         </div>
         {canManage && (
           <Button size="sm" onClick={openCreate}>

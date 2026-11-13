@@ -237,7 +237,7 @@ export default function InvitePage() {
               <Input
                 id="invPhone"
                 type="tel"
-                placeholder="+52 55 0000 0000"
+                placeholder="+51 999 000 000"
                 value={form.phone}
                 onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
               />

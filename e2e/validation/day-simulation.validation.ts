@@ -970,7 +970,10 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       await expect(trainer.page.locator("#invName")).toBeVisible({ timeout: 15_000 })
       await expect(trainer.page.locator("#invPassword")).toHaveCount(0)
       await expect(trainer.page.getByRole("button", { name: /Crear miembro/i })).toHaveCount(0)
-      await trainer.page.getByRole("button", { name: /^Cerrar$/i }).click()
+      await trainer.page
+        .getByRole("button", { name: /^Cerrar$/i })
+        .first()
+        .click()
     }
   )
 
@@ -988,7 +991,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       await expect(trainer.page.locator("#invName")).toBeVisible({ timeout: 15_000 })
       await trainer.page.locator("#invName").fill("Invitado Validación")
       await trainer.page.locator("#invEmail").fill(NEW_INVITE_EMAIL)
-      await trainer.page.getByRole("button", { name: /Crear link/i }).click()
+      await trainer.page.getByRole("button", { name: /Crear enlace/i }).click()
       await expect(trainer.page.getByText(/Link de invitación/i).first()).toBeVisible({
         timeout: 20_000,
       })
@@ -1012,7 +1015,10 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       } finally {
         await context.close()
       }
-      await trainer.page.getByRole("button", { name: /^Cerrar$/i }).click()
+      await trainer.page
+        .getByRole("button", { name: /^Cerrar$/i })
+        .first()
+        .click()
     }
   )
 

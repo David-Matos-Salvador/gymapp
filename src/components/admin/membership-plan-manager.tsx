@@ -173,7 +173,7 @@ export function MembershipPlanManager({
             Planes de membresía
           </h2>
           <p className="text-sm text-muted-foreground">
-            Precios y duraciones que verán los socios de este gimnasio.
+            Precios y duraciones que verán los miembros de este gimnasio.
           </p>
         </div>
         {canManage && (

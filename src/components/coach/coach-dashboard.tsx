@@ -551,7 +551,7 @@ export function CoachDashboard({
                           ) : (
                             <Copy className="mr-1 h-3 w-3" />
                           )}
-                          {copied ? "Copiado" : "Copiar link"}
+                          {copied ? "Copiado" : "Copiar enlace"}
                         </Button>
                       )}
                     </div>
@@ -757,7 +757,7 @@ export function CoachDashboard({
                           <p className="text-sm font-medium truncate">{c.name}</p>
                           <p className="text-xs text-muted-foreground">
                             {DAY_OF_WEEK_LABELS[c.dayOfWeek] || c.dayOfWeek} · {c.startTime} ·{" "}
-                            {c.duration}min · {c.bookingsCount}/{c.capacity}
+                            {c.duration} min · {c.bookingsCount}/{c.capacity}
                           </p>
                         </div>
                       </Link>
@@ -865,7 +865,7 @@ export function CoachDashboard({
           <DialogHeader>
             <DialogTitle>Invitar cliente</DialogTitle>
             <DialogDescription>
-              El miembro completa su registro y define su propia contraseña con este link.
+              El miembro completa su registro y define su propia contraseña con este enlace.
             </DialogDescription>
           </DialogHeader>
 
@@ -897,13 +897,13 @@ export function CoachDashboard({
                   type="tel"
                   value={inviteForm.phone}
                   onChange={(e) => setInviteForm((f) => ({ ...f, phone: e.target.value }))}
-                  placeholder="+52 55 0000 0000"
+                  placeholder="+51 999 000 000"
                 />
               </div>
             </div>
 
             <p className="text-xs text-muted-foreground rounded-lg bg-muted/50 p-3">
-              El link expira en 7 días. Si llenas nombre y email, el formulario del cliente ya
+              El enlace expira en 7 días. Si llenas nombre y email, el formulario del cliente ya
               vendrá pre-cargado. Puede completarlo en el gimnasio o en su casa.
             </p>
 
@@ -941,7 +941,7 @@ export function CoachDashboard({
             </Button>
             <Button onClick={handleCreateInvite} disabled={inviteSaving}>
               {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-              {inviteSaving ? "Creando..." : "Crear link"}
+              {inviteSaving ? "Creando..." : "Crear enlace"}
             </Button>
           </DialogFooter>
         </DialogContent>

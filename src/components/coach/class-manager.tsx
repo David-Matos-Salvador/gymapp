@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { getBookingStatusLabel } from "@/lib/booking-status"
 
 const DAYS = [
   ["MONDAY", "Lunes"],
@@ -221,7 +222,7 @@ export function ClassManager({ classItem }: ClassManagerProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-accent-yellow" /> Inscriptos
+              <Users className="h-5 w-5 text-accent-yellow" /> Inscritos
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -237,7 +238,9 @@ export function ClassManager({ classItem }: ClassManagerProps) {
                       </p>
                       <p className="truncate text-xs text-muted-foreground">{booking.user.email}</p>
                     </div>
-                    <span className="text-xs text-muted-foreground">{booking.status}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {getBookingStatusLabel(booking.status)}
+                    </span>
                     {booking.status === "CONFIRMED" && (
                       <Button
                         size="sm"
