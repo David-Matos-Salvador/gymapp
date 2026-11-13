@@ -865,7 +865,7 @@ export function CoachDashboard({
           <DialogHeader>
             <DialogTitle>Invitar cliente</DialogTitle>
             <DialogDescription>
-              El miembro completa su registro y define su propia contraseña con este link.
+              El miembro completa su registro y define su propia contraseña con este enlace.
             </DialogDescription>
           </DialogHeader>
 
@@ -903,7 +903,7 @@ export function CoachDashboard({
             </div>
 
             <p className="text-xs text-muted-foreground rounded-lg bg-muted/50 p-3">
-              El link expira en 7 días. Si llenas nombre y email, el formulario del cliente ya
+              El enlace expira en 7 días. Si llenas nombre y email, el formulario del cliente ya
               vendrá pre-cargado. Puede completarlo en el gimnasio o en su casa.
             </p>
 
@@ -941,7 +941,7 @@ export function CoachDashboard({
             </Button>
             <Button onClick={handleCreateInvite} disabled={inviteSaving}>
               {inviteSaving ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null}
-              {inviteSaving ? "Creando..." : "Crear link"}
+              {inviteSaving ? "Creando..." : "Crear enlace"}
             </Button>
           </DialogFooter>
         </DialogContent>
