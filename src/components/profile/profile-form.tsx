@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
+import { isValidPhone, PHONE_ERROR } from "@/lib/phone"
 import {
   User as UserIcon,
   Mail,
@@ -113,9 +114,10 @@ export function ProfileForm({ user }: { user: User }) {
   const hasPhoneChanged = phone !== (user.phone ?? "")
   const hasChanges = hasNameChanged || hasPhoneChanged
   const nameValid = name.length > 0 || !nameTouched
+  const phoneValid = phone.trim() === "" || isValidPhone(phone)
 
   async function handleSave() {
-    if (!nameValid) return
+    if (!nameValid || !phoneValid) return
     setSaving(true)
     play("select")
     const res = await fetch("/api/profile", {
@@ -131,8 +133,9 @@ export function ProfileForm({ user }: { user: User }) {
       })
       router.refresh()
     } else {
+      const data = await res.json().catch(() => null)
       toast.error("Error al actualizar", {
-        description: "Hubo un problema al guardar los cambios.",
+        description: data?.error ?? "Hubo un problema al guardar los cambios.",
       })
     }
     setSaving(false)
@@ -337,6 +340,8 @@ export function ProfileForm({ user }: { user: User }) {
             <Input
               id="profilePhone"
               type="tel"
+              aria-invalid={!phoneValid}
+              aria-describedby={!phoneValid ? "phoneError" : undefined}
               value={phone}
               onChange={(e) => {
                 setPhone(e.target.value)
@@ -344,6 +349,11 @@ export function ProfileForm({ user }: { user: User }) {
               }}
               placeholder="+51 999 123 456"
             />
+            {!phoneValid && (
+              <p id="phoneError" className="text-xs text-destructive mt-1" role="alert">
+                {PHONE_ERROR}
+              </p>
+            )}
           </div>
           <Separator />
           <div className="flex items-center justify-between gap-3">
@@ -352,7 +362,7 @@ export function ProfileForm({ user }: { user: User }) {
             </p>
             <Button
               onClick={handleSave}
-              disabled={saving || !hasChanges || !nameValid}
+              disabled={saving || !hasChanges || !nameValid || !phoneValid}
               className="min-w-[140px]"
               size="default"
             >
