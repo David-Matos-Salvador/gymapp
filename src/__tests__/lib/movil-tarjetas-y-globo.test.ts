@@ -22,6 +22,21 @@ describe("tarjetas en móvil", () => {
   })
 })
 
+describe("pantallas del coach y del admin en móvil", () => {
+  it("las tarjetas de «Mis clientes» fijan una columna", () => {
+    const fuente = leer("src/app/coach/clients/page.tsx")
+    expect(fuente).not.toContain('"grid gap-3"')
+    expect(fuente).toContain('"grid grid-cols-1 gap-3"')
+  })
+
+  // Las 8 pestañas miden más que la pantalla: deben deslizarse dentro de su propia tira.
+  it("las pestañas de «Gestión del Gimnasio» se deslizan sin mover toda la página", () => {
+    const fuente = leer("src/components/admin/gym-management-tabs.tsx")
+    expect(fuente).toMatch(/<div className="overflow-x-auto[^"]*">\s*<TabsList/)
+    expect(fuente).not.toMatch(/<TabsList variant="line" className="w-full/)
+  })
+})
+
 describe("texto sobre rojo", () => {
   it("el tema define destructive-foreground en claro, en oscuro y como utilidad", () => {
     const css = leer("src/app/globals.css")
