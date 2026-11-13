@@ -3,9 +3,7 @@
 export const dynamic = "force-dynamic"
 
 import { Suspense, useState, useSyncExternalStore } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
+import { useForm, type FieldErrors, type Resolver } from "react-hook-form"
 import { signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
@@ -22,13 +20,15 @@ import {
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { useSound } from "@/hooks/use-sound"
+import { validateLogin, type LoginForm } from "@/lib/login-form"
 
-const loginSchema = z.object({
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Mínimo 6 caracteres"),
-})
-
-type LoginForm = z.infer<typeof loginSchema>
+const loginResolver: Resolver<LoginForm> = (values) => {
+  const errors: FieldErrors<LoginForm> = {}
+  for (const [field, message] of Object.entries(validateLogin(values))) {
+    errors[field as keyof LoginForm] = { type: "validate", message }
+  }
+  return Object.keys(errors).length > 0 ? { values: {}, errors } : { values, errors: {} }
+}
 
 const subscribeToNothing = () => () => {}
 const getClientMounted = () => true
@@ -48,7 +48,7 @@ function LoginFormInner() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+    resolver: loginResolver,
   })
 
   const { onChange: emailOnChange, ...emailRest } = register("email")
