@@ -9,7 +9,7 @@ import { motion } from "framer-motion"
 import { CreditCard, Check, X, Loader2, Mail, Clock, Eye } from "lucide-react"
 import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
-import { formatPaymentMethod, formatPaymentType } from "@/constants/payment"
+import { formatPaymentMethod, formatPaymentType, paymentNeedsReceipt } from "@/constants/payment"
 
 interface PendingPayment {
   id: string
@@ -74,8 +74,11 @@ export default function CoachPaymentsPage() {
     }
   }, [])
 
-  const handleReject = useCallback(async (paymentId: string) => {
-    const reason = window.prompt("Motivo del rechazo", "Comprobante ilegible")
+  const handleReject = useCallback(async (paymentId: string, hasReceipt: boolean) => {
+    const reason = window.prompt(
+      "Motivo del rechazo",
+      hasReceipt ? "Comprobante ilegible" : "No se recibió el pago en recepción"
+    )
     if (!reason?.trim()) return
     setProcessing(paymentId)
     try {
@@ -116,8 +119,9 @@ export default function CoachPaymentsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Comprobantes</h1>
           <p className="text-muted-foreground">
-            Bandeja de comprobantes: revisa la captura y confirma o rechaza el pago. El estado de la
-            membresía lo gestiona el administrador.
+            Bandeja de comprobantes: revisa la captura y confirma o rechaza el pago. Los pagos en
+            efectivo o con tarjeta no traen captura: confírmalos cuando recibas el dinero. El estado
+            de la membresía lo gestiona el administrador.
           </p>
         </div>
 
@@ -129,7 +133,7 @@ export default function CoachPaymentsPage() {
               </div>
               <p className="text-base font-medium">No hay pagos pendientes</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Los comprobantes subidos por tus clientes aparecerán aquí.
+                Los comprobantes y los pagos en recepción de tus clientes aparecerán aquí.
               </p>
             </CardContent>
           </Card>
@@ -215,8 +219,12 @@ export default function CoachPaymentsPage() {
                         </div>
                       ) : (
                         <div className="shrink-0 w-full sm:w-[200px]">
-                          <div className="w-full h-36 rounded-lg border bg-muted flex items-center justify-center">
-                            <p className="text-xs text-muted-foreground">Sin comprobante</p>
+                          <div className="w-full h-36 rounded-lg border bg-muted flex items-center justify-center p-3">
+                            <p className="text-xs text-muted-foreground text-center">
+                              {paymentNeedsReceipt(payment.method)
+                                ? "Sin comprobante"
+                                : "Pago en recepción: confírmalo cuando recibas el dinero"}
+                            </p>
                           </div>
                         </div>
                       )}
@@ -225,7 +233,7 @@ export default function CoachPaymentsPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleReject(payment.id)}
+                        onClick={() => handleReject(payment.id, !!payment.receiptUrl)}
                         disabled={processing === payment.id}
                       >
                         {processing === payment.id ? (

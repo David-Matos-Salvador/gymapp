@@ -219,7 +219,11 @@ export function MembershipPanel({
     setLoading(null)
   }
 
-  async function handleConfirmReceipt(paymentId: string, membershipId: string) {
+  async function handleConfirmReceipt(
+    paymentId: string,
+    membershipId: string,
+    hasReceipt: boolean
+  ) {
     setLoading(membershipId)
     play("select")
     try {
@@ -230,7 +234,7 @@ export function MembershipPanel({
       })
       if (!res.ok) {
         const json = await res.json()
-        toast.error(json.error ?? "Error al confirmar el comprobante")
+        toast.error(json.error ?? "Error al confirmar el pago")
         return
       }
       setData((prev) =>
@@ -239,13 +243,13 @@ export function MembershipPanel({
       setPendingReceipts((prev) => prev.filter((p) => p.id !== paymentId))
       setReviewPayment(null)
       play("success")
-      toast.success("Comprobante confirmado")
+      toast.success(hasReceipt ? "Comprobante confirmado" : "Pago confirmado")
     } finally {
       setLoading(null)
     }
   }
 
-  async function handleRejectReceipt(paymentId: string, membershipId: string) {
+  async function handleRejectReceipt(paymentId: string, membershipId: string, hasReceipt: boolean) {
     setLoading(membershipId)
     play("select")
     try {
@@ -254,18 +258,20 @@ export function MembershipPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "REJECT",
-          notes: "Comprobante rechazado por el administrador",
+          notes: hasReceipt
+            ? "Comprobante rechazado por el administrador"
+            : "No se recibió el pago en recepción",
         }),
       })
       if (!res.ok) {
         const json = await res.json()
-        toast.error(json.error ?? "Error al rechazar el comprobante")
+        toast.error(json.error ?? "Error al rechazar el pago")
         return
       }
       setPendingReceipts((prev) => prev.filter((p) => p.id !== paymentId))
       setReviewPayment(null)
       play("success")
-      toast.success("Comprobante rechazado")
+      toast.success(hasReceipt ? "Comprobante rechazado" : "Pago rechazado")
     } finally {
       setLoading(null)
     }
@@ -482,7 +488,11 @@ export function MembershipPanel({
                         </div>
                       )}
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium">Comprobante pendiente</p>
+                        <p className="text-xs font-medium">
+                          {pendingPayment.receiptUrl
+                            ? "Comprobante pendiente"
+                            : `Pago en recepción por confirmar (${(paymentMethodLabels[pendingPayment.method] ?? pendingPayment.method).toLowerCase()})`}
+                        </p>
                         <p className="text-[10px] text-muted-foreground">
                           {formatCurrency(pendingPayment.amount, pendingPayment.currency)} ·{" "}
                           {formatDate(pendingPayment.createdAt)}
@@ -495,7 +505,7 @@ export function MembershipPanel({
                         className="h-6 shrink-0 text-[10px]"
                       >
                         <Eye className="h-3 w-3" />
-                        Revisar comprobante
+                        {pendingPayment.receiptUrl ? "Revisar comprobante" : "Revisar pago"}
                       </Button>
                     </div>
                   )}
@@ -608,7 +618,11 @@ export function MembershipPanel({
       <Dialog open={!!reviewPayment} onOpenChange={(open) => !open && setReviewPayment(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Revisar comprobante</DialogTitle>
+            <DialogTitle>
+              {reviewPayment && !reviewPayment.payment.receiptUrl
+                ? "Confirmar pago en recepción"
+                : "Revisar comprobante"}
+            </DialogTitle>
             <DialogDescription>
               {reviewPayment?.membership.user.name ?? reviewPayment?.membership.user.email}
               {reviewPayment
@@ -623,14 +637,24 @@ export function MembershipPanel({
               className="max-h-[60vh] w-full rounded-lg border object-contain"
             />
           ) : (
-            <p className="text-sm text-muted-foreground">Este pago no tiene captura adjunta.</p>
+            <p className="text-sm text-muted-foreground">
+              Este pago no tiene captura adjunta: se paga en recepción
+              {reviewPayment
+                ? ` (${(paymentMethodLabels[reviewPayment.payment.method] ?? reviewPayment.payment.method).toLowerCase()})`
+                : ""}
+              . Confírmalo solo cuando hayas recibido el dinero.
+            </p>
           )}
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() =>
                 reviewPayment &&
-                handleRejectReceipt(reviewPayment.payment.id, reviewPayment.membership.id)
+                handleRejectReceipt(
+                  reviewPayment.payment.id,
+                  reviewPayment.membership.id,
+                  !!reviewPayment.payment.receiptUrl
+                )
               }
               disabled={!!loading}
             >
@@ -640,7 +664,11 @@ export function MembershipPanel({
             <Button
               onClick={() =>
                 reviewPayment &&
-                handleConfirmReceipt(reviewPayment.payment.id, reviewPayment.membership.id)
+                handleConfirmReceipt(
+                  reviewPayment.payment.id,
+                  reviewPayment.membership.id,
+                  !!reviewPayment.payment.receiptUrl
+                )
               }
               disabled={!!loading}
             >
@@ -662,7 +690,7 @@ export function MembershipPanel({
             <DialogDescription>
               Esto marca la membresía de{" "}
               {manualMembership?.user.name ?? manualMembership?.user.email ?? "este socio"} como
-              pagada sin comprobante. Usalo solo para efectivo o cobros manuales.
+              pagada sin comprobante. Úsalo solo para efectivo o cobros manuales.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

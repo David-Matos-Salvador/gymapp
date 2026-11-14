@@ -23,6 +23,7 @@ import {
   Smartphone,
 } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { paymentNeedsReceipt } from "@/constants/payment"
 
 interface MembershipPlan {
   name: string
@@ -59,14 +60,16 @@ export function PaymentForm({
   const [success, setSuccess] = useState(false)
   const [receiptFile, setReceiptFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  // Efectivo y tarjeta se pagan en recepción: no hay comprobante que subir.
+  const needsReceipt = paymentNeedsReceipt(method)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    // Payment is the source of truth: without a receipt there is nothing for
-    // the admin to review, so the form must never confirm the membership by
-    // itself.
-    if (!receiptFile) {
+    // Payment is the source of truth: the form never confirms the membership
+    // by itself. With a receipt the gym reviews the capture; without one
+    // (cash or card) the gym confirms when it receives the money.
+    if (needsReceipt && !receiptFile) {
       toast.error("Adjunta un comprobante para que tu pago pueda ser revisado")
       return
     }
@@ -75,7 +78,7 @@ export function PaymentForm({
 
     try {
       const formData = new FormData()
-      formData.append("file", receiptFile)
+      if (needsReceipt && receiptFile) formData.append("file", receiptFile)
       formData.append("method", method)
       formData.append("membershipId", membershipId)
       if (method === "TRANSFER" && reference.trim()) {
@@ -87,10 +90,14 @@ export function PaymentForm({
         body: formData,
       })
       const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? "Error al subir comprobante")
+      if (!res.ok) throw new Error(data.error ?? "Error al registrar el pago")
 
       setSuccess(true)
-      toast.success("Comprobante enviado. Pendiente de revisión.")
+      toast.success(
+        needsReceipt
+          ? "Comprobante enviado. Pendiente de revisión."
+          : "Listo. Tu pago queda pendiente de confirmar en recepción."
+      )
       onSuccess?.()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al procesar el pago")
@@ -106,9 +113,13 @@ export function PaymentForm({
           <div className="flex size-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
             <CheckCircle2 className="size-6 text-green-600 dark:text-green-400" />
           </div>
-          <p className="text-lg font-semibold text-foreground">Comprobante enviado</p>
+          <p className="text-lg font-semibold text-foreground">
+            {needsReceipt ? "Comprobante enviado" : "Pendiente de confirmar en recepción"}
+          </p>
           <p className="text-sm text-muted-foreground">
-            Tu pago quedó pendiente de revisión. La membresía se activará cuando sea confirmado.
+            {needsReceipt
+              ? "Tu pago quedó pendiente de revisión. La membresía se activará cuando sea confirmado."
+              : "Paga en recepción. La membresía se activará cuando el gimnasio confirme que recibió tu pago."}
           </p>
         </CardContent>
       </Card>
@@ -166,31 +177,38 @@ export function PaymentForm({
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <Label>Comprobante de pago</Label>
-            <div className="flex items-center gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Upload className="h-4 w-4 mr-2" /> Subir comprobante
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="sr-only"
-                onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-              />
-              {receiptFile && (
-                <span className="text-xs text-muted-foreground truncate max-w-[160px]">
-                  {receiptFile.name}
-                </span>
-              )}
+          {needsReceipt ? (
+            <div className="space-y-1.5">
+              <Label>Comprobante de pago</Label>
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" /> Subir comprobante
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
+                />
+                {receiptFile && (
+                  <span className="text-xs text-muted-foreground truncate max-w-[160px]">
+                    {receiptFile.name}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Paga en recepción: no necesitas subir comprobante. Tu membresía se activará cuando el
+              gimnasio confirme que recibió tu pago.
+            </p>
+          )}
 
           <Button type="submit" disabled={submitting} className="w-full">
             {submitting ? (
@@ -198,8 +216,10 @@ export function PaymentForm({
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Procesando...
               </>
-            ) : (
+            ) : needsReceipt ? (
               "Confirmar pago"
+            ) : (
+              "Pagaré en recepción"
             )}
           </Button>
         </form>

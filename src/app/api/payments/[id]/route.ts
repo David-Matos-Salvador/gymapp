@@ -151,7 +151,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
       data: {
         userId: payment.userId,
         title: "Pago confirmado",
-        message: "Tu comprobante de pago fue verificado. ¡Tu membresía está activa!",
+        message: payment.receiptUrl
+          ? "Tu comprobante de pago fue verificado. ¡Tu membresía está activa!"
+          : "El gimnasio confirmó tu pago. ¡Tu membresía está activa!",
         type: "PAYMENT",
         metadata: { paymentId: id },
       },
@@ -188,7 +190,11 @@ export async function PUT(request: Request, { params }: RouteParams) {
     data: {
       userId: payment.userId,
       title: "Pago rechazado",
-      message: notes || "Tu comprobante de pago fue rechazado. Contacta a tu entrenador.",
+      message:
+        notes ||
+        (payment.receiptUrl
+          ? "Tu comprobante de pago fue rechazado. Contacta a tu entrenador."
+          : "El gimnasio no pudo confirmar tu pago. Consulta en recepción."),
       type: "PAYMENT",
       metadata: { paymentId: id },
     },

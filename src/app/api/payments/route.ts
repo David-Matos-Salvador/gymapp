@@ -6,6 +6,7 @@ import { logger } from "@/lib/logger"
 import { getRequestId } from "@/lib/request-id"
 import { fileUrl, newKey, saveFile } from "@/lib/storage"
 import { formatCurrency } from "@/lib/utils"
+import { newPaymentNotification, paymentNeedsReceipt } from "@/constants/payment"
 
 const ALLOWED_TYPES = [
   "image/jpeg",
@@ -37,29 +38,36 @@ export async function POST(request: Request) {
     const planId = formData.get("planId") as string | null
     const method = (formData.get("method") as string) || "YAPE"
 
-    if (!file) {
+    if (!["CASH", "TRANSFER", "CARD", "STRIPE", "YAPE", "OTHER"].includes(method)) {
+      return NextResponse.json({ error: "Método de pago no válido" }, { status: 400 })
+    }
+    // Efectivo y tarjeta se pagan en recepción: no llevan comprobante.
+    const receiptFile = paymentNeedsReceipt(method) ? file : null
+    if (paymentNeedsReceipt(method) && !receiptFile) {
       return NextResponse.json({ error: "Comprobante requerido" }, { status: 400 })
     }
     if (!planId) {
       return NextResponse.json({ error: "Plan requerido" }, { status: 400 })
     }
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
-    const mimeValid = file.type === "" || ALLOWED_TYPES.includes(file.type)
-    const extValid = ALLOWED_EXTENSIONS.includes(ext)
-    if (!mimeValid && !extValid) {
-      return NextResponse.json(
-        { error: "Formato no permitido. Usa JPEG, PNG, WebP o GIF" },
-        { status: 400 }
-      )
-    }
-    if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "Archivo muy grande. Máximo 5MB" }, { status: 400 })
+    const ext = receiptFile?.name.split(".").pop()?.toLowerCase() || "jpg"
+    if (receiptFile) {
+      const mimeValid = receiptFile.type === "" || ALLOWED_TYPES.includes(receiptFile.type)
+      const extValid = ALLOWED_EXTENSIONS.includes(ext)
+      if (!mimeValid && !extValid) {
+        return NextResponse.json(
+          { error: "Formato no permitido. Usa JPEG, PNG, WebP o GIF" },
+          { status: 400 }
+        )
+      }
+      if (receiptFile.size > MAX_SIZE) {
+        return NextResponse.json({ error: "Archivo muy grande. Máximo 5MB" }, { status: 400 })
+      }
     }
 
     const plan = await prisma.membershipPlan.findUnique({ where: { id: planId } })
     if (plan && Number(plan.price) === 0) {
       return NextResponse.json(
-        { error: "Este plan es gratuito: activalo desde Membresía sin comprobante" },
+        { error: "Este plan es gratuito: actívalo desde Membresía sin comprobante" },
         { status: 400 }
       )
     }
@@ -67,23 +75,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Plan no encontrado o inactivo" }, { status: 404 })
     }
 
-    if (!["CASH", "TRANSFER", "CARD", "STRIPE", "YAPE", "OTHER"].includes(method)) {
-      return NextResponse.json({ error: "Método de pago no válido" }, { status: 400 })
-    }
-
-    let receiptUrl: string
-    try {
-      const key = newKey("receipts", ext)
-      const contentType = file.type || "application/octet-stream"
-      await saveFile(key, new Uint8Array(await file.arrayBuffer()), contentType)
-      receiptUrl = fileUrl(key)
-    } catch (err) {
-      logger.error("Receipt file write failed", {
-        requestId,
-        context: { route: "POST /api/payments", userId: user.id },
-        error: err,
-      })
-      return NextResponse.json({ error: "Error al guardar el comprobante" }, { status: 500 })
+    let receiptUrl: string | null = null
+    if (receiptFile) {
+      try {
+        const key = newKey("receipts", ext)
+        const contentType = receiptFile.type || "application/octet-stream"
+        await saveFile(key, new Uint8Array(await receiptFile.arrayBuffer()), contentType)
+        receiptUrl = fileUrl(key)
+      } catch (err) {
+        logger.error("Receipt file write failed", {
+          requestId,
+          context: { route: "POST /api/payments", userId: user.id },
+          error: err,
+        })
+        return NextResponse.json({ error: "Error al guardar el comprobante" }, { status: 500 })
+      }
     }
 
     const now = new Date()
@@ -115,7 +121,7 @@ export async function POST(request: Request) {
 
       if (existingMembership?.status === "ACTIVE" && existingMembership.endDate <= now) {
         return NextResponse.json(
-          { error: "Tu membresía venció. Renuévala antes de subir un nuevo comprobante." },
+          { error: "Tu membresía venció. Renuévala antes de registrar un nuevo pago." },
           { status: 409 }
         )
       }
@@ -143,7 +149,7 @@ export async function POST(request: Request) {
         })
         if (pending) {
           return NextResponse.json(
-            { error: "Ya hay un comprobante pendiente para esta membresía" },
+            { error: "Ya hay un pago pendiente de confirmar para esta membresía" },
             { status: 409 }
           )
         }
@@ -196,8 +202,11 @@ export async function POST(request: Request) {
           await prisma.notification.create({
             data: {
               userId: trainer.id,
-              title: "Nuevo comprobante de pago",
-              message: `${user.name || "Un usuario"} subió un comprobante de ${formatCurrency(Number(plan.price), plan.currency)}. Revísalo en Pagos.`,
+              ...newPaymentNotification(
+                user.name,
+                formatCurrency(Number(plan.price), plan.currency),
+                method
+              ),
               type: "PAYMENT",
               metadata: { paymentId: payment.id, clientId: user.id },
             },

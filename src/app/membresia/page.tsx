@@ -40,6 +40,7 @@ export default async function MembresiaPage() {
       id: true,
       amount: true,
       currency: true,
+      method: true,
       receiptUrl: true,
       createdAt: true,
     },
