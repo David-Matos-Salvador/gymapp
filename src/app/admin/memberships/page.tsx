@@ -113,7 +113,9 @@ export default async function AdminMembershipsPage() {
           <p className="text-muted-foreground">
             Estado y vigencia de cada membresía (plan, gym, coach, fechas). Si hay un comprobante
             pendiente, usa <strong>Revisar comprobante</strong> para ver la captura y confirmar el
-            pago. <strong>Registrar pago manual</strong> es solo para efectivo, sin comprobante.
+            pago. Si el socio avisó que paga en recepción, usa <strong>Revisar pago</strong> cuando
+            recibas el dinero. <strong>Registrar pago manual</strong> es solo para efectivo, sin
+            comprobante.
           </p>
         </div>
         <MembershipPanel

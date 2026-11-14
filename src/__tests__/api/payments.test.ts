@@ -129,12 +129,12 @@ const receiptFile = {
   arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
 }
 
-function uploadRequest(includeFile = true) {
+function uploadRequest(includeFile = true, method = "TRANSFER") {
   const values = new Map<string, unknown>([
     ["membershipId", "membership-1"],
-    ["method", "TRANSFER"],
-    ["reference", "REF-123"],
+    ["method", method],
   ])
+  if (method === "TRANSFER") values.set("reference", "REF-123")
   if (includeFile) values.set("file", receiptFile)
 
   return {
@@ -275,6 +275,142 @@ describe("POST /api/payments/receipt", () => {
     expect(response.status).toBe(400)
     expect(body.error).toBe("Comprobante requerido")
     expect(mockPaymentCreate).not.toHaveBeenCalled()
+  })
+
+  it("Yape sin comprobante también se rechaza", async () => {
+    mockAuth.mockResolvedValue({ user: { email: "valentina@gymapp.com" } })
+    mockUserFindUnique.mockResolvedValue({ id: "client-1", email: "valentina@gymapp.com" })
+
+    const response = await uploadReceipt(uploadRequest(false, "YAPE"))
+
+    expect(response.status).toBe(400)
+    expect((await response.json()).error).toBe("Comprobante requerido")
+    expect(mockPaymentCreate).not.toHaveBeenCalled()
+  })
+
+  // #108: efectivo y tarjeta se pagan en recepción. No hay comprobante que subir: el pago queda
+  // pendiente y lo confirma quien recibió el dinero.
+  describe.each([
+    ["CASH", "en efectivo"],
+    ["CARD", "con tarjeta"],
+  ])("pago en recepción (%s)", (method, how) => {
+    function mockMemberWithCoach() {
+      mockAuth.mockResolvedValue({ user: { email: "valentina@gymapp.com" } })
+      mockUserFindUnique.mockImplementation(
+        async (args: { where: { email?: string; id?: string } }) =>
+          args.where.email
+            ? {
+                id: "client-1",
+                email: "valentina@gymapp.com",
+                name: "Valentina",
+                gymId: "gym-1",
+                assignedTrainerId: "trainer-1",
+              }
+            : { id: "trainer-1", name: "Coach", gymId: "gym-1" }
+      )
+      mockMembershipFindUnique.mockResolvedValue({
+        id: "membership-1",
+        userId: "client-1",
+        paymentConfirmed: false,
+        status: "ACTIVE",
+        startDate: new Date("2026-01-01"),
+        endDate: new Date("2099-02-01"),
+        plan: { price: 120, currency: "PEN", gymId: "gym-1" },
+      })
+      mockPaymentCreate.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+        id: "payment-1",
+        ...data,
+      }))
+      mockNotificationCreate.mockResolvedValue({})
+    }
+
+    it("no pide comprobante: crea el pago PENDING sin captura y no confirma la membresía", async () => {
+      mockMemberWithCoach()
+
+      const response = await uploadReceipt(uploadRequest(false, method))
+      const body = await response.json()
+
+      expect(response.status).toBe(201)
+      expect(body.payment.status).toBe("PENDING")
+      expect(mockPaymentCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          userId: "client-1",
+          membershipId: "membership-1",
+          status: "PENDING",
+          type: "MEMBERSHIP",
+          method,
+          receiptUrl: null,
+        }),
+      })
+      expect(mockMembershipUpdate).not.toHaveBeenCalled()
+      expect(mockMembershipUpdateMany).not.toHaveBeenCalled()
+    })
+
+    it("avisa al coach que hay un pago por confirmar, sin hablar de comprobante", async () => {
+      mockMemberWithCoach()
+
+      await uploadReceipt(uploadRequest(false, method))
+
+      const notification = mockNotificationCreate.mock.calls[0][0].data
+      expect(notification.userId).toBe("trainer-1")
+      expect(notification.title).toBe("Pago por confirmar")
+      expect(notification.message).toContain(`${how} en recepción`)
+      expect(notification.message).not.toMatch(/subió un comprobante/)
+    })
+
+    it("no guarda la captura aunque llegue un archivo", async () => {
+      mockMemberWithCoach()
+
+      const response = await uploadReceipt(uploadRequest(true, method))
+
+      expect(response.status).toBe(201)
+      expect(mockPaymentCreate).toHaveBeenCalledWith({
+        data: expect.objectContaining({ receiptUrl: null }),
+      })
+    })
+  })
+})
+
+describe("avisos al miembro al revisar un pago sin comprobante (#108)", () => {
+  it("al confirmar no le dice que se verificó un comprobante", async () => {
+    mockReviewAuth()
+    mockPaymentFindUnique
+      .mockResolvedValueOnce(pendingMembershipPayment({ method: "CASH", receiptUrl: null }))
+      .mockResolvedValueOnce(pendingMembershipPayment({ status: "COMPLETED" }))
+    mockMembershipFindMany.mockResolvedValue([{ id: "membership-1" }])
+
+    const response = await reviewPayment(reviewRequest("CONFIRM"), reviewParams())
+
+    expect(response.status).toBe(200)
+    const notification = mockNotificationCreate.mock.calls[0][0].data
+    expect(notification.title).toBe("Pago confirmado")
+    expect(notification.message).toBe("El gimnasio confirmó tu pago. ¡Tu membresía está activa!")
+  })
+
+  it("al confirmar un pago con captura mantiene el aviso del comprobante", async () => {
+    mockReviewAuth()
+    mockPaymentFindUnique
+      .mockResolvedValueOnce(pendingMembershipPayment())
+      .mockResolvedValueOnce(pendingMembershipPayment({ status: "COMPLETED" }))
+    mockMembershipFindMany.mockResolvedValue([{ id: "membership-1" }])
+
+    await reviewPayment(reviewRequest("CONFIRM"), reviewParams())
+
+    expect(mockNotificationCreate.mock.calls[0][0].data.message).toMatch(/comprobante de pago/)
+  })
+
+  it("al rechazar sin motivo lo manda a recepción", async () => {
+    mockReviewAuth()
+    mockPaymentFindUnique
+      .mockResolvedValueOnce(pendingMembershipPayment({ method: "CASH", receiptUrl: null }))
+      .mockResolvedValueOnce(pendingMembershipPayment({ status: "FAILED" }))
+
+    const response = await reviewPayment(reviewRequest("REJECT"), reviewParams())
+
+    expect(response.status).toBe(200)
+    expect(mockNotificationCreate.mock.calls[0][0].data.message).toBe(
+      "El gimnasio no pudo confirmar tu pago. Consulta en recepción."
+    )
   })
 })
 

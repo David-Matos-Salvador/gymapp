@@ -9,6 +9,7 @@ import { Clock, CreditCard, Eye, Loader2, Upload } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { formatCurrency, formatDays } from "@/lib/utils"
+import { formatPaymentMethod, paymentNeedsReceipt } from "@/constants/payment"
 
 interface MembershipData {
   id: string
@@ -36,6 +37,7 @@ interface PendingPayment {
   id: string
   amount: number
   currency: string
+  method: string
   receiptUrl: string | null
   createdAt: string
 }
@@ -98,7 +100,22 @@ export function MembresiaContent({
 
       {!membership.paymentConfirmed &&
         new Date(membership.endDate) > new Date() &&
-        (pendingPayment ? (
+        (pendingPayment && !pendingPayment.receiptUrl ? (
+          <Card>
+            <CardContent className="space-y-3 py-6">
+              <div className="flex items-center gap-2">
+                <Clock className="size-5 text-accent-yellow" />
+                <p className="font-semibold">Pendiente de confirmar en recepción</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Avisaste que pagarás{" "}
+                {formatCurrency(pendingPayment.amount, pendingPayment.currency)} en recepción (
+                {formatPaymentMethod(pendingPayment.method).toLowerCase()}). Tu membresía se
+                activará cuando el gimnasio confirme que recibió tu pago.
+              </p>
+            </CardContent>
+          </Card>
+        ) : pendingPayment ? (
           <Card>
             <CardContent className="space-y-3 py-6">
               <div className="flex items-center gap-2">
@@ -143,11 +160,13 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
   const [file, setFile] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const selectedPlan = plans.find((plan) => plan.id === planId)
+  // Efectivo y tarjeta se pagan en recepción: no hay comprobante que subir.
+  const needsReceipt = paymentNeedsReceipt(method)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const free = selectedPlan?.price === 0
-    if (!free && !file) {
+    if (!free && needsReceipt && !file) {
       toast.error("Adjunta un comprobante para que el gimnasio pueda revisarlo")
       return
     }
@@ -164,7 +183,7 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
         const formData = new FormData()
         formData.append("planId", planId)
         formData.append("method", method)
-        formData.append("file", file!)
+        if (needsReceipt && file) formData.append("file", file)
         res = await fetch("/api/payments", { method: "POST", body: formData })
       }
       const data = await res.json().catch(() => ({}))
@@ -172,7 +191,13 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
         toast.error(data.error || "Error al registrar la membresía")
         return
       }
-      toast.success("Comprobante enviado. El gimnasio lo revisará.")
+      toast.success(
+        free
+          ? "Tu plan quedó activo."
+          : needsReceipt
+            ? "Comprobante enviado. El gimnasio lo revisará."
+            : "Listo. Tu pago queda pendiente de confirmar en recepción."
+      )
       router.refresh()
     } finally {
       setSubmitting(false)
@@ -187,7 +212,9 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
           <p className="text-sm text-muted-foreground">
             {selectedPlan?.price === 0
               ? "Este plan es gratuito: se activa al confirmar."
-              : "Después de enviar el comprobante, el gimnasio confirmará tu pago."}
+              : needsReceipt
+                ? "Después de enviar el comprobante, el gimnasio confirmará tu pago."
+                : "Paga en recepción: no necesitas subir comprobante. Tu membresía se activará cuando el gimnasio confirme que recibió tu pago."}
           </p>
         </div>
         <div className="space-y-2">
@@ -237,7 +264,7 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
               </select>
             </div>
           )}
-          {selectedPlan?.price !== 0 && (
+          {selectedPlan?.price !== 0 && needsReceipt && (
             <div className="space-y-2">
               <label htmlFor="newPaymentReceipt" className="text-sm font-medium">
                 Comprobante
@@ -255,9 +282,13 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
             {submitting ? (
               <Loader2 className="mr-1 h-4 w-4 animate-spin" />
             ) : (
-              <Upload className="mr-1 h-4 w-4" />
+              needsReceipt && selectedPlan?.price !== 0 && <Upload className="mr-1 h-4 w-4" />
             )}
-            {selectedPlan?.price === 0 ? "Activar plan gratis" : "Enviar comprobante"}
+            {selectedPlan?.price === 0
+              ? "Activar plan gratis"
+              : needsReceipt
+                ? "Enviar comprobante"
+                : "Pagaré en recepción"}
           </Button>
         </form>
       </CardContent>

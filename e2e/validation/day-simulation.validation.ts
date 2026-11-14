@@ -1884,6 +1884,9 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     },
     valentina.page,
     async () => {
+      // Efectivo y tarjeta se pagan en recepción y no piden comprobante (#108): se elige Yape.
+      await valentina.page.locator("#payment-method").click()
+      await valentina.page.getByRole("option", { name: /Yape/i }).click()
       await valentina.page.locator('input[type="file"]').first().setInputFiles({
         name: "comprobante.png",
         mimeType: "image/png",
