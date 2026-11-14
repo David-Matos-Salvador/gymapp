@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage, AvatarBadge } from "@/components/u
 import { Badge } from "@/components/ui/badge"
 import { CalendarDays, Shield, Trophy } from "lucide-react"
 import { ROLE_LABELS, ROLE_VARIANTS, EXPERIENCE_LABELS } from "@/constants/user"
+import { calculateProfileCompletion } from "@/lib/profile-completion"
 
 interface User {
   id: string
@@ -22,21 +23,6 @@ interface User {
   phone: string | null
   image: string | null
   createdAt: string
-}
-
-function calculateProfileCompletion(user: User): number {
-  const fields = [
-    user.name,
-    user.phone,
-    user.sex,
-    user.birthDate,
-    user.objective,
-    user.experienceLevel,
-    user.emergencyContact,
-    user.emergencyPhone,
-  ]
-  const filled = fields.filter(Boolean).length
-  return Math.round((filled / fields.length) * 100)
 }
 
 export function ProfileHeader({ user }: { user: User }) {
@@ -115,7 +101,7 @@ export function ProfileHeader({ user }: { user: User }) {
         </div>
         {completion < 100 && (
           <p className="text-xs text-muted-foreground mt-1.5">
-            Completa tu perfil para una experiencia personalizada
+            Completa tus datos en «Editar información», más abajo
           </p>
         )}
       </div>

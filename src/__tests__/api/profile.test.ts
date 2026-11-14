@@ -33,6 +33,7 @@ vi.mock("next/server", () => ({
 }))
 
 import { POST } from "@/app/api/profile/route"
+import { PROFILE_COMPLETION_FIELDS, calculateProfileCompletion } from "@/lib/profile-completion"
 
 function guardar(body: unknown) {
   return POST(
@@ -105,6 +106,75 @@ describe("POST /api/profile", () => {
     const response = await guardar({ name })
 
     expect(response.status).toBe(400)
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  // Issue #107: la barra «Perfil completado» contaba campos que no se podían editar.
+  it("todos los campos que cuentan para la barra se pueden guardar", async () => {
+    const datos = {
+      name: "Ana",
+      phone: "+51 999 123 456",
+      sex: "FEMALE",
+      birthDate: "1995-04-20",
+      objective: "STRENGTH",
+      experienceLevel: "INTERMEDIATE",
+      emergencyContact: "  Rosa Pérez ",
+      emergencyPhone: "+51 988 777 666",
+    }
+    expect(Object.keys(datos).sort()).toEqual([...PROFILE_COMPLETION_FIELDS].sort())
+
+    const response = await guardar(datos)
+
+    expect(response.status).toBe(200)
+    const guardado = mockUpdate.mock.calls[0][0].data
+    expect(guardado).toEqual({
+      ...datos,
+      emergencyContact: "Rosa Pérez",
+      birthDate: new Date("1995-04-20T00:00:00.000Z"),
+    })
+    expect(calculateProfileCompletion(guardado)).toBe(100)
+  })
+
+  it("lo que no se manda no se toca", async () => {
+    await guardar({ name: "Ana", sex: "OTHER" })
+
+    const guardado = mockUpdate.mock.calls[0][0].data
+    expect(guardado.sex).toBe("OTHER")
+    for (const campo of ["birthDate", "objective", "experienceLevel", "emergencyContact"]) {
+      expect(guardado[campo], campo).toBeUndefined()
+    }
+  })
+
+  it("fecha de nacimiento y contacto de emergencia vacíos se borran", async () => {
+    const response = await guardar({ birthDate: "", emergencyContact: " ", emergencyPhone: "" })
+
+    expect(response.status).toBe(200)
+    const guardado = mockUpdate.mock.calls[0][0].data
+    expect(guardado.birthDate).toBeNull()
+    expect(guardado.emergencyContact).toBeNull()
+    expect(guardado.emergencyPhone).toBeNull()
+  })
+
+  it.each([
+    [{ sex: "X" }, "Elige un sexo de la lista"],
+    [{ objective: "VOLAR" }, "Elige un objetivo de la lista"],
+    [{ experienceLevel: "DIOS" }, "Elige un nivel de experiencia de la lista"],
+    [{ birthDate: "2999-01-01" }, "Escribe una fecha de nacimiento válida"],
+    [{ birthDate: "1990-02-31" }, "Escribe una fecha de nacimiento válida"],
+    [{ birthDate: "ayer" }, "Escribe una fecha de nacimiento válida"],
+    [
+      { emergencyPhone: "abc" },
+      "Escribe un teléfono de emergencia válido, por ejemplo +51 999 123 456",
+    ],
+    [
+      { emergencyContact: "x".repeat(101) },
+      "El contacto de emergencia no puede tener más de 100 caracteres",
+    ],
+  ])("rechaza %j con un mensaje claro", async (datos, mensaje) => {
+    const response = await guardar(datos)
+
+    expect(response.status).toBe(400)
+    expect((await response.json()).error).toBe(mensaje)
     expect(mockUpdate).not.toHaveBeenCalled()
   })
 
