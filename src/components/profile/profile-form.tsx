@@ -11,6 +11,14 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { isValidPhone, PHONE_ERROR } from "@/lib/phone"
+import { isValidBirthDate, BIRTH_DATE_ERROR } from "@/lib/birth-date"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   User as UserIcon,
   Mail,
@@ -33,6 +41,8 @@ import {
   SEX_LABELS,
   OBJECTIVE_LABELS,
   EXPERIENCE_LABELS,
+  OBJECTIVES,
+  DIFFICULTIES,
   calculateAge,
 } from "@/constants/user"
 
@@ -58,10 +68,12 @@ interface User {
 
 function formatBirthDate(date: string | null): string | null {
   if (!date) return null
+  // Se guarda a medianoche UTC: sin esto, en Perú se vería el día anterior.
   return new Date(date).toLocaleDateString("es", {
     day: "numeric",
     month: "long",
     year: "numeric",
+    timeZone: "UTC",
   })
 }
 
@@ -103,27 +115,46 @@ export function ProfileForm({ user }: { user: User }) {
   const [saving, setSaving] = useState(false)
   const [nameTouched, setNameTouched] = useState(false)
   const [phoneTouched, setPhoneTouched] = useState(false)
+  const savedBirthDate = user.birthDate?.slice(0, 10) ?? ""
+  const [sex, setSex] = useState(user.sex ?? "")
+  const [birthDate, setBirthDate] = useState(savedBirthDate)
+  const [objective, setObjective] = useState(user.objective ?? "")
+  const [experienceLevel, setExperienceLevel] = useState(user.experienceLevel ?? "")
+  const [emergencyContact, setEmergencyContact] = useState(user.emergencyContact ?? "")
+  const [emergencyPhone, setEmergencyPhone] = useState(user.emergencyPhone ?? "")
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.image ?? null)
   const avatarInputRef = useRef<HTMLInputElement>(null)
 
+  const today = useMemo(() => new Date().toISOString().slice(0, 10), [])
   const age = useMemo(() => calculateAge(user.birthDate), [user.birthDate])
   const birthDateFormatted = useMemo(() => formatBirthDate(user.birthDate), [user.birthDate])
 
   const hasNameChanged = name !== (user.name ?? "")
   const hasPhoneChanged = phone !== (user.phone ?? "")
-  const hasChanges = hasNameChanged || hasPhoneChanged
+  const changedDetails = {
+    ...(sex !== (user.sex ?? "") && { sex }),
+    ...(birthDate !== savedBirthDate && { birthDate }),
+    ...(objective !== (user.objective ?? "") && { objective }),
+    ...(experienceLevel !== (user.experienceLevel ?? "") && { experienceLevel }),
+    ...(emergencyContact !== (user.emergencyContact ?? "") && { emergencyContact }),
+    ...(emergencyPhone !== (user.emergencyPhone ?? "") && { emergencyPhone }),
+  }
+  const hasChanges = hasNameChanged || hasPhoneChanged || Object.keys(changedDetails).length > 0
   const nameValid = name.length > 0 || !nameTouched
   const phoneValid = phone.trim() === "" || isValidPhone(phone)
+  const birthDateValid = birthDate === "" || isValidBirthDate(birthDate)
+  const emergencyPhoneValid = emergencyPhone.trim() === "" || isValidPhone(emergencyPhone)
+  const formValid = nameValid && phoneValid && birthDateValid && emergencyPhoneValid
 
   async function handleSave() {
-    if (!nameValid || !phoneValid) return
+    if (!formValid) return
     setSaving(true)
     play("select")
     const res = await fetch("/api/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name || null, phone: phone || null }),
+      body: JSON.stringify({ name: name || null, phone: phone || null, ...changedDetails }),
     })
 
     if (res.ok) {
@@ -273,7 +304,7 @@ export function ProfileForm({ user }: { user: User }) {
       <Card>
         <CardHeader className="border-b">
           <CardTitle className="text-lg">Editar información</CardTitle>
-          <CardDescription>Actualiza tu nombre y teléfono</CardDescription>
+          <CardDescription>Actualiza tus datos personales y de contacto</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-4">
           <div className="flex items-center gap-4">
@@ -355,6 +386,109 @@ export function ProfileForm({ user }: { user: User }) {
               </p>
             )}
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="profileSex" className="text-sm">
+                Sexo
+              </Label>
+              <Select value={sex} onValueChange={setSex}>
+                <SelectTrigger id="profileSex" className="w-full">
+                  <SelectValue placeholder="Elige una opción" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(SEX_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profileBirthDate" className="text-sm">
+                Fecha de nacimiento
+              </Label>
+              <Input
+                id="profileBirthDate"
+                type="date"
+                max={today}
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+                aria-invalid={!birthDateValid}
+                aria-describedby={!birthDateValid ? "birthDateError" : undefined}
+              />
+              {!birthDateValid && (
+                <p id="birthDateError" className="text-xs text-destructive mt-1" role="alert">
+                  {BIRTH_DATE_ERROR}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profileObjective" className="text-sm">
+                Objetivo
+              </Label>
+              <Select value={objective} onValueChange={setObjective}>
+                <SelectTrigger id="profileObjective" className="w-full">
+                  <SelectValue placeholder="Elige tu objetivo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {OBJECTIVES.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profileExperience" className="text-sm">
+                Nivel de experiencia
+              </Label>
+              <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+                <SelectTrigger id="profileExperience" className="w-full">
+                  <SelectValue placeholder="Elige tu nivel" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DIFFICULTIES.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profileEmergencyContact" className="text-sm">
+                Contacto de emergencia
+              </Label>
+              <Input
+                id="profileEmergencyContact"
+                value={emergencyContact}
+                maxLength={100}
+                onChange={(e) => setEmergencyContact(e.target.value)}
+                placeholder="Nombre de la persona"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="profileEmergencyPhone" className="text-sm">
+                Teléfono de emergencia
+              </Label>
+              <Input
+                id="profileEmergencyPhone"
+                type="tel"
+                value={emergencyPhone}
+                onChange={(e) => setEmergencyPhone(e.target.value)}
+                placeholder="+51 999 123 456"
+                aria-invalid={!emergencyPhoneValid}
+                aria-describedby={!emergencyPhoneValid ? "emergencyPhoneError" : undefined}
+              />
+              {!emergencyPhoneValid && (
+                <p id="emergencyPhoneError" className="text-xs text-destructive mt-1" role="alert">
+                  {PHONE_ERROR}
+                </p>
+              )}
+            </div>
+          </div>
           <Separator />
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs text-muted-foreground">
@@ -362,7 +496,7 @@ export function ProfileForm({ user }: { user: User }) {
             </p>
             <Button
               onClick={handleSave}
-              disabled={saving || !hasChanges || !nameValid || !phoneValid}
+              disabled={saving || !hasChanges || !formValid}
               className="min-w-[140px]"
               size="default"
             >
