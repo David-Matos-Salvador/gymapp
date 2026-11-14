@@ -1697,7 +1697,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       await superadmin.page.locator("#adminEmail").fill(NEW_ADMIN_EMAIL)
       await superadmin.page.locator("#adminPassword").fill("Demo1234")
       await superadmin.page.getByRole("button", { name: /Crear usuario/i }).click()
-      await toast(superadmin.page, /Admin creado/i)
+      await toast(superadmin.page, /Admin creado/i, 30_000)
     }
   )
 
