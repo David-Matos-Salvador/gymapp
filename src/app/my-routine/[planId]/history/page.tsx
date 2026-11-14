@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import { pluralize } from "@/lib/utils"
+import { formatSet, pluralize } from "@/lib/utils"
 import { AppShell } from "@/components/layout/shell"
 import { Breadcrumb } from "@/components/layout/breadcrumb"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -140,7 +140,7 @@ export default async function HistorialPage({ params }: PageProps) {
                           </span>
                           <span className="text-xs text-muted-foreground">
                             {pluralize(sets.length, "serie", "series")} ·{" "}
-                            {sets.map((set) => `${set.reps}×${set.weight}kg`).join(", ")}
+                            {sets.map((set) => formatSet(set.reps, set.weight)).join(", ")}
                           </span>
                         </div>
                       )

@@ -34,7 +34,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-import { pluralize } from "@/lib/utils"
+import { formatSet, pluralize } from "@/lib/utils"
 import { measurementFormError } from "@/constants/measurements"
 import {
   OBJECTIVE_LABELS,
@@ -623,7 +623,7 @@ export default function CoachClientDetail() {
                               key={s.id}
                               className="inline-flex items-center text-[10px] bg-muted px-1.5 py-0.5 rounded"
                             >
-                              {s.exerciseName}: {s.reps}x{s.weight}kg
+                              {s.exerciseName}: {formatSet(s.reps, s.weight)}
                             </span>
                           ))}
                           {log.sets.length > 5 && (
