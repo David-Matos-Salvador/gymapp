@@ -23,6 +23,11 @@ export function pluralize(count: number, singular: string, plural: string): stri
   return `${count} ${count === 1 ? singular : plural}`
 }
 
+// Una serie sin peso (dominadas, burpees) se muestra solo con sus repeticiones, no como «10×0kg».
+export function formatSet(reps: number, weight: number): string {
+  return weight > 0 ? `${reps}×${weight}kg` : pluralize(reps, "rep", "reps")
+}
+
 export function formatCurrency(amount: number, currency = "PEN"): string {
   const fmt = new Intl.NumberFormat("es-PE", {
     style: "currency",
