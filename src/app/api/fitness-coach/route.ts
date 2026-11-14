@@ -41,6 +41,17 @@ const SPLIT_TEMPLATES: Record<
   ],
   4: [
     {
+      name: "Base para empezar",
+      focus: "Base y técnica",
+      level: "BEGINNER",
+      muscleGroups: [
+        ["CHEST", "SHOULDERS", "TRICEPS"],
+        ["LEGS", "GLUTES", "CALVES"],
+        ["BACK", "BICEPS"],
+        ["FULL_BODY"],
+      ],
+    },
+    {
       name: "Superior / Inferior",
       focus: "Crecimiento muscular",
       level: "INTERMEDIATE",
@@ -75,6 +86,18 @@ const SPLIT_TEMPLATES: Record<
     },
   ],
   5: [
+    {
+      name: "Base para empezar",
+      focus: "Base y técnica",
+      level: "BEGINNER",
+      muscleGroups: [
+        ["CHEST", "TRICEPS"],
+        ["LEGS", "GLUTES"],
+        ["BACK", "BICEPS"],
+        ["SHOULDERS", "ABS"],
+        ["FULL_BODY"],
+      ],
+    },
     {
       name: "Pecho+Tríceps / Espalda+Bíceps / Piernas / Hombros / Full Body",
       focus: "Rendimiento máximo",
@@ -346,6 +369,15 @@ function getDifficultyMultiplier(level: string): number {
   }
 }
 
+const LEVEL_ORDER = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "ELITE"]
+
+// La plantilla del nivel que la persona declaró sale primera; después, las más cercanas.
+function sortTemplatesByLevel<T extends { level: string }>(templates: T[], level: string): T[] {
+  const target = LEVEL_ORDER.indexOf(level)
+  const distance = (t: T) => Math.abs(LEVEL_ORDER.indexOf(t.level) - target)
+  return [...templates].sort((a, b) => distance(a) - distance(b))
+}
+
 function pickExercisesForMuscleGroup(
   muscleGroups: string[],
   multiplier: number,
@@ -517,8 +549,10 @@ export async function POST(request: Request) {
       ? new Set(enabledExercises.map((item) => item.exercise.name))
       : undefined
 
-  const difficultyMultiplier = getDifficultyMultiplier(experienceLevel)
-  const templates = SPLIT_TEMPLATES[trainingFrequency] ?? SPLIT_TEMPLATES[3]
+  const templates = sortTemplatesByLevel(
+    SPLIT_TEMPLATES[trainingFrequency] ?? SPLIT_TEMPLATES[3],
+    experienceLevel
+  )
 
   const objectiveLabels: Record<string, string> = {
     WEIGHT_LOSS: "Quema de grasa",
@@ -531,6 +565,11 @@ export async function POST(request: Request) {
     templates.map(async (template) => {
       const planName = `${template.name} · ${objectiveLabels[objective] ?? "General"} · ${trainingFrequency}d`
       const description = `Rutina ${template.name}. ${objectiveLabels[objective] ?? "General"}. ${trainingFrequency} días por semana.`
+      // Las rutinas se comparten entre personas: la de principiante se arma siempre con volumen
+      // de principiante, aunque la genere por primera vez alguien con más experiencia.
+      const difficultyMultiplier = getDifficultyMultiplier(
+        template.level === "BEGINNER" ? "BEGINNER" : experienceLevel
+      )
 
       const existingPlan = await prisma.routinePlan.findFirst({
         where: { userId: superadmin?.id, name: planName },
