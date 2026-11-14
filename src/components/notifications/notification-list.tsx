@@ -88,13 +88,18 @@ interface NotificationListProps {
   onNavigate?: (notification: MockNotification) => void
 }
 
+// Las no leídas van primero; dentro de cada grupo se respeta el orden recibido (más nuevas arriba).
+export function sortUnreadFirst<T extends { read: boolean }>(notifications: T[]): T[] {
+  return [...notifications].sort((a, b) => Number(a.read) - Number(b.read))
+}
+
 export function NotificationList({
   notifications,
   onMarkRead,
   onMarkAllRead,
   onNavigate,
 }: NotificationListProps) {
-  const sorted = [...notifications].sort((a, b) => Number(b.read) - Number(a.read))
+  const sorted = sortUnreadFirst(notifications)
 
   function handleClick(notification: MockNotification) {
     onMarkRead(notification.id)

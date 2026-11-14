@@ -12,6 +12,7 @@ vi.mock("framer-motion", () => {
 })
 
 import { NotificationList } from "@/components/notifications"
+import { sortUnreadFirst } from "@/components/notifications/notification-list"
 import type { MockNotification } from "@/components/notifications"
 
 const mockNotification: MockNotification = {
@@ -74,13 +75,14 @@ describe("NotificationList", () => {
     expect(result).toBeDefined()
   })
 
+  // Las leídas salían arriba y las nuevas quedaban al final de la lista.
   it("sorts unread notifications first", () => {
-    const result = NotificationList({
-      notifications: mockNotifications,
-      onMarkRead,
-      onMarkAllRead,
-    })
-    expect(result).toBeDefined()
+    expect(sortUnreadFirst(mockNotifications).map((n) => n.id)).toEqual(["1", "3", "2"])
+  })
+
+  it("keeps the received order when all are read", () => {
+    const allRead = mockNotifications.map((n) => ({ ...n, read: true }))
+    expect(sortUnreadFirst(allRead).map((n) => n.id)).toEqual(["1", "2", "3"])
   })
 
   it("shows mark all read button when unread count > 0", () => {
