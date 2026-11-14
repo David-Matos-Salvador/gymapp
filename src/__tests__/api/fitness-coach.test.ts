@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs"
+import path from "node:path"
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 type StoredExercise = {
@@ -272,6 +274,69 @@ describe("POST /api/fitness-coach", () => {
     const calls = h.splitUpdate.mock.calls.map(([args]) => args as UpdateArgs)
     expect(calls.map((c) => c.where.id)).toEqual(["s2", "s3"])
     expect(calls[0].data.exercises.create.length).toBeGreaterThanOrEqual(2)
+  })
+
+  function pedir(experienceLevel: string, trainingFrequency: number) {
+    return POST(
+      new Request("http://localhost:3115/api/fitness-coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ objective: "WEIGHT_LOSS", experienceLevel, trainingFrequency }),
+      })
+    )
+  }
+
+  it.each([3, 4, 5])(
+    "a quien recién empieza y elige %i días le ofrece primero una rutina de principiante",
+    async (dias) => {
+      const response = await pedir("BEGINNER", dias)
+      expect(response.status).toBe(200)
+
+      const { plans } = (await response.json()) as { plans: { difficulty: string }[] }
+      expect(plans[0].difficulty).toBe("BEGINNER")
+    }
+  )
+
+  it.each(["BEGINNER", "INTERMEDIATE", "ADVANCED", "ELITE"])(
+    "con 5 días, la primera opción para %s es la de su nivel o la más cercana",
+    async (nivel) => {
+      const orden = ["BEGINNER", "INTERMEDIATE", "ADVANCED", "ELITE"]
+      const response = await pedir(nivel, 5)
+      const { plans } = (await response.json()) as { plans: { difficulty: string }[] }
+
+      const distancias = plans.map((p) =>
+        Math.abs(orden.indexOf(p.difficulty) - orden.indexOf(nivel))
+      )
+      expect(distancias).toEqual([...distancias].sort((a, b) => a - b))
+    }
+  )
+
+  it("arma la rutina de principiante con volumen de principiante aunque la pida alguien de élite", async () => {
+    h.planCreate.mockClear()
+    const response = await pedir("ELITE", 5)
+    expect(response.status).toBe(200)
+
+    const llamada = h.planCreate.mock.calls.find(([args]) => args.data.difficulty === "BEGINNER")
+    expect(llamada).toBeDefined()
+    const splits = (
+      llamada![0].data as unknown as {
+        splits: { create: { exercises: { create: { sets: number }[] } }[] }
+      }
+    ).splits.create
+    expect(splits).toHaveLength(5)
+    for (const split of splits) {
+      expect(split.exercises.create.length).toBeGreaterThanOrEqual(2)
+      expect(split.exercises.create.length).toBeLessThanOrEqual(3)
+      for (const ejercicio of split.exercises.create) {
+        expect(ejercicio.sets).toBeLessThanOrEqual(4)
+      }
+    }
+  })
+
+  it("ya no existe la ruta sin uso /api/onboarding/recommended-routine", () => {
+    expect(
+      existsSync(path.join(process.cwd(), "src/app/api/onboarding/recommended-routine/route.ts"))
+    ).toBe(false)
   })
 
   it("canonicalizes pool names to the seed spelling", async () => {
