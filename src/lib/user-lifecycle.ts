@@ -34,6 +34,8 @@ export async function deactivateUser(userId: string, now: Date = new Date()) {
   return prisma.$transaction([
     prisma.user.update({ where: { id: userId }, data: { deletedAt: now } }),
     prisma.session.deleteMany({ where: { userId } }),
+    // La credencial del calendario externo no se conserva de una cuenta desactivada.
+    prisma.coachCalendarConnection.deleteMany({ where: { trainerId: userId } }),
   ])
 }
 
@@ -50,6 +52,7 @@ export async function anonymizeUser(userId: string, now: Date = new Date()) {
     prisma.account.deleteMany({ where: { userId } }),
     prisma.session.deleteMany({ where: { userId } }),
     prisma.progressPhoto.deleteMany({ where: { userId } }),
+    prisma.coachCalendarConnection.deleteMany({ where: { trainerId: userId } }),
     prisma.payment.updateMany({
       where: { userId },
       data: { notes: null, reference: null, receiptUrl: null },

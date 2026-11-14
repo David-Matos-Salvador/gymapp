@@ -1,4 +1,5 @@
 import { test, expect, type Browser, type Locator, type Page } from "@playwright/test"
+import { findUser, prisma } from "./db"
 
 /**
  * Agenda 1:1: el coach define sus horas, un cliente reserva, otro cliente ya
@@ -162,5 +163,96 @@ test("agenda 1:1: el coach abre horas, un cliente reserva y la hora queda bloque
     // Deja la agenda del coach como la dejó el seed: sin horas el domingo.
     await clearSunday(coach)
     await Promise.all([coach, clientA, clientB].map((page) => page.context().close()))
+  }
+})
+
+/** Conexión de calendario del coach y sus bloqueos, directo en la base. */
+async function removeCalendarConnection(trainerId: string) {
+  await prisma.coachCalendarConnection.deleteMany({ where: { trainerId } })
+}
+
+test("agenda 1:1: una hora ocupada en el calendario externo del coach no se puede reservar", async ({
+  browser,
+}) => {
+  // Google no se puede usar en CI: la conexión y su caché se siembran en la base, recién
+  // sincronizadas, así la app no intenta hablar con Google. El flujo OAuth y la lectura
+  // de free/busy se prueban con mocks en los tests unitarios.
+  const trainer = await findUser(COACH)
+  const coach = await login(browser, COACH)
+  const client = await login(browser, CLIENT_A)
+
+  try {
+    await removeCalendarConnection(trainer.id)
+    await clearSunday(coach)
+    await openSchedule(coach)
+    const sunday = coach.getByTestId("availability-SUNDAY")
+    await sunday.getByRole("button", { name: "Agregar horas el domingo" }).click()
+    await expect(sunday.getByLabel("Desde, domingo")).toHaveValue("09:00")
+    await coach.getByRole("button", { name: "Guardar horas de atención" }).click()
+    await expect(coach.getByText("Horas de atención guardadas")).toBeVisible()
+
+    // 1. Sin calendario conectado, el coach ve la opción de conectar y el cliente ve las 10:00.
+    const card = coach.getByTestId("calendar-connection")
+    await expect(card.getByText("Sin conectar")).toBeVisible()
+    await expect(card.getByRole("link", { name: "Conectar Google Calendar" })).toHaveAttribute(
+      "href",
+      "/api/coach/calendar/connect"
+    )
+    await openSessions(client)
+    await expect(slotButton(lastSunday(client), "10:00")).toBeVisible()
+
+    // 2. El calendario del coach dice que está ocupado ese domingo de 10:00 a 11:00.
+    const slotsResponse = await client.request.get("/api/appointments/slots")
+    const { slots } = (await slotsResponse.json()) as {
+      slots: Array<{ startsAt: string; date: string; time: string }>
+    }
+    const lastDate = slots.filter((slot) => slot.time === "10:00").at(-1)!.date
+    const blocked = slots.find((slot) => slot.date === lastDate && slot.time === "10:00")!
+    const blockedStart = new Date(blocked.startsAt)
+    await prisma.coachCalendarConnection.create({
+      data: {
+        trainerId: trainer.id,
+        // Valor de relleno: no es un token real y la app no lo puede descifrar.
+        encryptedRefreshToken: "v1.e2e.e2e.e2e",
+        lastSyncAt: new Date(),
+        busyBlocks: {
+          create: {
+            startsAt: blockedStart,
+            endsAt: new Date(blockedStart.getTime() + 60 * 60_000),
+          },
+        },
+      },
+    })
+
+    // 3. El cliente ya no ve las 10:00 (sí las de al lado) y la API la rechaza.
+    await openSessions(client)
+    const sundayCard = client.getByTestId(`slots-${lastDate}`)
+    await expect(slotButton(sundayCard, "09:00")).toBeVisible()
+    await expect(slotButton(sundayCard, "11:00")).toBeVisible()
+    await expect(slotButton(sundayCard, "10:00")).toHaveCount(0)
+    const conflict = await client.request.post("/api/appointments", {
+      data: { startsAt: blocked.startsAt },
+    })
+    expect(conflict.status()).toBe(409)
+
+    // 4. El coach ve su calendario conectado y lo desconecta.
+    await openSchedule(coach)
+    await expect(card.getByText("Conectado", { exact: true })).toBeVisible()
+    await expect(card.getByText(/1 bloqueo en los próximos días/)).toBeVisible()
+    coach.once("dialog", (dialog) => void dialog.accept())
+    await card.getByRole("button", { name: "Desconectar" }).click()
+    await expect(coach.getByText("Calendario desconectado")).toBeVisible()
+    await expect(card.getByText("Sin conectar")).toBeVisible()
+    // La credencial y la caché ya no están en la base.
+    expect(await prisma.coachCalendarConnection.count({ where: { trainerId: trainer.id } })).toBe(0)
+    expect(await prisma.calendarBusyBlock.count()).toBe(0)
+
+    // 5. La hora vuelve a ofrecerse.
+    await openSessions(client)
+    await expect(slotButton(client.getByTestId(`slots-${lastDate}`), "10:00")).toBeVisible()
+  } finally {
+    await removeCalendarConnection(trainer.id)
+    await clearSunday(coach)
+    await Promise.all([coach, client].map((page) => page.context().close()))
   }
 })

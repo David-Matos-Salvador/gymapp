@@ -75,6 +75,10 @@ jobs:
       AUTH_SECRET: ci-only-auth-secret-0123456789abcdef0123456789abcdef
       AUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_URL: http://localhost:3000
+      # Valores falsos solo para CI: activan la sección de calendario sin hablar con una cuenta real.
+      GOOGLE_CALENDAR_CLIENT_ID: ci-only-client-id.apps.googleusercontent.com
+      GOOGLE_CALENDAR_CLIENT_SECRET: ci-only-client-secret
+      CALENDAR_TOKEN_ENCRYPTION_KEY: Y2ktb25seS1jYWxlbmRhci1rZXktMDEyMzQ1Njc4OWE=
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

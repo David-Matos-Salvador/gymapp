@@ -96,6 +96,30 @@ describe("validateEnv", () => {
     expect(error.variables).toContain("DATABASE_URL")
   })
 
+  it("Google Calendar: exige las tres variables juntas y una llave de 32 bytes", () => {
+    const key = Buffer.alloc(32, 7).toString("base64")
+    const full = {
+      GOOGLE_CALENDAR_CLIENT_ID: "calendar-client-id",
+      GOOGLE_CALENDAR_CLIENT_SECRET: "calendar-client-secret",
+      CALENDAR_TOKEN_ENCRYPTION_KEY: key,
+    }
+    expect(validateEnv(baseEnv(full)).GOOGLE_CALENDAR_CLIENT_ID).toBe("calendar-client-id")
+    // Sin ninguna, la integración queda apagada y el ambiente es válido.
+    expect(validateEnv(baseEnv()).GOOGLE_CALENDAR_CLIENT_ID).toBeUndefined()
+
+    const partial = validationError(baseEnv({ GOOGLE_CALENDAR_CLIENT_ID: "calendar-client-id" }))
+    expect(partial.variables).toEqual(
+      expect.arrayContaining(["GOOGLE_CALENDAR_CLIENT_SECRET", "CALENDAR_TOKEN_ENCRYPTION_KEY"])
+    )
+
+    const shortKey = validationError(
+      baseEnv({ ...full, CALENDAR_TOKEN_ENCRYPTION_KEY: "llave-corta" })
+    )
+    expect(shortKey.variables).toEqual(["CALENDAR_TOKEN_ENCRYPTION_KEY"])
+    expect(shortKey.message).not.toContain("llave-corta")
+    expect(shortKey.message).not.toContain("calendar-client-secret")
+  })
+
   it("exige AUTH_GOOGLE_ID y AUTH_GOOGLE_SECRET juntas", () => {
     const error = validationError(baseEnv({ AUTH_GOOGLE_ID: "google-client-id" }))
 

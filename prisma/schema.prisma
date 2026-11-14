@@ -92,6 +92,16 @@ enum BookingStatus {
   ATTENDED
 }
 
+enum CalendarProvider {
+  GOOGLE
+}
+
+enum CalendarConnectionStatus {
+  ACTIVE
+  // El proveedor rechazó la credencial (acceso revocado o vencido): el coach debe reconectar.
+  NEEDS_RECONNECT
+}
+
 enum AppointmentStatus {
   CONFIRMED
   CANCELLED
@@ -227,6 +237,7 @@ model User {
   progressPhotos   ProgressPhoto[]
   classes          Class[]           @relation("TrainerClasses")
   coachAvailability     CoachAvailability[]
+  calendarConnection    CoachCalendarConnection?
   trainerAppointments   Appointment[] @relation("TrainerAppointments")
   clientAppointments    Appointment[] @relation("ClientAppointments")
   cancelledAppointments Appointment[] @relation("AppointmentCanceller")
@@ -608,6 +619,37 @@ model CoachAvailability {
 
   @@unique([trainerId, dayOfWeek, startTime])
   @@index([trainerId])
+}
+
+// Calendario externo del coach. Solo se lee free/busy para bloquear horas de la agenda 1:1.
+// Al desconectar se borra la fila: la credencial no debe quedar guardada.
+model CoachCalendarConnection {
+  id                    String                   @id @default(cuid())
+  trainerId             String                   @unique
+  provider              CalendarProvider         @default(GOOGLE)
+  // Refresh token cifrado con AES-256-GCM (src/lib/calendar-crypto.ts). Nunca en texto plano.
+  encryptedRefreshToken String
+  calendarId            String                   @default("primary")
+  status                CalendarConnectionStatus @default(ACTIVE)
+  lastSyncAt            DateTime?
+  createdAt             DateTime                 @default(now())
+  updatedAt             DateTime                 @updatedAt
+
+  trainer    User                @relation(fields: [trainerId], references: [id], onDelete: Restrict)
+  busyBlocks CalendarBusyBlock[]
+}
+
+// Caché de los intervalos ocupados que devolvió el proveedor. Se reemplaza entera en cada
+// sincronización; no es historial, por eso se borra en cascada con su conexión.
+model CalendarBusyBlock {
+  id           String   @id @default(cuid())
+  connectionId String
+  startsAt     DateTime
+  endsAt       DateTime
+
+  connection CoachCalendarConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([connectionId, startsAt])
 }
 
 // Sesión 1:1 entre un coach y su cliente. Se cancela cambiando el estado: nunca se borra.

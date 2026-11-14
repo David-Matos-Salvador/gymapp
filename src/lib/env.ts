@@ -58,6 +58,10 @@ const envObjectSchema = z.object({
   REDIS_URL: optionalUrl(["redis:", "rediss:"]),
   AUTH_GOOGLE_ID: optionalString(),
   AUTH_GOOGLE_SECRET: optionalString(),
+  // Google Calendar del coach (free/busy). Las tres van juntas o ninguna.
+  GOOGLE_CALENDAR_CLIENT_ID: optionalString(),
+  GOOGLE_CALENDAR_CLIENT_SECRET: optionalString(),
+  CALENDAR_TOKEN_ENCRYPTION_KEY: optionalString(),
   STRIPE_SECRET_KEY: optionalString(),
   STRIPE_WEBHOOK_SECRET: optionalString(),
   S3_ENDPOINT: optionalUrl(["http:", "https:"]),
@@ -120,6 +124,34 @@ function createEnvSchema(isProduction: boolean) {
             message: `${key} is required when S3_ENDPOINT is set`,
           })
         }
+      }
+    }
+
+    const calendarKeys = [
+      "GOOGLE_CALENDAR_CLIENT_ID",
+      "GOOGLE_CALENDAR_CLIENT_SECRET",
+      "CALENDAR_TOKEN_ENCRYPTION_KEY",
+    ] as const
+    if (calendarKeys.some((key) => env[key])) {
+      for (const key of calendarKeys) {
+        if (!env[key]) {
+          ctx.addIssue({
+            code: "custom",
+            path: [key],
+            message: `${key} is required to enable the Google Calendar integration`,
+          })
+        }
+      }
+      // La llave de cifrado debe ser de 32 bytes en base64 (openssl rand -base64 32).
+      if (
+        env.CALENDAR_TOKEN_ENCRYPTION_KEY &&
+        Buffer.from(env.CALENDAR_TOKEN_ENCRYPTION_KEY.trim(), "base64").length !== 32
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["CALENDAR_TOKEN_ENCRYPTION_KEY"],
+          message: "CALENDAR_TOKEN_ENCRYPTION_KEY must be 32 bytes encoded in base64",
+        })
       }
     }
 
