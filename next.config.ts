@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       "img-src 'self' data: blob: https:",
       "font-src 'self' data:",
       "connect-src 'self' https: wss:",
-      "frame-src https://accounts.google.com",
+      "frame-src https://accounts.google.com https://www.youtube.com",
       "base-uri 'self'",
       "form-action 'self' https://accounts.google.com",
       "object-src 'none'",
