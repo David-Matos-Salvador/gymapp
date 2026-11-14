@@ -97,6 +97,19 @@ test("agenda 1:1: el coach abre horas, un cliente reserva y la hora queda bloque
     for (const time of ["09:00", "10:00", "11:00"]) {
       await expect(slotButton(sundayA, time)).toBeVisible()
     }
+    // Reservar pregunta antes (#109): si dice que no, no se reserva nada; si dice que sí, se reserva.
+    const bookingQuestions: string[] = []
+    clientA.once("dialog", (dialog) => {
+      bookingQuestions.push(dialog.message())
+      void dialog.dismiss()
+    })
+    await slotButton(sundayA, "09:00").click()
+    await expect
+      .poll(() => bookingQuestions[0])
+      .toMatch(/¿Reservar sesión con Coach Martínez el domingo.* a las 09:00\?/)
+    await expect(slotButton(sundayA, "09:00")).toBeVisible()
+    await expect(clientA.getByText("Sesión reservada")).toHaveCount(0)
+    clientA.once("dialog", (dialog) => void dialog.accept())
     const [bookingResponse] = await Promise.all([
       clientA.waitForResponse(
         (response) =>

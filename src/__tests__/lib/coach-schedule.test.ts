@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest"
 import {
   addDays,
   bookingWindow,
+  bookAppointmentQuestion,
   cancelAppointmentQuestion,
   computeFreeSlots,
   dayOfWeekOf,
@@ -94,6 +95,30 @@ describe("cancelar una sesión pide confirmación", () => {
     const question = source.indexOf("window.confirm(cancelAppointmentQuestion(")
     expect(question).toBeGreaterThan(-1)
     expect(question).toBeLessThan(source.indexOf("fetch("))
+  })
+})
+
+// Issue #109: un toque en una hora libre reservaba la sesión al instante, sin preguntar.
+describe("reservar una sesión pide confirmación", () => {
+  it("la pregunta dice con quién, qué día y a qué hora", () => {
+    expect(bookAppointmentQuestion("lunes, 16 de noviembre", "09:00", "Coach Martínez")).toBe(
+      "¿Reservar sesión con Coach Martínez el lunes, 16 de noviembre a las 09:00?"
+    )
+  })
+
+  it("la lista de horas pregunta antes de llamar a la API", () => {
+    const source = readFileSync(
+      path.join(process.cwd(), "src/components/sessions/slot-picker.tsx"),
+      "utf8"
+    )
+    const question = source.indexOf("window.confirm(bookAppointmentQuestion(")
+    expect(question).toBeGreaterThan(-1)
+    expect(question).toBeLessThan(source.indexOf("fetch("))
+  })
+
+  it("la página le pasa el nombre del coach a la lista de horas", () => {
+    const source = readFileSync(path.join(process.cwd(), "src/app/sessions/page.tsx"), "utf8")
+    expect(source).toContain('coachName={lookup.coach.name || "tu coach"}')
   })
 })
 

@@ -254,6 +254,11 @@ export function formatAppointment(startsAt: Date, timeZone: string): string {
   return `${day}, ${utcToZoned(startsAt, timeZone).time}`
 }
 
+/** Pregunta antes de reservar una sesión: dice con quién, qué día y a qué hora. */
+export function bookAppointmentQuestion(day: string, time: string, coachName: string): string {
+  return `¿Reservar sesión con ${coachName} el ${day} a las ${time}?`
+}
+
 /** Pregunta antes de cancelar una sesión: dice cuál es y que la otra persona recibe el aviso. */
 export function cancelAppointmentQuestion(when: string, withName: string): string {
   return `¿Cancelar la sesión del ${when} con ${withName}? Se le avisará.`

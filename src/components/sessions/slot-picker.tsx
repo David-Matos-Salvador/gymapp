@@ -7,7 +7,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState } from "@/components/ui/empty-state"
-import type { Slot } from "@/lib/coach-schedule"
+import { bookAppointmentQuestion, type Slot } from "@/lib/coach-schedule"
 
 const dayFormatter = new Intl.DateTimeFormat("es-PE", {
   timeZone: "UTC",
@@ -24,14 +24,18 @@ function formatDay(date: string) {
 export function SlotPicker({
   slots,
   hasAvailability,
+  coachName,
 }: {
   slots: Slot[]
   hasAvailability: boolean
+  coachName: string
 }) {
   const router = useRouter()
   const [bookingSlot, setBookingSlot] = useState<string | null>(null)
 
   async function book(slot: Slot) {
+    // En el celular es fácil tocar una hora al desplazarse: se pregunta antes de reservar.
+    if (!window.confirm(bookAppointmentQuestion(formatDay(slot.date), slot.time, coachName))) return
     setBookingSlot(slot.startsAt)
     try {
       const res = await fetch("/api/appointments", {
