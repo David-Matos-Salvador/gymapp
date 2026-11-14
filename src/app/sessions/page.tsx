@@ -91,7 +91,11 @@ export default async function SessionsPage() {
               </CardContent>
             </Card>
           ) : (
-            <SlotPicker slots={free.slots} hasAvailability={free.hasAvailability} />
+            <SlotPicker
+              slots={free.slots}
+              hasAvailability={free.hasAvailability}
+              coachName={lookup.coach.name || "tu coach"}
+            />
           )}
         </section>
       </div>
