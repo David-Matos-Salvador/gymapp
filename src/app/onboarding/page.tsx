@@ -38,6 +38,8 @@ import {
   trainingHistoryLabelMap,
   experienceLabelMap,
   scheduleLabelMap,
+  AI_RECOMMENDATION_NOTICE,
+  putRecommendedFirst,
   emptyMeasurements,
   measurementFields,
 } from "./constants"
@@ -105,6 +107,15 @@ export default function OnboardingPage() {
   const [editingStep, setEditingStep] = useState<number | null>(null)
   const [generatedPlans, setGeneratedPlans] = useState<GeneratedPlanData[]>([])
   const [coachPlan, setCoachPlan] = useState<CoachPlanData | null>(null)
+  const [aiRecommendation, setAiRecommendation] = useState<{
+    planId: string
+    reason: string
+  } | null>(null)
+  const orderedPlans = putRecommendedFirst(generatedPlans, aiRecommendation?.planId)
+  const recommendedPlan =
+    aiRecommendation && orderedPlans[0]?.id === aiRecommendation.planId
+      ? orderedPlans[0]
+      : undefined
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generationPhase, setGenerationPhase] = useState(0)
@@ -149,6 +160,34 @@ export default function OnboardingPage() {
       return null
     },
     [data.objective, data.experienceLevel, memberId]
+  )
+
+  // La IA recomienda una de las rutinas generadas (#117). Si no hay recomendación
+  // (sin llave, falla o tarda), la pantalla queda igual que sin IA.
+  const fetchAiRecommendation = useCallback(
+    async (plans: GeneratedPlanData[], freq: number) => {
+      // En el modo asistido elige el coach: no se pide recomendación.
+      if (memberId || plans.length < 2) return null
+      try {
+        const res = await fetch("/api/onboarding/recommendation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            objective: data.objective ?? "UNSURE",
+            experienceLevel: data.experienceLevel ?? "BEGINNER",
+            trainingFrequency: freq,
+            physicalConditions: data.physicalConditions,
+            planIds: plans.slice(0, 8).map((plan) => plan.id),
+          }),
+        })
+        if (!res.ok) return null
+        const result = await res.json()
+        return (result.recommendation as { planId: string; reason: string } | null) ?? null
+      } catch {
+        return null
+      }
+    },
+    [data.objective, data.experienceLevel, data.physicalConditions, memberId]
   )
 
   useEffect(() => {
@@ -404,6 +443,9 @@ export default function OnboardingPage() {
 
     const freq = data.trainingFrequency ?? 3
     const fetchPromise = fetchGeneratedPlans(freq)
+    const recommendationPromise = fetchPromise.then((plans) =>
+      plans ? fetchAiRecommendation(plans, freq) : null
+    )
 
     for (let i = 0; i < loadingMessages.length; i++) {
       setGenerationPhase(i)
@@ -417,6 +459,7 @@ export default function OnboardingPage() {
     }
 
     const plans = await fetchPromise
+    setAiRecommendation(await recommendationPromise)
 
     if (plans?.length) {
       setExpandedPlanId(null)
@@ -428,7 +471,7 @@ export default function OnboardingPage() {
 
     setDirection(1)
     setStep(11)
-  }, [data, play, fetchGeneratedPlans, memberId])
+  }, [data, play, fetchGeneratedPlans, fetchAiRecommendation, memberId])
 
   const assignPlan = useCallback(
     async (planId: string) => {
@@ -1318,6 +1361,12 @@ export default function OnboardingPage() {
               </div>
             )}
 
+            {recommendedPlan && (
+              <p className="rounded-xl border border-accent-yellow/30 bg-accent-yellow/5 p-3 text-center text-xs text-muted-foreground">
+                {AI_RECOMMENDATION_NOTICE}
+              </p>
+            )}
+
             {generatedPlans.length > 0 || coachPlan ? (
               <div className="space-y-3">
                 {coachPlan && (
@@ -1417,8 +1466,9 @@ export default function OnboardingPage() {
                   </p>
                 )}
 
-                {generatedPlans.map((plan, i) => {
+                {orderedPlans.map((plan, i) => {
                   const isExpanded = expandedPlanId === plan.id
+                  const isRecommended = plan.id === recommendedPlan?.id
                   const totalExercises = plan.splits.reduce((sum, s) => sum + s.exercises.length, 0)
                   const allMuscleGroups = [...new Set(plan.splits.flatMap((s) => s.muscleGroups))]
                   return (
@@ -1436,6 +1486,12 @@ export default function OnboardingPage() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
+                          {isRecommended && (
+                            <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-medium text-accent-yellow">
+                              <Sparkles className="h-3 w-3" />
+                              Recomendada por IA
+                            </span>
+                          )}
                           <div className="flex items-center gap-2.5 flex-wrap">
                             <h3 className="font-bold text-base">{plan.name}</h3>
                             <span
@@ -1451,6 +1507,9 @@ export default function OnboardingPage() {
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                             {plan.description}
                           </p>
+                          {isRecommended && aiRecommendation && (
+                            <p className="mt-2 text-xs font-medium">{aiRecommendation.reason}</p>
+                          )}
                           <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Dumbbell className="h-3 w-3" />
