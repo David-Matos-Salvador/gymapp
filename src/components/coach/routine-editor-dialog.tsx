@@ -1,7 +1,7 @@
 "use client"
 
 import { pluralize } from "@/lib/utils"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -67,6 +67,10 @@ interface RoutineEditorContentProps {
   onPlanUpdated: () => void
   onUnassign?: () => void
   onClose?: () => void
+  // Pantalla «Personalizar»: el plan mostrado todavía es el original. Antes del primer
+  // cambio se llama a esta función, que crea la copia del cliente y la devuelve
+  // (o null si el coach cancela). Los cambios se guardan en la copia.
+  prepareForEdit?: () => Promise<Plan | null>
 }
 
 export function RoutineEditorContent({
@@ -74,7 +78,10 @@ export function RoutineEditorContent({
   onPlanUpdated,
   onUnassign,
   onClose,
+  prepareForEdit,
 }: RoutineEditorContentProps) {
+  const [planId, setPlanId] = useState(plan.id)
+  const prepared = useRef(false)
   const [planForm, setPlanForm] = useState({
     name: plan.name,
     description: plan.description ?? "",
@@ -116,6 +123,46 @@ export function RoutineEditorContent({
 
   const [unassignConfirm, setUnassignConfirm] = useState(false)
 
+  // Devuelve dónde guardar el cambio. Si hubo que crear la copia, traduce los ids del
+  // plan original a los de la copia (mismo orden de días y ejercicios).
+  async function editableTarget() {
+    const same = {
+      planId,
+      copyName: null as string | null,
+      splitId: (id: string) => id,
+      exerciseId: (id: string) => id,
+    }
+    if (!prepareForEdit || prepared.current) return same
+    const copy = await prepareForEdit()
+    if (!copy) return null
+    prepared.current = true
+    if (copy.id === planId) return same
+
+    const splitIds = new Map<string, string>()
+    const exerciseIds = new Map<string, string>()
+    localSplits.forEach((split, i) => {
+      const copied = copy.splits[i]
+      if (!copied) return
+      splitIds.set(split.id, copied.id)
+      split.exercises.forEach((exercise, j) => {
+        const copiedExercise = copied.exercises[j]
+        if (copiedExercise) exerciseIds.set(exercise.id, copiedExercise.id)
+      })
+    })
+    setPlanId(copy.id)
+    setLocalSplits(
+      copy.splits.map((s) => ({ ...s, exercises: s.exercises.map((e) => ({ ...e })) }))
+    )
+    setExpandedSplits((prev) => new Set([...prev].map((id) => splitIds.get(id) ?? id)))
+    setPlanForm((prev) => (prev.name === plan.name ? { ...prev, name: copy.name } : prev))
+    return {
+      planId: copy.id,
+      copyName: copy.name,
+      splitId: (id: string) => splitIds.get(id) ?? id,
+      exerciseId: (id: string) => exerciseIds.get(id) ?? id,
+    }
+  }
+
   async function fetchExercises() {
     try {
       const res = await fetch("/api/exercises")
@@ -140,16 +187,22 @@ export function RoutineEditorContent({
       toast.error("El nombre es requerido")
       return
     }
+    const target = await editableTarget()
+    if (!target) return
     setPlanSaving(true)
     try {
       const body = {
-        name: planForm.name.trim(),
+        // Si no se tocó el nombre, la copia conserva el suyo («… (personalizada para …)»).
+        name:
+          target.copyName && planForm.name.trim() === plan.name
+            ? target.copyName
+            : planForm.name.trim(),
         description: planForm.description.trim() || null,
         objective: planForm.objective || null,
         frequency: planForm.frequency ? Number(planForm.frequency) : null,
         difficulty: planForm.difficulty || null,
       }
-      const res = await fetch(`/api/routines/${plan.id}`, {
+      const res = await fetch(`/api/routines/${target.planId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -195,10 +248,13 @@ export function RoutineEditorContent({
       toast.error("Label y nombre son requeridos")
       return
     }
+    const target = await editableTarget()
+    if (!target) return
+    const splitId = editingSplitId ? target.splitId(editingSplitId) : null
     setSplitSaving(true)
     try {
       const body = {
-        planId: plan.id,
+        planId: target.planId,
         label: splitForm.label.trim(),
         name: splitForm.name.trim(),
         description: splitForm.description.trim() || null,
@@ -211,17 +267,15 @@ export function RoutineEditorContent({
               .filter(Boolean)
           : [],
       }
-      if (editingSplitId) {
-        const res = await fetch(`/api/routine-splits/${editingSplitId}`, {
+      if (splitId) {
+        const res = await fetch(`/api/routine-splits/${splitId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         })
         if (!res.ok) throw new Error()
         const data = await res.json()
-        setLocalSplits((prev) =>
-          prev.map((s) => (s.id === editingSplitId ? { ...s, ...data.split } : s))
-        )
+        setLocalSplits((prev) => prev.map((s) => (s.id === splitId ? { ...s, ...data.split } : s)))
         toast.success("Día actualizado")
       } else {
         const res = await fetch("/api/routine-splits", {
@@ -243,7 +297,10 @@ export function RoutineEditorContent({
     }
   }
 
-  async function handleDeleteSplit(id: string) {
+  async function handleDeleteSplit(originalId: string) {
+    const target = await editableTarget()
+    if (!target) return
+    const id = target.splitId(originalId)
     try {
       const res = await fetch(`/api/routine-splits/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error()
@@ -268,12 +325,15 @@ export function RoutineEditorContent({
       toast.error("Selecciona un ejercicio")
       return
     }
+    const target = await editableTarget()
+    if (!target) return
+    const splitId = target.splitId(addExerciseSplitId)
     try {
       const res = await fetch("/api/split-exercises", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          splitId: addExerciseSplitId,
+          splitId,
           exerciseId: selectedExerciseId,
           sets: exerciseConfig.sets,
           reps: exerciseConfig.reps,
@@ -285,7 +345,7 @@ export function RoutineEditorContent({
       const data = await res.json()
       setLocalSplits((prev) =>
         prev.map((s) =>
-          s.id === addExerciseSplitId
+          s.id === splitId
             ? {
                 ...s,
                 exercises: [
@@ -309,7 +369,10 @@ export function RoutineEditorContent({
     }
   }
 
-  async function handleDeleteExercise(id: string) {
+  async function handleDeleteExercise(originalId: string) {
+    const target = await editableTarget()
+    if (!target) return
+    const id = target.exerciseId(originalId)
     try {
       const res = await fetch(`/api/split-exercises/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error()

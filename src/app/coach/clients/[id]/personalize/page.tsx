@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useParams, useSearchParams, useRouter } from "next/navigation"
 import { AppShell } from "@/components/layout/shell"
 import { RoutineEditorContent, type Plan } from "@/components/coach/routine-editor-dialog"
+import { personalizeConfirmQuestion } from "@/lib/routine-personalization"
 import { Dumbbell, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -14,9 +15,10 @@ export default function PersonalizePage() {
   const router = useRouter()
   const clientId = params.id as string
   const planId = searchParams.get("planId")
-  const isPersonalized = searchParams.get("personalized") === "1"
 
   const [plan, setPlan] = useState<Plan | null>(null)
+  const [needsCopy, setNeedsCopy] = useState(false)
+  const [clientName, setClientName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -25,32 +27,18 @@ export default function PersonalizePage() {
       return
     }
 
+    // Abrir la pantalla solo consulta: la copia se crea al guardar el primer cambio (#126).
     async function init() {
       try {
-        if (isPersonalized) {
-          // Already personalized — fetch the plan
-          const res = await fetch(`/api/routines/${planId}`)
-          if (!res.ok) throw new Error()
-          const data = await res.json()
-          setPlan(data.plan)
-        } else {
-          // Duplicate the template plan for this client
-          const dupRes = await fetch("/api/routines/duplicate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ planId, assignedUserId: clientId }),
-          })
-          if (!dupRes.ok) throw new Error()
-          const dupData = await dupRes.json()
-          setPlan(dupData.plan)
-          // Update URL to reflect personalized state
-          router.replace(
-            `/coach/clients/${clientId}/personalize?planId=${dupData.plan.id}&personalized=1`,
-            { scroll: false }
-          )
-        }
+        const query = new URLSearchParams({ planId: planId!, assignedUserId: clientId })
+        const res = await fetch(`/api/routines/duplicate?${query}`)
+        if (!res.ok) throw new Error()
+        const data = await res.json()
+        setPlan(data.plan)
+        setNeedsCopy(Boolean(data.needsCopy))
+        setClientName(data.clientName ?? null)
       } catch {
-        toast.error("Error al personalizar la rutina")
+        toast.error("No se pudo cargar la rutina")
         router.push(`/coach/clients/${clientId}`)
       } finally {
         setLoading(false)
@@ -61,12 +49,33 @@ export default function PersonalizePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  async function createCopy(): Promise<Plan | null> {
+    if (!window.confirm(personalizeConfirmQuestion(clientName))) return null
+    try {
+      const res = await fetch("/api/routines/duplicate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId, assignedUserId: clientId }),
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setNeedsCopy(false)
+      router.replace(`/coach/clients/${clientId}/personalize?planId=${data.plan.id}`, {
+        scroll: false,
+      })
+      return data.plan
+    } catch {
+      toast.error("No se pudo crear la copia de la rutina")
+      return null
+    }
+  }
+
   if (loading) {
     return (
       <AppShell>
         <div className="container mx-auto px-4 py-6 md:py-8 max-w-3xl">
           <div className="flex items-center justify-center py-20">
-            <p className="text-sm text-muted-foreground">Personalizando rutina...</p>
+            <p className="text-sm text-muted-foreground">Cargando rutina...</p>
           </div>
         </div>
       </AppShell>
@@ -74,6 +83,8 @@ export default function PersonalizePage() {
   }
 
   if (!plan) return null
+
+  const firstName = clientName?.trim().split(/\s+/)[0] || "este cliente"
 
   return (
     <AppShell>
@@ -90,13 +101,16 @@ export default function PersonalizePage() {
           <h1 className="text-2xl font-bold tracking-tight">Personalizar rutina</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Los cambios que hagas aquí solo afectarán a este cliente.
+          {needsCopy
+            ? `Mientras no guardes un cambio, la rutina de ${firstName} sigue igual. Al guardar el primero se crea una copia solo para ${firstName}.`
+            : "Los cambios que hagas aquí solo afectarán a este cliente."}
         </p>
 
         <RoutineEditorContent
           plan={plan}
           onPlanUpdated={() => {}}
           onClose={() => router.push(`/coach/clients/${clientId}`)}
+          prepareForEdit={needsCopy ? createCopy : undefined}
         />
       </div>
     </AppShell>
