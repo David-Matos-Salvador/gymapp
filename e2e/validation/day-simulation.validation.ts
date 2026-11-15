@@ -1105,20 +1105,22 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
         .getByText(TEST_CLASS, { exact: true })
         .locator("xpath=ancestor::div[@data-slot='card']")
         .first()
+      await expect(anaCard2.getByText("0/1", { exact: true })).toBeVisible({ timeout: 15_000 })
       await anaCard2.getByRole("button", { name: /Reservar lugar/i }).click()
       await expect
         .poll(() => hasBookingForClass(USERS.ana, TEST_CLASS), { timeout: 15_000 })
         .toBe(true)
 
-      await visit(ana.page, "/classes")
-      const anaCard3 = ana.page
-        .getByText(TEST_CLASS, { exact: true })
-        .locator("xpath=ancestor::div[@data-slot='card']")
-        .first()
-      await anaCard3.getByRole("button", { name: /Cancelar reserva/i }).click()
+      // Sin recargar: el contador sube y la reserva recién hecha se puede cancelar (#130).
+      await expect(anaCard2.getByText("1/1", { exact: true })).toBeVisible({ timeout: 15_000 })
+      await anaCard2.getByRole("button", { name: /Cancelar reserva/i }).click()
       await expect
         .poll(() => hasBookingForClass(USERS.ana, TEST_CLASS), { timeout: 15_000 })
         .toBe(false)
+      await expect(anaCard2.getByText("0/1", { exact: true })).toBeVisible({ timeout: 15_000 })
+      await expect(anaCard2.getByRole("button", { name: /Reservar lugar/i })).toBeVisible({
+        timeout: 15_000,
+      })
     }
   )
 

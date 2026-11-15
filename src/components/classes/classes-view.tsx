@@ -18,6 +18,7 @@ import {
   Settings,
 } from "lucide-react"
 import { toast } from "sonner"
+import { initialBookingState, withBooking, withoutBooking } from "./booking-state"
 
 interface ClassItem {
   id: string
@@ -99,9 +100,9 @@ function buildCalendarUrl(cls: ClassItem): string {
 export function ClassesView({ classes, bookings, userRole, userId }: ClassesViewProps) {
   const router = useRouter()
   const { play } = useSound()
-  const [bookingIds, setBookingIds] = useState<Set<string>>(
-    new Set(bookings.filter((b) => b.status === "CONFIRMED").map((b) => b.classItem.id))
-  )
+  // La reserva y el contador viven en el estado: así se puede cancelar una reserva
+  // recién hecha y los lugares cambian al momento, sin recargar la página (#130).
+  const [bookingState, setBookingState] = useState(() => initialBookingState(classes, bookings))
   const [loading, setLoading] = useState<string | null>(null)
 
   async function handleBook(classId: string) {
@@ -113,12 +114,16 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
       body: JSON.stringify({ classId }),
     })
 
-    if (res.ok) {
-      setBookingIds((prev) => new Set([...prev, classId]))
+    const data = await res.json().catch(() => ({}))
+    if (res.ok && data.booking?.id) {
+      setBookingState((prev) => withBooking(prev, classId, data.booking.id))
       play("success")
       toast.success("Clase reservada")
+    } else if (res.ok) {
+      // Se reservó pero no llegó el dato de la reserva: se vuelve a pedir todo al servidor.
+      toast.success("Clase reservada")
+      window.location.reload()
     } else {
-      const data = await res.json()
       // Sin membresía activa: el aviso del miembro lo lleva a donde se resuelve.
       const goToMembership = data.code === "MEMBERSHIP_REQUIRED" && userRole === "MEMBER"
       toast.error(
@@ -132,23 +137,19 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
   }
 
   async function handleCancel(classId: string) {
-    const booking = bookings.find((b) => b.classItem.id === classId && b.status === "CONFIRMED")
-    if (!booking) return
+    const bookingId = bookingState.bookingIdByClass[classId]
+    if (!bookingId) return
 
     setLoading(classId)
     play("delete")
     const res = await fetch("/api/bookings", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bookingId: booking.id }),
+      body: JSON.stringify({ bookingId }),
     })
 
     if (res.ok) {
-      setBookingIds((prev) => {
-        const next = new Set(prev)
-        next.delete(classId)
-        return next
-      })
+      setBookingState((prev) => withoutBooking(prev, classId))
       toast.success("Reserva cancelada")
     } else {
       toast.error("Error al cancelar")
@@ -177,8 +178,8 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {sorted.map((cls, i) => {
-        const booked = bookingIds.has(cls.id)
-        const confirmedCount = cls.confirmedCount
+        const booked = Boolean(bookingState.bookingIdByClass[cls.id])
+        const confirmedCount = bookingState.countByClass[cls.id] ?? cls.confirmedCount
         const isFull = confirmedCount >= cls.capacity
 
         return (
