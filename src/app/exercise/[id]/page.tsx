@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button"
 import Image from "next/image"
 import { Dumbbell, ChevronLeft, Play, Clock, Calendar } from "lucide-react"
 import Link from "next/link"
-
-const humanizeEnum = (val: string) => val.charAt(0) + val.slice(1).toLowerCase().replace(/_/g, " ")
+import { MUSCLE_LABELS } from "@/constants/user"
+import { EQUIPMENT_LABELS } from "@/constants/ui"
 
 const extractYoutubeId = (url: string): string | null => {
   const patterns = [
@@ -36,13 +36,20 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
 
   const { id } = await params
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-  const res = await fetch(`${baseUrl}/api/exercises/${id}`, { cache: "no-store" })
-
-  if (res.status === 404) notFound()
-  if (!res.ok) throw new Error("Error al cargar el ejercicio")
-
-  const exercise = await res.json()
+  // Se lee directo de la base: un fetch a la API desde el servidor no lleva la sesión
+  // y respondía 401, así que la página mostraba siempre «Algo salió mal» (#129).
+  const exercise = await prisma.exercise.findUnique({
+    where: { id },
+    select: {
+      name: true,
+      description: true,
+      muscleGroup: true,
+      equipment: true,
+      imageUrl: true,
+      videoUrl: true,
+    },
+  })
+  if (!exercise) notFound()
 
   const recentLogs = await prisma.workoutSetLog.findMany({
     where: { exerciseId: id, workoutLog: { userId: user.id } },
@@ -63,14 +70,6 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
     (a, b) => b.date.getTime() - a.date.getTime()
   )
 
-  const uniquePlans = new Map<string, { id: string; name: string }>()
-  for (const se of exercise.splitExercises ?? []) {
-    const plan = se.split?.plan
-    if (plan && !uniquePlans.has(plan.id)) {
-      uniquePlans.set(plan.id, { id: plan.id, name: plan.name })
-    }
-  }
-
   const youtubeId = exercise.videoUrl ? extractYoutubeId(exercise.videoUrl) : null
 
   return (
@@ -81,7 +80,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ChevronLeft className="h-4 w-4" />
-          Volver al catálogo
+          {user.role === "MEMBER" ? "Volver a mi rutina" : "Volver"}
         </Link>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
@@ -104,8 +103,12 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
             <div>
               <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{exercise.name}</h1>
               <div className="flex flex-wrap gap-2 mt-2">
-                <Badge variant="secondary">{humanizeEnum(exercise.muscleGroup)}</Badge>
-                <Badge variant="outline">{humanizeEnum(exercise.equipment)}</Badge>
+                <Badge variant="secondary">
+                  {MUSCLE_LABELS[exercise.muscleGroup] ?? exercise.muscleGroup}
+                </Badge>
+                <Badge variant="outline">
+                  {EQUIPMENT_LABELS[exercise.equipment] ?? exercise.equipment}
+                </Badge>
               </div>
             </div>
 
@@ -145,32 +148,6 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
           </Card>
         )}
 
-        {uniquePlans.size > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Dumbbell className="h-4 w-4" />
-                Rutinas que incluyen este ejercicio
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="divide-y -mx-4">
-                {Array.from(uniquePlans.values()).map((plan) => (
-                  <Link
-                    key={plan.id}
-                    href={`/routines/${plan.id}`}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
-                  >
-                    <Dumbbell className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <span className="text-sm font-medium">{plan.name}</span>
-                    <ChevronLeft className="h-3 w-3 text-muted-foreground ml-auto rotate-180" />
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -189,7 +166,7 @@ export default async function ExercisePage({ params }: { params: Promise<{ id: s
                   <div key={session.date.toISOString()} className="space-y-2">
                     <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {session.date.toLocaleDateString("es-MX", {
+                      {session.date.toLocaleDateString("es-PE", {
                         weekday: "short",
                         day: "numeric",
                         month: "short",
