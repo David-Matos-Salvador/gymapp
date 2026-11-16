@@ -284,3 +284,17 @@ export const scheduleLabelMap: Record<string, string> = {
   "7PM_9PM": "Noche (7pm-9pm)",
   AFTER_9PM: "Trasnoche (9pm+)",
 }
+
+// Recomendación con IA (#117): la pantalla avisa quién recomienda y con qué datos.
+export const AI_RECOMMENDATION_NOTICE =
+  "La rutina marcada como «Recomendada por IA» la sugiere una inteligencia artificial a partir de tu experiencia, tus días por semana, tu objetivo y si marcaste una lesión. No recibe tu nombre ni tus datos de contacto. Tú eliges cuál usar."
+
+/** La rutina recomendada va primero; si no está en la lista, el orden no cambia. */
+export function putRecommendedFirst<T extends { id: string }>(
+  plans: T[],
+  recommendedId: string | null | undefined
+): T[] {
+  const recommended = plans.find((plan) => plan.id === recommendedId)
+  if (!recommended) return plans
+  return [recommended, ...plans.filter((plan) => plan.id !== recommended.id)]
+}

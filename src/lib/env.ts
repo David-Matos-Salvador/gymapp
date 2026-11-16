@@ -64,6 +64,8 @@ const envObjectSchema = z.object({
   CALENDAR_TOKEN_ENCRYPTION_KEY: optionalString(),
   STRIPE_SECRET_KEY: optionalString(),
   STRIPE_WEBHOOK_SECRET: optionalString(),
+  // Recomendación de rutina con IA en el onboarding (#117). Sin llave se usa la regla normal.
+  DEEPSEEK_API_KEY: optionalString(),
   S3_ENDPOINT: optionalUrl(["http:", "https:"]),
   S3_REGION: optionalString(),
   S3_BUCKET: optionalString(),
