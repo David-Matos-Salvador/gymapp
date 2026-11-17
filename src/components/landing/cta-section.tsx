@@ -1,32 +1,28 @@
-import { Reveal } from "@/components/landing/reveal"
 import { SoundLinkButton } from "@/components/landing/sound-link-button"
-import { Trophy, Zap } from "lucide-react"
 
 export function CTASection() {
   return (
-    <section className="relative py-20 md:py-32 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <Reveal className="flex justify-center">
-          <div className="relative rounded-2xl border bg-card p-8 md:p-12 max-w-2xl w-full text-center overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-accent-yellow/10 blur-[60px]" />
-            <div className="relative z-10">
-              <Trophy className="h-12 w-12 text-accent-yellow mx-auto mb-4" />
-              <p className="text-3xl font-bold mb-2">Empieza gratis</p>
-              <p className="text-muted-foreground mb-8">
-                Sin tarjeta de crédito. Acceso completo por 7 días.
-              </p>
-              <SoundLinkButton
-                href="/register"
-                sound="success"
-                size="lg"
-                className="h-12 px-10 text-base rounded-full"
-              >
-                Crear cuenta gratis
-                <Zap className="ml-2 h-5 w-5" />
-              </SoundLinkButton>
-            </div>
-          </div>
-        </Reveal>
+    <section aria-labelledby="cta" className="bg-primary text-primary-foreground">
+      <div className="container mx-auto flex flex-col gap-8 px-4 py-16 md:flex-row md:items-end md:justify-between md:py-20">
+        <div className="max-w-2xl">
+          <h2
+            id="cta"
+            className="text-4xl leading-none font-black tracking-tight text-balance md:text-6xl"
+          >
+            Arma tu rutina hoy.
+          </h2>
+          <p className="mt-4 text-lg leading-relaxed">
+            Crea tu cuenta, responde unas preguntas y empieza a entrenar con un plan hecho para ti.
+          </p>
+        </div>
+        <SoundLinkButton
+          href="/register"
+          sound="success"
+          size="lg"
+          className="h-12 shrink-0 self-start rounded-full bg-primary-foreground px-8 text-base text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-foreground md:self-auto [a]:hover:bg-primary-foreground/85"
+        >
+          Crear cuenta
+        </SoundLinkButton>
       </div>
     </section>
   )

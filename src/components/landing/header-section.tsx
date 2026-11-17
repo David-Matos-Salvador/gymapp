@@ -47,7 +47,7 @@ export function HeaderSection() {
               </Button>
               <Button size="sm" asChild>
                 <Link href="/register" onClick={() => play("click")}>
-                  Empezar gratis
+                  Crear cuenta
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
