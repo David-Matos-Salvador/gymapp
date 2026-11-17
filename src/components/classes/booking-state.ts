@@ -41,3 +41,8 @@ export function withoutBooking(state: ClassBookingState, classId: string): Class
     },
   }
 }
+
+/** Pregunta antes de cancelar la reserva de una clase: "¿Cancelar tu reserva en Yoga (lunes 07:00)?". */
+export function cancelClassBookingQuestion(name: string, day: string, startTime: string): string {
+  return `¿Cancelar tu reserva en ${name} (${day} ${startTime})? Tu lugar quedará libre para otra persona.`
+}

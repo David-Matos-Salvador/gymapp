@@ -18,7 +18,12 @@ import {
   Settings,
 } from "lucide-react"
 import { toast } from "sonner"
-import { initialBookingState, withBooking, withoutBooking } from "./booking-state"
+import {
+  cancelClassBookingQuestion,
+  initialBookingState,
+  withBooking,
+  withoutBooking,
+} from "./booking-state"
 
 interface ClassItem {
   id: string
@@ -136,9 +141,13 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
     setLoading(null)
   }
 
-  async function handleCancel(classId: string) {
+  async function handleCancel(cls: ClassItem) {
+    const classId = cls.id
     const bookingId = bookingState.bookingIdByClass[classId]
     if (!bookingId) return
+    // Como en las sesiones 1:1: en el celular es fácil tocarlo sin querer al desplazarse.
+    const day = daysOfWeek[cls.dayOfWeek] ?? cls.dayOfWeek
+    if (!window.confirm(cancelClassBookingQuestion(cls.name, day, cls.startTime))) return
 
     setLoading(classId)
     play("delete")
@@ -233,7 +242,7 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
                         variant="outline"
                         size="sm"
                         className="w-full"
-                        onClick={() => handleCancel(cls.id)}
+                        onClick={() => handleCancel(cls)}
                         disabled={loading === cls.id}
                       >
                         <X className="mr-1 h-3 w-3" />
