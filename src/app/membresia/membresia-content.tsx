@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { MembershipCard } from "@/components/memberships/membership-card"
 import { PaymentForm } from "@/components/memberships/payment-form"
 import { Card, CardContent } from "@/components/ui/card"
@@ -158,6 +158,7 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
   const [planId, setPlanId] = useState(plans[0]?.id ?? "")
   const [method, setMethod] = useState("YAPE")
   const [file, setFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [submitting, setSubmitting] = useState(false)
   const selectedPlan = plans.find((plan) => plan.id === planId)
   // Efectivo y tarjeta se pagan en recepción: no hay comprobante que subir.
@@ -269,13 +270,29 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
               <label htmlFor="newPaymentReceipt" className="text-sm font-medium">
                 Comprobante
               </label>
-              <input
-                id="newPaymentReceipt"
-                type="file"
-                accept="image/*"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="block w-full text-sm text-muted-foreground file:mr-3 file:rounded-md file:border-0 file:bg-muted file:px-3 file:py-2 file:text-sm"
-              />
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="mr-2 h-4 w-4" /> Subir comprobante
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  id="newPaymentReceipt"
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                />
+                {file && (
+                  <span className="max-w-[160px] truncate text-xs text-muted-foreground">
+                    {file.name}
+                  </span>
+                )}
+              </div>
             </div>
           )}
           <Button type="submit" disabled={submitting || !selectedPlan} className="w-full">
