@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { toast } from "sonner"
 import { isValidPhone, PHONE_ERROR } from "@/lib/phone"
@@ -35,6 +36,7 @@ import {
   Camera,
   Ruler,
   Weight,
+  FileText,
 } from "lucide-react"
 import {
   ROLE_LABELS,
@@ -62,9 +64,12 @@ interface User {
   height: number | null
   weight: number | null
   image: string | null
+  bio: string | null
   createdAt: string
   updatedAt?: string | null
 }
+
+const BIO_MAX_LENGTH = 500
 
 function formatBirthDate(date: string | null): string | null {
   if (!date) return null
@@ -122,6 +127,8 @@ export function ProfileForm({ user }: { user: User }) {
   const [experienceLevel, setExperienceLevel] = useState(user.experienceLevel ?? "")
   const [emergencyContact, setEmergencyContact] = useState(user.emergencyContact ?? "")
   const [emergencyPhone, setEmergencyPhone] = useState(user.emergencyPhone ?? "")
+  const [bio, setBio] = useState(user.bio ?? "")
+  const isTrainer = user.role === "TRAINER"
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(user.image ?? null)
   const avatarInputRef = useRef<HTMLInputElement>(null)
@@ -139,6 +146,7 @@ export function ProfileForm({ user }: { user: User }) {
     ...(experienceLevel !== (user.experienceLevel ?? "") && { experienceLevel }),
     ...(emergencyContact !== (user.emergencyContact ?? "") && { emergencyContact }),
     ...(emergencyPhone !== (user.emergencyPhone ?? "") && { emergencyPhone }),
+    ...(isTrainer && bio !== (user.bio ?? "") && { bio }),
   }
   const hasChanges = hasNameChanged || hasPhoneChanged || Object.keys(changedDetails).length > 0
   const nameValid = name.length > 0 || !nameTouched
@@ -242,6 +250,7 @@ export function ProfileForm({ user }: { user: User }) {
             />
             <InfoItem icon={Calendar} label="Fecha de nacimiento" value={birthDateFormatted} />
             <InfoItem icon={Calendar} label="Edad" value={age} />
+            {isTrainer && <InfoItem icon={FileText} label="Sobre ti" value={user.bio} />}
           </div>
         </CardContent>
       </Card>
@@ -386,6 +395,24 @@ export function ProfileForm({ user }: { user: User }) {
               </p>
             )}
           </div>
+          {isTrainer && (
+            <div className="space-y-2">
+              <Label htmlFor="profileBio" className="text-sm">
+                Sobre ti
+              </Label>
+              <Textarea
+                id="profileBio"
+                value={bio}
+                maxLength={BIO_MAX_LENGTH}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Cuéntales a tus clientes en qué te especializas"
+                aria-describedby="profileBioHint"
+              />
+              <p id="profileBioHint" className="text-xs text-muted-foreground">
+                Una descripción corta que ven tus clientes. Máximo {BIO_MAX_LENGTH} caracteres.
+              </p>
+            </div>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="profileSex" className="text-sm">
