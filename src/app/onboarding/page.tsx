@@ -1445,7 +1445,7 @@ export default function OnboardingPage() {
                                 ))}
                                 {split.exercises.length > 4 && (
                                   <p className="text-[10px] text-muted-foreground pl-3">
-                                    +{split.exercises.length - 4} m\u00e1s
+                                    +{split.exercises.length - 4} más
                                   </p>
                                 )}
                               </div>
@@ -1562,7 +1562,7 @@ export default function OnboardingPage() {
                                   ))}
                                   {split.exercises.length > 4 && (
                                     <p className="text-[10px] text-muted-foreground pl-3">
-                                      +{split.exercises.length - 4} m\u00e1s
+                                      +{split.exercises.length - 4} más
                                     </p>
                                   )}
                                 </div>
