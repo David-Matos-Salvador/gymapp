@@ -502,7 +502,7 @@ export function ProfileForm({ user }: { user: User }) {
             >
               {saving ? (
                 <>
-                  <span className="animate-spin mr-2">⏳</span>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Guardando...
                 </>
               ) : (

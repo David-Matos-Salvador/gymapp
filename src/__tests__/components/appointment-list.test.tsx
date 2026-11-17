@@ -98,6 +98,9 @@ describe("AppointmentList", () => {
       name: "Cancelar la sesión del martes 17 de noviembre, 18:00",
     }) as HTMLButtonElement
     expect(other.disabled).toBe(false)
+    // #138: el botón muestra que está trabajando.
+    expect(cancelFirst().querySelector(".animate-spin")).not.toBeNull()
+    expect(other.querySelector(".animate-spin")).toBeNull()
   })
 
   it("si la API no deja cancelar, muestra su mensaje y no refresca", async () => {

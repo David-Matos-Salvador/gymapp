@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { CalendarClock, X } from "lucide-react"
+import { CalendarClock, Loader2, X } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -79,7 +79,11 @@ export function AppointmentList({
                 onClick={() => cancel(item)}
                 aria-label={`Cancelar la sesión del ${item.when}`}
               >
-                <X className="mr-1 h-4 w-4" />
+                {cancellingId === item.id ? (
+                  <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                ) : (
+                  <X className="mr-1 h-4 w-4" />
+                )}
                 Cancelar
               </Button>
             </CardContent>

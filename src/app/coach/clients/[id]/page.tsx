@@ -31,6 +31,7 @@ import {
   ArrowLeft,
   RefreshCw,
   UserMinus,
+  Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -120,6 +121,7 @@ export default function CoachClientDetail() {
   const [measureOpen, setMeasureOpen] = useState(false)
   const [routineOpen, setRoutineOpen] = useState(false)
   const [unassigning, setUnassigning] = useState(false)
+  const [assigningPlanId, setAssigningPlanId] = useState<string | null>(null)
   const [measureForm, setMeasureForm] = useState({
     weight: "",
     height: "",
@@ -293,6 +295,8 @@ export default function CoachClientDetail() {
   }
 
   async function assignRoutine(planId: string) {
+    if (assigningPlanId) return
+    setAssigningPlanId(planId)
     try {
       const res = await fetch("/api/routines/assign", {
         method: "POST",
@@ -312,6 +316,8 @@ export default function CoachClientDetail() {
       }
     } catch {
       toast.error("Error de conexión")
+    } finally {
+      setAssigningPlanId(null)
     }
   }
 
@@ -862,8 +868,14 @@ export default function CoachClientDetail() {
                     variant="outline"
                     className="w-full justify-start"
                     onClick={() => assignRoutine(r.id)}
+                    disabled={assigningPlanId !== null}
                   >
-                    <Dumbbell className="mr-2 h-4 w-4" /> {r.name}
+                    {assigningPlanId === r.id ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Dumbbell className="mr-2 h-4 w-4" />
+                    )}{" "}
+                    {r.name}
                   </Button>
                 ))
               )}
