@@ -65,7 +65,7 @@ export function MembresiaContent({
     return (
       <div className="container mx-auto px-4 py-8 max-w-lg space-y-6">
         <div className="text-center space-y-2">
-          <h2 className="text-xl font-bold">Membresía</h2>
+          <h1 className="text-xl font-bold">Membresía</h1>
           <p className="text-sm text-muted-foreground">Aún no tienes una membresía activa.</p>
         </div>
         {plans.length === 0 ? (
@@ -92,7 +92,7 @@ export function MembresiaContent({
   return (
     <div className="container mx-auto px-4 py-8 max-w-lg space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-xl font-bold">Mi Membresía</h2>
+        <h1 className="text-xl font-bold">Mi Membresía</h1>
         <p className="text-sm text-muted-foreground">Gestiona tu plan y métodos de pago</p>
       </div>
 

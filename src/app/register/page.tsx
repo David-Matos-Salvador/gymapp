@@ -115,7 +115,9 @@ export default function RegisterPage() {
             >
               <CheckCircle className="h-10 w-10 text-accent-yellow" />
             </motion.div>
-            <CardTitle className="text-xl">Cuenta creada</CardTitle>
+            <CardTitle as="h1" className="text-xl">
+              Cuenta creada
+            </CardTitle>
             <CardDescription>Redirigiendo...</CardDescription>
           </CardContent>
         </Card>
@@ -133,7 +135,9 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">Crear cuenta</CardTitle>
+          <CardTitle as="h1" className="text-2xl">
+            Crear cuenta
+          </CardTitle>
           <CardDescription>Crea tu cuenta para entrenar y seguir tu progreso</CardDescription>
         </CardHeader>
         <CardContent>
