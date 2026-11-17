@@ -30,7 +30,7 @@ export function ProfileHeader({ user }: { user: User }) {
   const firstName = user.name?.split(" ")[0] ?? "Atleta"
   const initials = (user.name ?? user.email).charAt(0).toUpperCase()
 
-  const memberSince = new Date(user.createdAt).toLocaleDateString("es", {
+  const memberSince = new Date(user.createdAt).toLocaleDateString("es-PE", {
     year: "numeric",
     month: "long",
   })

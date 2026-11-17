@@ -36,7 +36,7 @@ export default function RootLayout({
         <AuthProvider>
           <ThemeProvider>{children}</ThemeProvider>
         </AuthProvider>
-        <Toaster />
+        <Toaster containerAriaLabel="Notificaciones" />
       </body>
     </html>
   )

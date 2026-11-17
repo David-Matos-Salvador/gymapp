@@ -475,7 +475,7 @@ export function ExerciseManagement({
                     <div className="size-8 rounded bg-muted overflow-hidden">
                       <img
                         src={form.imageUrl}
-                        alt="Preview"
+                        alt="Vista previa"
                         className="size-full object-cover"
                         onError={(e) => {
                           ;(e.target as HTMLImageElement).style.display = "none"

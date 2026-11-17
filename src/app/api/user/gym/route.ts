@@ -25,7 +25,7 @@ export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}))
   const parsed = joinGymSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: "gymId requerido" }, { status: 400 })
+    return NextResponse.json({ error: "Falta indicar el gimnasio" }, { status: 400 })
   }
 
   if (user.gymId && user.gymId !== parsed.data.gymId) {
