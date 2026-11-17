@@ -102,6 +102,7 @@ export default function NotificationsPage() {
           </div>
         ) : (
           <NotificationList
+            showTitle={false}
             notifications={notifications}
             onMarkRead={handleMarkRead}
             onMarkAllRead={handleMarkAllRead}

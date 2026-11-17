@@ -682,7 +682,7 @@ export default function OnboardingPage() {
         return (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h2 className="text-2xl font-bold">¿Entrenas en un gimnasio?</h2>
+              <h1 className="text-2xl font-bold">¿Entrenas en un gimnasio?</h1>
               <p className="text-sm text-muted-foreground">
                 Si tu gimnasio usa GymApp, búscalo para ver sus máquinas y ejercicios. Si no, sigue
                 con el catálogo por defecto.
@@ -755,7 +755,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">¿Cuál es tu objetivo?</h2>
+              <h1 className="text-2xl font-bold tracking-tight">¿Cuál es tu objetivo?</h1>
               <p className="text-muted-foreground">
                 Selecciona lo que quieres lograr con tu entrenamiento
               </p>
@@ -802,7 +802,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Historial de entrenamiento</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Historial de entrenamiento</h1>
               <p className="text-muted-foreground">
                 ¿Con qué frecuencia has entrenado hasta ahora?
               </p>
@@ -847,7 +847,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Nivel de experiencia</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Nivel de experiencia</h1>
               <p className="text-muted-foreground">¿Cuánto sabes sobre entrenamiento?</p>
             </div>
             <div className="space-y-3">
@@ -892,7 +892,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Frecuencia de entrenamiento</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Frecuencia de entrenamiento</h1>
               <p className="text-muted-foreground">¿Cuántos días por semana puedes entrenar?</p>
             </div>
             <div className="space-y-3">
@@ -937,7 +937,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Condiciones físicas</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Condiciones físicas</h1>
               <p className="text-muted-foreground">
                 Selecciona las que te apliquen. Si no tienes ninguna, toca Continuar.
               </p>
@@ -989,7 +989,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Peso y altura</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Peso y altura</h1>
               <p className="text-muted-foreground">
                 Estos datos nos ayudan a personalizar tu rutina
               </p>
@@ -1063,7 +1063,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Medidas corporales</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Medidas corporales</h1>
               <p className="text-muted-foreground">
                 {assisted
                   ? "Toma las medidas del cliente — todas son opcionales"
@@ -1120,7 +1120,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Horario habitual</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Horario habitual</h1>
               <p className="text-muted-foreground">¿A qué hora sueles entrenar?</p>
             </div>
             <div className="space-y-2.5">
@@ -1209,7 +1209,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Confirma tus datos</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Confirma tus datos</h1>
               <p className="text-muted-foreground">Revisa que toda la información sea correcta</p>
             </div>
 
@@ -1349,9 +1349,9 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Tu rutina personalizada</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Tu rutina personalizada</h1>
               <p className="text-muted-foreground">
-                Toca para ver detalles · doble toque para elegir
+                Toca una rutina para ver sus detalles y elegirla
               </p>
             </div>
 
@@ -1370,173 +1370,61 @@ export default function OnboardingPage() {
             {generatedPlans.length > 0 || coachPlan ? (
               <div className="space-y-3">
                 {coachPlan && (
-                  <motion.button
-                    key="coach-plan"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    onClick={handleCoachCardClick}
-                    className={`w-full rounded-2xl border-2 p-5 text-left transition-all ${
-                      expandedPlanId === `coach-${coachPlan.id}`
-                        ? "border-accent-yellow bg-accent-yellow/5 shadow-sm"
-                        : "border-accent-yellow/40 bg-accent-yellow/5 hover:border-accent-yellow/70"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2.5 flex-wrap">
-                          <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-accent-yellow/10 text-accent-yellow flex items-center gap-1">
-                            <UserRound className="h-3 w-3" />
-                            Asignada por tu coach
-                            {coachPlan.coachName ? ` · ${coachPlan.coachName}` : ""}
-                          </span>
-                        </div>
-                        <h3 className="font-bold text-base mt-1.5">{coachPlan.name}</h3>
-                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {coachPlan.description}
-                        </p>
-                        <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Dumbbell className="h-3 w-3" />
-                            {coachPlan.splits.length} divisiones
-                          </span>
-                          <span>
-                            {coachPlan.splits.reduce((sum, s) => sum + s.exercises.length, 0)}{" "}
-                            ejercicios
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight
-                        className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${expandedPlanId === `coach-${coachPlan.id}` ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`}
-                      />
-                    </div>
-                    {expandedPlanId === `coach-${coachPlan.id}` && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        className="mt-4 pt-4 border-t"
-                      >
-                        <p className="text-xs font-semibold text-muted-foreground mb-2">
-                          Grupos musculares:{" "}
-                          {formatMuscleGroups([
-                            ...new Set(coachPlan.splits.flatMap((s) => s.muscleGroups)),
-                          ])}
-                        </p>
-                        <div className="space-y-2.5 mb-3">
-                          {coachPlan.splits.map((split) => (
-                            <div key={split.id} className="rounded-lg border bg-muted/30 p-3">
-                              <div className="flex items-center gap-2 mb-1.5">
-                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
-                                  {split.label}
-                                </span>
-                                <span className="text-xs font-semibold">{split.name}</span>
-                              </div>
-                              <p className="text-[10px] text-muted-foreground mb-1.5">
-                                {formatMuscleGroups(split.muscleGroups, " · ")}
-                              </p>
-                              <div className="space-y-0.5">
-                                {split.exercises.slice(0, 4).map((ex) => (
-                                  <div key={ex.id} className="flex items-center gap-2 text-[10px]">
-                                    <span className="text-muted-foreground">·</span>
-                                    <span className="truncate">{ex.name}</span>
-                                    <span className="text-muted-foreground ml-auto">
-                                      {ex.sets}×{ex.reps}
-                                    </span>
-                                  </div>
-                                ))}
-                                {split.exercises.length > 4 && (
-                                  <p className="text-[10px] text-muted-foreground pl-3">
-                                    +{split.exercises.length - 4} más
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <p className="text-xs text-accent-yellow font-medium mt-3 text-center">
-                          Doble toque para usar esta rutina
-                        </p>
-                      </motion.div>
-                    )}
-                  </motion.button>
-                )}
-
-                {generatedPlans.length > 0 && coachPlan && (
-                  <p className="text-center text-xs text-muted-foreground pt-1">
-                    O elige una rutina generada para ti
-                  </p>
-                )}
-
-                {orderedPlans.map((plan, i) => {
-                  const isExpanded = expandedPlanId === plan.id
-                  const isRecommended = plan.id === recommendedPlan?.id
-                  const totalExercises = plan.splits.reduce((sum, s) => sum + s.exercises.length, 0)
-                  const allMuscleGroups = [...new Set(plan.splits.flatMap((s) => s.muscleGroups))]
-                  return (
+                  <div className="space-y-2">
                     <motion.button
-                      key={plan.id}
+                      key="coach-plan"
+                      aria-expanded={expandedPlanId === `coach-${coachPlan.id}`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      onClick={() => handlePlanClick(plan)}
+                      onClick={handleCoachCardClick}
                       className={`w-full rounded-2xl border-2 p-5 text-left transition-all ${
-                        isExpanded
+                        expandedPlanId === `coach-${coachPlan.id}`
                           ? "border-accent-yellow bg-accent-yellow/5 shadow-sm"
-                          : "border-border bg-card hover:border-muted-foreground/20"
+                          : "border-accent-yellow/40 bg-accent-yellow/5 hover:border-accent-yellow/70"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          {isRecommended && (
-                            <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-medium text-accent-yellow">
-                              <Sparkles className="h-3 w-3" />
-                              Recomendada por IA
-                            </span>
-                          )}
                           <div className="flex items-center gap-2.5 flex-wrap">
-                            <h3 className="font-bold text-base">{plan.name}</h3>
-                            <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
-                                plan.difficulty === "ADVANCED" || plan.difficulty === "ELITE"
-                                  ? "bg-violet-100 text-violet-700"
-                                  : "bg-accent-yellow/10 text-accent-yellow"
-                              }`}
-                            >
-                              {experienceLabelMap[plan.difficulty] ?? plan.difficulty}
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-accent-yellow/10 text-accent-yellow flex items-center gap-1">
+                              <UserRound className="h-3 w-3" />
+                              Asignada por tu coach
+                              {coachPlan.coachName ? ` · ${coachPlan.coachName}` : ""}
                             </span>
                           </div>
+                          <h3 className="font-bold text-base mt-1.5">{coachPlan.name}</h3>
                           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                            {plan.description}
+                            {coachPlan.description}
                           </p>
-                          {isRecommended && aiRecommendation && (
-                            <p className="mt-2 text-xs font-medium">{aiRecommendation.reason}</p>
-                          )}
                           <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Dumbbell className="h-3 w-3" />
-                              {plan.splits.length} divisiones
+                              {coachPlan.splits.length} divisiones
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Zap className="h-3 w-3" />
-                              {plan.focus}
+                            <span>
+                              {coachPlan.splits.reduce((sum, s) => sum + s.exercises.length, 0)}{" "}
+                              ejercicios
                             </span>
-                            <span>{totalExercises} ejercicios</span>
                           </div>
                         </div>
                         <ChevronRight
-                          className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${isExpanded ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`}
+                          className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${expandedPlanId === `coach-${coachPlan.id}` ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`}
                         />
                       </div>
-                      {isExpanded && (
+                      {expandedPlanId === `coach-${coachPlan.id}` && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{ height: "auto", opacity: 1 }}
                           className="mt-4 pt-4 border-t"
                         >
                           <p className="text-xs font-semibold text-muted-foreground mb-2">
-                            Grupos musculares: {formatMuscleGroups(allMuscleGroups)}
+                            Grupos musculares:{" "}
+                            {formatMuscleGroups([
+                              ...new Set(coachPlan.splits.flatMap((s) => s.muscleGroups)),
+                            ])}
                           </p>
                           <div className="space-y-2.5 mb-3">
-                            {plan.splits.map((split) => (
+                            {coachPlan.splits.map((split) => (
                               <div key={split.id} className="rounded-lg border bg-muted/30 p-3">
                                 <div className="flex items-center gap-2 mb-1.5">
                                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
@@ -1569,12 +1457,152 @@ export default function OnboardingPage() {
                               </div>
                             ))}
                           </div>
-                          <p className="text-xs text-accent-yellow font-medium mt-3 text-center">
-                            Doble toque para elegir esta rutina
+                          <p className="text-xs text-muted-foreground mt-3 text-center">
+                            También puedes tocar dos veces la tarjeta para usarla
                           </p>
                         </motion.div>
                       )}
                     </motion.button>
+                    {expandedPlanId === `coach-${coachPlan.id}` && (
+                      <Button
+                        className="w-full"
+                        disabled={isSubmitting}
+                        onClick={finishWithCoachPlan}
+                      >
+                        {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                        Usar esta rutina
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {generatedPlans.length > 0 && coachPlan && (
+                  <p className="text-center text-xs text-muted-foreground pt-1">
+                    O elige una rutina generada para ti
+                  </p>
+                )}
+
+                {orderedPlans.map((plan, i) => {
+                  const isExpanded = expandedPlanId === plan.id
+                  const isRecommended = plan.id === recommendedPlan?.id
+                  const totalExercises = plan.splits.reduce((sum, s) => sum + s.exercises.length, 0)
+                  const allMuscleGroups = [...new Set(plan.splits.flatMap((s) => s.muscleGroups))]
+                  return (
+                    <div key={plan.id} className="space-y-2">
+                      <motion.button
+                        aria-expanded={isExpanded}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        onClick={() => handlePlanClick(plan)}
+                        className={`w-full rounded-2xl border-2 p-5 text-left transition-all ${
+                          isExpanded
+                            ? "border-accent-yellow bg-accent-yellow/5 shadow-sm"
+                            : "border-border bg-card hover:border-muted-foreground/20"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            {isRecommended && (
+                              <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-medium text-accent-yellow">
+                                <Sparkles className="h-3 w-3" />
+                                Recomendada por IA
+                              </span>
+                            )}
+                            <div className="flex items-center gap-2.5 flex-wrap">
+                              <h3 className="font-bold text-base">{plan.name}</h3>
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                                  plan.difficulty === "ADVANCED" || plan.difficulty === "ELITE"
+                                    ? "bg-violet-100 text-violet-700"
+                                    : "bg-accent-yellow/10 text-accent-yellow"
+                                }`}
+                              >
+                                {experienceLabelMap[plan.difficulty] ?? plan.difficulty}
+                              </span>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {plan.description}
+                            </p>
+                            {isRecommended && aiRecommendation && (
+                              <p className="mt-2 text-xs font-medium">{aiRecommendation.reason}</p>
+                            )}
+                            <div className="flex items-center gap-3 mt-2 text-[10px] text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Dumbbell className="h-3 w-3" />
+                                {plan.splits.length} divisiones
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Zap className="h-3 w-3" />
+                                {plan.focus}
+                              </span>
+                              <span>{totalExercises} ejercicios</span>
+                            </div>
+                          </div>
+                          <ChevronRight
+                            className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${isExpanded ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`}
+                          />
+                        </div>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            className="mt-4 pt-4 border-t"
+                          >
+                            <p className="text-xs font-semibold text-muted-foreground mb-2">
+                              Grupos musculares: {formatMuscleGroups(allMuscleGroups)}
+                            </p>
+                            <div className="space-y-2.5 mb-3">
+                              {plan.splits.map((split) => (
+                                <div key={split.id} className="rounded-lg border bg-muted/30 p-3">
+                                  <div className="flex items-center gap-2 mb-1.5">
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
+                                      {split.label}
+                                    </span>
+                                    <span className="text-xs font-semibold">{split.name}</span>
+                                  </div>
+                                  <p className="text-[10px] text-muted-foreground mb-1.5">
+                                    {formatMuscleGroups(split.muscleGroups, " · ")}
+                                  </p>
+                                  <div className="space-y-0.5">
+                                    {split.exercises.slice(0, 4).map((ex) => (
+                                      <div
+                                        key={ex.id}
+                                        className="flex items-center gap-2 text-[10px]"
+                                      >
+                                        <span className="text-muted-foreground">·</span>
+                                        <span className="truncate">{ex.name}</span>
+                                        <span className="text-muted-foreground ml-auto">
+                                          {ex.sets}×{ex.reps}
+                                        </span>
+                                      </div>
+                                    ))}
+                                    {split.exercises.length > 4 && (
+                                      <p className="text-[10px] text-muted-foreground pl-3">
+                                        +{split.exercises.length - 4} más
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-3 text-center">
+                              También puedes tocar dos veces la tarjeta para elegirla
+                            </p>
+                          </motion.div>
+                        )}
+                      </motion.button>
+                      {isExpanded && (
+                        <Button
+                          className="w-full"
+                          disabled={isSubmitting}
+                          onClick={() => assignPlan(plan.id)}
+                        >
+                          {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                          Elegir esta rutina
+                        </Button>
+                      )}
+                    </div>
                   )
                 })}
               </div>

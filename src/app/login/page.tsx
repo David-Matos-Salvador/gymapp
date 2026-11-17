@@ -76,7 +76,9 @@ function LoginFormInner() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">GymApp</CardTitle>
+        <CardTitle as="h1" className="text-2xl">
+          GymApp
+        </CardTitle>
         <CardDescription>Inicia sesión en tu cuenta</CardDescription>
       </CardHeader>
       <CardContent>

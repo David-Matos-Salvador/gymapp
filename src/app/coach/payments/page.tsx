@@ -5,6 +5,7 @@ import { AppShell } from "@/components/layout/shell"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { motion } from "framer-motion"
 import { CreditCard, Check, X, Loader2, Mail, Clock, Eye } from "lucide-react"
 import { toast } from "sonner"
@@ -263,20 +264,24 @@ export default function CoachPaymentsPage() {
           </div>
         )}
 
-        {/* Receipt preview modal */}
-        {previewReceipt && (
-          <div
-            className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 cursor-pointer"
-            onClick={() => setPreviewReceipt(null)}
-          >
-            <img
-              src={previewReceipt}
-              alt="Comprobante de pago"
-              className="max-h-[85vh] max-w-full rounded-lg shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
-        )}
+        {/* Comprobante ampliado: Dialog para tener «Cerrar», Escape y foco (#177) */}
+        <Dialog
+          open={previewReceipt !== null}
+          onOpenChange={(open) => !open && setPreviewReceipt(null)}
+        >
+          <DialogContent className="sm:max-w-lg" aria-describedby={undefined}>
+            <DialogHeader>
+              <DialogTitle>Comprobante de pago</DialogTitle>
+            </DialogHeader>
+            {previewReceipt && (
+              <img
+                src={previewReceipt}
+                alt="Comprobante de pago"
+                className="max-h-[75vh] w-full rounded-lg object-contain"
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </AppShell>
   )
