@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -9,6 +10,10 @@ import { Suspense } from "react"
 import { ProfileSkeleton } from "@/components/profile/profile-skeleton"
 
 export const dynamic = "force-dynamic"
+
+export const metadata: Metadata = {
+  title: "Perfil",
+}
 
 export default async function ProfilePage() {
   const session = await auth()
@@ -32,6 +37,7 @@ export default async function ProfilePage() {
       height: true,
       weight: true,
       image: true,
+      bio: true,
       createdAt: true,
       updatedAt: true,
     },

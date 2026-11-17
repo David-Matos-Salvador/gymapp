@@ -17,7 +17,11 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "GymApp",
+  // Cada página pone su propio título («Mi rutina») y la plantilla le suma la marca.
+  title: {
+    template: "%s · GymApp",
+    default: "GymApp",
+  },
   description: "Plataforma de gestión de gimnasio",
 }
 

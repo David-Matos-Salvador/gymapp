@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
@@ -13,6 +14,10 @@ import { getBookableCoach, hasActiveMembership } from "@/lib/appointments"
 import { DEFAULT_TIMEZONE, formatAppointment } from "@/lib/coach-schedule"
 import { refreshCalendarCacheIfStale } from "@/lib/calendar-sync"
 import { getFreeSlots } from "@/lib/coach-schedule-db"
+
+export const metadata: Metadata = {
+  title: "Sesiones 1:1",
+}
 
 export default async function SessionsPage() {
   const session = await auth()

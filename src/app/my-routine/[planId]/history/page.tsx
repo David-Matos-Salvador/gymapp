@@ -1,7 +1,8 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import { formatSet, pluralize } from "@/lib/utils"
+import { formatSessionVolume, formatSet, pluralize } from "@/lib/utils"
 import { AppShell } from "@/components/layout/shell"
 import { Breadcrumb } from "@/components/layout/breadcrumb"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,6 +11,10 @@ import { CalendarDays, Clock, Dumbbell, History } from "lucide-react"
 
 interface PageProps {
   params: Promise<{ planId: string }>
+}
+
+export const metadata: Metadata = {
+  title: "Historial",
 }
 
 export default async function HistorialPage({ params }: PageProps) {
@@ -87,7 +92,7 @@ export default async function HistorialPage({ params }: PageProps) {
             {logs.map((log) => {
               const totalSets = log.sets.length
               const exercises = [...new Set(log.sets.map((set) => set.exerciseName))]
-              const volume = log.sets.reduce((sum, set) => sum + set.reps * set.weight, 0)
+              const volume = formatSessionVolume(log.sets)
               return (
                 <Card key={log.id}>
                   <CardHeader className="pb-3">
@@ -118,7 +123,7 @@ export default async function HistorialPage({ params }: PageProps) {
                           </span>
                         </p>
                       </div>
-                      <Badge variant="secondary">{Math.round(volume)} kg volumen</Badge>
+                      {volume && <Badge variant="secondary">{volume}</Badge>}
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-2">

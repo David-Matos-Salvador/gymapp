@@ -12,7 +12,7 @@ const updateGymSchema = z.object({
   name: z.string().min(1).optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().email().optional(),
+  email: z.string().email("Correo inválido").optional(),
   logoUrl: z.string().url().optional(),
   active: z.boolean().optional(),
   showMachineNumbers: z.boolean().optional(),

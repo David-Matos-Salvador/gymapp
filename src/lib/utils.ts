@@ -28,6 +28,15 @@ export function formatSet(reps: number, weight: number): string {
   return weight > 0 ? `${reps}×${weight}kg` : pluralize(reps, "rep", "reps")
 }
 
+// Resumen de una sesión: el volumen (reps × kg) o, si fue solo con peso corporal, el total de
+// repeticiones en vez de «0 kg volumen». null si no hay nada que mostrar.
+export function formatSessionVolume(sets: { reps: number; weight: number }[]): string | null {
+  const volume = sets.reduce((sum, set) => sum + set.reps * set.weight, 0)
+  if (volume > 0) return `${Math.round(volume)} kg volumen`
+  const reps = sets.reduce((sum, set) => sum + set.reps, 0)
+  return reps > 0 ? `${pluralize(reps, "rep", "reps")} en total` : null
+}
+
 export function formatCurrency(amount: number, currency = "PEN"): string {
   const fmt = new Intl.NumberFormat("es-PE", {
     style: "currency",

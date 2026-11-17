@@ -9,7 +9,7 @@ const INVITE_TTL_DAYS = 7
 
 const createInviteSchema = z.object({
   name: z.string().trim().min(2).max(120).optional(),
-  email: z.string().trim().email("Email inválido").max(200).optional(),
+  email: z.string().trim().email("Correo inválido").max(200).optional(),
   phone: z.string().trim().min(6).max(30).optional(),
 })
 
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
   if (email) {
     const existing = await prisma.user.findUnique({ where: { email } })
     if (existing) {
-      return NextResponse.json({ error: "Ya existe un usuario con ese email" }, { status: 409 })
+      return NextResponse.json({ error: "Ya existe un usuario con ese correo" }, { status: 409 })
     }
   }
 

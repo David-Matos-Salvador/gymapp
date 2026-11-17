@@ -1,12 +1,18 @@
 import { readFileSync } from "node:fs"
 import path from "node:path"
 import { describe, it, expect } from "vitest"
-import { PROFILE_COMPLETION_FIELDS, calculateProfileCompletion } from "@/lib/profile-completion"
+import {
+  calculateProfileCompletion,
+  getProfileCompletionFields,
+  type ProfileCompletionField,
+} from "@/lib/profile-completion"
 import { isValidBirthDate } from "@/lib/birth-date"
 
 // Issue #107: la barra «Perfil completado» pedía completar datos que el perfil no dejaba editar.
+// Issue #153: cada rol cuenta sus propios datos; el admin y el súper admin no tienen barra.
 describe("barra «Perfil completado»", () => {
   const vacio = {
+    role: "MEMBER",
     name: null,
     phone: null,
     sex: null,
@@ -22,12 +28,40 @@ describe("barra «Perfil completado»", () => {
     expect(calculateProfileCompletion({ ...vacio, name: "Ana", phone: "+51 999 123 456" })).toBe(25)
   })
 
+  it("al coach le cuentan nombre, foto, teléfono y la descripción, no los datos de miembro", () => {
+    const coach = {
+      ...vacio,
+      role: "TRAINER",
+      objective: "WEIGHT_LOSS",
+      experienceLevel: "ADVANCED",
+      image: null,
+      bio: null,
+    }
+    expect(calculateProfileCompletion({ ...coach, name: "Diego" })).toBe(25)
+    expect(
+      calculateProfileCompletion({
+        ...coach,
+        name: "Diego",
+        image: "/uploads/diego.jpg",
+        phone: "+51 999 123 456",
+        bio: "Fuerza y movilidad",
+      })
+    ).toBe(100)
+  })
+
+  it.each(["ADMIN", "SUPER_ADMIN"])("%s no tiene barra", (role) => {
+    expect(getProfileCompletionFields(role)).toBeNull()
+    expect(calculateProfileCompletion({ ...vacio, role, name: "Admin" })).toBeNull()
+  })
+
   it("el formulario del perfil tiene un control para cada campo que cuenta", () => {
     const formulario = readFileSync(
       path.join(process.cwd(), "src/components/profile/profile-form.tsx"),
       "utf8"
     )
-    const controles: Record<(typeof PROFILE_COMPLETION_FIELDS)[number], string> = {
+    const controles: Record<ProfileCompletionField, string> = {
+      image: "ref={avatarInputRef}",
+      bio: 'id="profileBio"',
       name: 'id="profileName"',
       phone: 'id="profilePhone"',
       sex: 'id="profileSex"',
@@ -37,8 +71,10 @@ describe("barra «Perfil completado»", () => {
       emergencyContact: 'id="profileEmergencyContact"',
       emergencyPhone: 'id="profileEmergencyPhone"',
     }
-    for (const campo of PROFILE_COMPLETION_FIELDS) {
-      expect(formulario, campo).toContain(controles[campo])
+    for (const role of ["MEMBER", "TRAINER"]) {
+      for (const campo of getProfileCompletionFields(role) ?? []) {
+        expect(formulario, campo).toContain(controles[campo])
+      }
     }
   })
 })

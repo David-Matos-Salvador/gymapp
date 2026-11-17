@@ -1,8 +1,13 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AppShell } from "@/components/layout/shell"
 import { RoutinesList } from "@/components/routines/routines-list"
+
+export const metadata: Metadata = {
+  title: "Rutinas",
+}
 
 export default async function RoutinesPage() {
   const session = await auth()

@@ -2,6 +2,7 @@ import React from "react"
 import { describe, it, expect } from "vitest"
 import { renderToString } from "react-dom/server"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 describe("Button", () => {
   it("exports Button as a function", () => {
@@ -117,5 +118,28 @@ describe("buttonVariants", () => {
   it("appends custom className", () => {
     const cls = buttonVariants({ className: "my-custom" })
     expect(cls).toContain("my-custom")
+  })
+
+  // Issue #152: en el celular, los botones pequeños medían 28 px de alto.
+  describe("área táctil de 44 px en pantallas táctiles", () => {
+    const sizes = ["default", "xs", "sm", "lg", "icon", "icon-xs", "icon-sm", "icon-lg"] as const
+
+    it.each(sizes)("el tamaño %s agranda el área táctil sin cambiar cómo se ve", (size) => {
+      const html = renderToString(React.createElement(Button, { size }, "Ok"))
+      for (const cls of [
+        "relative",
+        "pointer-coarse:after:absolute",
+        "pointer-coarse:after:min-h-11",
+        "pointer-coarse:after:min-w-11",
+      ]) {
+        expect(html, cls).toContain(cls)
+      }
+    })
+
+    it("un botón con posición propia la conserva", () => {
+      const cls = cn(buttonVariants({ className: "absolute right-2" }))
+      expect(cls.split(" ")).toContain("absolute")
+      expect(cls.split(" ")).not.toContain("relative")
+    })
   })
 })
