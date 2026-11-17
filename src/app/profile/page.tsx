@@ -32,6 +32,7 @@ export default async function ProfilePage() {
       height: true,
       weight: true,
       image: true,
+      bio: true,
       createdAt: true,
       updatedAt: true,
     },

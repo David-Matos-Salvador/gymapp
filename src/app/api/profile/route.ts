@@ -59,6 +59,11 @@ const updateProfileSchema = z.object(
       .trim()
       .refine((value) => value === "" || isValidPhone(value), EMERGENCY_PHONE_ERROR)
       .nullish(),
+    bio: z
+      .string({ error: "La descripción no es válida" })
+      .trim()
+      .max(500, "La descripción no puede tener más de 500 caracteres")
+      .nullish(),
   },
   { error: "Datos inválidos" }
 )
@@ -91,6 +96,7 @@ export async function POST(request: Request) {
     experienceLevel,
     emergencyContact,
     emergencyPhone,
+    bio,
   } = parsed.data
 
   const updated = await prisma.user.update({
@@ -109,6 +115,7 @@ export async function POST(request: Request) {
       experienceLevel: experienceLevel ?? undefined,
       emergencyContact: emergencyContact === undefined ? undefined : emergencyContact || null,
       emergencyPhone: emergencyPhone === undefined ? undefined : emergencyPhone || null,
+      bio: bio === undefined ? undefined : bio || null,
     },
     select: {
       id: true,
@@ -126,6 +133,7 @@ export async function POST(request: Request) {
       height: true,
       weight: true,
       image: true,
+      bio: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -158,6 +166,7 @@ export async function GET() {
       height: true,
       weight: true,
       image: true,
+      bio: true,
       createdAt: true,
       updatedAt: true,
     },
