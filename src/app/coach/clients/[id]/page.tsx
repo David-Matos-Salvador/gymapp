@@ -36,6 +36,7 @@ import Link from "next/link"
 import { toast } from "sonner"
 import { formatSet, pluralize } from "@/lib/utils"
 import { measurementFormError } from "@/constants/measurements"
+import { measurementBMI } from "@/lib/health"
 import {
   OBJECTIVE_LABELS,
   EXPERIENCE_LABELS,
@@ -484,13 +485,13 @@ export default function CoachClientDetail() {
                             IMC
                           </th>
                           <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">
-                            Pe.
+                            Pecho
                           </th>
                           <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">
-                            Ci.
+                            Cintura
                           </th>
                           <th className="text-right py-2 px-1 font-medium text-muted-foreground text-xs">
-                            Ca.
+                            Cadera
                           </th>
                         </tr>
                       </thead>
@@ -506,7 +507,9 @@ export default function CoachClientDetail() {
                             <td className="py-1.5 px-1 text-right text-xs">
                               {m.muscleMass ?? "-"}
                             </td>
-                            <td className="py-1.5 px-1 text-right text-xs">{m.bmi ?? "-"}</td>
+                            <td className="py-1.5 px-1 text-right text-xs">
+                              {measurementBMI(m) ?? "-"}
+                            </td>
                             <td className="py-1.5 px-1 text-right text-xs">{m.chest ?? "-"}</td>
                             <td className="py-1.5 px-1 text-right text-xs">{m.waist ?? "-"}</td>
                             <td className="py-1.5 px-1 text-right text-xs">{m.hips ?? "-"}</td>
