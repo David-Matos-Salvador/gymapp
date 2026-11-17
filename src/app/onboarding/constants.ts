@@ -221,13 +221,13 @@ export const physicalConditionOptions = [
 ]
 
 export const scheduleOptions = [
-  { value: "BEFORE_8AM", label: "Madrugada", time: "5am - 8am", icon: "🌅" },
-  { value: "8AM_11AM", label: "Mañana", time: "8am - 11am", icon: "🌤️" },
-  { value: "11AM_2PM", label: "Mediodía", time: "11am - 2pm", icon: "☀️" },
-  { value: "2PM_5PM", label: "Tarde", time: "2pm - 5pm", icon: "🌤️" },
-  { value: "5PM_7PM", label: "Atardecer", time: "5pm - 7pm", icon: "🌅" },
-  { value: "7PM_9PM", label: "Noche", time: "7pm - 9pm", icon: "🌙" },
-  { value: "AFTER_9PM", label: "Trasnoche", time: "9pm+", icon: "🌑" },
+  { value: "BEFORE_8AM", label: "Madrugada", time: "5 a. m. – 8 a. m.", icon: "🌅" },
+  { value: "8AM_11AM", label: "Mañana", time: "8 a. m. – 11 a. m.", icon: "🌤️" },
+  { value: "11AM_2PM", label: "Mediodía", time: "11 a. m. – 2 p. m.", icon: "☀️" },
+  { value: "2PM_5PM", label: "Tarde", time: "2 p. m. – 5 p. m.", icon: "🌤️" },
+  { value: "5PM_7PM", label: "Atardecer", time: "5 p. m. – 7 p. m.", icon: "🌅" },
+  { value: "7PM_9PM", label: "Noche", time: "7 p. m. – 9 p. m.", icon: "🌙" },
+  { value: "AFTER_9PM", label: "Trasnoche", time: "Desde las 9 p. m.", icon: "🌑" },
 ]
 
 export const loadingMessages = [
@@ -276,13 +276,13 @@ export const experienceLabelMap: Record<string, string> = {
 }
 
 export const scheduleLabelMap: Record<string, string> = {
-  BEFORE_8AM: "Madrugada (5am-8am)",
-  "8AM_11AM": "Mañana (8am-11am)",
-  "11AM_2PM": "Mediodía (11am-2pm)",
-  "2PM_5PM": "Tarde (2pm-5pm)",
-  "5PM_7PM": "Atardecer (5pm-7pm)",
-  "7PM_9PM": "Noche (7pm-9pm)",
-  AFTER_9PM: "Trasnoche (9pm+)",
+  BEFORE_8AM: "Madrugada (5 a. m. – 8 a. m.)",
+  "8AM_11AM": "Mañana (8 a. m. – 11 a. m.)",
+  "11AM_2PM": "Mediodía (11 a. m. – 2 p. m.)",
+  "2PM_5PM": "Tarde (2 p. m. – 5 p. m.)",
+  "5PM_7PM": "Atardecer (5 p. m. – 7 p. m.)",
+  "7PM_9PM": "Noche (7 p. m. – 9 p. m.)",
+  AFTER_9PM: "Trasnoche (desde las 9 p. m.)",
 }
 
 // Recomendación con IA (#117): la pantalla avisa quién recomienda y con qué datos.
