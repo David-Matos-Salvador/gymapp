@@ -211,12 +211,30 @@ describe("sounds con Web Audio", () => {
     expect(osc.stop).toHaveBeenCalledWith(10.25)
   })
 
-  it("restWarning toca tres ticks agudos", async () => {
+  // Issue #149: los tres tics salían a la vez y sonaban como uno solo.
+  it("restWarning toca tres ticks agudos separados", async () => {
     const { mod, ctx } = await loadWithAudio()
 
     mod.sounds.restWarning()
+    vi.advanceTimersByTime(0)
+    expect(frecuencias(ctx)).toEqual([1200])
 
+    vi.advanceTimersByTime(180)
+    expect(frecuencias(ctx)).toEqual([1200, 1200])
+
+    vi.runAllTimers()
     expect(frecuencias(ctx)).toEqual([1200, 1200, 1200])
+  })
+
+  it("no falla al cargar si el navegador no tiene Web Audio", async () => {
+    vi.stubGlobal("window", {})
+    const { sounds, startAmbient } = await import("@/lib/sounds")
+
+    expect(() => {
+      sounds.click()
+      startAmbient()("active")
+      vi.runAllTimers()
+    }).not.toThrow()
   })
 
   it("todos los sonidos se pueden tocar sin errores", async () => {
@@ -321,6 +339,40 @@ describe("ambiente", () => {
     setPhase("active")
     expect(gainB.gain.linearRampToValueAtTime).toHaveBeenLastCalledWith(0, 11.5)
     expect(gainA.gain.linearRampToValueAtTime).toHaveBeenLastCalledWith(0.025, 11.5)
+  })
+
+  // Issue #149: el ruido iba directo a la mezcla general, así que el fundido de los canales no
+  // le afectaba, y el setTimeout detenía la fuente nueva en vez de la vieja.
+  it("cada ruido suena por su canal y al cambiar de fase se detiene el viejo, no el nuevo", async () => {
+    const { mod, ctx } = await loadWithAudio()
+    const setPhase = mod.startAmbient()
+    const [master, gainA, gainB] = ctx.gains
+
+    setPhase("warmup")
+    setPhase("active")
+    const [warmup, active] = ctx.sources
+    const [warmupFilter, activeFilter] = ctx.filters
+
+    expect(warmupFilter.connect).toHaveBeenCalledWith(gainB)
+    expect(activeFilter.connect).toHaveBeenCalledWith(gainA)
+    expect(warmupFilter.connect).not.toHaveBeenCalledWith(master)
+
+    vi.advanceTimersByTime(1600)
+    expect(warmup.stop).toHaveBeenCalled()
+    expect(active.stop).not.toHaveBeenCalled()
+  })
+
+  it("si el ambiente vuelve a empezar justo después de pararlo, lo nuevo sigue sonando", async () => {
+    const { mod, ctx } = await loadWithAudio()
+    mod.startAmbient()("active")
+    mod.stopAmbient()
+
+    mod.startAmbient()("active")
+    vi.runAllTimers()
+
+    const [vieja, nueva] = ctx.sources
+    expect(vieja.stop).toHaveBeenCalled()
+    expect(nueva.stop).not.toHaveBeenCalled()
   })
 
   it("stopAmbient baja el volumen y detiene las fuentes", async () => {

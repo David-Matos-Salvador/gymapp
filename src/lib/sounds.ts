@@ -1,10 +1,11 @@
-const audioContext =
+const AudioContextClass =
   typeof window !== "undefined"
-    ? new (
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
-      )()
-    : null
+    ? window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    : undefined
+
+// Sin Web Audio (navegador antiguo o servidor) la app sigue funcionando, sin sonido.
+const audioContext = AudioContextClass ? new AudioContextClass() : null
 
 function ensureContext(): AudioContext | null {
   if (!audioContext) return null
@@ -71,6 +72,8 @@ function playTick(volume = 0.03) {
   playTone(1200, 0.015, "sine", volume)
 }
 
+const REST_WARNING_GAP_MS = 180
+
 // ─── Capa 1: UI Sonidos Orgánicos (Redondeados, Baja Frecuencia) ───
 
 export const sounds = {
@@ -89,10 +92,9 @@ export const sounds = {
   exerciseComplete: () => playChime([262, 330, 392, 523], 0.1, 0.06, 0.07),
   restStart: () => playSwoop(262, 131, 0.25, 0.05),
   restEnd: () => playChime([262, 330, 392], 0.08, 0.06, 0.07),
+  // Tres tics separados; sin la espera se tocaban a la vez y sonaban como uno solo (#149).
   restWarning: () => {
-    playTick(0.04)
-    playTick(0.04)
-    playTick(0.04)
+    ;[0, 1, 2].forEach((i) => setTimeout(() => playTick(0.04), i * REST_WARNING_GAP_MS))
   },
   workoutStart: () => playChime([262, 330, 392, 523, 659], 0.12, 0.08, 0.07),
   workoutComplete: () => playChime([262, 330, 392, 523, 659, 784], 0.12, 0.07, 0.09),
@@ -137,38 +139,33 @@ function createAmbientSource(
   source.loop = true
 
   const filter = ctx.createBiquadFilter()
-  const gain = ctx.createGain()
-  gain.gain.value = 0
 
   switch (phase) {
     case "warmup": {
       filter.type = "lowpass"
       filter.frequency.value = 220
       filter.Q.value = 0.7
-      gain.gain.value = 0.04
       break
     }
     case "active": {
       filter.type = "bandpass"
       filter.frequency.value = 140
       filter.Q.value = 0.5
-      gain.gain.value = 0.025
       break
     }
     case "cooldown": {
       filter.type = "lowpass"
       filter.frequency.value = 180
       filter.Q.value = 0.8
-      gain.gain.value = 0.035
       break
     }
     default:
       break
   }
 
+  // El volumen lo pone el canal (A o B) al que se conecta, que es el que hace el fundido (#149).
   source.connect(filter)
-  filter.connect(gain)
-  gain.connect(destination)
+  filter.connect(destination)
   source.start(ctx.currentTime)
   return source
 }
@@ -191,12 +188,13 @@ function startAmbientPhase(phase: AmbientPhase) {
 
   if (fadeOut) {
     const oldGain = getActiveGain()
+    // Se guarda ahora: cuando corra el setTimeout, el canal activo ya es el nuevo.
+    const oldSource = activeAmbientChannel === "A" ? ambientSourceA : ambientSourceB
     if (oldGain) {
       oldGain.gain.cancelScheduledValues(ctx.currentTime)
       oldGain.gain.setValueAtTime(oldGain.gain.value, ctx.currentTime)
       oldGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5)
       setTimeout(() => {
-        const oldSource = activeAmbientChannel === "A" ? ambientSourceA : ambientSourceB
         if (oldSource) {
           try {
             oldSource.stop()
@@ -210,8 +208,9 @@ function startAmbientPhase(phase: AmbientPhase) {
 
   if (fadeIn) {
     activeAmbientChannel = activeAmbientChannel === "A" ? "B" : "A"
-    const newSource = createAmbientSource(ctx, phase, ambientGainNode)
     const newGain = getActiveGain()
+    if (!newGain) return
+    const newSource = createAmbientSource(ctx, phase, newGain)
 
     if (activeAmbientChannel === "A") {
       if (ambientSourceA) {
@@ -276,24 +275,23 @@ export function stopAmbient() {
     ambientGainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.0)
   }
 
+  // Se guardan ahora: si el ambiente vuelve a empezar antes de 1,1 s, no hay que tocar lo nuevo.
+  const oldSources = [ambientSourceA, ambientSourceB]
   setTimeout(() => {
-    try {
-      ambientSourceA?.stop()
-    } catch {
-      /* ignore */
+    for (const source of oldSources) {
+      try {
+        source?.stop()
+      } catch {
+        /* ignore */
+      }
     }
-    try {
-      ambientSourceB?.stop()
-    } catch {
-      /* ignore */
-    }
-    ambientSourceA = null
-    ambientSourceB = null
-    ambientGainA = null
-    ambientGainB = null
-    ambientGainNode = null
   }, 1100)
 
+  ambientSourceA = null
+  ambientSourceB = null
+  ambientGainA = null
+  ambientGainB = null
+  ambientGainNode = null
   ambientActive = false
   ambientPhase = "none"
   activeAmbientChannel = "A"
