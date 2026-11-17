@@ -682,7 +682,7 @@ export default function OnboardingPage() {
         return (
           <div className="space-y-6">
             <div className="space-y-2 text-center">
-              <h2 className="text-2xl font-bold">¿Entrenas en un gimnasio?</h2>
+              <h1 className="text-2xl font-bold">¿Entrenas en un gimnasio?</h1>
               <p className="text-sm text-muted-foreground">
                 Si tu gimnasio usa GymApp, búscalo para ver sus máquinas y ejercicios. Si no, sigue
                 con el catálogo por defecto.
@@ -755,7 +755,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">¿Cuál es tu objetivo?</h2>
+              <h1 className="text-2xl font-bold tracking-tight">¿Cuál es tu objetivo?</h1>
               <p className="text-muted-foreground">
                 Selecciona lo que quieres lograr con tu entrenamiento
               </p>
@@ -802,7 +802,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Historial de entrenamiento</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Historial de entrenamiento</h1>
               <p className="text-muted-foreground">
                 ¿Con qué frecuencia has entrenado hasta ahora?
               </p>
@@ -847,7 +847,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Nivel de experiencia</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Nivel de experiencia</h1>
               <p className="text-muted-foreground">¿Cuánto sabes sobre entrenamiento?</p>
             </div>
             <div className="space-y-3">
@@ -892,7 +892,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Frecuencia de entrenamiento</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Frecuencia de entrenamiento</h1>
               <p className="text-muted-foreground">¿Cuántos días por semana puedes entrenar?</p>
             </div>
             <div className="space-y-3">
@@ -937,7 +937,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Condiciones físicas</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Condiciones físicas</h1>
               <p className="text-muted-foreground">
                 Selecciona las que te apliquen. Si no tienes ninguna, toca Continuar.
               </p>
@@ -989,7 +989,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Peso y altura</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Peso y altura</h1>
               <p className="text-muted-foreground">
                 Estos datos nos ayudan a personalizar tu rutina
               </p>
@@ -1063,7 +1063,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Medidas corporales</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Medidas corporales</h1>
               <p className="text-muted-foreground">
                 {assisted
                   ? "Toma las medidas del cliente — todas son opcionales"
@@ -1120,7 +1120,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Horario habitual</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Horario habitual</h1>
               <p className="text-muted-foreground">¿A qué hora sueles entrenar?</p>
             </div>
             <div className="space-y-2.5">
@@ -1209,7 +1209,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Confirma tus datos</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Confirma tus datos</h1>
               <p className="text-muted-foreground">Revisa que toda la información sea correcta</p>
             </div>
 
@@ -1349,7 +1349,7 @@ export default function OnboardingPage() {
         return (
           <div className="flex flex-col gap-5">
             <div className="text-center space-y-2 pb-1">
-              <h2 className="text-2xl font-bold tracking-tight">Tu rutina personalizada</h2>
+              <h1 className="text-2xl font-bold tracking-tight">Tu rutina personalizada</h1>
               <p className="text-muted-foreground">
                 Toca para ver detalles · doble toque para elegir
               </p>

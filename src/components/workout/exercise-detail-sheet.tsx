@@ -1,7 +1,14 @@
 "use client"
 
 import { useState } from "react"
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { Dumbbell, Wrench, MapPin, Layers } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ExerciseImage } from "@/components/exercise/exercise-image"
@@ -49,6 +56,9 @@ export function ExerciseDetailSheet({
             <Dumbbell className="h-5 w-5 text-accent-yellow" />
             {exercise.name}
           </SheetTitle>
+          <SheetDescription className="sr-only">
+            Grupo muscular, equipo y cómo se hace el ejercicio
+          </SheetDescription>
         </SheetHeader>
         <div className="flex flex-col items-center py-6 px-6 space-y-4 overflow-y-auto">
           <ExerciseImage imageUrl={exercise.imageUrl} alt={exercise.name} size="xl" />
