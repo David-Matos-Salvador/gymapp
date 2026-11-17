@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   X,
   CalendarPlus,
+  Loader2,
   Settings,
 } from "lucide-react"
 import { toast } from "sonner"
@@ -236,7 +237,11 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
                         onClick={() => handleCancel(cls.id)}
                         disabled={loading === cls.id}
                       >
-                        <X className="mr-1 h-3 w-3" />
+                        {loading === cls.id ? (
+                          <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                        ) : (
+                          <X className="mr-1 h-3 w-3" />
+                        )}
                         Cancelar reserva
                       </Button>
                       <Button asChild variant="ghost" size="sm" className="w-full">
@@ -253,6 +258,7 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
                       onClick={() => handleBook(cls.id)}
                       disabled={loading === cls.id || isFull}
                     >
+                      {loading === cls.id && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
                       {isFull ? "Clase llena" : "Reservar lugar"}
                     </Button>
                   ))

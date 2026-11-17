@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Dumbbell } from "lucide-react"
+import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Dumbbell, Loader2 } from "lucide-react"
 import {
   MUSCLE_LABELS,
   OBJECTIVES,
@@ -129,6 +129,8 @@ export function RoutineEditorContent({
   )
 
   const [unassignConfirm, setUnassignConfirm] = useState(false)
+  // Día o ejercicio que se está agregando o eliminando: su botón gira y no se puede volver a tocar.
+  const [busyId, setBusyId] = useState<string | null>(null)
 
   // Devuelve dónde guardar el cambio. Si hubo que crear la copia, traduce los ids del
   // plan original a los de la copia (mismo orden de días y ejercicios).
@@ -300,10 +302,12 @@ export function RoutineEditorContent({
   }
 
   async function handleDeleteSplit(originalId: string) {
-    const target = await editableTarget()
-    if (!target) return
-    const id = target.splitId(originalId)
+    if (busyId) return
+    setBusyId(originalId)
     try {
+      const target = await editableTarget()
+      if (!target) return
+      const id = target.splitId(originalId)
       const res = await fetch(`/api/routine-splits/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error()
       setLocalSplits((prev) => prev.filter((s) => s.id !== id))
@@ -311,6 +315,8 @@ export function RoutineEditorContent({
       onPlanUpdated()
     } catch {
       toast.error("Error al eliminar día")
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -327,10 +333,12 @@ export function RoutineEditorContent({
       toast.error("Selecciona un ejercicio")
       return
     }
-    const target = await editableTarget()
-    if (!target) return
-    const splitId = target.splitId(addExerciseSplitId)
+    if (busyId) return
+    setBusyId("add-exercise")
     try {
+      const target = await editableTarget()
+      if (!target) return
+      const splitId = target.splitId(addExerciseSplitId)
       const res = await fetch("/api/split-exercises", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -368,14 +376,18 @@ export function RoutineEditorContent({
       onPlanUpdated()
     } catch {
       toast.error("Error al agregar ejercicio")
+    } finally {
+      setBusyId(null)
     }
   }
 
   async function handleDeleteExercise(originalId: string) {
-    const target = await editableTarget()
-    if (!target) return
-    const id = target.exerciseId(originalId)
+    if (busyId) return
+    setBusyId(originalId)
     try {
+      const target = await editableTarget()
+      if (!target) return
+      const id = target.exerciseId(originalId)
       const res = await fetch(`/api/split-exercises/${id}`, { method: "DELETE" })
       if (!res.ok) throw new Error()
       setLocalSplits((prev) =>
@@ -385,6 +397,8 @@ export function RoutineEditorContent({
       onPlanUpdated()
     } catch {
       toast.error("Error al eliminar ejercicio")
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -527,8 +541,14 @@ export function RoutineEditorContent({
                           e.stopPropagation()
                           handleDeleteSplit(split.id)
                         }}
+                        disabled={busyId !== null}
+                        aria-label="Eliminar día"
                       >
-                        <Trash2 className="h-3 w-3" />
+                        {busyId === split.id ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3 w-3" />
+                        )}
                       </Button>
                       {expandedSplits.has(split.id) ? (
                         <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -561,8 +581,14 @@ export function RoutineEditorContent({
                                 size="icon"
                                 className="h-5 w-5 text-destructive hover:text-destructive"
                                 onClick={() => handleDeleteExercise(se.id)}
+                                disabled={busyId !== null}
+                                aria-label={`Eliminar ${se.exercise.name}`}
                               >
-                                <Trash2 className="h-3 w-3" />
+                                {busyId === se.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <Trash2 className="h-3 w-3" />
+                                )}
                               </Button>
                             </div>
                           </div>
@@ -745,7 +771,10 @@ export function RoutineEditorContent({
             <Button variant="outline" onClick={() => setAddExerciseOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleAddExercise}>Agregar</Button>
+            <Button onClick={handleAddExercise} disabled={busyId === "add-exercise"}>
+              {busyId === "add-exercise" && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}
+              Agregar
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

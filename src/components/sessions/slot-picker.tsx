@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { CalendarX } from "lucide-react"
+import { CalendarX, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -98,6 +98,9 @@ export function SlotPicker({
                       onClick={() => book(slot)}
                       aria-label={`Reservar el ${label} a las ${slot.time}`}
                     >
+                      {bookingSlot === slot.startsAt && (
+                        <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                      )}
                       {slot.time}
                     </Button>
                   ))}
