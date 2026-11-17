@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -12,6 +13,10 @@ import { MemberDashboard } from "@/components/dashboard/member-dashboard"
 import { CoachDashboard } from "@/components/coach/coach-dashboard"
 import { AdminDashboard } from "@/components/admin/admin-dashboard"
 import { SuperAdminDashboard } from "@/components/dashboard/super-admin-dashboard"
+
+export const metadata: Metadata = {
+  title: "Inicio",
+}
 
 export default async function DashboardPage() {
   const session = await auth()

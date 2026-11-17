@@ -1,9 +1,14 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { isSuperAdmin } from "@/lib/authz"
 import { AppShell } from "@/components/layout/shell"
 import { MembershipPanel } from "@/components/admin/membership-panel"
+
+export const metadata: Metadata = {
+  title: "Membresías",
+}
 
 export default async function AdminMembershipsPage() {
   const session = await auth()

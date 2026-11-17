@@ -59,7 +59,7 @@ export function MemberManagement({ initialMembers, canManage }: MemberManagement
 
   async function handleCreate() {
     if (!form.name.trim() || !form.email.trim() || !form.password) {
-      setError("Completa nombre, email y contraseña inicial")
+      setError("Completa nombre, correo y contraseña inicial")
       return
     }
     setSaving(true)
@@ -121,7 +121,7 @@ export function MemberManagement({ initialMembers, canManage }: MemberManagement
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar por nombre o email..."
+          placeholder="Buscar por nombre o correo..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -172,7 +172,7 @@ export function MemberManagement({ initialMembers, canManage }: MemberManagement
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="memberEmail">Email</Label>
+              <Label htmlFor="memberEmail">Correo</Label>
               <Input
                 id="memberEmail"
                 type="email"

@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -17,6 +18,10 @@ const CALENDAR_NOTICES: Record<string, { tone: "ok" | "error"; text: string }> =
     tone: "error",
     text: "La conexión con Google Calendar todavía no está disponible en este ambiente.",
   },
+}
+
+export const metadata: Metadata = {
+  title: "Mi agenda",
 }
 
 export default async function CoachSchedulePage({

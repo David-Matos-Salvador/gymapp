@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -6,6 +7,10 @@ import Link from "next/link"
 import { ArrowRight, CalendarClock } from "lucide-react"
 import { ClassesView } from "@/components/classes/classes-view"
 import { getClassesSubtitle } from "@/lib/classes-subtitle"
+
+export const metadata: Metadata = {
+  title: "Clases",
+}
 
 export default async function ClassesPage() {
   const session = await auth()

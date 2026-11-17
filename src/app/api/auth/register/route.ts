@@ -8,7 +8,7 @@ import { getRequestId } from "@/lib/request-id"
 
 const registerSchema = z.object({
   name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
+  email: z.string().email("Correo inválido"),
   password: z
     .string()
     .min(8, "Mínimo 8 caracteres")
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     })
 
     if (existingUser) {
-      return NextResponse.json({ error: "El email ya está registrado" }, { status: 409 })
+      return NextResponse.json({ error: "El correo ya está registrado" }, { status: 409 })
     }
 
     let gym: { id: string; active: boolean; isDefault: boolean } | null = null

@@ -98,7 +98,7 @@ describe("textos sueltos en inglés o sin tilde", () => {
       "src/app/api/trainer/members/route.ts",
       "src/app/api/trainer/invites/[token]/route.ts",
     ]) {
-      expect(leer(ruta), ruta).toContain("El email ya está registrado")
+      expect(leer(ruta), ruta).toContain("El correo ya está registrado")
     }
   })
 })

@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -33,6 +34,10 @@ async function deletePlan(formData: FormData) {
   await prisma.routinePlan.delete({ where: { id } })
   revalidatePath("/routines")
   redirect("/routines")
+}
+
+export const metadata: Metadata = {
+  title: "Rutina",
 }
 
 export default async function RoutineDetailPage({ params }: PageProps) {

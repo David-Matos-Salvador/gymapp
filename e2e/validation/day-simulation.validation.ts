@@ -1227,7 +1227,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     trainer2.page,
     async () => {
       await visit(trainer2.page, "/dashboard")
-      const search = trainer2.page.getByPlaceholder(/Buscar miembro por nombre o email/i)
+      const search = trainer2.page.getByPlaceholder(/Buscar miembro por nombre o correo/i)
       await expect(search).toBeVisible({ timeout: 20_000 })
       await search.fill("roberto")
       await expect(trainer2.page.getByText("Roberto Navarro")).toBeVisible({ timeout: 15_000 })
@@ -2031,7 +2031,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     async () => {
       await visit(admin.page, "/admin/memberships")
       await admin.page.getByRole("tab", { name: /Vencidas/i }).click()
-      await admin.page.getByPlaceholder(/Buscar por nombre, email o plan/i).fill("Ricardo")
+      await admin.page.getByPlaceholder(/Buscar por nombre, correo o plan/i).fill("Ricardo")
       const visible = await admin.page
         .getByText("Ricardo Medina")
         .isVisible()
@@ -2057,7 +2057,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
       await expireMembership(USERS.ricardo)
       await visit(admin.page, "/admin/memberships")
       await admin.page.getByRole("tab", { name: /Vencidas/i }).click()
-      await admin.page.getByPlaceholder(/Buscar por nombre, email o plan/i).fill("Ricardo")
+      await admin.page.getByPlaceholder(/Buscar por nombre, correo o plan/i).fill("Ricardo")
       const card = admin.page
         .locator('[data-slot="card"]')
         .filter({ hasText: "Ricardo Medina" })
