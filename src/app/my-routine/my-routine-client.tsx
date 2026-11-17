@@ -189,7 +189,7 @@ export function RutinaClient({
           <span>
             {isExpiringSoon
               ? `Expira en ${daysRemaining} día${daysRemaining !== 1 ? "s" : ""}`
-              : `Vence ${new Date(expiresAt).toLocaleDateString("es-MX")}`}
+              : `Vence ${new Date(expiresAt).toLocaleDateString("es-PE")}`}
           </span>
         </div>
       )}

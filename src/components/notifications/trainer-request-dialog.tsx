@@ -270,7 +270,7 @@ export function TrainerRequestDialog({
                   )}
                   <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    Recibida {new Date(request.createdAt).toLocaleDateString("es-MX")}
+                    Recibida {new Date(request.createdAt).toLocaleDateString("es-PE")}
                   </p>
                 </div>
               </div>

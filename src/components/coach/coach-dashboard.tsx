@@ -529,7 +529,7 @@ export function CoachDashboard({
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
                             {inv.email || "Sin email"} · expira{" "}
-                            {new Date(inv.expiresAt).toLocaleDateString("es")}
+                            {new Date(inv.expiresAt).toLocaleDateString("es-PE")}
                           </p>
                         </div>
                       </div>

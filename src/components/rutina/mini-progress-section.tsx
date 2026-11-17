@@ -49,7 +49,7 @@ export function MiniProgressSection() {
         const json = await res.json()
         const points: MeasurementPoint[] = (json.data ?? [])
           .map((m: { date: string; weight: number | null }) => ({
-            date: new Date(m.date).toLocaleDateString("es-MX", { day: "numeric", month: "short" }),
+            date: new Date(m.date).toLocaleDateString("es-PE", { day: "numeric", month: "short" }),
             weight: m.weight,
           }))
           .reverse()

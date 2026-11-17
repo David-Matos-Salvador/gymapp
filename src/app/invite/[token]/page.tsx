@@ -291,7 +291,7 @@ export default function InvitePage() {
           <CardFooter className="justify-center">
             <p className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
-              Expira el {new Date(invite.expiresAt).toLocaleDateString("es")}
+              Expira el {new Date(invite.expiresAt).toLocaleDateString("es-PE")}
             </p>
           </CardFooter>
         )}
