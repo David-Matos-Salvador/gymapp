@@ -315,6 +315,8 @@ export default async function DashboardPage() {
         where: {
           status: "ACTIVE",
           endDate: { gt: now, lte: nextWeek },
+          // Como «Membresías activas»: las de pago sin confirmar no cuentan (#171).
+          paymentConfirmed: true,
           user: { gymId: adminGymId },
         },
         include: {
