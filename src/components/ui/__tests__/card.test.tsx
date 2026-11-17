@@ -70,6 +70,17 @@ describe("CardTitle", () => {
     expect(html).toContain('data-slot="card-title"')
     expect(html).toContain("Title")
   })
+
+  // #27: el título de la tarjeta es un encabezado para los lectores de pantalla.
+  it("es un encabezado h3 por defecto", () => {
+    const html = renderToString(React.createElement(CardTitle, null, "Confirmar pago"))
+    expect(html).toMatch(/^<h3[^>]*data-slot="card-title"[^>]*>Confirmar pago<\/h3>$/)
+  })
+
+  it("permite elegir el nivel del encabezado", () => {
+    const html = renderToString(<CardTitle as="h2">Únete como cliente</CardTitle>)
+    expect(html).toMatch(/^<h2[^>]*>Únete como cliente<\/h2>$/)
+  })
 })
 
 describe("CardDescription", () => {
