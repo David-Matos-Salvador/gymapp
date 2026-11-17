@@ -19,6 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import { AuthCardSkeleton } from "@/components/auth/auth-card-skeleton"
 import { useSound } from "@/hooks/use-sound"
 import { validateLogin, type LoginForm } from "@/lib/login-form"
 
@@ -151,7 +152,7 @@ function LoginFormInner() {
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <Suspense fallback={<div className="text-sm text-muted-foreground">Cargando...</div>}>
+      <Suspense fallback={<AuthCardSkeleton />}>
         <LoginFormInner />
       </Suspense>
     </div>
