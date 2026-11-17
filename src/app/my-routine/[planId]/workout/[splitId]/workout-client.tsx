@@ -10,8 +10,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import { CelebrationOverlay } from "@/components/workout/celebration-overlay"
 import { ExerciseCard } from "@/components/workout/exercise-card"
 import { RestTimer } from "@/components/workout/rest-timer"
+import { WorkoutTopBar } from "@/components/workout/workout-top-bar"
 import { PHASE_LABELS, PHASE_COLORS, setLimitError } from "@/constants/workout"
-import { ArrowLeft, Save, Play, Trophy, ChevronDown, Pause, X, Flame, Zap } from "lucide-react"
+import { Save, Play, Trophy, ChevronDown, Pause, X, Flame, Zap } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import type { SplitExercise, SplitData } from "@/types/exercise"
@@ -340,6 +341,21 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
         }}
       />
 
+      {!showCelebration && (
+        <WorkoutTopBar
+          splitName={split.name}
+          isActive={isActive}
+          elapsedFormatted={elapsedFormatted}
+          completedExercises={completedExercises}
+          totalExercises={totalExercises}
+          hasUnsavedSets={isActive && hasCompletedSet}
+          onExit={() => {
+            pauseWorkout()
+            router.push(`/my-routine/${planId}`)
+          }}
+        />
+      )}
+
       <div
         className={cn(
           "container mx-auto max-w-2xl space-y-5 px-4 py-4 pb-28 md:py-8",
@@ -348,28 +364,6 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
       >
         <div className="sr-only" aria-live="polite" aria-atomic="true">
           {announcement}
-        </div>
-
-        <div className="sticky top-0 z-30 -mx-4 border-b bg-background/95 px-4 py-2 backdrop-blur">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="min-h-11"
-              onClick={() => {
-                pauseWorkout()
-                router.push(`/my-routine/${planId}`)
-              }}
-            >
-              <ArrowLeft className="h-4 w-4" /> Salir
-            </Button>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium">{split.name}</span>
-            {isActive && (
-              <span className="font-mono text-sm tabular-nums text-muted-foreground">
-                {elapsedFormatted}
-              </span>
-            )}
-          </div>
         </div>
 
         <div>
