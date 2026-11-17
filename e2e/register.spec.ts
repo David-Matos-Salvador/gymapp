@@ -30,7 +30,7 @@ test.describe("Register form — member mode", () => {
   test("shows form with correct heading", async ({ page }) => {
     await expect(page.getByText(/Registrate como usuario/i)).toBeVisible()
     await expect(page.getByLabel("Nombre")).toBeVisible()
-    await expect(page.getByLabel("Email")).toBeVisible()
+    await expect(page.getByLabel("Correo")).toBeVisible()
     await expect(page.locator(PWD_INPUT)).toBeVisible()
     await expect(page.locator(CONFIRM_INPUT)).toBeVisible()
   })
@@ -64,7 +64,7 @@ test.describe("Register form — member mode", () => {
 
   test("shows password mismatch error", async ({ page }) => {
     await page.getByLabel("Nombre").fill("Test User")
-    await page.getByLabel("Email").fill(`test-${ts()}@test.com`)
+    await page.getByLabel("Correo").fill(`test-${ts()}@test.com`)
     await page.locator(PWD_INPUT).fill("Abcdefg1")
     await page.locator(CONFIRM_INPUT).fill("Different1")
     await page.getByRole("button", { name: /Crear cuenta/i }).click()
@@ -73,7 +73,7 @@ test.describe("Register form — member mode", () => {
 
   test("shows email already registered error", async ({ page }) => {
     await page.getByLabel("Nombre").fill("Test")
-    await page.getByLabel("Email").fill(SEED_EMAIL)
+    await page.getByLabel("Correo").fill(SEED_EMAIL)
     await page.locator(PWD_INPUT).fill("Abcdefg1")
     await page.locator(CONFIRM_INPUT).fill("Abcdefg1")
     await page.getByRole("button", { name: /Crear cuenta/i }).click()
@@ -83,7 +83,7 @@ test.describe("Register form — member mode", () => {
   test("successful member registration shows success view", async ({ page }) => {
     const uniqueEmail = `member-${ts()}@test.com`
     await page.getByLabel("Nombre").fill("Test Member")
-    await page.getByLabel("Email").fill(uniqueEmail)
+    await page.getByLabel("Correo").fill(uniqueEmail)
     await page.locator(PWD_INPUT).fill("Abcdefg1")
     await page.locator(CONFIRM_INPUT).fill("Abcdefg1")
     await page.getByRole("button", { name: /Crear cuenta/i }).click()
@@ -112,7 +112,7 @@ test.describe("Register form — trainer mode", () => {
   test("successful trainer registration shows success view", async ({ page }) => {
     const uniqueEmail = `trainer-${ts()}@test.com`
     await page.getByLabel("Nombre").fill("Test Trainer")
-    await page.getByLabel("Email").fill(uniqueEmail)
+    await page.getByLabel("Correo").fill(uniqueEmail)
     await page.locator(PWD_INPUT).fill("Abcdefg1")
     await page.locator(CONFIRM_INPUT).fill("Abcdefg1")
     await page.getByRole("button", { name: /Crear cuenta/i }).click()
@@ -141,7 +141,7 @@ test.describe("Register form — gym owner mode", () => {
 
   test("gym name field is required", async ({ page }) => {
     await page.locator("#name").fill("Test Owner")
-    await page.getByLabel("Email").fill(`gym-${ts()}@test.com`)
+    await page.getByLabel("Correo").fill(`gym-${ts()}@test.com`)
     await page.locator(PWD_INPUT).fill("Abcdefg1")
     await page.locator(CONFIRM_INPUT).fill("Abcdefg1")
     await page.getByRole("button", { name: /Crear cuenta/i }).click()
@@ -157,7 +157,7 @@ test.describe("Register form — gym owner mode", () => {
     const uniqueEmail = `gym-owner-${ts()}@test.com`
     const uniqueGym = `Gym Test ${ts()}`
     await page.locator("#name").fill("Test Gym Owner")
-    await page.getByLabel("Email").fill(uniqueEmail)
+    await page.getByLabel("Correo").fill(uniqueEmail)
     await page.getByLabel(/Nombre del gimnasio/).fill(uniqueGym)
     await page.getByLabel(/Direccion/).fill("Test Address 123")
     await page.locator(PWD_INPUT).fill("Abcdefg1")
@@ -168,7 +168,7 @@ test.describe("Register form — gym owner mode", () => {
 
   test("duplicate gym name shows error", async ({ page }) => {
     await page.locator("#name").fill("Test Owner")
-    await page.getByLabel("Email").fill(`gym-dup-${ts()}@test.com`)
+    await page.getByLabel("Correo").fill(`gym-dup-${ts()}@test.com`)
     await page.getByLabel(/Nombre del gimnasio/).fill("Fitness Total")
     await page.locator(PWD_INPUT).fill("Abcdefg1")
     await page.locator(CONFIRM_INPUT).fill("Abcdefg1")

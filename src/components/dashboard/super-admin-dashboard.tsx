@@ -492,7 +492,7 @@ export function SuperAdminDashboard({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="gymEmail">Email</Label>
+              <Label htmlFor="gymEmail">Correo</Label>
               <Input
                 id="gymEmail"
                 value={gymForm.email}
@@ -568,7 +568,7 @@ export function SuperAdminDashboard({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="editGymEmail">Email</Label>
+              <Label htmlFor="editGymEmail">Correo</Label>
               <Input
                 id="editGymEmail"
                 type="email"
@@ -665,7 +665,7 @@ export function SuperAdminDashboard({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="adminEmail">Email</Label>
+              <Label htmlFor="adminEmail">Correo</Label>
               <Input
                 id="adminEmail"
                 type="email"

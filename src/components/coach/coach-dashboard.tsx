@@ -402,7 +402,7 @@ export function CoachDashboard({
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="text"
-                    placeholder="Buscar miembro por nombre o email..."
+                    placeholder="Buscar miembro por nombre o correo..."
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value)
@@ -528,7 +528,7 @@ export function CoachDashboard({
                               : inv.name || inv.email || "Invitación sin datos"}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
-                            {inv.email || "Sin email"} · expira{" "}
+                            {inv.email || "Sin correo"} · expira{" "}
                             {new Date(inv.expiresAt).toLocaleDateString("es-PE")}
                           </p>
                         </div>
@@ -881,13 +881,13 @@ export function CoachDashboard({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="invEmail">Email (opcional)</Label>
+                <Label htmlFor="invEmail">Correo (opcional)</Label>
                 <Input
                   id="invEmail"
                   type="email"
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm((f) => ({ ...f, email: e.target.value }))}
-                  placeholder="cliente@email.com"
+                  placeholder="cliente@correo.com"
                 />
               </div>
               <div className="space-y-2">

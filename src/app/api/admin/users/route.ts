@@ -7,7 +7,7 @@ import { isSuperAdmin } from "@/lib/authz"
 
 const createAdminSchema = z.object({
   name: z.string().min(2),
-  email: z.string().email(),
+  email: z.string().email("Correo inválido"),
   password: z
     .string()
     .min(8)
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
   const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } })
   if (existing) {
-    return NextResponse.json({ error: "El email ya está registrado" }, { status: 409 })
+    return NextResponse.json({ error: "El correo ya está registrado" }, { status: 409 })
   }
 
   const gym = await prisma.gym.findUnique({
@@ -88,7 +88,7 @@ export async function POST(request: Request) {
         : undefined
     if (code === "P2002") {
       return NextResponse.json(
-        { error: "El usuario ya es dueño de otro gimnasio o el email está en uso" },
+        { error: "El usuario ya es dueño de otro gimnasio o el correo está en uso" },
         { status: 409 }
       )
     }

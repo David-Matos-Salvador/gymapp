@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { notFound, redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
@@ -22,6 +23,10 @@ const extractYoutubeId = (url: string): string | null => {
     if (m) return m[1]
   }
   return null
+}
+
+export const metadata: Metadata = {
+  title: "Ejercicio",
 }
 
 export default async function ExercisePage({ params }: { params: Promise<{ id: string }> }) {

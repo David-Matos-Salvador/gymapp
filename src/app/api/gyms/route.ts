@@ -8,7 +8,7 @@ const createGymSchema = z.object({
   name: z.string().min(1),
   address: z.string().optional(),
   phone: z.string().optional(),
-  email: z.string().email().optional(),
+  email: z.string().email("Correo inválido").optional(),
   logoUrl: z.string().url().optional(),
   showMachineNumbers: z.boolean().optional(),
 })

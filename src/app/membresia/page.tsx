@@ -1,8 +1,13 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { AppShell } from "@/components/layout/shell"
 import { MembresiaContent } from "./membresia-content"
+
+export const metadata: Metadata = {
+  title: "Membresía",
+}
 
 export default async function MembresiaPage() {
   const session = await auth()

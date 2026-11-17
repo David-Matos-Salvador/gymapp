@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -11,6 +12,10 @@ import {
 } from "@/lib/weekly-progress"
 import { ChooseRoutineButton } from "@/components/rutina/choose-routine-button"
 import { RutinaClient } from "./my-routine-client"
+
+export const metadata: Metadata = {
+  title: "Mi rutina",
+}
 
 export default async function RutinasPage() {
   const session = await auth()

@@ -1,3 +1,5 @@
+import type { Metadata } from "next"
+import { cache } from "react"
 import { prisma } from "@/lib/prisma"
 import { notFound } from "next/navigation"
 import Image from "next/image"
@@ -12,12 +14,23 @@ interface GymPageParams {
   params: Promise<{ slug: string }>
 }
 
+// `cache` evita consultar dos veces el mismo gimnasio (título y página).
+const getActiveGym = cache((slug: string) =>
+  prisma.gym.findUnique({
+    where: { slug, active: true },
+  })
+)
+
+export async function generateMetadata({ params }: GymPageParams): Promise<Metadata> {
+  const { slug } = await params
+  const gym = await getActiveGym(slug)
+  return { title: gym?.name ?? "Gimnasio" }
+}
+
 export default async function GymPage({ params }: GymPageParams) {
   const { slug } = await params
 
-  const gym = await prisma.gym.findUnique({
-    where: { slug, active: true },
-  })
+  const gym = await getActiveGym(slug)
 
   if (!gym) notFound()
 

@@ -26,7 +26,7 @@ import { Check, X, CheckCircle } from "lucide-react"
 const registerSchema = z
   .object({
     name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-    email: z.string().email("Email inválido"),
+    email: z.string().email("Correo inválido"),
     password: z
       .string()
       .min(8, "Mínimo 8 caracteres")
@@ -144,12 +144,12 @@ export default function RegisterPage() {
               {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Correo</Label>
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="tu@email.com"
+                placeholder="tu@correo.com"
                 {...register("email")}
               />
               {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}

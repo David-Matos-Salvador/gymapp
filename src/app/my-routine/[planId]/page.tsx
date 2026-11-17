@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -13,6 +14,10 @@ import { RutinaClient } from "../my-routine-client"
 
 interface PageProps {
   params: Promise<{ planId: string }>
+}
+
+export const metadata: Metadata = {
+  title: "Detalle de rutina",
 }
 
 export default async function RutinaDetailPage({ params }: PageProps) {

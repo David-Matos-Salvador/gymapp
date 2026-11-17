@@ -1,7 +1,12 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { ClassManager } from "@/components/coach/class-manager"
+
+export const metadata: Metadata = {
+  title: "Clase",
+}
 
 export default async function CoachClassPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
