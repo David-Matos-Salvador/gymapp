@@ -114,7 +114,7 @@ describe("POST /api/bookings", () => {
       const body = await response.json()
 
       expect(response.status).toBe(400)
-      expect(body.error).toBe("classId es requerido")
+      expect(body.error).toBe("Falta indicar la clase")
     }
 
     expect(mockTransaction).not.toHaveBeenCalled()

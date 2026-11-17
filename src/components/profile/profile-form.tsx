@@ -69,7 +69,7 @@ interface User {
 function formatBirthDate(date: string | null): string | null {
   if (!date) return null
   // Se guarda a medianoche UTC: sin esto, en Perú se vería el día anterior.
-  return new Date(date).toLocaleDateString("es", {
+  return new Date(date).toLocaleDateString("es-PE", {
     day: "numeric",
     month: "long",
     year: "numeric",

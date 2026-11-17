@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatDate(iso: string | Date, options?: { includeTime?: boolean }): string {
   const d = typeof iso === "string" ? new Date(iso) : iso
-  return d.toLocaleDateString("es-MX", {
+  return d.toLocaleDateString("es-PE", {
     day: "numeric",
     month: "short",
     year: "numeric",

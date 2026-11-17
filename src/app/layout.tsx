@@ -36,7 +36,8 @@ export default function RootLayout({
         <AuthProvider>
           <ThemeProvider>{children}</ThemeProvider>
         </AuthProvider>
-        <Toaster />
+        {/* «Avisos» y no «Notificaciones»: ese nombre ya es el de la campana del header. */}
+        <Toaster containerAriaLabel="Avisos" />
       </body>
     </html>
   )

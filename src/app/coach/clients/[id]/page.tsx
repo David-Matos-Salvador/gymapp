@@ -504,7 +504,7 @@ export default function CoachClientDetail() {
                         {client.bodyMeasurements.map((m) => (
                           <tr key={m.id} className="border-b last:border-0">
                             <td className="py-1.5 px-1 text-xs">
-                              {new Date(m.date).toLocaleDateString("es")}
+                              {new Date(m.date).toLocaleDateString("es-PE")}
                             </td>
                             <td className="py-1.5 px-1 text-right text-xs">{m.weight ?? "-"}</td>
                             <td className="py-1.5 px-1 text-right text-xs">{m.height ?? "-"}</td>
@@ -617,7 +617,7 @@ export default function CoachClientDetail() {
                             {log.splitId ? "Entrenamiento con rutina" : "Entrenamiento libre"}
                           </p>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(log.date).toLocaleDateString("es")}
+                            {new Date(log.date).toLocaleDateString("es-PE")}
                           </span>
                         </div>
                         {log.duration && (
