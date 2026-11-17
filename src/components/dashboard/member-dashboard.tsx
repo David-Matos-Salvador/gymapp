@@ -179,7 +179,7 @@ export function MemberDashboard({
               <>
                 <Badge variant="outline" className="text-xs gap-1">
                   <Clock className="h-3 w-3" />{" "}
-                  {coach.requestStatus === "PENDING" ? "Pendiente" : coach.requestStatus}
+                  {coach.requestStatus === "PENDING" ? "Pendiente" : "Respondida"}
                 </Badge>
                 <p className="text-xs text-muted-foreground mt-1">Solicitud enviada</p>
               </>

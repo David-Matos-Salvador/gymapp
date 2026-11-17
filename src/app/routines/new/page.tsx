@@ -147,7 +147,7 @@ export default function NewRoutinePage() {
               <Label htmlFor="name">Nombre</Label>
               <Input
                 id="name"
-                placeholder="Ej: Push Day - Avanzado"
+                placeholder="Ej: Día de empuje - Avanzado"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />

@@ -37,7 +37,7 @@ export async function GET(request: Request) {
   }
 
   if (!gymId) {
-    return NextResponse.json({ error: "gymId requerido" }, { status: 400 })
+    return NextResponse.json({ error: "Falta indicar el gimnasio" }, { status: 400 })
   }
 
   const plans = await prisma.membershipPlan.findMany({

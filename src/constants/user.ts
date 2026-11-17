@@ -65,6 +65,33 @@ export function formatMuscleGroups(groups: string[], separator = ", "): string {
   return groups.map((g) => MUSCLE_LABELS[g] ?? g).join(separator)
 }
 
+const normalizeMuscle = (text: string) =>
+  text
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\s_]+/g, " ")
+
+const MUSCLE_BY_TEXT = new Map(
+  Object.entries(MUSCLE_LABELS).flatMap(([key, label]) => [
+    [normalizeMuscle(key), key],
+    [normalizeMuscle(label), key],
+  ])
+)
+
+/**
+ * "Pecho, bíceps" → ["CHEST", "BICEPS"]. El formulario de días muestra los músculos en español
+ * (#139); acepta también el valor guardado ("CHEST"). Lo que no reconoce se guarda tal cual.
+ */
+export function parseMuscleGroups(text: string): string[] {
+  return text
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => MUSCLE_BY_TEXT.get(normalizeMuscle(part)) ?? part)
+}
+
 export const OBJECTIVES = Object.entries(OBJECTIVE_LABELS).map(([value, label]) => ({
   value,
   label,

@@ -13,7 +13,7 @@ export function Breadcrumb({ items, className }: { items: BreadcrumbItem[]; clas
   if (items.length === 0) return null
 
   return (
-    <nav aria-label="Breadcrumb" className={cn("", className)}>
+    <nav aria-label="Ruta de navegación" className={cn("", className)}>
       <ol className="flex items-center gap-1 text-xs text-muted-foreground flex-wrap">
         <li className="flex items-center gap-1">
           <Link

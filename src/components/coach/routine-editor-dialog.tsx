@@ -23,7 +23,14 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Dumbbell } from "lucide-react"
-import { MUSCLE_LABELS, OBJECTIVES, FREQUENCIES, DIFFICULTIES } from "@/constants/user"
+import {
+  MUSCLE_LABELS,
+  OBJECTIVES,
+  FREQUENCIES,
+  DIFFICULTIES,
+  formatMuscleGroups,
+  parseMuscleGroups,
+} from "@/constants/user"
 
 interface Exercise {
   id: string
@@ -238,14 +245,14 @@ export function RoutineEditorContent({
       description: split.description ?? "",
       difficulty: split.difficulty ?? "",
       estimatedDuration: split.estimatedDuration ? String(split.estimatedDuration) : "",
-      muscleGroups: split.muscleGroups.join(", "),
+      muscleGroups: formatMuscleGroups(split.muscleGroups),
     })
     setSplitDialogOpen(true)
   }
 
   async function handleSaveSplit() {
     if (!splitForm.label.trim() || !splitForm.name.trim()) {
-      toast.error("Label y nombre son requeridos")
+      toast.error("La letra y el nombre del día son obligatorios")
       return
     }
     const target = await editableTarget()
@@ -260,12 +267,7 @@ export function RoutineEditorContent({
         description: splitForm.description.trim() || null,
         difficulty: splitForm.difficulty || null,
         estimatedDuration: splitForm.estimatedDuration ? Number(splitForm.estimatedDuration) : null,
-        muscleGroups: splitForm.muscleGroups
-          ? splitForm.muscleGroups
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : [],
+        muscleGroups: parseMuscleGroups(splitForm.muscleGroups),
       }
       if (splitId) {
         const res = await fetch(`/api/routine-splits/${splitId}`, {
@@ -607,7 +609,7 @@ export function RoutineEditorContent({
           </DialogHeader>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="rsLabel">Label *</Label>
+              <Label htmlFor="rsLabel">Letra *</Label>
               <Input
                 id="rsLabel"
                 placeholder="Día A"
@@ -628,7 +630,7 @@ export function RoutineEditorContent({
               <Label htmlFor="rsMuscle">Grupos musculares</Label>
               <Input
                 id="rsMuscle"
-                placeholder="CHEST, BICEPS"
+                placeholder="Pecho, Bíceps"
                 value={splitForm.muscleGroups}
                 onChange={(e) => setSplitForm((p) => ({ ...p, muscleGroups: e.target.value }))}
               />

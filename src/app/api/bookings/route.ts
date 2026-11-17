@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
   const classId = (body as { classId?: unknown } | null)?.classId
   if (typeof classId !== "string" || classId.trim().length === 0) {
-    return NextResponse.json({ error: "classId es requerido" }, { status: 400 })
+    return NextResponse.json({ error: "Falta indicar la clase" }, { status: 400 })
   }
   const requestedGymId = (body as { gymId?: unknown } | null)?.gymId
 

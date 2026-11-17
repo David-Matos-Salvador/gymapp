@@ -33,9 +33,15 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
-function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
+// Es un encabezado de verdad (#27): los lectores de pantalla lo anuncian y se puede saltar entre
+// tarjetas por títulos. Por defecto h3, debajo del h1 de la página y los h2 de sección.
+function CardTitle({
+  className,
+  as: Heading = "h3",
+  ...props
+}: React.ComponentProps<"h3"> & { as?: "h2" | "h3" | "h4" }) {
   return (
-    <div
+    <Heading
       data-slot="card-title"
       className={cn(
         "font-heading text-base leading-snug font-medium group-data-[size=sm]/card:text-sm",

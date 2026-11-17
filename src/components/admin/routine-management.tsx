@@ -24,7 +24,12 @@ import {
 } from "@/components/ui/select"
 import { toast } from "sonner"
 import { Plus, Pencil, Trash2, ChevronDown, ChevronRight, Users, UserPlus } from "lucide-react"
-import { MUSCLE_LABELS, DIFFICULTIES } from "@/constants/user"
+import {
+  MUSCLE_LABELS,
+  DIFFICULTIES,
+  formatMuscleGroups,
+  parseMuscleGroups,
+} from "@/constants/user"
 import type { Exercise } from "./exercise-management"
 
 export interface SplitExercise {
@@ -255,14 +260,14 @@ export function RoutineManagement({
       description: split.description ?? "",
       difficulty: split.difficulty ?? "",
       estimatedDuration: split.estimatedDuration ? String(split.estimatedDuration) : "",
-      muscleGroups: split.muscleGroups.join(", "),
+      muscleGroups: formatMuscleGroups(split.muscleGroups),
     })
     setSplitDialogOpen(true)
   }
 
   async function handleSaveSplit() {
     if (!splitForm.label.trim() || !splitForm.name.trim()) {
-      toast.error("Label y nombre son requeridos")
+      toast.error("La letra y el nombre del día son obligatorios")
       return
     }
     setSplitSaving(true)
@@ -274,12 +279,7 @@ export function RoutineManagement({
         description: splitForm.description.trim() || null,
         difficulty: splitForm.difficulty || null,
         estimatedDuration: splitForm.estimatedDuration ? Number(splitForm.estimatedDuration) : null,
-        muscleGroups: splitForm.muscleGroups
-          ? splitForm.muscleGroups
-              .split(",")
-              .map((s) => s.trim())
-              .filter(Boolean)
-          : [],
+        muscleGroups: parseMuscleGroups(splitForm.muscleGroups),
       }
 
       if (editingSplitId) {
@@ -296,7 +296,7 @@ export function RoutineManagement({
             splits: p.splits.map((s) => (s.id === editingSplitId ? { ...s, ...data.split } : s)),
           }))
         )
-        toast.success("Split actualizado")
+        toast.success("Día actualizado")
       } else {
         const res = await fetch("/api/routine-splits", {
           method: "POST",
@@ -310,7 +310,7 @@ export function RoutineManagement({
             p.id === splitForm.planId ? { ...p, splits: [...p.splits, data.split] } : p
           )
         )
-        toast.success("Split creado")
+        toast.success("Día creado")
       }
       setSplitDialogOpen(false)
     } catch {
@@ -330,7 +330,7 @@ export function RoutineManagement({
           splits: p.splits.filter((s) => s.id !== id),
         }))
       )
-      toast.success("Split eliminado")
+      toast.success("Día eliminado")
       setDeleteSplitConfirm(null)
     } catch {
       toast.error("Error al eliminar")
@@ -745,7 +745,7 @@ export function RoutineManagement({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Label *</Label>
+                <Label>Letra *</Label>
                 <Input
                   value={splitForm.label}
                   onChange={(e) => setSplitForm((s) => ({ ...s, label: e.target.value }))}
@@ -774,7 +774,7 @@ export function RoutineManagement({
               <Input
                 value={splitForm.muscleGroups}
                 onChange={(e) => setSplitForm((s) => ({ ...s, muscleGroups: e.target.value }))}
-                placeholder="CHEST, SHOULDERS, TRICEPS"
+                placeholder="Pecho, Hombros, Tríceps"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
