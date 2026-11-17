@@ -22,6 +22,7 @@ interface User {
   emergencyPhone: string | null
   phone: string | null
   image: string | null
+  bio: string | null
   createdAt: string
 }
 
@@ -84,27 +85,29 @@ export function ProfileHeader({ user }: { user: User }) {
       </div>
 
       {/* Profile Completion Bar */}
-      <div className="w-full max-w-xs pt-2">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="text-xs text-muted-foreground">Perfil completado</span>
-          <span className="text-xs font-medium tabular-nums text-muted-foreground">
-            {completion}%
-          </span>
+      {completion !== null && (
+        <div className="w-full max-w-xs pt-2">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-xs text-muted-foreground">Perfil completado</span>
+            <span className="text-xs font-medium tabular-nums text-muted-foreground">
+              {completion}%
+            </span>
+          </div>
+          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${completion}%` }}
+              transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+              className="h-full rounded-full bg-accent-yellow"
+            />
+          </div>
+          {completion < 100 && (
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Completa tus datos en «Editar información», más abajo
+            </p>
+          )}
         </div>
-        <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${completion}%` }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-            className="h-full rounded-full bg-accent-yellow"
-          />
-        </div>
-        {completion < 100 && (
-          <p className="text-xs text-muted-foreground mt-1.5">
-            Completa tus datos en «Editar información», más abajo
-          </p>
-        )}
-      </div>
+      )}
     </motion.div>
   )
 }
