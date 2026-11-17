@@ -86,6 +86,8 @@ interface NotificationListProps {
   onMarkRead: (id: string) => void
   onMarkAllRead: () => void
   onNavigate?: (notification: MockNotification) => void
+  /** La página /notifications ya tiene su h1: ahí la lista no repite el título. */
+  showTitle?: boolean
 }
 
 // Las no leídas van primero; dentro de cada grupo se respeta el orden recibido (más nuevas arriba).
@@ -98,6 +100,7 @@ export function NotificationList({
   onMarkRead,
   onMarkAllRead,
   onNavigate,
+  showTitle = true,
 }: NotificationListProps) {
   const sorted = sortUnreadFirst(notifications)
 
@@ -125,8 +128,16 @@ export function NotificationList({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between pl-5 pr-14 py-4">
-        <h2 className="font-heading text-base font-semibold text-foreground">Notificaciones</h2>
+      <div
+        className={
+          showTitle
+            ? "flex items-center justify-between pl-5 pr-14 py-4"
+            : "flex items-center justify-end px-5 py-4"
+        }
+      >
+        {showTitle && (
+          <h2 className="font-heading text-base font-semibold text-foreground">Notificaciones</h2>
+        )}
         {unreadCount > 0 && (
           <button
             type="button"

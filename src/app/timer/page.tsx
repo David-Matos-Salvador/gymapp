@@ -99,7 +99,6 @@ export default function TimerPage() {
               {String(Math.floor(remaining / 60)).padStart(2, "0")}:
               {String(remaining % 60).padStart(2, "0")}
             </span>
-            <span className="text-xs text-muted-foreground mt-1">segundos</span>
           </div>
         </div>
 
