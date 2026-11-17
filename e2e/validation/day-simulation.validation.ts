@@ -1086,6 +1086,8 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
         .getByText(TEST_CLASS, { exact: true })
         .locator("xpath=ancestor::div[@data-slot='card']")
         .first()
+      // Cancelar la reserva pide confirmación.
+      carlos.page.once("dialog", (dialog) => dialog.accept())
       await carlosCard2.getByRole("button", { name: /Cancelar reserva/i }).click()
       await expect
         .poll(() => hasBookingForClass(USERS.carlos, TEST_CLASS), { timeout: 15_000 })
@@ -1113,6 +1115,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
 
       // Sin recargar: el contador sube y la reserva recién hecha se puede cancelar (#130).
       await expect(anaCard2.getByText("1/1", { exact: true })).toBeVisible({ timeout: 15_000 })
+      ana.page.once("dialog", (dialog) => dialog.accept())
       await anaCard2.getByRole("button", { name: /Cancelar reserva/i }).click()
       await expect
         .poll(() => hasBookingForClass(USERS.ana, TEST_CLASS), { timeout: 15_000 })
