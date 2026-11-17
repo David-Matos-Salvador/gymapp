@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -8,6 +9,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Users, Mail, Phone, Target, Award, BadgeCheck, ArrowRight, Clock } from "lucide-react"
 import { OBJECTIVE_LABELS, EXPERIENCE_LABELS } from "@/constants/user"
 import { BackButton } from "@/components/back-button"
+
+export const metadata: Metadata = {
+  title: "Mis clientes",
+}
 
 export default async function CoachClientsListPage() {
   const session = await auth()

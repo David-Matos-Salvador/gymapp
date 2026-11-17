@@ -83,12 +83,12 @@ function LoginFormInner() {
         <form method="post" action="/login" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <fieldset disabled={!mounted} className="m-0 min-w-0 space-y-4 border-0 p-0">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Correo</Label>
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
-                placeholder="tu@email.com"
+                placeholder="tu@correo.com"
                 {...emailRest}
                 onChange={(e) => {
                   emailOnChange(e)

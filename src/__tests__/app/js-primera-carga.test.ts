@@ -63,7 +63,7 @@ describe("validación del login", () => {
   it.each(["", "ana", "ana@", "ana@example", "ana @example.com", "@example.com"])(
     "rechaza el correo «%s»",
     (email) => {
-      expect(validateLogin({ email, password: "secreta" })).toEqual({ email: "Email inválido" })
+      expect(validateLogin({ email, password: "secreta" })).toEqual({ email: "Correo inválido" })
     }
   )
 
@@ -75,7 +75,7 @@ describe("validación del login", () => {
 
   it("marca los dos campos cuando el formulario llega vacío", () => {
     expect(validateLogin({})).toEqual({
-      email: "Email inválido",
+      email: "Correo inválido",
       password: "Mínimo 6 caracteres",
     })
   })

@@ -222,12 +222,12 @@ export default function InvitePage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="invEmail">Email</Label>
+              <Label htmlFor="invEmail">Correo</Label>
               <Input
                 id="invEmail"
                 type="email"
                 autoComplete="email"
-                placeholder="tu@email.com"
+                placeholder="tu@correo.com"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               />

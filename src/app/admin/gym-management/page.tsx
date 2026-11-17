@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import Link from "next/link"
@@ -8,6 +9,10 @@ import { canManageGymEquipment } from "@/lib/gym-equipment"
 
 interface GymManagementPageProps {
   searchParams: Promise<{ gymId?: string }>
+}
+
+export const metadata: Metadata = {
+  title: "Gestión del gimnasio",
 }
 
 export default async function GymManagementPage({ searchParams }: GymManagementPageProps) {

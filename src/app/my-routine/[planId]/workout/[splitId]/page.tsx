@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
@@ -13,6 +14,10 @@ interface PageProps {
 
 // La pantalla de entrenar llega con sus datos desde el servidor (issue #12): antes se
 // dibujaba vacía y los pedía después desde el navegador.
+export const metadata: Metadata = {
+  title: "Entrenamiento",
+}
+
 export default async function LogWorkoutPage({ params }: PageProps) {
   const session = await auth()
   if (!session?.user?.email) redirect("/login")

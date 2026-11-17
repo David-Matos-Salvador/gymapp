@@ -12,7 +12,7 @@ export function validateLogin(
   values: Partial<LoginForm>
 ): Partial<Record<keyof LoginForm, string>> {
   const errors: Partial<Record<keyof LoginForm, string>> = {}
-  if (!EMAIL.test(values.email ?? "")) errors.email = "Email inválido"
+  if (!EMAIL.test(values.email ?? "")) errors.email = "Correo inválido"
   if ((values.password ?? "").length < 6) errors.password = "Mínimo 6 caracteres"
   return errors
 }

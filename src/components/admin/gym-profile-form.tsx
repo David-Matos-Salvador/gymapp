@@ -84,7 +84,7 @@ export function GymProfileForm({ gym }: { gym: GymProfile }) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="gymEmail">Email</Label>
+            <Label htmlFor="gymEmail">Correo</Label>
             <Input
               id="gymEmail"
               type="email"

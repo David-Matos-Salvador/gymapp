@@ -20,7 +20,7 @@ test.describe("Auth flows", () => {
 
     await page.getByRole("button", { name: /Soy usuario/i }).click()
     await expect(page.getByLabel("Nombre")).toBeVisible()
-    await expect(page.getByLabel("Email")).toBeVisible()
+    await expect(page.getByLabel("Correo")).toBeVisible()
     await expect(page.getByLabel(/Contraseña/).first()).toBeVisible()
 
     await expect(page.getByText(/Registrate como usuario/i)).toBeVisible()

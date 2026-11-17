@@ -9,7 +9,7 @@ interface RouteParams {
 
 const completeSchema = z.object({
   name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-  email: z.string().email("Email inválido"),
+  email: z.string().email("Correo inválido"),
   password: z
     .string()
     .min(8, "Mínimo 8 caracteres")
@@ -98,7 +98,7 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   const existingUser = await prisma.user.findUnique({ where: { email } })
   if (existingUser) {
-    return NextResponse.json({ error: "El email ya está registrado" }, { status: 409 })
+    return NextResponse.json({ error: "El correo ya está registrado" }, { status: 409 })
   }
 
   const passwordHash = await bcrypt.hash(password, 10)

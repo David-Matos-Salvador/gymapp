@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
@@ -10,6 +11,10 @@ import { CalendarDays, Clock, Dumbbell, History } from "lucide-react"
 
 interface PageProps {
   params: Promise<{ planId: string }>
+}
+
+export const metadata: Metadata = {
+  title: "Historial",
 }
 
 export default async function HistorialPage({ params }: PageProps) {
