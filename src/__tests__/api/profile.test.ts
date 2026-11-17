@@ -33,7 +33,7 @@ vi.mock("next/server", () => ({
 }))
 
 import { POST } from "@/app/api/profile/route"
-import { PROFILE_COMPLETION_FIELDS, calculateProfileCompletion } from "@/lib/profile-completion"
+import { calculateProfileCompletion, getProfileCompletionFields } from "@/lib/profile-completion"
 
 function guardar(body: unknown) {
   return POST(
@@ -121,7 +121,9 @@ describe("POST /api/profile", () => {
       emergencyContact: "  Rosa Pérez ",
       emergencyPhone: "+51 988 777 666",
     }
-    expect(Object.keys(datos).sort()).toEqual([...PROFILE_COMPLETION_FIELDS].sort())
+    expect(Object.keys(datos).sort()).toEqual(
+      [...(getProfileCompletionFields("MEMBER") ?? [])].sort()
+    )
 
     const response = await guardar(datos)
 
@@ -132,7 +134,22 @@ describe("POST /api/profile", () => {
       emergencyContact: "Rosa Pérez",
       birthDate: new Date("1995-04-20T00:00:00.000Z"),
     })
-    expect(calculateProfileCompletion(guardado)).toBe(100)
+    expect(calculateProfileCompletion({ ...guardado, role: "MEMBER" })).toBe(100)
+  })
+
+  // Issue #153: al coach le cuenta la descripción («Sobre ti»), que antes no se podía editar.
+  it("guarda la descripción del coach sin espacios sobrantes y la borra si llega vacía", async () => {
+    await guardar({ bio: "  Fuerza y movilidad " })
+    expect(mockUpdate.mock.calls[0][0].data.bio).toBe("Fuerza y movilidad")
+
+    await guardar({ bio: " " })
+    expect(mockUpdate.mock.calls[1][0].data.bio).toBeNull()
+
+    const response = await guardar({ bio: "x".repeat(501) })
+    expect(response.status).toBe(400)
+    expect((await response.json()).error).toBe(
+      "La descripción no puede tener más de 500 caracteres"
+    )
   })
 
   it("lo que no se manda no se toca", async () => {
