@@ -72,8 +72,6 @@ function playTick(volume = 0.03) {
   playTone(1200, 0.015, "sine", volume)
 }
 
-const REST_WARNING_GAP_MS = 180
-
 // ─── Capa 1: UI Sonidos Orgánicos (Redondeados, Baja Frecuencia) ───
 
 export const sounds = {
@@ -92,10 +90,9 @@ export const sounds = {
   exerciseComplete: () => playChime([262, 330, 392, 523], 0.1, 0.06, 0.07),
   restStart: () => playSwoop(262, 131, 0.25, 0.05),
   restEnd: () => playChime([262, 330, 392], 0.08, 0.06, 0.07),
-  // Tres tics separados; sin la espera se tocaban a la vez y sonaban como uno solo (#149).
-  restWarning: () => {
-    ;[0, 1, 2].forEach((i) => setTimeout(() => playTick(0.04), i * REST_WARNING_GAP_MS))
-  },
+  // Un tic: use-workout-session lo llama una vez por segundo en los últimos 3 s del descanso.
+  // Antes tocaba tres tics a la vez (0,04 cada uno), que sonaban como uno de 0,12 (#149).
+  restWarning: () => playTick(0.12),
   workoutStart: () => playChime([262, 330, 392, 523, 659], 0.12, 0.08, 0.07),
   workoutComplete: () => playChime([262, 330, 392, 523, 659, 784], 0.12, 0.07, 0.09),
   streak: () => playChime([523, 659, 784, 1047], 0.09, 0.05, 0.08),

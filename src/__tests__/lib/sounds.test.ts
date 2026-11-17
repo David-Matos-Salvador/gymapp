@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
 // Web Audio falso: registra cada oscilador, ganancia y fuente de ruido que crea el módulo.
@@ -211,19 +213,23 @@ describe("sounds con Web Audio", () => {
     expect(osc.stop).toHaveBeenCalledWith(10.25)
   })
 
-  // Issue #149: los tres tics salían a la vez y sonaban como uno solo.
-  it("restWarning toca tres ticks agudos separados", async () => {
+  // Issue #149: se llama una vez por segundo en los últimos 3 s del descanso, así que cada
+  // llamada es un solo tic agudo (antes eran tres superpuestos que sonaban como uno).
+  it("restWarning toca un tic agudo con el mismo volumen que antes", async () => {
     const { mod, ctx } = await loadWithAudio()
 
     mod.sounds.restWarning()
-    vi.advanceTimersByTime(0)
-    expect(frecuencias(ctx)).toEqual([1200])
-
-    vi.advanceTimersByTime(180)
-    expect(frecuencias(ctx)).toEqual([1200, 1200])
-
     vi.runAllTimers()
-    expect(frecuencias(ctx)).toEqual([1200, 1200, 1200])
+
+    expect(frecuencias(ctx)).toEqual([1200])
+    expect(ctx.gains[0].gain.setValueAtTime).toHaveBeenCalledWith(0.12, 10)
+  })
+
+  it("el entrenamiento llama a restWarning en los últimos 3 s del descanso", () => {
+    const hook = readFileSync(path.join(process.cwd(), "src/hooks/use-workout-session.ts"), "utf8")
+    expect(
+      hook.match(/next <= 3 && soundEnabledRef\.current\) sounds\.restWarning\(\)/g)
+    ).toHaveLength(2)
   })
 
   it("no falla al cargar si el navegador no tiene Web Audio", async () => {
