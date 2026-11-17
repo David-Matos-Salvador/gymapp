@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs"
+import path from "node:path"
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 
 // Web Audio falso: registra cada oscilador, ganancia y fuente de ruido que crea el módulo.
@@ -211,12 +213,34 @@ describe("sounds con Web Audio", () => {
     expect(osc.stop).toHaveBeenCalledWith(10.25)
   })
 
-  it("restWarning toca tres ticks agudos", async () => {
+  // Issue #149: se llama una vez por segundo en los últimos 3 s del descanso, así que cada
+  // llamada es un solo tic agudo (antes eran tres superpuestos que sonaban como uno).
+  it("restWarning toca un tic agudo con el mismo volumen que antes", async () => {
     const { mod, ctx } = await loadWithAudio()
 
     mod.sounds.restWarning()
+    vi.runAllTimers()
 
-    expect(frecuencias(ctx)).toEqual([1200, 1200, 1200])
+    expect(frecuencias(ctx)).toEqual([1200])
+    expect(ctx.gains[0].gain.setValueAtTime).toHaveBeenCalledWith(0.12, 10)
+  })
+
+  it("el entrenamiento llama a restWarning en los últimos 3 s del descanso", () => {
+    const hook = readFileSync(path.join(process.cwd(), "src/hooks/use-workout-session.ts"), "utf8")
+    expect(
+      hook.match(/next <= 3 && soundEnabledRef\.current\) sounds\.restWarning\(\)/g)
+    ).toHaveLength(2)
+  })
+
+  it("no falla al cargar si el navegador no tiene Web Audio", async () => {
+    vi.stubGlobal("window", {})
+    const { sounds, startAmbient } = await import("@/lib/sounds")
+
+    expect(() => {
+      sounds.click()
+      startAmbient()("active")
+      vi.runAllTimers()
+    }).not.toThrow()
   })
 
   it("todos los sonidos se pueden tocar sin errores", async () => {
@@ -321,6 +345,40 @@ describe("ambiente", () => {
     setPhase("active")
     expect(gainB.gain.linearRampToValueAtTime).toHaveBeenLastCalledWith(0, 11.5)
     expect(gainA.gain.linearRampToValueAtTime).toHaveBeenLastCalledWith(0.025, 11.5)
+  })
+
+  // Issue #149: el ruido iba directo a la mezcla general, así que el fundido de los canales no
+  // le afectaba, y el setTimeout detenía la fuente nueva en vez de la vieja.
+  it("cada ruido suena por su canal y al cambiar de fase se detiene el viejo, no el nuevo", async () => {
+    const { mod, ctx } = await loadWithAudio()
+    const setPhase = mod.startAmbient()
+    const [master, gainA, gainB] = ctx.gains
+
+    setPhase("warmup")
+    setPhase("active")
+    const [warmup, active] = ctx.sources
+    const [warmupFilter, activeFilter] = ctx.filters
+
+    expect(warmupFilter.connect).toHaveBeenCalledWith(gainB)
+    expect(activeFilter.connect).toHaveBeenCalledWith(gainA)
+    expect(warmupFilter.connect).not.toHaveBeenCalledWith(master)
+
+    vi.advanceTimersByTime(1600)
+    expect(warmup.stop).toHaveBeenCalled()
+    expect(active.stop).not.toHaveBeenCalled()
+  })
+
+  it("si el ambiente vuelve a empezar justo después de pararlo, lo nuevo sigue sonando", async () => {
+    const { mod, ctx } = await loadWithAudio()
+    mod.startAmbient()("active")
+    mod.stopAmbient()
+
+    mod.startAmbient()("active")
+    vi.runAllTimers()
+
+    const [vieja, nueva] = ctx.sources
+    expect(vieja.stop).toHaveBeenCalled()
+    expect(nueva.stop).not.toHaveBeenCalled()
   })
 
   it("stopAmbient baja el volumen y detiene las fuentes", async () => {
