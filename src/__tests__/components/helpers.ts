@@ -17,6 +17,15 @@ export function mockFetch(...responses: Response[]) {
   return fetchMock
 }
 
+/** `fetch` que falla como sin conexión: después de `ok` respuestas, rechaza la promesa. */
+export function offlineFetch(...ok: Response[]) {
+  const fetchMock = vi.fn()
+  for (const response of ok) fetchMock.mockResolvedValueOnce(response)
+  fetchMock.mockRejectedValue(new TypeError("Failed to fetch"))
+  vi.stubGlobal("fetch", fetchMock)
+  return fetchMock
+}
+
 /** Cuerpo JSON que el componente envió en la llamada número `call` a `fetch`. */
 export function sentJson(fetchMock: ReturnType<typeof vi.fn>, call = 0) {
   return JSON.parse(fetchMock.mock.calls[call][1].body as string)

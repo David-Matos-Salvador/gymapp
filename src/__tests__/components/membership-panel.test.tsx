@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeAll, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
-import { jsonResponse, mockFetch, sentJson } from "./helpers"
+import { jsonResponse, mockFetch, offlineFetch, sentJson } from "./helpers"
 
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }))
 
@@ -321,11 +321,20 @@ describe("MembershipPanel", () => {
       expect(screen.getByRole("tab", { name: "Pago sin confirmar (1)", hidden: true })).toBeTruthy()
     })
 
-    it.todo(
-      "si se cae la conexión al registrar el pago manual, avisa y deja reintentar " +
-        "(hoy `handleMarkPaid` no tiene try/catch: no sale aviso y «Sí, registrar pago» queda " +
-        "deshabilitado con el spinner hasta recargar; membership-panel.tsx:188)"
-    )
+    it("si se cae la conexión, avisa y deja reintentar con el diálogo abierto", async () => {
+      offlineFetch()
+      renderPanel()
+
+      fireEvent.click(screen.getByRole("button", { name: "Registrar pago manual" }))
+      const dialog = within(await screen.findByRole("dialog"))
+      fireEvent.click(dialog.getByRole("button", { name: "Sí, registrar pago" }))
+
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Error de conexión"))
+      expect(dialog.getByRole("button", { name: "Sí, registrar pago" })).toHaveProperty(
+        "disabled",
+        false
+      )
+    })
   })
 
   describe("revisar comprobante", () => {
@@ -430,11 +439,16 @@ describe("MembershipPanel", () => {
       expect(cardOf("Laura Pérez").getByText("Comprobante pendiente")).toBeTruthy()
     })
 
-    it.todo(
-      "si se cae la conexión al confirmar o rechazar un comprobante, avisa " +
-        "(hoy hay try/finally sin catch: el botón se libera pero no sale ningún aviso y el error " +
-        "queda sin capturar; membership-panel.tsx:229 y :255)"
-    )
+    it("si se cae la conexión al rechazar un pago, avisa", async () => {
+      offlineFetch()
+      renderPanel({ pendingPayments: [receipt({ receiptUrl: null, method: "CASH" })] })
+
+      fireEvent.click(cardOf("Laura Pérez").getByRole("button", { name: "Revisar pago" }))
+      const dialog = within(await screen.findByRole("dialog"))
+      fireEvent.click(dialog.getByRole("button", { name: "Rechazar" }))
+
+      await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Error de conexión"))
+    })
   })
 
   describe("renovar", () => {
@@ -567,10 +581,21 @@ describe("MembershipPanel", () => {
       "«Nueva membresía» ofrece «Stripe» como método de pago aunque «Registrar pago manual» lo " +
         "oculta; ¿debería poder elegirse al crearla a mano? (membership-panel.tsx:810 frente a :718)"
     )
-    it.todo(
-      "si se cae la conexión al crear la membresía, avisa y deja reintentar " +
-        "(hoy no hay try/catch: no sale error y «Crear membresía» queda deshabilitado; " +
-        "membership-panel.tsx:304)"
-    )
+    it("si se cae la conexión al crearla, lo dice en el diálogo y deja reintentar", async () => {
+      offlineFetch()
+      renderPanel()
+      const dialog = await openNew()
+      const [memberSelect, planSelect] = dialog.getAllByRole("combobox")
+
+      await choose(memberSelect, /Laura Pérez/)
+      await choose(planSelect, /Mensual/)
+      fireEvent.click(dialog.getByRole("button", { name: "Crear membresía" }))
+
+      expect(await dialog.findByText("Error de conexión")).toBeTruthy()
+      expect(dialog.getByRole("button", { name: "Crear membresía" })).toHaveProperty(
+        "disabled",
+        false
+      )
+    })
   })
 })

@@ -156,7 +156,7 @@ describe("Comprobantes del coach (/coach/payments)", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Confirmar pago/ }))
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Error al confirmar"))
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Ya procesado"))
     expect(screen.getByText("Laura Pérez")).toBeTruthy()
     expect(screen.getByRole("button", { name: /Confirmar pago/ })).toHaveProperty("disabled", false)
   })
@@ -205,7 +205,7 @@ describe("Comprobantes del coach (/coach/payments)", () => {
   })
 
   it("si la API no deja rechazar, avisa y el pago sigue", async () => {
-    await renderWith([yape], jsonResponse({ error: "x" }, 500))
+    await renderWith([yape], jsonResponse({}, 500))
     vi.spyOn(window, "prompt").mockReturnValue("Comprobante ilegible")
 
     fireEvent.click(screen.getByRole("button", { name: /Rechazar/ }))
@@ -214,9 +214,12 @@ describe("Comprobantes del coach (/coach/payments)", () => {
     expect(screen.getByText("Laura Pérez")).toBeTruthy()
   })
 
-  it.todo(
-    "al fallar confirmar o rechazar, mostrar el motivo que da la API " +
-      "(hoy siempre dice «Error al confirmar» o «Error al rechazar» y descarta `error` de la " +
-      "respuesta, a diferencia del panel de membresías del admin; coach/payments/page.tsx:65 y :94)"
-  )
+  it("si la API rechaza con un motivo, el aviso lo muestra", async () => {
+    await renderWith([yape], jsonResponse({ error: "Este pago ya fue revisado" }, 409))
+    vi.spyOn(window, "prompt").mockReturnValue("Comprobante ilegible")
+
+    fireEvent.click(screen.getByRole("button", { name: /Rechazar/ }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Este pago ya fue revisado"))
+  })
 })

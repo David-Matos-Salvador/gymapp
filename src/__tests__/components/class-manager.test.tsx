@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent, waitFor } from "@testing-library/react"
-import { jsonResponse, mockFetch, sentJson } from "./helpers"
+import { jsonResponse, mockFetch, offlineFetch, sentJson } from "./helpers"
 
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }))
 const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }))
@@ -206,9 +206,24 @@ describe("ClassManager", () => {
     "el encabezado «N reservas confirmadas de X» cambia mientras se escribe la capacidad, antes " +
       "de guardar (usa `form.capacity`; si se borra el campo dice «de »; class-manager.tsx:140)"
   )
-  it.todo(
-    "si se cae la conexión al guardar, marcar asistencia o cancelar la clase, avisa " +
-      "(hoy hay try/finally sin catch: el botón se libera pero no sale aviso; " +
-      "class-manager.tsx:59, :86 y :109)"
-  )
+  it("si se cae la conexión al marcar asistencia, avisa y deja reintentar", async () => {
+    offlineFetch()
+    renderManager()
+
+    fireEvent.click(screen.getByRole("button", { name: /Asistió/ }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Error de conexión"))
+    expect(screen.getByRole("button", { name: /Asistió/ })).toHaveProperty("disabled", false)
+  })
+
+  it("si se cae la conexión al cancelar la clase, avisa y se queda", async () => {
+    offlineFetch()
+    vi.spyOn(window, "confirm").mockReturnValue(true)
+    renderManager()
+
+    fireEvent.click(screen.getByRole("button", { name: /Cancelar clase/ }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Error de conexión"))
+    expect(router.push).not.toHaveBeenCalled()
+  })
 })

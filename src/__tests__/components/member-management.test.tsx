@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
-import { jsonResponse, mockFetch, sentJson } from "./helpers"
+import { jsonResponse, mockFetch, offlineFetch, sentJson } from "./helpers"
 
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }))
 
@@ -137,11 +137,21 @@ describe("MemberManagement", () => {
     expect(dialog.queryByText("Completa nombre, correo y contraseña inicial")).toBeNull()
   })
 
-  it.todo(
-    "si se cae la conexión al crear el miembro, avisa y deja reintentar " +
-      "(hoy `handleCreate` no tiene try/catch: «Crear miembro» queda deshabilitado y sin aviso; " +
-      "member-management.tsx:69)"
-  )
+  it("si se cae la conexión al crear el miembro, lo dice y deja reintentar", async () => {
+    offlineFetch()
+    render(<MemberManagement initialMembers={members} canManage />)
+    const dialog = await openCreate()
+
+    fill(dialog, {
+      Nombre: "Laura",
+      Correo: "laura@example.com",
+      "Contraseña inicial": "Clave1234",
+    })
+    fireEvent.click(dialog.getByRole("button", { name: "Crear miembro" }))
+
+    expect(await dialog.findByText("Error de conexión")).toBeTruthy()
+    expect(dialog.getByRole("button", { name: "Crear miembro" })).toHaveProperty("disabled", false)
+  })
 })
 
 describe("TrainerPanel", () => {

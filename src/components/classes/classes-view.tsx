@@ -114,32 +114,38 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
   async function handleBook(classId: string) {
     setLoading(classId)
     play("select")
-    const res = await fetch("/api/bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ classId }),
-    })
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ classId }),
+      })
 
-    const data = await res.json().catch(() => ({}))
-    if (res.ok && data.booking?.id) {
-      setBookingState((prev) => withBooking(prev, classId, data.booking.id))
-      play("success")
-      toast.success("Clase reservada")
-    } else if (res.ok) {
-      // Se reservó pero no llegó el dato de la reserva: se vuelve a pedir todo al servidor.
-      toast.success("Clase reservada")
-      window.location.reload()
-    } else {
-      // Sin membresía activa: el aviso del miembro lo lleva a donde se resuelve.
-      const goToMembership = data.code === "MEMBERSHIP_REQUIRED" && userRole === "MEMBER"
-      toast.error(
-        data.error ?? "Error al reservar",
-        goToMembership
-          ? { action: { label: "Ver membresía", onClick: () => router.push("/membresia") } }
-          : undefined
-      )
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && data.booking?.id) {
+        setBookingState((prev) => withBooking(prev, classId, data.booking.id))
+        play("success")
+        toast.success("Clase reservada")
+      } else if (res.ok) {
+        // Se reservó pero no llegó el dato de la reserva: se vuelve a pedir todo al servidor.
+        toast.success("Clase reservada")
+        window.location.reload()
+      } else {
+        // Sin membresía activa: el aviso del miembro lo lleva a donde se resuelve.
+        const goToMembership = data.code === "MEMBERSHIP_REQUIRED" && userRole === "MEMBER"
+        toast.error(
+          data.error ?? "Error al reservar",
+          goToMembership
+            ? { action: { label: "Ver membresía", onClick: () => router.push("/membresia") } }
+            : undefined
+        )
+      }
+    } catch {
+      // Sin conexión el botón no puede quedarse trabado con el spinner hasta recargar.
+      toast.error("Error de conexión")
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   async function handleCancel(cls: ClassItem) {
@@ -152,19 +158,24 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
 
     setLoading(classId)
     play("delete")
-    const res = await fetch("/api/bookings", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bookingId }),
-    })
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      })
 
-    if (res.ok) {
-      setBookingState((prev) => withoutBooking(prev, classId))
-      toast.success("Reserva cancelada")
-    } else {
-      toast.error("Error al cancelar")
+      if (res.ok) {
+        setBookingState((prev) => withoutBooking(prev, classId))
+        toast.success("Reserva cancelada")
+      } else {
+        toast.error("Error al cancelar")
+      }
+    } catch {
+      toast.error("Error de conexión")
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   const sorted = [...classes].sort(

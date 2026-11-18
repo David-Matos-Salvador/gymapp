@@ -66,16 +66,24 @@ export function MemberManagement({ initialMembers, canManage }: MemberManagement
     setError("")
     play("select")
 
-    const res = await fetch("/api/trainer/members", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: form.name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim() || undefined,
-        password: form.password,
-      }),
-    })
+    let res: Response
+    try {
+      res = await fetch("/api/trainer/members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim() || undefined,
+          password: form.password,
+        }),
+      })
+    } catch {
+      setError("Error de conexión")
+      play("delete")
+      setSaving(false)
+      return
+    }
 
     if (res.ok) {
       const data = await res.json()
