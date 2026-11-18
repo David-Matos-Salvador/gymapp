@@ -107,8 +107,9 @@ async function removeFixtures() {
 }
 
 async function openMembership(page: Page) {
-  // networkidle: el formulario es de cliente y tiene que estar hidratado para responder.
-  await page.goto("/membresia", { waitUntil: "networkidle" })
+  // No se espera networkidle: la conexión de notificaciones en vivo (SSE) nunca queda quieta.
+  // La hidratación se comprueba en cada paso que la necesita.
+  await page.goto("/membresia", { waitUntil: "domcontentloaded" })
 }
 
 test("membresía con comprobante: el miembro paga, su coach confirma y la membresía queda activa", async ({
