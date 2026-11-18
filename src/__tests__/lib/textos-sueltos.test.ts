@@ -36,6 +36,11 @@ describe("textos sueltos", () => {
     ["src/components/admin/member-management.tsx", "socios"],
     ["src/components/admin/membership-plan-manager.tsx", "socios"],
     ["src/components/dashboard/member-dashboard.tsx", "Siguiente split"],
+    ["src/components/admin/routine-management.tsx", "Nuevo split"],
+    ["src/components/admin/routine-management.tsx", "Agregar split"],
+    ["src/components/admin/routine-management.tsx", "Eliminar split"],
+    ["src/components/admin/routine-management.tsx", "al split"],
+    ["src/components/admin/routine-management.tsx", "} split{"],
     ["src/components/ui/dialog.tsx", ">Close<"],
     ["src/components/ui/sheet.tsx", ">Close<"],
   ])("%s ya no dice «%s»", (archivo, texto) => {

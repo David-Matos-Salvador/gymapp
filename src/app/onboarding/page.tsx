@@ -31,6 +31,7 @@ import {
   experienceOptions,
   trainingFrequencyOptions,
   physicalConditionOptions,
+  physicalConditionLabel,
   scheduleOptions,
   loadingMessages,
   stepVariants,
@@ -939,7 +940,7 @@ export default function OnboardingPage() {
             <div className="text-center space-y-2 pb-1">
               <h1 className="text-2xl font-bold tracking-tight">Condiciones físicas</h1>
               <p className="text-muted-foreground">
-                Selecciona las que te apliquen. Si no tienes ninguna, toca Continuar.
+                Selecciona las que te apliquen. Si no tienes ninguna, toca «Ninguna».
               </p>
             </div>
             <div className="flex flex-wrap gap-2.5">
@@ -977,7 +978,7 @@ export default function OnboardingPage() {
                     }`}
                   >
                     {isSelected && <Check className="h-3.5 w-3.5" />}
-                    {condition}
+                    {physicalConditionLabel(condition)}
                   </motion.button>
                 )
               })}
@@ -1247,7 +1248,7 @@ export default function OnboardingPage() {
               />
               <SummaryRow
                 label="Condiciones"
-                value={data.physicalConditions.join(", ")}
+                value={data.physicalConditions.map(physicalConditionLabel).join(", ")}
                 onEdit={() => jumpToEditStep(6)}
               />
               <SummaryRow

@@ -1340,7 +1340,7 @@ test("simulación de un día normal con múltiples usuarios", async ({ browser }
     },
     laura.page,
     async () => {
-      await laura.page.getByRole("button", { name: /^No poseo$/i }).click()
+      await laura.page.getByRole("button", { name: /^Ninguna$/i }).click()
       await laura.page.getByRole("button", { name: /^Continuar$/i }).click()
       await expect(laura.page.getByRole("heading", { name: /Peso y altura/i })).toBeVisible({
         timeout: 10_000,

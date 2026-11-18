@@ -108,7 +108,7 @@ export async function POST(request: Request) {
         )
       }
       if (receiptFile.size > MAX_SIZE) {
-        return NextResponse.json({ error: "Archivo muy grande. Máximo 5MB" }, { status: 400 })
+        return NextResponse.json({ error: "Archivo muy grande. Máximo 5 MB" }, { status: 400 })
       }
 
       try {

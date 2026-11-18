@@ -314,7 +314,7 @@ export function RoutineManagement({
       }
       setSplitDialogOpen(false)
     } catch {
-      toast.error("Error al guardar split")
+      toast.error("Error al guardar día")
     } finally {
       setSplitSaving(false)
     }
@@ -479,7 +479,7 @@ export function RoutineManagement({
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    {plan.splits.length} split{plan.splits.length !== 1 ? "s" : ""}
+                    {plan.splits.length} {plan.splits.length === 1 ? "día" : "días"}
                     {plan.user.name && ` · Creado por ${plan.user.name}`}
                   </p>
                 </div>
@@ -630,7 +630,7 @@ export function RoutineManagement({
                         onClick={() => openCreateSplit(plan.id)}
                       >
                         <Plus className="size-3" />
-                        Agregar split
+                        Agregar día
                       </Button>
                     </div>
                   )}
@@ -740,7 +740,7 @@ export function RoutineManagement({
       <Dialog open={splitDialogOpen} onOpenChange={setSplitDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingSplitId ? "Editar split" : "Nuevo split"}</DialogTitle>
+            <DialogTitle>{editingSplitId ? "Editar día" : "Nuevo día"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -812,7 +812,7 @@ export function RoutineManagement({
       <Dialog open={addExerciseOpen} onOpenChange={setAddExerciseOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Agregar ejercicio al split</DialogTitle>
+            <DialogTitle>Agregar ejercicio al día</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -906,7 +906,7 @@ export function RoutineManagement({
       <Dialog open={!!deleteSplitConfirm} onOpenChange={() => setDeleteSplitConfirm(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Eliminar split</DialogTitle>
+            <DialogTitle>Eliminar día</DialogTitle>
             <DialogDescription>Esta acción no se puede deshacer.</DialogDescription>
           </DialogHeader>
           <DialogFooter showCloseButton>
