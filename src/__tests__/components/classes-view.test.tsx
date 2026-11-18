@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
-import { jsonResponse, mockFetch, sentJson } from "./helpers"
+import { jsonResponse, mockFetch, offlineFetch, sentJson } from "./helpers"
 
 const toast = vi.hoisted(() => ({ success: vi.fn(), error: vi.fn() }))
 const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }))
@@ -224,9 +224,31 @@ describe("ClassesView", () => {
     })
   })
 
-  it.todo(
-    "si se cae la conexión al reservar o cancelar, avisa y deja reintentar " +
-      "(hoy `handleBook` y `handleCancel` no tienen try/catch: el botón queda deshabilitado con " +
-      "el spinner y sin aviso hasta recargar; classes-view.tsx:117 y :155)"
-  )
+  it("si se cae la conexión al reservar, avisa y deja intentarlo otra vez", async () => {
+    offlineFetch()
+    renderView()
+
+    fireEvent.click(cardOf("Yoga").getByRole("button", { name: "Reservar lugar" }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Error de conexión"))
+    expect(cardOf("Yoga").getByRole("button", { name: "Reservar lugar" })).toHaveProperty(
+      "disabled",
+      false
+    )
+  })
+
+  it("si se cae la conexión al cancelar, avisa y la reserva sigue", async () => {
+    offlineFetch()
+    vi.spyOn(window, "confirm").mockReturnValue(true)
+    renderView({ bookings: [{ id: "reserva-1", status: "CONFIRMED", classItem: yoga }] })
+
+    fireEvent.click(cardOf("Yoga").getByRole("button", { name: /Cancelar reserva/ }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Error de conexión"))
+    expect(cardOf("Yoga").getByRole("button", { name: /Cancelar reserva/ })).toHaveProperty(
+      "disabled",
+      false
+    )
+    vi.restoreAllMocks()
+  })
 })

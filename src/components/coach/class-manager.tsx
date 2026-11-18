@@ -76,6 +76,8 @@ export function ClassManager({ classItem }: ClassManagerProps) {
       }
       toast.success("Clase actualizada")
       router.refresh()
+    } catch {
+      toast.error("Error de conexión")
     } finally {
       setSaving(false)
     }
@@ -98,6 +100,8 @@ export function ClassManager({ classItem }: ClassManagerProps) {
         prev.map((b) => (b.id === bookingId ? { ...b, status: "ATTENDED" } : b))
       )
       toast.success("Asistencia marcada")
+    } catch {
+      toast.error("Error de conexión")
     } finally {
       setAttending(null)
     }
@@ -116,6 +120,8 @@ export function ClassManager({ classItem }: ClassManagerProps) {
       toast.success("Clase cancelada")
       router.push("/dashboard")
       router.refresh()
+    } catch {
+      toast.error("Error de conexión")
     } finally {
       setCancelling(false)
     }
