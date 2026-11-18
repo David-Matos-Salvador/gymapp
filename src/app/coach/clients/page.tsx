@@ -125,7 +125,7 @@ export default async function CoachClientsListPage() {
                             )}
                             {lastMeasurement?.weight && (
                               <span className="inline-flex items-center gap-1 text-xs bg-muted px-2 py-0.5 rounded-full">
-                                {lastMeasurement.weight}kg
+                                {lastMeasurement.weight} kg
                               </span>
                             )}
                           </div>

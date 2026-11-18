@@ -35,7 +35,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
-import { formatSet, pluralize } from "@/lib/utils"
+import { formatSet, groupSetsByExercise, pluralize } from "@/lib/utils"
 import { measurementFormError } from "@/constants/measurements"
 import { measurementBMI } from "@/lib/health"
 import {
@@ -613,36 +613,40 @@ export default function CoachClientDetail() {
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    {client.workoutLogs.map((log) => (
-                      <div key={log.id} className="rounded-lg border p-3">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium">
-                            {log.splitId ? "Entrenamiento con rutina" : "Entrenamiento libre"}
-                          </p>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(log.date).toLocaleDateString("es-PE")}
-                          </span>
-                        </div>
-                        {log.duration && (
-                          <p className="text-xs text-muted-foreground">{log.duration} min</p>
-                        )}
-                        <div className="flex flex-wrap gap-1 mt-1.5">
-                          {log.sets.slice(0, 5).map((s) => (
-                            <span
-                              key={s.id}
-                              className="inline-flex items-center text-[10px] bg-muted px-1.5 py-0.5 rounded"
-                            >
-                              {s.exerciseName}: {formatSet(s.reps, s.weight)}
+                    {client.workoutLogs.map((log) => {
+                      const groups = groupSetsByExercise(log.sets)
+                      return (
+                        <div key={log.id} className="rounded-lg border p-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium">
+                              {log.splitId ? "Entrenamiento con rutina" : "Entrenamiento libre"}
+                            </p>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(log.date).toLocaleDateString("es-PE")}
                             </span>
-                          ))}
-                          {log.sets.length > 5 && (
-                            <span className="text-[10px] text-muted-foreground">
-                              +{log.sets.length - 5} más
-                            </span>
+                          </div>
+                          {log.duration && (
+                            <p className="text-xs text-muted-foreground">{log.duration} min</p>
                           )}
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {groups.slice(0, 5).map((group) => (
+                              <span
+                                key={group.exerciseName}
+                                className="inline-flex max-w-full items-center text-[10px] bg-muted px-1.5 py-0.5 rounded"
+                              >
+                                {group.exerciseName}:{" "}
+                                {group.sets.map((s) => formatSet(s.reps, s.weight)).join(", ")}
+                              </span>
+                            ))}
+                            {groups.length > 5 && (
+                              <span className="text-[10px] text-muted-foreground">
+                                +{groups.length - 5} más
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </CardContent>

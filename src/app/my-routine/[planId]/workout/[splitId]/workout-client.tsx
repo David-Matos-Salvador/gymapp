@@ -11,7 +11,12 @@ import { CelebrationOverlay } from "@/components/workout/celebration-overlay"
 import { ExerciseCard } from "@/components/workout/exercise-card"
 import { RestTimer } from "@/components/workout/rest-timer"
 import { WorkoutTopBar } from "@/components/workout/workout-top-bar"
-import { PHASE_LABELS, PHASE_COLORS, setLimitError } from "@/constants/workout"
+import {
+  PHASE_LABELS,
+  PHASE_COLORS,
+  finishPartialQuestion,
+  setLimitError,
+} from "@/constants/workout"
 import { Save, Play, Trophy, ChevronDown, Pause, X, Flame, Zap } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -165,12 +170,8 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
         (exercise) => !store.setsData[exercise.exerciseId]?.some((set) => set.completed)
       )
       if (confirmPartial && incomplete.length > 0) {
-        const names = incomplete.map((exercise) => exercise.exercise.name).join(", ")
-        if (
-          !window.confirm(
-            `Vas a finalizar con ${incomplete.length} ejercicio(s) sin series: ${names}. ¿Continuar?`
-          )
-        ) {
+        const names = incomplete.map((exercise) => exercise.exercise.name)
+        if (!window.confirm(finishPartialQuestion(names))) {
           return
         }
       }

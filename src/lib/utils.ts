@@ -28,6 +28,20 @@ export function formatSet(reps: number, weight: number): string {
   return weight > 0 ? `${reps}×${weight}kg` : pluralize(reps, "rep", "reps")
 }
 
+// Las series de una sesión agrupadas por ejercicio, en el orden en que se hizo cada uno, para no
+// mostrarlas intercaladas («Fondos, Press, Fondos…»).
+export function groupSetsByExercise<T extends { exerciseName: string }>(
+  sets: T[]
+): { exerciseName: string; sets: T[] }[] {
+  const groups = new Map<string, T[]>()
+  for (const set of sets) {
+    const group = groups.get(set.exerciseName)
+    if (group) group.push(set)
+    else groups.set(set.exerciseName, [set])
+  }
+  return Array.from(groups, ([exerciseName, grouped]) => ({ exerciseName, sets: grouped }))
+}
+
 // Resumen de una sesión: el volumen (reps × kg) o, si fue solo con peso corporal, el total de
 // repeticiones en vez de «0 kg volumen». null si no hay nada que mostrar.
 export function formatSessionVolume(sets: { reps: number; weight: number }[]): string | null {
