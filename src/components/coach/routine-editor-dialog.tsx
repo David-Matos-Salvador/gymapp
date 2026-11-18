@@ -574,7 +574,7 @@ export function RoutineEditorContent({
                             <div className="flex items-center gap-2">
                               <span className="text-muted-foreground">
                                 {se.sets}x{se.reps}
-                                {se.weight > 0 ? ` ${se.weight}kg` : ""}
+                                {se.weight > 0 ? ` ${se.weight} kg` : ""}
                               </span>
                               <Button
                                 variant="ghost"

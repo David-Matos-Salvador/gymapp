@@ -56,3 +56,15 @@ export function setLimitError(set: { reps: number; weight: number }): string | n
   }
   return null
 }
+
+// En un ejercicio de peso corporal (burpees, dominadas) el peso es opcional: es el lastre que
+// se agrega, no la carga del ejercicio. Por eso se rotula «Lastre» en vez de «kg».
+export function weightLabel(equipment: string): string {
+  return equipment === "BODYWEIGHT" ? "Lastre" : "kg"
+}
+
+export function finishPartialQuestion(names: string[]): string {
+  const count =
+    names.length === 1 ? "1 ejercicio sin series" : `${names.length} ejercicios sin series`
+  return `Vas a finalizar con ${count}: ${names.join(", ")}. ¿Continuar?`
+}

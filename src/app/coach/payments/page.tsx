@@ -63,7 +63,8 @@ export default function CoachPaymentsPage() {
         body: JSON.stringify({ action: "CONFIRM" }),
       })
       if (!res.ok) {
-        toast.error("Error al confirmar")
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error ?? "Error al confirmar")
         return
       }
       toast.success("Pago confirmado")
@@ -92,7 +93,8 @@ export default function CoachPaymentsPage() {
         }),
       })
       if (!res.ok) {
-        toast.error("Error al rechazar")
+        const data = await res.json().catch(() => ({}))
+        toast.error(data.error ?? "Error al rechazar")
         return
       }
       toast.success("Pago rechazado")

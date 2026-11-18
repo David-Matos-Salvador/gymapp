@@ -191,7 +191,7 @@ export function ProfileForm({ user }: { user: User }) {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Archivo muy grande. M\u00e1ximo 5MB")
+      toast.error("Archivo muy grande. Máximo 5 MB")
       return
     }
 
@@ -347,7 +347,7 @@ export function ProfileForm({ user }: { user: User }) {
             </button>
             <div>
               <p className="text-sm font-medium">Foto de perfil</p>
-              <p className="text-xs text-muted-foreground">JPEG, PNG, WebP o GIF (máx. 5MB)</p>
+              <p className="text-xs text-muted-foreground">JPEG, PNG, WebP o GIF (máx. 5 MB)</p>
             </div>
           </div>
           <Separator />

@@ -242,7 +242,7 @@ describe("POST /api/fitness-coach", () => {
     ).splits.create
     expect(splits).toHaveLength(3)
     for (const split of splits) {
-      expect(split.exercises.create).toHaveLength(3)
+      expect(split.exercises.create).toHaveLength(4)
     }
   })
 
@@ -254,7 +254,7 @@ describe("POST /api/fitness-coach", () => {
     })
     h.planFindFirst.mockResolvedValueOnce({
       id: "plan-viejo",
-      splits: [mkSplit("s1", 3), mkSplit("s2", 0), mkSplit("s3", 1)],
+      splits: [mkSplit("s1", 4), mkSplit("s2", 0), mkSplit("s3", 1)],
     } as never)
 
     const response = await POST(
@@ -273,7 +273,7 @@ describe("POST /api/fitness-coach", () => {
     type UpdateArgs = { where: { id: string }; data: { exercises: { create: unknown[] } } }
     const calls = h.splitUpdate.mock.calls.map(([args]) => args as UpdateArgs)
     expect(calls.map((c) => c.where.id)).toEqual(["s2", "s3"])
-    expect(calls[0].data.exercises.create.length).toBeGreaterThanOrEqual(2)
+    expect(calls[0].data.exercises.create).toHaveLength(4)
   })
 
   function pedir(experienceLevel: string, trainingFrequency: number) {
@@ -325,12 +325,86 @@ describe("POST /api/fitness-coach", () => {
     ).splits.create
     expect(splits).toHaveLength(5)
     for (const split of splits) {
-      expect(split.exercises.create.length).toBeGreaterThanOrEqual(2)
-      expect(split.exercises.create.length).toBeLessThanOrEqual(3)
+      expect(split.exercises.create).toHaveLength(4)
       for (const ejercicio of split.exercises.create) {
         expect(ejercicio.sets).toBeLessThanOrEqual(4)
       }
     }
+  })
+
+  describe("rutinas de principiante (#128)", () => {
+    type CreatedSplit = { exercises: { create: { exerciseId: string }[] } }
+    const nombres = (split: CreatedSplit) =>
+      split.exercises.create.map(
+        ({ exerciseId }) => h.getExercises().find((e) => e.id === exerciseId)?.name
+      )
+    const splitsDe = (dificultad: string) => {
+      const llamada = h.planCreate.mock.calls.find(([args]) => args.data.difficulty === dificultad)
+      return (llamada![0].data as unknown as { splits: { create: CreatedSplit[] } }).splits.create
+    }
+
+    it.each([3, 4, 5])(
+      "con %i días no pide dominadas, fondos en paralelas, peso muerto ni rueda abdominal",
+      async (dias) => {
+        h.planCreate.mockClear()
+        await pedir("BEGINNER", dias)
+        for (const split of splitsDe("BEGINNER")) {
+          expect(split.exercises.create).toHaveLength(4)
+          for (const nombre of nombres(split)) {
+            expect([
+              "Dominadas",
+              "Fondos en paralelas",
+              "Peso muerto",
+              "Rueda abdominal",
+            ]).not.toContain(nombre)
+          }
+        }
+      }
+    )
+
+    it("la espalda de principiante usa jalón al pecho en vez de dominadas", async () => {
+      h.planCreate.mockClear()
+      await pedir("BEGINNER", 5)
+      const espalda = nombres(splitsDe("BEGINNER")[2])
+      expect(espalda).toContain("Jalón al pecho")
+      expect(espalda).not.toContain("Dominadas")
+    })
+
+    it("un día de cuerpo completo combina piernas, empuje, tirón y core", async () => {
+      h.planCreate.mockClear()
+      await pedir("BEGINNER", 3)
+      const [diaA, diaB] = splitsDe("BEGINNER").map(nombres)
+      expect(diaA).toEqual(["Sentadilla", "Press de banca", "Remo con barra", "Plancha"])
+      // Los días siguientes varían mientras haya ejercicios distintos.
+      expect(diaB).not.toEqual(diaA)
+    })
+
+    it("rehace la división de principiante guardada con dominadas", async () => {
+      const split = (id: string, nombresEjercicios: string[]) => ({
+        id,
+        muscleGroups: ["BACK", "BICEPS"],
+        exercises: nombresEjercicios.map((name, i) => ({ id: `e${i}`, exercise: { name } })),
+      })
+      h.planFindFirst.mockResolvedValueOnce({
+        id: "plan-viejo",
+        splits: [
+          split("con-dominadas", [
+            "Dominadas",
+            "Remo con barra",
+            "Jalón al pecho",
+            "Curl martillo",
+          ]),
+          split("bien", ["Remo con barra", "Jalón al pecho", "Remo en máquina", "Curl martillo"]),
+        ],
+      } as never)
+
+      h.splitUpdate.mockClear()
+      await pedir("BEGINNER", 3)
+
+      type UpdateArgs = { where: { id: string } }
+      const calls = h.splitUpdate.mock.calls.map(([args]) => args as UpdateArgs)
+      expect(calls.map((c) => c.where.id)).toEqual(["con-dominadas"])
+    })
   })
 
   it("ya no existe la ruta sin uso /api/onboarding/recommended-routine", () => {
@@ -345,7 +419,6 @@ describe("POST /api/fitness-coach", () => {
 
     const names = h.getExercises().map((exercise) => exercise.name)
     expect(names).toContain("Face Pull")
-    expect(names).toContain("Curl con cable")
     expect(names).not.toContain("Face pull")
     expect(names).not.toContain("Curl en polea")
   })

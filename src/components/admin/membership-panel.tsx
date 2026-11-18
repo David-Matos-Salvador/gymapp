@@ -185,38 +185,43 @@ export function MembershipPanel({
   async function handleMarkPaid(id: string) {
     setLoading(id)
     play("select")
-    const res = await fetch("/api/payments/manual", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        membershipId: id,
-        method: manualMethod,
-        reference: manualRef.trim() || undefined,
-      }),
-    })
-    if (res.ok) {
-      const json = await res.json()
-      setData((prev) =>
-        prev.map((m) =>
-          m.id === id
-            ? {
-                ...m,
-                paymentConfirmed: true,
-                paymentMethod: manualMethod,
-                paymentRef: manualRef.trim() || null,
-                updatedAt: json.membership.updatedAt,
-              }
-            : m
+    try {
+      const res = await fetch("/api/payments/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          membershipId: id,
+          method: manualMethod,
+          reference: manualRef.trim() || undefined,
+        }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setData((prev) =>
+          prev.map((m) =>
+            m.id === id
+              ? {
+                  ...m,
+                  paymentConfirmed: true,
+                  paymentMethod: manualMethod,
+                  paymentRef: manualRef.trim() || null,
+                  updatedAt: json.membership.updatedAt,
+                }
+              : m
+          )
         )
-      )
-      play("success")
-      toast.success("Pago manual registrado")
-      setManualMembership(null)
-    } else {
-      const json = await res.json()
-      toast.error(json.error ?? "Error al registrar el pago")
+        play("success")
+        toast.success("Pago manual registrado")
+        setManualMembership(null)
+      } else {
+        const json = await res.json().catch(() => ({}))
+        toast.error(json.error ?? "Error al registrar el pago")
+      }
+    } catch {
+      toast.error("Error de conexión")
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   async function handleConfirmReceipt(
@@ -244,6 +249,8 @@ export function MembershipPanel({
       setReviewPayment(null)
       play("success")
       toast.success(hasReceipt ? "Comprobante confirmado" : "Pago confirmado")
+    } catch {
+      toast.error("Error de conexión")
     } finally {
       setLoading(null)
     }
@@ -272,6 +279,8 @@ export function MembershipPanel({
       setReviewPayment(null)
       play("success")
       toast.success(hasReceipt ? "Comprobante rechazado" : "Pago rechazado")
+    } catch {
+      toast.error("Error de conexión")
     } finally {
       setLoading(null)
     }
@@ -301,16 +310,24 @@ export function MembershipPanel({
     setNewError("")
     play("select")
 
-    const res = await fetch("/api/memberships", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: newMemberId,
-        planId: newPlanId,
-        paymentMethod: newMethod,
-        paymentRef: newRef.trim() || undefined,
-      }),
-    })
+    let res: Response
+    try {
+      res = await fetch("/api/memberships", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: newMemberId,
+          planId: newPlanId,
+          paymentMethod: newMethod,
+          paymentRef: newRef.trim() || undefined,
+        }),
+      })
+    } catch {
+      setNewError("Error de conexión")
+      play("delete")
+      setNewSaving(false)
+      return
+    }
 
     if (!res.ok) {
       const data = await res.json().catch(() => ({}))
@@ -357,35 +374,40 @@ export function MembershipPanel({
     setLoading(id)
     play("select")
 
-    // D-01: the server calculates the renewal dates. The client never sends dates.
-    const res = await fetch(`/api/memberships/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ renew: true }),
-    })
-    if (res.ok) {
-      const json = await res.json()
-      setData((prev) =>
-        prev.map((m) =>
-          m.id === id
-            ? {
-                ...m,
-                status: json.membership.status,
-                paymentConfirmed: json.membership.paymentConfirmed,
-                startDate: json.membership.startDate,
-                endDate: json.membership.endDate,
-                updatedAt: json.membership.updatedAt,
-              }
-            : m
+    try {
+      // D-01: the server calculates the renewal dates. The client never sends dates.
+      const res = await fetch(`/api/memberships/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ renew: true }),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        setData((prev) =>
+          prev.map((m) =>
+            m.id === id
+              ? {
+                  ...m,
+                  status: json.membership.status,
+                  paymentConfirmed: json.membership.paymentConfirmed,
+                  startDate: json.membership.startDate,
+                  endDate: json.membership.endDate,
+                  updatedAt: json.membership.updatedAt,
+                }
+              : m
+          )
         )
-      )
-      play("success")
-      toast.success("Membresía renovada correctamente")
-    } else {
-      const json = await res.json()
-      toast.error(json.error ?? "Error al renovar membresía")
+        play("success")
+        toast.success("Membresía renovada correctamente")
+      } else {
+        const json = await res.json().catch(() => ({}))
+        toast.error(json.error ?? "Error al renovar membresía")
+      }
+    } catch {
+      toast.error("Error de conexión")
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   function renderMembershipList(list: Membership[], emptyMessage: string) {
