@@ -107,7 +107,7 @@ export default async function RoutineDetailPage({ params }: PageProps) {
                         <p className="text-sm font-medium">{re.exercise.name}</p>
                         <p className="text-xs text-muted-foreground">
                           {re.sets}×{re.reps}
-                          {re.weight > 0 ? ` · ${re.weight}kg` : ""} · {re.restSeconds}s descanso
+                          {re.weight > 0 ? ` · ${re.weight} kg` : ""} · {re.restSeconds}s descanso
                         </p>
                       </div>
                     </div>

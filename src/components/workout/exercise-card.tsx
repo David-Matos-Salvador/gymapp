@@ -1,7 +1,7 @@
 "use client"
 
 import { MUSCLE_LABELS } from "@/constants/user"
-import { SET_LIMITS, clampSetValue, setLimitError } from "@/constants/workout"
+import { SET_LIMITS, clampSetValue, setLimitError, weightLabel } from "@/constants/workout"
 import { toast } from "sonner"
 import { useState, useCallback, useMemo } from "react"
 import {
@@ -99,9 +99,11 @@ function CounterRow({
 function SetsStepper({
   setsData,
   onSetUpdate,
+  bodyweight,
 }: {
   setsData: SetLog[]
   onSetUpdate?: (setIdx: number, updates: Partial<SetLog>) => void
+  bodyweight: boolean
 }) {
   const completedCount = setsData.filter((s) => s.completed).length
 
@@ -160,9 +162,9 @@ function SetsStepper({
                 onSetUpdate?.(i, { weight: clampSetValue("weight", Number(e.target.value)) })
               }
               className="h-11 w-20 text-center text-base"
-              aria-label={`Peso serie ${i + 1}`}
+              aria-label={`${bodyweight ? "Lastre" : "Peso"} serie ${i + 1}`}
             />
-            <span className="text-xs text-muted-foreground">kg</span>
+            <span className="text-xs text-muted-foreground">{bodyweight ? "kg lastre" : "kg"}</span>
           </div>
         ))}
       </div>
@@ -194,6 +196,8 @@ export function ExerciseCard({
   const totalSets = setsData.length
   const isCurrent = appearance === "current"
   const isCompleted = appearance === "completed"
+  const bodyweight = se.exercise.equipment === "BODYWEIGHT"
+  const shownWeight = localWeight ?? se.weight
   const machineLabel = useMemo(() => {
     const list = se.exercise.gymEquipments ?? []
     return formatMachineLabel(list, showMachineNumbers)
@@ -369,7 +373,7 @@ export function ExerciseCard({
         <div className="space-y-2">
           <div className="flex items-center gap-3 px-1 flex-wrap">
             <CounterRow
-              label="kg"
+              label={weightLabel(se.exercise.equipment)}
               value={localWeight ?? 0}
               onIncrement={incrementWeight}
               onDecrement={decrementWeight}
@@ -409,14 +413,20 @@ export function ExerciseCard({
             </Button>
           )}
 
-          <SetsStepper key={`stepper-${totalSets}`} setsData={setsData} onSetUpdate={onSetUpdate} />
+          <SetsStepper
+            key={`stepper-${totalSets}`}
+            setsData={setsData}
+            onSetUpdate={onSetUpdate}
+            bodyweight={bodyweight}
+          />
         </div>
       )}
 
       {/* ── Completed section: summary ──────────── */}
       {isCompleted && (
         <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
-          {completedCount}/{totalSets} series · {localWeight ?? se.weight}kg
+          {completedCount}/{totalSets} series ·{" "}
+          {bodyweight && !shownWeight ? "peso corporal" : `${shownWeight} kg`}
           {skipped && <span className="text-destructive">Omitido</span>}
         </p>
       )}

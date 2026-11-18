@@ -587,7 +587,7 @@ export function RoutineManagement({
                                   <span className="flex-1 truncate">{se.exercise.name}</span>
                                   <span className="text-xs text-muted-foreground shrink-0">
                                     {se.sets}x{se.reps}
-                                    {se.weight > 0 ? ` @ ${se.weight}kg` : ""}
+                                    {se.weight > 0 ? ` @ ${se.weight} kg` : ""}
                                     {se.restSeconds > 0 ? ` · ${se.restSeconds}s` : ""}
                                   </span>
                                   {canEditPlan(plan) && (
