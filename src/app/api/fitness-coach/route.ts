@@ -378,11 +378,71 @@ function sortTemplatesByLevel<T extends { level: string }>(templates: T[], level
   return [...templates].sort((a, b) => distance(a) - distance(b))
 }
 
+// Ejercicios que alguien que recién empieza casi nunca puede hacer bien (#128). Las rutinas de
+// principiante usan otros del mismo grupo (por ejemplo, jalón al pecho en vez de dominadas).
+const NOT_FOR_BEGINNERS = new Set([
+  "Dominadas",
+  "Fondos en paralelas",
+  "Peso muerto",
+  "Rueda abdominal",
+])
+
+// Un día de cuerpo completo combina piernas, empuje, tirón y core, en vez de tomar solo los
+// pocos ejercicios marcados como «Cuerpo completo» (que dejaban días de Burpees y Kettlebell).
+const FULL_BODY_PATTERN = ["LEGS", "CHEST", "BACK", "ABS"]
+
+const EXERCISES_PER_DAY = 4
+
+type PoolExercise = (typeof MUSCLE_POOL)[string][number]
+
+function chooseExercises(
+  muscleGroups: string[],
+  usedNames: Set<string>,
+  allowedNames: Set<string> | undefined,
+  beginner: boolean
+): PoolExercise[] {
+  const usable = (group: string) =>
+    (MUSCLE_POOL[group] ?? []).filter(
+      (ex) =>
+        (!allowedNames || allowedNames.has(ex.name)) &&
+        !(beginner && NOT_FOR_BEGINNERS.has(ex.name))
+    )
+  const fresh = (group: string) => usable(group).filter((ex) => !usedNames.has(ex.name))
+
+  const mainGroup = muscleGroups[0]
+  let candidates: PoolExercise[]
+  if (mainGroup === "FULL_BODY") {
+    // Uno de cada patrón, sin repetir entre días mientras se pueda; después, los de cuerpo
+    // completo para llegar al mínimo.
+    candidates = [
+      ...FULL_BODY_PATTERN.flatMap((group) => (fresh(group)[0] ?? usable(group)[0]) || []),
+      ...usable("FULL_BODY"),
+    ]
+  } else {
+    // El grupo principal manda; los otros grupos del día completan el mínimo.
+    const main = fresh(mainGroup)
+    candidates = [
+      ...main.slice(0, EXERCISES_PER_DAY - 1),
+      ...muscleGroups.slice(1).flatMap((group) => fresh(group)[0] || []),
+      ...main.slice(EXERCISES_PER_DAY - 1),
+      ...muscleGroups.slice(1).flatMap((group) => fresh(group).slice(1)),
+    ]
+  }
+
+  const chosen = new Map<string, PoolExercise>()
+  for (const ex of candidates) {
+    if (chosen.size === EXERCISES_PER_DAY) break
+    if (!chosen.has(ex.name)) chosen.set(ex.name, ex)
+  }
+  return [...chosen.values()]
+}
+
 function pickExercisesForMuscleGroup(
   muscleGroups: string[],
   multiplier: number,
   usedNames: Set<string>,
-  allowedNames?: Set<string>
+  allowedNames?: Set<string>,
+  beginner = false
 ) {
   const picked: Array<{
     name: string
@@ -392,18 +452,8 @@ function pickExercisesForMuscleGroup(
     equipment: string
     order: number
   }> = []
-  const mainGroup = muscleGroups[0]
 
-  const pool = (MUSCLE_POOL[mainGroup] ?? MUSCLE_POOL.FULL_BODY).filter(
-    (ex) => !allowedNames || allowedNames.has(ex.name)
-  )
-  // En cuerpo completo los ejercicios se repiten entre días: el pool es corto.
-  const available = pool
-    .filter((ex) => mainGroup === "FULL_BODY" || !usedNames.has(ex.name))
-    .slice(0, 4)
-
-  const count = Math.min(available.length, Math.max(2, Math.floor(3 * multiplier)))
-  const chosen = available.slice(0, count)
+  const chosen = chooseExercises(muscleGroups, usedNames, allowedNames, beginner)
 
   for (const ex of chosen) {
     usedNames.add(ex.name)
@@ -567,9 +617,8 @@ export async function POST(request: Request) {
       const description = `Rutina ${template.name}. ${objectiveLabels[objective] ?? "General"}. ${trainingFrequency} días por semana.`
       // Las rutinas se comparten entre personas: la de principiante se arma siempre con volumen
       // de principiante, aunque la genere por primera vez alguien con más experiencia.
-      const difficultyMultiplier = getDifficultyMultiplier(
-        template.level === "BEGINNER" ? "BEGINNER" : experienceLevel
-      )
+      const beginner = template.level === "BEGINNER"
+      const difficultyMultiplier = getDifficultyMultiplier(beginner ? "BEGINNER" : experienceLevel)
 
       const existingPlan = await prisma.routinePlan.findFirst({
         where: { userId: superadmin?.id, name: planName },
@@ -582,18 +631,27 @@ export async function POST(request: Request) {
       })
 
       if (existingPlan) {
-        // Rutinas guardadas con el bug de Full Body: se rehacen solo las divisiones cortas
-        // (sin borrar el plan, para no perder asignaciones ni historial).
-        const shortSplits = existingPlan.splits.filter((s) => s.exercises.length < 2)
+        // Rutinas guardadas antes de #128: se rehacen solo las divisiones cortas y, en las de
+        // principiante, las que piden ejercicios que no son para quien empieza (sin borrar el
+        // plan, para no perder asignaciones ni historial).
+        const needsRedo = (s: (typeof existingPlan.splits)[number]) =>
+          s.exercises.length < EXERCISES_PER_DAY ||
+          (beginner && s.exercises.some((e) => NOT_FOR_BEGINNERS.has(e.exercise?.name ?? "")))
+        const shortSplits = existingPlan.splits.filter(needsRedo)
         if (shortSplits.length === 0) return existingPlan
 
-        const usedExercises = new Set<string>()
+        const usedExercises = new Set<string>(
+          existingPlan.splits
+            .filter((s) => !needsRedo(s))
+            .flatMap((s) => s.exercises.map((e) => e.exercise?.name ?? ""))
+        )
         for (const split of shortSplits) {
           const picked = pickExercisesForMuscleGroup(
             split.muscleGroups,
             difficultyMultiplier,
             usedExercises,
-            allowedNames
+            allowedNames,
+            beginner
           )
           const create = await Promise.all(
             picked.map(async (ex, exIdx) => {
@@ -640,7 +698,8 @@ export async function POST(request: Request) {
           mg,
           difficultyMultiplier,
           usedExercises,
-          allowedNames
+          allowedNames,
+          beginner
         ),
       }))
 
