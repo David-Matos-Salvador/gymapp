@@ -19,6 +19,18 @@ const CLIENT_B = "ana@gymapp.com"
 test.describe.configure({ mode: "serial" })
 test.setTimeout(5 * 60_000)
 
+// El servidor de desarrollo de la CI a veces recompila justo en ese segundo y corta la conexión
+// («read ECONNRESET», #164). Ese corte no es una respuesta de la API: se reintenta una vez.
+async function postAppointment(page: Page, startsAt: string) {
+  const send = () => page.request.post("/api/appointments", { data: { startsAt } })
+  try {
+    return await send()
+  } catch (error) {
+    if (!String(error).includes("ECONNRESET")) throw error
+    return send()
+  }
+}
+
 async function login(browser: Browser, email: string): Promise<Page> {
   const context = await browser.newContext({
     baseURL: BASE_URL,
@@ -129,7 +141,7 @@ test("agenda 1:1: el coach abre horas, un cliente reserva y la hora queda bloque
     const sundayB = lastSunday(clientB)
     await expect(slotButton(sundayB, "10:00")).toBeVisible()
     await expect(slotButton(sundayB, "09:00")).toHaveCount(0)
-    const conflict = await clientB.request.post("/api/appointments", { data: { startsAt } })
+    const conflict = await postAppointment(clientB, startsAt)
     expect(conflict.status()).toBe(409)
     expect((await conflict.json()).error).toBe("Esa hora ya no está disponible. Elige otra.")
 
@@ -160,9 +172,7 @@ test("agenda 1:1: el coach abre horas, un cliente reserva y la hora queda bloque
 
     // 6. Si los dos clientes piden esa hora al mismo tiempo, solo uno la consigue.
     const race = await Promise.all(
-      [clientA, clientB].map((page) =>
-        page.request.post("/api/appointments", { data: { startsAt } })
-      )
+      [clientA, clientB].map((page) => postAppointment(page, startsAt))
     )
     expect(race.map((response) => response.status()).sort()).toEqual([201, 409])
     const winner = race[0].status() === 201 ? 0 : 1
