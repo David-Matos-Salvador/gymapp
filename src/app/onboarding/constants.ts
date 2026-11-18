@@ -220,6 +220,12 @@ export const physicalConditionOptions = [
   "No poseo",
 ]
 
+// «No poseo» es el valor que se guarda (lo leen la IA y los datos ya guardados); en pantalla se
+// muestra «Ninguna», que es como lo diría la persona.
+export function physicalConditionLabel(condition: string): string {
+  return condition === "No poseo" ? "Ninguna" : condition
+}
+
 export const scheduleOptions = [
   { value: "BEFORE_8AM", label: "Madrugada", time: "5 a. m. – 8 a. m.", icon: "🌅" },
   { value: "8AM_11AM", label: "Mañana", time: "8 a. m. – 11 a. m.", icon: "🌤️" },
