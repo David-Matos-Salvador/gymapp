@@ -202,10 +202,20 @@ describe("ClassManager", () => {
     expect(router.push).not.toHaveBeenCalled()
   })
 
-  it.todo(
-    "el encabezado «N reservas confirmadas de X» cambia mientras se escribe la capacidad, antes " +
-      "de guardar (usa `form.capacity`; si se borra el campo dice «de »; class-manager.tsx:140)"
-  )
+  it("el encabezado muestra la capacidad guardada mientras se escribe otra", () => {
+    const { rerender } = renderManager()
+
+    fireEvent.change(screen.getByLabelText("Capacidad"), { target: { value: "" } })
+    expect(screen.getByText("1 reserva confirmada de 10")).toBeTruthy()
+
+    fireEvent.change(screen.getByLabelText("Capacidad"), { target: { value: "99" } })
+    expect(screen.getByText("1 reserva confirmada de 10")).toBeTruthy()
+
+    // Al guardar, router.refresh() trae la clase con la capacidad nueva.
+    rerender(<ClassManager classItem={{ ...yoga, capacity: 99 }} />)
+    expect(screen.getByText("1 reserva confirmada de 99")).toBeTruthy()
+  })
+
   it("si se cae la conexión al marcar asistencia, avisa y deja reintentar", async () => {
     offlineFetch()
     renderManager()

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { useSound } from "@/hooks/use-sound"
 import { calculateBMI, getBMICategory } from "@/lib/health"
 import { createDoubleTap } from "@/lib/double-tap"
+import { exercisesPerDay } from "@/lib/utils"
 import {
   cleanDecimalInput,
   isMeasurementInRange,
@@ -1295,8 +1296,7 @@ export default function OnboardingPage() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    {coachPlan.splits.length} divisiones ·{" "}
-                    {coachPlan.splits.reduce((s, sp) => s + sp.exercises.length, 0)} ejercicios
+                    {coachPlan.splits.length} divisiones · {exercisesPerDay(coachPlan.splits)}
                   </p>
                 </div>
                 <Button
@@ -1486,7 +1486,6 @@ export default function OnboardingPage() {
                 {orderedPlans.map((plan, i) => {
                   const isExpanded = expandedPlanId === plan.id
                   const isRecommended = plan.id === recommendedPlan?.id
-                  const totalExercises = plan.splits.reduce((sum, s) => sum + s.exercises.length, 0)
                   const allMuscleGroups = [...new Set(plan.splits.flatMap((s) => s.muscleGroups))]
                   return (
                     <div key={plan.id} className="space-y-2">
@@ -1537,7 +1536,7 @@ export default function OnboardingPage() {
                                 <Zap className="h-3 w-3" />
                                 {plan.focus}
                               </span>
-                              <span>{totalExercises} ejercicios</span>
+                              <span>{exercisesPerDay(plan.splits)}</span>
                             </div>
                           </div>
                           <ChevronRight
