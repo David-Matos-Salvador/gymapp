@@ -246,9 +246,11 @@ test("el admin crea un plan, asigna la membresía y confirma el pago con tarjeta
     // 4. El miembro ve su membresía con el pago pendiente y avisa que paga con tarjeta.
     await openMembership(memberPage)
     await expect(memberPage.getByRole("heading", { level: 1, name: "Mi Membresía" })).toBeVisible()
-    await expect(memberPage.getByText(flow.planName).first()).toBeVisible()
-    await expect(memberPage.getByText("Pago pendiente").first()).toBeVisible()
-    await expect(memberPage.getByText("Confirmar pago", { exact: true })).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText(flow.planName).first()).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Pago pendiente").first()).toBeVisible()
+    await expect(
+      memberPage.getByRole("main").getByText("Confirmar pago", { exact: true })
+    ).toBeVisible()
 
     const methodTrigger = memberPage.locator("#payment-method")
     await expect(async () => {
@@ -257,7 +259,7 @@ test("el admin crea un plan, asigna la membresía y confirma el pago con tarjeta
       await expect(methodTrigger).toHaveText("Tarjeta", { timeout: 2_000 })
     }).toPass({ timeout: 30_000 })
     await expect(
-      memberPage.getByText(/Paga en recepción: no necesitas subir comprobante\./)
+      memberPage.getByRole("main").getByText(/Paga en recepción: no necesitas subir comprobante\./)
     ).toBeVisible()
     await expect(memberPage.getByRole("button", { name: "Subir comprobante" })).toHaveCount(0)
 
@@ -276,7 +278,9 @@ test("el admin crea un plan, asigna la membresía y confirma el pago con tarjeta
       memberPage.getByRole("main").getByText("Pendiente de confirmar en recepción")
     ).toBeVisible()
     await expect(
-      memberPage.getByText(/Avisaste que pagarás S\/\s*64\.00 en recepción \(tarjeta\)/)
+      memberPage
+        .getByRole("main")
+        .getByText(/Avisaste que pagarás S\/\s*64\.00 en recepción \(tarjeta\)/)
     ).toBeVisible()
     await expect(memberPage.getByRole("button", { name: "Pagaré en recepción" })).toHaveCount(0)
 
@@ -345,8 +349,8 @@ test("el admin crea un plan, asigna la membresía y confirma el pago con tarjeta
     // 6. El miembro ve su membresía activa y pagada, y ya puede reservar.
     await openMembership(memberPage)
     await expect(memberPage.getByRole("heading", { level: 1, name: "Mi Membresía" })).toBeVisible()
-    await expect(memberPage.getByText("Activa", { exact: true })).toBeVisible()
-    await expect(memberPage.getByText("Pagado", { exact: true })).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Activa", { exact: true })).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Pagado", { exact: true })).toBeVisible()
     await expect(
       memberPage.getByRole("main").getByText("Pendiente de confirmar en recepción")
     ).toHaveCount(0)
@@ -380,7 +384,9 @@ test("el miembro elige pagar en efectivo en recepción y su coach confirma el pa
     await expect(
       memberPage.getByRole("heading", { level: 1, name: "Membresía", exact: true })
     ).toBeVisible()
-    await expect(memberPage.getByText("Aún no tienes una membresía activa.")).toBeVisible()
+    await expect(
+      memberPage.getByRole("main").getByText("Aún no tienes una membresía activa.")
+    ).toBeVisible()
 
     // Con efectivo el botón cambia a «Pagaré en recepción»: eso solo pasa ya hidratado.
     const methodSelect = memberPage.locator("#newPaymentMethod")
@@ -398,7 +404,7 @@ test("el miembro elige pagar en efectivo en recepción y su coach confirma el pa
     await expect(methodSelect).toHaveValue("CASH")
     await expect(memberPage.locator("#newPaymentReceipt")).toHaveCount(0)
     await expect(
-      memberPage.getByText(/Paga en recepción: no necesitas subir comprobante\./)
+      memberPage.getByRole("main").getByText(/Paga en recepción: no necesitas subir comprobante\./)
     ).toBeVisible()
 
     const [created] = await Promise.all([
@@ -414,14 +420,16 @@ test("el miembro elige pagar en efectivo en recepción y su coach confirma el pa
     // 2. La membresía queda pendiente de confirmar en recepción, sin comprobante.
     await openMembership(memberPage)
     await expect(memberPage.getByRole("heading", { level: 1, name: "Mi Membresía" })).toBeVisible()
-    await expect(memberPage.getByText(flow.planName).first()).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText(flow.planName).first()).toBeVisible()
     await expect(
       memberPage.getByRole("main").getByText("Pendiente de confirmar en recepción")
     ).toBeVisible()
     await expect(
-      memberPage.getByText(/Avisaste que pagarás S\/\s*59\.00 en recepción \(efectivo\)/)
+      memberPage
+        .getByRole("main")
+        .getByText(/Avisaste que pagarás S\/\s*59\.00 en recepción \(efectivo\)/)
     ).toBeVisible()
-    await expect(memberPage.getByText("Pago pendiente").first()).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Pago pendiente").first()).toBeVisible()
     await expect(memberPage.getByRole("main").getByText("Comprobante en revisión")).toHaveCount(0)
 
     const pending = await prisma.payment.findUniqueOrThrow({
@@ -494,8 +502,8 @@ test("el miembro elige pagar en efectivo en recepción y su coach confirma el pa
     // 4. El miembro ve su membresía activa y pagada, y ya puede reservar la clase.
     await openMembership(memberPage)
     await expect(memberPage.getByRole("heading", { level: 1, name: "Mi Membresía" })).toBeVisible()
-    await expect(memberPage.getByText("Activa", { exact: true })).toBeVisible()
-    await expect(memberPage.getByText("Pagado", { exact: true })).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Activa", { exact: true })).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Pagado", { exact: true })).toBeVisible()
     await expect(
       memberPage.getByRole("main").getByText("Pendiente de confirmar en recepción")
     ).toHaveCount(0)
