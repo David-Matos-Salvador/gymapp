@@ -127,7 +127,9 @@ test("membresía con comprobante: el miembro paga, su coach confirma y la membre
     await expect(
       memberPage.getByRole("heading", { level: 1, name: "Membresía", exact: true })
     ).toBeVisible()
-    await expect(memberPage.getByText("Aún no tienes una membresía activa.")).toBeVisible()
+    await expect(
+      memberPage.getByRole("main").getByText("Aún no tienes una membresía activa.")
+    ).toBeVisible()
     const noMembership = await memberPage.request.post("/api/bookings", {
       data: { classId: classItem.id },
     })
@@ -143,7 +145,9 @@ test("membresía con comprobante: el miembro paga, su coach confirma y la membre
         mimeType: "image/png",
         buffer: TINY_PNG,
       })
-      await expect(memberPage.getByText(RECEIPT_NAME)).toBeVisible({ timeout: 2_000 })
+      await expect(memberPage.getByRole("main").getByText(RECEIPT_NAME)).toBeVisible({
+        timeout: 2_000,
+      })
     }).toPass({ timeout: 30_000 })
     const planOption = memberPage.locator("label").filter({ hasText: PLAN_NAME })
     await planOption.click()
@@ -168,10 +172,10 @@ test("membresía con comprobante: el miembro paga, su coach confirma y la membre
     // 3. La membresía queda pendiente: comprobante en revisión, sin confirmar.
     await openMembership(memberPage)
     await expect(memberPage.getByRole("heading", { level: 1, name: "Mi Membresía" })).toBeVisible()
-    await expect(memberPage.getByText(PLAN_NAME)).toBeVisible()
-    await expect(memberPage.getByText("Comprobante en revisión")).toBeVisible()
-    await expect(memberPage.getByText("Pago pendiente").first()).toBeVisible()
-    await expect(memberPage.getByText("Pagado", { exact: true })).toHaveCount(0)
+    await expect(memberPage.getByRole("main").getByText(PLAN_NAME)).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Comprobante en revisión")).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Pago pendiente").first()).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Pagado", { exact: true })).toHaveCount(0)
 
     const pending = await prisma.payment.findUniqueOrThrow({
       where: { id: payment.id },
@@ -274,10 +278,10 @@ test("membresía con comprobante: el miembro paga, su coach confirma y la membre
     // 6. El miembro ve su membresía activa y pagada, y ya puede reservar la clase.
     await openMembership(memberPage)
     await expect(memberPage.getByRole("heading", { level: 1, name: "Mi Membresía" })).toBeVisible()
-    await expect(memberPage.getByText("Activa", { exact: true })).toBeVisible()
-    await expect(memberPage.getByText("Pagado", { exact: true })).toBeVisible()
-    await expect(memberPage.getByText("Comprobante en revisión")).toHaveCount(0)
-    await expect(memberPage.getByText("Pago pendiente")).toHaveCount(0)
+    await expect(memberPage.getByRole("main").getByText("Activa", { exact: true })).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Pagado", { exact: true })).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Comprobante en revisión")).toHaveCount(0)
+    await expect(memberPage.getByRole("main").getByText("Pago pendiente")).toHaveCount(0)
 
     const booked = await memberPage.request.post("/api/bookings", {
       data: { classId: classItem.id },
