@@ -143,7 +143,7 @@ export function ClassManager({ classItem }: ClassManagerProps) {
           <h1 className="text-2xl font-bold tracking-tight">{classItem.name}</h1>
           <p className="text-muted-foreground">
             {confirmed} reserva{confirmed !== 1 ? "s" : ""} confirmada{confirmed !== 1 ? "s" : ""}{" "}
-            de {form.capacity}
+            de {classItem.capacity}
           </p>
         </div>
 
