@@ -23,6 +23,17 @@ export function pluralize(count: number, singular: string, plural: string): stri
   return `${count} ${count === 1 ? singular : plural}`
 }
 
+// Las tarjetas de rutina cuentan ejercicios por día: la suma de todos los días («12 ejercicios»)
+// se leía como el largo de una sesión (#188).
+export function exercisesPerDay(splits: { exercises: unknown[] }[]): string {
+  const counts = splits.map((s) => s.exercises.length)
+  if (counts.length === 0) return "0 ejercicios"
+  const min = Math.min(...counts)
+  const max = Math.max(...counts)
+  if (min === max) return `${pluralize(min, "ejercicio", "ejercicios")} por día`
+  return `${min}–${max} ejercicios por día`
+}
+
 // Una serie sin peso (dominadas, burpees) se muestra solo con sus repeticiones, no como «10×0kg».
 export function formatSet(reps: number, weight: number): string {
   return weight > 0 ? `${reps}×${weight}kg` : pluralize(reps, "rep", "reps")
