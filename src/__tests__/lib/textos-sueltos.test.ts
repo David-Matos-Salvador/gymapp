@@ -43,6 +43,10 @@ describe("textos sueltos", () => {
     ["src/components/admin/routine-management.tsx", "} split{"],
     ["src/components/ui/dialog.tsx", ">Close<"],
     ["src/components/ui/sheet.tsx", ">Close<"],
+    ["src/components/admin/admin-dashboard.tsx", "prom. semanal"],
+    ["src/app/onboarding/constants.ts", '"% Grasa"'],
+    ["src/app/onboarding/constants.ts", "No estoy seguro"],
+    ["src/app/onboarding/constants.ts", "completamente nuevo"],
   ])("%s ya no dice «%s»", (archivo, texto) => {
     expect(leer(archivo)).not.toContain(texto)
   })
