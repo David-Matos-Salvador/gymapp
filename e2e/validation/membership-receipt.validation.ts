@@ -169,7 +169,7 @@ test("membresía con comprobante: el miembro paga, su coach confirma y la membre
     await openMembership(memberPage)
     await expect(memberPage.getByRole("heading", { level: 1, name: "Mi Membresía" })).toBeVisible()
     await expect(memberPage.getByText(PLAN_NAME)).toBeVisible()
-    await expect(memberPage.getByText("Comprobante en revisión")).toBeVisible()
+    await expect(memberPage.getByRole("main").getByText("Comprobante en revisión")).toBeVisible()
     await expect(memberPage.getByText("Pago pendiente").first()).toBeVisible()
     await expect(memberPage.getByText("Pagado", { exact: true })).toHaveCount(0)
 
@@ -276,7 +276,7 @@ test("membresía con comprobante: el miembro paga, su coach confirma y la membre
     await expect(memberPage.getByRole("heading", { level: 1, name: "Mi Membresía" })).toBeVisible()
     await expect(memberPage.getByText("Activa", { exact: true })).toBeVisible()
     await expect(memberPage.getByText("Pagado", { exact: true })).toBeVisible()
-    await expect(memberPage.getByText("Comprobante en revisión")).toHaveCount(0)
+    await expect(memberPage.getByRole("main").getByText("Comprobante en revisión")).toHaveCount(0)
     await expect(memberPage.getByText("Pago pendiente")).toHaveCount(0)
 
     const booked = await memberPage.request.post("/api/bookings", {
