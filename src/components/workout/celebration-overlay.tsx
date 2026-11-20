@@ -60,6 +60,10 @@ export function CelebrationOverlay({
 
   if (!open) return null
 
+  // Con racha 0, un «0 semanas seguidas» se lee como «no lograste nada» (#200):
+  // mejor decir cuánto falta para cerrar la primera semana.
+  const daysLeft = Math.max(weeklyTarget - weeklyCompleted, 0)
+
   return (
     <AnimatePresence>
       <motion.div
@@ -135,12 +139,21 @@ export function CelebrationOverlay({
               </p>
               <p className="text-[10px] text-muted-foreground">días esta semana</p>
             </div>
-            <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-2xl font-bold tabular-nums text-accent-yellow">{weeklyStreak}</p>
-              <p className="text-[10px] text-muted-foreground">
-                {weeklyStreak === 1 ? "semana seguida" : "semanas seguidas"}
-              </p>
-            </div>
+            {weeklyStreak > 0 ? (
+              <div className="rounded-xl bg-muted/50 p-3">
+                <p className="text-2xl font-bold tabular-nums text-accent-yellow">{weeklyStreak}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {weeklyStreak === 1 ? "semana seguida" : "semanas seguidas"}
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-xl bg-muted/50 p-3">
+                <p className="text-2xl font-bold tabular-nums text-accent-yellow">{daysLeft}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {daysLeft === 1 ? "día" : "días"} para completar tu semana
+                </p>
+              </div>
+            )}
           </motion.div>
 
           {bestStreak > 0 && (
