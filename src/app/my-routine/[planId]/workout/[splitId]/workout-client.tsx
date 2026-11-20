@@ -425,8 +425,7 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
         {phase === "prepare" && (
           <div className="flex flex-col items-center gap-3 py-6 px-4 rounded-xl bg-accent-yellow/5 border border-accent-yellow/30">
             <p className="text-sm text-muted-foreground">
-              {totalExercises === 1 ? "1 ejercicio" : `${totalExercises} ejercicios`}
-              {split.estimatedDuration ? ` · unos ${split.estimatedDuration} min` : ""}
+              {totalExercises === 1 ? "1 ejercicio" : `${totalExercises} ejercicios`}{" "}
             </p>
             {/* Vista previa del día (#199): antes solo decía cuántos ejercicios venían. */}
             <ol aria-label="Ejercicios de hoy" className="w-full divide-y divide-border/60">

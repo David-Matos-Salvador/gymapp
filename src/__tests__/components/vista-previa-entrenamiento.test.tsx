@@ -42,7 +42,8 @@ describe("pantalla antes de iniciar el entrenamiento", () => {
   it("lista los ejercicios del día con músculo y series × repeticiones", () => {
     render(<WorkoutClient planId="plan-1" split={split} gym={null} lastPerformance={{}} />)
 
-    expect(screen.getByText("2 ejercicios · unos 45 min")).toBeTruthy()
+    // La duración estimada no se muestra (#41), aunque el día la tenga.
+    expect(screen.getByText("2 ejercicios")).toBeTruthy()
     const lista = screen.getByRole("list", { name: "Ejercicios de hoy" })
     const filas = within(lista).getAllByRole("listitem")
     expect(filas).toHaveLength(2)
