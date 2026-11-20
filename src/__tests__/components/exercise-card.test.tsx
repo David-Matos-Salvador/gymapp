@@ -253,17 +253,7 @@ describe("ExerciseCard", () => {
     expect(screen.queryByRole("button", { name: /Última:/ })).toBeNull()
   })
 
-  it.todo(
-    "tras tocar «Última: … · usar», el contador de peso sigue mostrando el valor de antes y «+» " +
-      "parte de ese valor viejo: el botón llama a `onWeightChange` pero no a `setLocalWeight` " +
-      "(exercise-card.tsx:194 y 335)"
-  )
-
-  it.todo(
-    "cambiar el peso con el contador reescribe también el peso de las series ya completadas: " +
-      "`onWeightChange` termina en `updateAllSetWeights`, que no distingue series hechas " +
-      "(workout-store.ts:118)"
-  )
+  // «usar» y el peso de las series ya hechas: ver peso-usar-ultima.test.tsx.
 
   it("saltar el ejercicio pregunta antes; si se dice que no, no lo salta", () => {
     const confirm = vi.spyOn(window, "confirm").mockReturnValue(false)
