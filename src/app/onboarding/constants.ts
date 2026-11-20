@@ -268,10 +268,10 @@ export const objectiveLabelMap: Record<string, string> = {
 }
 
 export const trainingHistoryLabelMap: Record<string, string> = {
-  NONE: "No he entrenado",
-  ONCE: "1x por semana",
-  TWO_TO_THREE: "2x a 3x",
-  FOUR_PLUS: "4x o más",
+  NONE: "No he entrenado antes",
+  ONCE: "1 vez por semana",
+  TWO_TO_THREE: "2 a 3 veces por semana",
+  FOUR_PLUS: "4 o más veces por semana",
 }
 
 export const experienceLabelMap: Record<string, string> = {
