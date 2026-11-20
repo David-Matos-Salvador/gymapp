@@ -86,9 +86,13 @@ export default async function CoachClientsListPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold">{client.name || "Sin nombre"}</p>
-                            {isMembershipActive && (
+                            {isMembershipActive ? (
                               <span className="inline-flex items-center gap-1 text-[10px] text-accent-yellow bg-accent-yellow/10 rounded-full px-1.5 py-0.5">
-                                <BadgeCheck className="h-3 w-3" /> Activo
+                                <BadgeCheck className="h-3 w-3" /> Membresía activa
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] text-destructive bg-destructive/10 rounded-full px-1.5 py-0.5">
+                                Sin membresía activa
                               </span>
                             )}
                             {!client.onboardingCompleted && (
