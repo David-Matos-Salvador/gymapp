@@ -600,13 +600,17 @@ export function CoachDashboard({
                           <Users className="h-5 w-5 text-accent-yellow" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <p className="text-sm font-medium truncate">
                               {client.name || "Sin nombre"}
                             </p>
-                            {client.hasActiveMembership && (
-                              <span className="inline-flex items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-accent-yellow">
-                                Activo
+                            {client.hasActiveMembership ? (
+                              <span className="inline-flex shrink-0 items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-accent-yellow">
+                                Membresía activa
+                              </span>
+                            ) : (
+                              <span className="inline-flex shrink-0 items-center rounded-full bg-destructive/10 px-1.5 py-0.5 text-xs font-medium text-destructive">
+                                Sin membresía activa
                               </span>
                             )}
                             {!client.onboardingCompleted && (
