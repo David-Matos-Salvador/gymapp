@@ -380,7 +380,7 @@ export default function CoachClientDetail() {
               <div className="flex flex-wrap gap-2">
                 {isMembershipActive ? (
                   <span className="inline-flex items-center gap-1 text-xs text-accent-yellow bg-accent-yellow/10 rounded-full px-2 py-0.5">
-                    <CheckCircle className="h-3 w-3" /> Activo
+                    <CheckCircle className="h-3 w-3" /> Membresía activa
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs text-destructive bg-destructive/10 rounded-full px-2 py-0.5">
