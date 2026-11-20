@@ -332,6 +332,7 @@ export function ExerciseCard({
               <button
                 type="button"
                 onClick={() => {
+                  setLocalWeight(previousSet.weight)
                   onWeightChange?.(previousSet.weight)
                   if (nextIncomplete >= 0) {
                     onSetUpdate?.(nextIncomplete, {
