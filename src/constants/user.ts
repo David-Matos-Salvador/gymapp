@@ -1,10 +1,12 @@
+// Los objetivos que también se eligen en el onboarding usan el mismo nombre que ahí
+// (`objectiveLabelMap`), para que la persona vea en su perfil lo que eligió.
 export const OBJECTIVE_LABELS: Record<string, string> = {
-  WEIGHT_LOSS: "Pérdida de peso",
-  MUSCLE_GAIN: "Ganancia muscular",
+  WEIGHT_LOSS: "Perder peso",
+  MUSCLE_GAIN: "Ganar masa muscular",
   TONING: "Tonificación",
   STRENGTH: "Fuerza",
   ENDURANCE: "Resistencia",
-  GENERAL_FITNESS: "Fitness general",
+  GENERAL_FITNESS: "Mejorar forma física",
   REHABILITATION: "Rehabilitación",
   COMPETITION: "Competición",
 }
