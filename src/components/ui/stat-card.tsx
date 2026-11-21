@@ -35,9 +35,9 @@ export function StatCard({
     <Card
       size="sm"
       className={cn(
-        "h-full border-t-2 transition-shadow hover:shadow-md",
+        "h-full border-t-2",
         borderColor,
-        (href || onClick) && "cursor-pointer"
+        (href || onClick) && "cursor-pointer transition-shadow hover:shadow-md"
       )}
       onClick={onClick}
     >

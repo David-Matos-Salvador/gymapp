@@ -358,7 +358,7 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
         />
       )}
 
-      <div
+      <main
         className={cn(
           "container mx-auto max-w-2xl space-y-5 px-4 py-4 pb-28 md:py-8",
           showCelebration && "hidden"
@@ -663,7 +663,7 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
             </Button>
           </div>
         )}
-      </div>
+      </main>
     </AppShell>
   )
 }

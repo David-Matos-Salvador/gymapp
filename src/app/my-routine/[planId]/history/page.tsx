@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { formatSessionVolume, formatSet, pluralize } from "@/lib/utils"
+import { formatSplitTitle } from "@/lib/split-title"
 import { AppShell } from "@/components/layout/shell"
 import { Breadcrumb } from "@/components/layout/breadcrumb"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -100,7 +101,7 @@ export default async function HistorialPage({ params }: PageProps) {
                       <div>
                         <CardTitle className="text-base">
                           {log.split
-                            ? `${log.split.label} · ${log.split.name}`
+                            ? formatSplitTitle(log.split.label, log.split.name, " · ")
                             : "Entrenamiento libre"}
                         </CardTitle>
                         <p className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">

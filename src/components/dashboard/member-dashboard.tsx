@@ -176,7 +176,12 @@ export function MemberDashboard({
           </div>
         </StatCard>
 
-        <StatCard label="Coach" icon={UserCheck} delay={0.15}>
+        <StatCard
+          label="Coach"
+          icon={UserCheck}
+          href={coach.hasCoach ? "/sessions" : undefined}
+          delay={0.15}
+        >
           <div className="mt-1.5">
             {coach.hasCoach ? (
               <>
@@ -192,7 +197,12 @@ export function MemberDashboard({
                 <p className="text-xs text-muted-foreground mt-1">Solicitud enviada</p>
               </>
             ) : (
-              <p className="text-xs text-muted-foreground">Sin entrenador asignado</p>
+              <>
+                <p className="text-xs text-muted-foreground">Sin entrenador asignado</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Un coach del gimnasio te enviará una solicitud
+                </p>
+              </>
             )}
           </div>
         </StatCard>
