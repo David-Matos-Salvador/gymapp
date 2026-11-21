@@ -3,10 +3,10 @@ import { HeroSection } from "@/components/landing/hero-section"
 import { RolesSection } from "@/components/landing/roles-section"
 import { StartSection } from "@/components/landing/start-section"
 import { DemoSection } from "@/components/landing/demo-section"
-import { PricingSection } from "@/components/landing/pricing-section"
+import { FreeSection } from "@/components/landing/free-section"
 import { CTASection } from "@/components/landing/cta-section"
 import { FooterSection } from "@/components/landing/footer-section"
-import { roles, steps, plans } from "@/constants/landing"
+import { roles, steps, freeFeatures } from "@/constants/landing"
 import { contactWhatsappUrl } from "@/lib/contact-whatsapp"
 import { connection } from "next/server"
 
@@ -23,7 +23,7 @@ export default async function LandingPage() {
         <RolesSection roles={roles} />
         <StartSection steps={steps} />
         <DemoSection />
-        <PricingSection plans={plans} whatsappUrl={whatsappUrl} />
+        <FreeSection features={freeFeatures} whatsappUrl={whatsappUrl} />
         <CTASection whatsappUrl={whatsappUrl} />
       </main>
       <FooterSection />

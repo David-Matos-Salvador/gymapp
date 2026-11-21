@@ -1,24 +1,24 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from "vitest"
 import { cleanup, render, screen } from "@testing-library/react"
-import { PricingSection } from "@/components/landing/pricing-section"
+import { FreeSection } from "@/components/landing/free-section"
 import { CTASection } from "@/components/landing/cta-section"
 import { contactWhatsappUrl, normalizePeruWhatsapp } from "@/lib/contact-whatsapp"
-import { roles, steps, plans } from "@/constants/landing"
+import { roles, steps, freeFeatures } from "@/constants/landing"
 
 afterEach(cleanup)
 
 // #137: la portada cuenta lo que la app hace hoy y no muestra precios que no están definidos.
 describe("portada", () => {
-  it("los planes muestran «Precio por definir» y ningún precio en dólares", () => {
-    const { container } = render(<PricingSection plans={plans} />)
-    expect(screen.getAllByText("Precio por definir")).toHaveLength(plans.length)
-    expect(container.textContent).not.toMatch(/\$\s?\d/)
-    expect(screen.queryByText(/Enterprise/i)).toBeNull()
+  it("dice que es gratis, sin planes ni precios (David, 21/11)", () => {
+    const { container } = render(<FreeSection features={freeFeatures} />)
+    expect(screen.getByRole("heading", { name: "Gratis por ahora" })).toBeTruthy()
+    expect(container.textContent).not.toMatch(/Básico|\bPro\b|Precio por definir|S\/\s?\d|\$\s?\d/)
+    expect(container.textContent).toMatch(/gimnasio o eres coach/)
   })
 
   it("no anuncia funciones que todavía no existen", () => {
-    const textos = JSON.stringify({ roles, steps, plans })
+    const textos = JSON.stringify({ roles, steps, freeFeatures })
     // Stripe, avisos push y días fijos son `despues-de-produccion`; QR, sucursales y la prueba
     // gratis los prometía la portada anterior sin que la app los tuviera.
     for (const prometido of [/stripe/i, /push/i, /\bQR\b/, /sucursal/i, /prueba gratis/i]) {
@@ -27,7 +27,7 @@ describe("portada", () => {
   })
 
   it("habla de tú", () => {
-    const textos = JSON.stringify({ roles, steps, plans })
+    const textos = JSON.stringify({ roles, steps, freeFeatures })
     expect(textos).not.toMatch(/\b(usted|podés|elegí|vos)\b/i)
   })
 })
@@ -53,14 +53,16 @@ describe("botón de WhatsApp para gimnasios", () => {
   it("el enlace es de wa.me con un mensaje inicial", () => {
     const url = contactWhatsappUrl("+51 987 654 321")!
     expect(url.startsWith("https://wa.me/51987654321?text=")).toBe(true)
-    expect(decodeURIComponent(url.split("text=")[1])).toBe("Hola, quiero GymApp para mi gimnasio.")
+    expect(decodeURIComponent(url.split("text=")[1])).toBe(
+      "Hola, quiero una cuenta de GymApp para mi gimnasio o como coach."
+    )
   })
 
-  it("con número, aparece en planes y en el llamado final y abre en otra pestaña", () => {
+  it("con número, aparece en «Gratis por ahora» y en el llamado final y abre en otra pestaña", () => {
     const url = "https://wa.me/51987654321"
     render(
       <>
-        <PricingSection plans={plans} whatsappUrl={url} />
+        <FreeSection features={freeFeatures} whatsappUrl={url} />
         <CTASection whatsappUrl={url} />
       </>
     )
@@ -76,7 +78,7 @@ describe("botón de WhatsApp para gimnasios", () => {
   it("sin número no se muestra el botón", () => {
     render(
       <>
-        <PricingSection plans={plans} />
+        <FreeSection features={freeFeatures} />
         <CTASection />
       </>
     )

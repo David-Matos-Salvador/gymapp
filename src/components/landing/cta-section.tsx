@@ -16,7 +16,9 @@ export function CTASection({ whatsappUrl = null }: { whatsappUrl?: string | null
             Crea tu cuenta, responde unas preguntas y empieza a entrenar con un plan hecho para ti.
           </p>
           {whatsappUrl && (
-            <p className="mt-2 text-base leading-relaxed">¿Tienes un gimnasio? Escríbenos.</p>
+            <p className="mt-2 text-base leading-relaxed">
+              ¿Tienes un gimnasio o eres coach? Escríbenos.
+            </p>
           )}
         </div>
         <div className="flex shrink-0 flex-col gap-3 self-start sm:flex-row md:self-auto">

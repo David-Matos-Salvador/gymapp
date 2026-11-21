@@ -1,11 +1,11 @@
 /**
- * Botón «Escríbenos por WhatsApp» de la portada, para gimnasios interesados. El número sale de
- * `CONTACT_WHATSAPP` (en el servidor, en tiempo de ejecución; no está en el repo). Es de Perú:
+ * Botón «Escríbenos por WhatsApp» de la portada, para gimnasios y coaches que quieran su cuenta.
+ * El número sale de `CONTACT_WHATSAPP` (en el servidor, en tiempo de ejecución; no está en el repo). Es de Perú:
  * puede venir con o sin +51 y con espacios o guiones.
  */
 
 const PERU_CODE = "51"
-const WHATSAPP_MESSAGE = "Hola, quiero GymApp para mi gimnasio."
+const WHATSAPP_MESSAGE = "Hola, quiero una cuenta de GymApp para mi gimnasio o como coach."
 
 /** Solo dígitos, con 51 adelante, o null si no parece un número de Perú. */
 export function normalizePeruWhatsapp(raw: string | undefined | null): string | null {
