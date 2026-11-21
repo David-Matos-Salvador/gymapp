@@ -98,6 +98,8 @@ interface ClientData {
   objective: string | null
   experienceLevel: string | null
   medicalNotes: string | null
+  physicalConditions?: string[]
+  conditionDetail?: string | null
   emergencyContact: string | null
   emergencyPhone: string | null
   onboardingCompleted: boolean
@@ -424,6 +426,15 @@ export default function CoachClientDetail() {
                   </div>
                 )}
               </div>
+              {(client.physicalConditions?.length ?? 0) > 0 && (
+                <div className="rounded-lg border p-3 mt-2">
+                  <p className="text-xs font-medium">Condiciones físicas</p>
+                  <p className="text-xs mt-1">{client.physicalConditions!.join(", ")}</p>
+                  {client.conditionDetail && (
+                    <p className="text-xs mt-1 text-muted-foreground">{client.conditionDetail}</p>
+                  )}
+                </div>
+              )}
               {client.medicalNotes && (
                 <div className="rounded-lg bg-accent-yellow/10 p-3 mt-2">
                   <div className="flex items-center gap-1.5 text-xs">

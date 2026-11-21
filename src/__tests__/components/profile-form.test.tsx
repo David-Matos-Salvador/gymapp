@@ -371,17 +371,34 @@ describe("ProfileForm", () => {
       const fetchMock = mockFetch(jsonResponse({ ok: true }))
       renderForm()
 
-      await choose(screen.getByRole("combobox", { name: "Objetivo" }), "Fuerza")
+      await choose(screen.getByRole("combobox", { name: "Objetivo" }), "Perder peso")
       await choose(screen.getByRole("combobox", { name: "Nivel de experiencia" }), "Avanzado")
       await choose(screen.getByRole("combobox", { name: "Sexo" }), "Otro")
       fireEvent.click(saveButton())
 
       await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
       expect(sentJson(fetchMock)).toMatchObject({
-        objective: "STRENGTH",
+        objective: "WEIGHT_LOSS",
         experienceLevel: "ADVANCED",
         sex: "OTHER",
       })
+    })
+
+    it("ofrece los mismos objetivos que el onboarding (#215)", async () => {
+      renderForm()
+
+      fireEvent.keyDown(screen.getByRole("combobox", { name: "Objetivo" }), { key: "Enter" })
+      const options = (await screen.findAllByRole("option")).map((o) => o.textContent)
+      expect(options).toEqual(["Perder peso", "Ganar masa muscular", "Mejorar forma física"])
+    })
+
+    it("a quien ya tenía otro objetivo se lo sigue mostrando", async () => {
+      renderForm({ ...member, objective: "STRENGTH" })
+
+      fireEvent.keyDown(screen.getByRole("combobox", { name: "Objetivo" }), { key: "Enter" })
+      const options = (await screen.findAllByRole("option")).map((o) => o.textContent)
+      expect(options).toContain("Fuerza")
+      expect(options).not.toContain("Tonificación")
     })
 
     it("la fecha de nacimiento se manda como AAAA-MM-DD", async () => {

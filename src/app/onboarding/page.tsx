@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { useSound } from "@/hooks/use-sound"
 import { calculateBMI, getBMICategory } from "@/lib/health"
 import { createDoubleTap } from "@/lib/double-tap"
+import { CONDITION_DETAIL_MAX, needsProfessionalAdvice } from "@/lib/health-conditions"
 import { exercisesPerDay } from "@/lib/utils"
 import {
   cleanDecimalInput,
@@ -131,6 +132,7 @@ export default function OnboardingPage() {
     experienceLevel: null,
     trainingFrequency: null,
     physicalConditions: [],
+    conditionDetail: "",
     weight: null,
     height: null,
     usualSchedule: null,
@@ -965,6 +967,8 @@ export default function OnboardingPage() {
                 return (
                   <motion.button
                     key={condition}
+                    type="button"
+                    aria-pressed={isSelected}
                     whileTap={{ scale: 0.96 }}
                     onClick={() => {
                       play("click")
@@ -997,6 +1001,30 @@ export default function OnboardingPage() {
                 )
               })}
             </div>
+            {data.physicalConditions.some((c) => c !== "No poseo") && (
+              <div className="space-y-2">
+                <label htmlFor="conditionDetail" className="text-sm font-medium">
+                  ¿Cuál? (opcional)
+                </label>
+                <Input
+                  id="conditionDetail"
+                  value={data.conditionDetail}
+                  maxLength={CONDITION_DETAIL_MAX}
+                  placeholder="Ej.: lesión en la rodilla derecha"
+                  aria-describedby="conditionDetailHint"
+                  onChange={(e) => updateData("conditionDetail", e.target.value)}
+                />
+                <p id="conditionDetailHint" className="text-xs text-muted-foreground">
+                  Solo lo ven tú y tu coach.
+                </p>
+                {needsProfessionalAdvice(data.physicalConditions) && (
+                  <p className="rounded-lg border p-3 text-sm" role="note">
+                    Antes de empezar, consulta con un profesional de la salud qué ejercicios te
+                    convienen.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )
 
@@ -1168,7 +1196,9 @@ export default function OnboardingPage() {
                       {isSelected && <Check className="h-4 w-4 text-primary-foreground" />}
                     </div>
                     <div className="flex items-center gap-3 flex-1">
-                      <span className="text-xl">{opt.icon}</span>
+                      <span className="text-xl" aria-hidden="true">
+                        {opt.icon}
+                      </span>
                       <div>
                         <p className="font-semibold text-base">{opt.label}</p>
                         <p className="text-sm text-muted-foreground">{opt.time}</p>
@@ -1268,7 +1298,14 @@ export default function OnboardingPage() {
               />
               <SummaryRow
                 label="Condiciones"
-                value={data.physicalConditions.map(physicalConditionLabel).join(", ")}
+                value={[
+                  data.physicalConditions.map(physicalConditionLabel).join(", "),
+                  data.physicalConditions.some((c) => c !== "No poseo")
+                    ? data.conditionDetail.trim()
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
                 onEdit={() => jumpToEditStep(6)}
               />
               <SummaryRow
@@ -1553,10 +1590,12 @@ export default function OnboardingPage() {
                                 <Dumbbell className="h-3 w-3" />
                                 {plan.splits.length} divisiones
                               </span>
-                              <span className="flex items-center gap-1">
-                                <Zap className="h-3 w-3" />
-                                {plan.focus}
-                              </span>
+                              {plan.focus && (
+                                <span className="flex items-center gap-1">
+                                  <Zap className="h-3 w-3" />
+                                  {plan.focus}
+                                </span>
+                              )}
                               <span>{exercisesPerDay(plan.splits)}</span>
                             </div>
                           </div>

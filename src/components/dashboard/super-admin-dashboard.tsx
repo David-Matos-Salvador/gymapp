@@ -28,7 +28,6 @@ import {
   TrendingUp,
   Store,
   Globe,
-  ShieldCheck,
   Plus,
   Hash,
   Pencil,
@@ -278,11 +277,7 @@ export function SuperAdminDashboard({
             <Globe className="h-7 w-7 text-gold" />
             Panel de Plataforma
           </h1>
-          <p className="text-muted-foreground">Súper Admin — Gestión global de GymApp</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-gold" />
-          <span className="text-sm font-medium text-gold">Súper Admin</span>
+          <p className="text-muted-foreground">Gestión global de GymApp</p>
         </div>
       </div>
 

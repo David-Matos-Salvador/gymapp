@@ -4,7 +4,7 @@ import { getTrainerClientIds } from "@/lib/trainer-client"
 import { MuscleGroup, Equipment } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { generatedPlanName } from "@/lib/generated-routine"
+import { focusForObjective, generatedPlanName } from "@/lib/generated-routine"
 
 const fitnessCoachSchema = z.object({
   objective: z.enum(["WEIGHT_LOSS", "MUSCLE_GAIN", "GENERAL_FITNESS", "UNSURE"]),
@@ -768,7 +768,7 @@ export async function POST(request: Request) {
     id: p.id,
     name: p.name,
     description: p.description,
-    focus: templateForName(p.name)?.focus ?? "General",
+    focus: focusForObjective(templateForName(p.name)?.focus, p.objective),
     difficulty: p.difficulty ?? templateForName(p.name)?.level ?? "INTERMEDIATE",
     frequency: p.frequency ?? trainingFrequency,
     objective: p.objective ?? "GENERAL_FITNESS",

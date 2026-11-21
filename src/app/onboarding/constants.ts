@@ -80,6 +80,8 @@ export interface OnboardingData {
   experienceLevel: ExperienceLevelStep | null
   trainingFrequency: number | null
   physicalConditions: string[]
+  /** «¿Cuál?» de la condición marcada (opcional; lo ven solo el miembro y su coach). */
+  conditionDetail: string
   weight: number | null
   height: number | null
   usualSchedule: UsualSchedule | null
@@ -90,7 +92,7 @@ export interface GeneratedPlanData {
   id: string
   name: string
   description: string | null
-  focus: string
+  focus: string | null
   difficulty: string
   frequency: number
   objective: string
@@ -189,7 +191,7 @@ export const experienceOptions = [
     value: "BEGINNER",
     label: "Principiante",
     icon: HelpCircle,
-    description: "Nunca he entrenado antes",
+    description: "Sé poco de técnica",
   },
   { value: "INTERMEDIATE", label: "Intermedio", icon: Dumbbell, description: "Conozco lo básico" },
   {
@@ -207,8 +209,8 @@ export const trainingFrequencyOptions = [
     label: "3 días por semana",
     description: "Ideal para principiantes — volumen equilibrado",
   },
-  { value: 4, label: "4 días por semana", description: "Balance óptimo — 4 días de entrenamiento" },
-  { value: 5, label: "5 días por semana", description: "Máximo rendimiento — 5 días intensivos" },
+  { value: 4, label: "4 días por semana", description: "Balance entre entrenar y descansar" },
+  { value: 5, label: "5 días por semana", description: "Para quien ya tiene base" },
 ]
 
 export const physicalConditionOptions = [
@@ -227,11 +229,11 @@ export function physicalConditionLabel(condition: string): string {
 }
 
 export const scheduleOptions = [
-  { value: "BEFORE_8AM", label: "Madrugada", time: "5 a. m. – 8 a. m.", icon: "🌅" },
+  { value: "BEFORE_8AM", label: "Madrugada", time: "5 a. m. – 8 a. m.", icon: "🌄" },
   { value: "8AM_11AM", label: "Mañana", time: "8 a. m. – 11 a. m.", icon: "🌤️" },
   { value: "11AM_2PM", label: "Mediodía", time: "11 a. m. – 2 p. m.", icon: "☀️" },
-  { value: "2PM_5PM", label: "Tarde", time: "2 p. m. – 5 p. m.", icon: "🌤️" },
-  { value: "5PM_7PM", label: "Atardecer", time: "5 p. m. – 7 p. m.", icon: "🌅" },
+  { value: "2PM_5PM", label: "Tarde", time: "2 p. m. – 5 p. m.", icon: "⛅" },
+  { value: "5PM_7PM", label: "Atardecer", time: "5 p. m. – 7 p. m.", icon: "🌇" },
   { value: "7PM_9PM", label: "Noche", time: "7 p. m. – 9 p. m.", icon: "🌙" },
   { value: "AFTER_9PM", label: "Trasnoche", time: "Desde las 9 p. m.", icon: "🌑" },
 ]

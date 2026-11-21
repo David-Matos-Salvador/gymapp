@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { healthConditionsOf } from "@/lib/health-conditions"
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -38,6 +39,7 @@ export async function GET(request: Request, { params }: RouteParams) {
       emergencyContact: true,
       emergencyPhone: true,
       onboardingCompleted: true,
+      onboardingData: true,
       bodyMeasurements: { orderBy: { date: "desc" }, take: 10 },
       assignedRoutinePlans: {
         where: { active: true },
@@ -70,7 +72,9 @@ export async function GET(request: Request, { params }: RouteParams) {
     return NextResponse.json({ error: "Cliente no encontrado" }, { status: 404 })
   }
 
-  return NextResponse.json({ client })
+  // De las respuestas del onboarding, el coach solo necesita las condiciones físicas.
+  const { onboardingData, ...rest } = client
+  return NextResponse.json({ client: { ...rest, ...healthConditionsOf(onboardingData) } })
 }
 
 export async function DELETE(request: Request, { params }: RouteParams) {
