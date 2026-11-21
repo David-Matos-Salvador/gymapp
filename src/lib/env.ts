@@ -65,6 +65,8 @@ const envObjectSchema = z.object({
   // Correos con Resend. Sin llave no se envían (se registra en el log).
   RESEND_API_KEY: optionalString(),
   EMAIL_FROM: optionalString(),
+  // Número de WhatsApp de contacto (Perú) para el botón de la portada. Vacío = sin botón.
+  CONTACT_WHATSAPP: optionalString(),
   STRIPE_SECRET_KEY: optionalString(),
   STRIPE_WEBHOOK_SECRET: optionalString(),
   // Recomendación de rutina con IA en el onboarding (#117). Sin llave se usa la regla normal.

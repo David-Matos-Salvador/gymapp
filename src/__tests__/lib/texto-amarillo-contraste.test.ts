@@ -4,7 +4,8 @@ import { describe, it, expect } from "vitest"
 
 // El amarillo de marca #ffd700 sobre blanco tiene contraste 1,4:1 (issue #229): se usa solo como
 // fondo. El texto y los íconos amarillos van con `text-gold`, que en el tema claro es un dorado
-// oscuro con contraste AA.
+// oscuro con contraste AA. Excepción: los botones negros (`bg-primary-foreground`) de la portada
+// llevan el amarillo como texto, que sobre negro sí se lee (≈15:1).
 const PROHIBIDA = /(^|[^\w-])(?:[\w-]+:)*text-(?:primary|accent-yellow)(?:\/\d+)?(?![\w-])/
 
 function archivos(dir: string): string[] {
@@ -31,7 +32,11 @@ function contraste(a: string, b: string): number {
 describe("contraste del amarillo en el tema claro", () => {
   it("ninguna pantalla usa text-primary ni text-accent-yellow como color de texto", () => {
     const hallazgos = archivos(path.join(process.cwd(), "src"))
-      .filter((ruta) => PROHIBIDA.test(readFileSync(ruta, "utf8")))
+      .filter((ruta) =>
+        readFileSync(ruta, "utf8")
+          .split("\n")
+          .some((linea) => PROHIBIDA.test(linea) && !linea.includes("bg-primary-foreground"))
+      )
       .map((ruta) => path.relative(process.cwd(), ruta))
     expect(hallazgos).toEqual([])
   })

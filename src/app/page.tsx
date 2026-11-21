@@ -7,8 +7,14 @@ import { PricingSection } from "@/components/landing/pricing-section"
 import { CTASection } from "@/components/landing/cta-section"
 import { FooterSection } from "@/components/landing/footer-section"
 import { roles, steps, plans } from "@/constants/landing"
+import { contactWhatsappUrl } from "@/lib/contact-whatsapp"
+import { connection } from "next/server"
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  // CONTACT_WHATSAPP se lee en tiempo de ejecución (no se congela en el build).
+  await connection()
+  const whatsappUrl = contactWhatsappUrl(process.env.CONTACT_WHATSAPP)
+
   return (
     <div className="overflow-x-clip">
       <HeaderSection />
@@ -17,8 +23,8 @@ export default function LandingPage() {
         <RolesSection roles={roles} />
         <StartSection steps={steps} />
         <DemoSection />
-        <PricingSection plans={plans} />
-        <CTASection />
+        <PricingSection plans={plans} whatsappUrl={whatsappUrl} />
+        <CTASection whatsappUrl={whatsappUrl} />
       </main>
       <FooterSection />
     </div>

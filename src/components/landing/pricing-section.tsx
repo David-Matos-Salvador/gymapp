@@ -2,9 +2,12 @@ import { Check } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import type { LandingPlan } from "@/constants/landing"
+import { WhatsappButton } from "@/components/landing/whatsapp-button"
 
 interface PricingSectionProps {
   plans: LandingPlan[]
+  /** Sin número configurado no hay botón. */
+  whatsappUrl?: string | null
 }
 
 // Hueco visible para un dato que David todavía tiene que definir (#137).
@@ -21,7 +24,7 @@ function PorDefinir({ children, className }: { children: React.ReactNode; classN
   )
 }
 
-export function PricingSection({ plans }: PricingSectionProps) {
+export function PricingSection({ plans, whatsappUrl = null }: PricingSectionProps) {
   return (
     <section aria-labelledby="planes" className="border-t">
       <div className="container mx-auto px-4 py-16 md:py-24">
@@ -67,10 +70,19 @@ export function PricingSection({ plans }: PricingSectionProps) {
                 </CardContent>
               </Card>
             ))}
-            <p className="text-sm leading-relaxed text-muted-foreground md:col-span-2">
-              ¿Quieres GymApp en tu gimnasio? Escríbenos a{" "}
-              <PorDefinir className="py-0 text-sm">contacto por definir</PorDefinir>.
-            </p>
+            {whatsappUrl ? (
+              <div className="flex flex-col items-start gap-3 md:col-span-2">
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  ¿Quieres GymApp en tu gimnasio?
+                </p>
+                <WhatsappButton href={whatsappUrl} />
+              </div>
+            ) : (
+              <p className="text-sm leading-relaxed text-muted-foreground md:col-span-2">
+                ¿Quieres GymApp en tu gimnasio? Escríbenos a{" "}
+                <PorDefinir className="py-0 text-sm">contacto por definir</PorDefinir>.
+              </p>
+            )}
           </div>
         </div>
       </div>
