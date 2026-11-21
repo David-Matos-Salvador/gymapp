@@ -1,5 +1,6 @@
 import { test, expect, type Browser, type Locator, type Page } from "@playwright/test"
 import { findUser, prisma } from "./db"
+import { SEED_PASSWORD } from "../seed-password"
 
 /**
  * Agenda 1:1: el coach define sus horas, un cliente reserva, otro cliente ya
@@ -11,7 +12,7 @@ import { findUser, prisma } from "./db"
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-const PASSWORD = "demo123"
+const PASSWORD = SEED_PASSWORD
 const COACH = "trainer@gymapp.com"
 const CLIENT_A = "carlos@gymapp.com"
 const CLIENT_B = "ana@gymapp.com"

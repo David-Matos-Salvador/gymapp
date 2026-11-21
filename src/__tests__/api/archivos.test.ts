@@ -7,7 +7,9 @@ const mocks = vi.hoisted(() => {
   const photoFindUnique = vi.fn()
   const photoCreate = vi.fn()
   const photoDelete = vi.fn()
+  const paymentFindFirst = vi.fn()
   return {
+    paymentFindFirst,
     userFindUnique,
     userUpdate,
     photoFindMany,
@@ -20,6 +22,7 @@ const mocks = vi.hoisted(() => {
     logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn() },
     prisma: {
       user: { findUnique: userFindUnique, update: userUpdate },
+      payment: { findFirst: paymentFindFirst },
       progressPhoto: {
         findMany: photoFindMany,
         findUnique: photoFindUnique,
@@ -61,6 +64,19 @@ import { DELETE as deletePhoto } from "@/app/api/progress-photos/[id]/route"
 
 const member = { id: "member-1", email: "ana@test.com", role: "MEMBER", gymId: "gym-1" }
 const otherMember = { id: "member-2", email: "beto@test.com", role: "MEMBER", gymId: "gym-2" }
+const admin = { id: "admin-1", email: "admin@test.com", role: "ADMIN", gymId: "gym-1" }
+const otherAdmin = { id: "admin-2", email: "admin2@test.com", role: "ADMIN", gymId: "gym-2" }
+const coach = { id: "coach-1", email: "coach@test.com", role: "TRAINER", gymId: "gym-1" }
+const otherCoach = { id: "coach-2", email: "coach2@test.com", role: "TRAINER", gymId: "gym-1" }
+const superAdmin = { id: "super-1", email: "super@test.com", role: "SUPER_ADMIN", gymId: null }
+
+/** El comprobante pertenece a un pago de este miembro. */
+function receiptOf(owner: { id: string; gymId: string }, assignedTrainerId: string | null = null) {
+  mocks.paymentFindFirst.mockResolvedValue({
+    userId: owner.id,
+    user: { gymId: owner.gymId, assignedTrainerId },
+  })
+}
 
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0])
 
@@ -119,8 +135,10 @@ describe("GET /api/files/[...key]", () => {
     expect(mocks.readStoredFile).not.toHaveBeenCalled()
   })
 
-  it("con sesión devuelve el comprobante con caché privada", async () => {
+  it("el miembro que lo subió ve su comprobante, con caché privada", async () => {
     sessionAs(member)
+    usersInDb(member)
+    receiptOf(member)
     mocks.readStoredFile.mockResolvedValue({ body: PNG, contentType: "image/png" })
     const res = await fileRequest("receipts/123-abc.png")
     expect(res.status).toBe(200)
@@ -151,9 +169,68 @@ describe("GET /api/files/[...key]", () => {
     expect(mocks.logger.error).toHaveBeenCalled()
   })
 
-  it.todo(
-    "cualquier persona con sesión (de cualquier gimnasio y rol) puede abrir el comprobante de pago de otra si conoce la ruta; no se comprueba que el comprobante sea suyo o de su gimnasio"
-  )
+  it("busca el pago por la ruta del comprobante", async () => {
+    sessionAs(member)
+    usersInDb(member)
+    receiptOf(member)
+    mocks.readStoredFile.mockResolvedValue({ body: PNG, contentType: "image/png" })
+    await fileRequest("receipts/123-abc.png")
+    expect(mocks.paymentFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { receiptUrl: "/api/files/receipts/123-abc.png" } })
+    )
+  })
+
+  it("otro miembro, aunque sea del mismo gimnasio, recibe 404", async () => {
+    const sameGym = { ...otherMember, gymId: "gym-1" }
+    sessionAs(sameGym)
+    usersInDb(sameGym)
+    receiptOf(member)
+    const res = await fileRequest("receipts/123-abc.png")
+    expect(res.status).toBe(404)
+    expect(mocks.readStoredFile).not.toHaveBeenCalled()
+  })
+
+  it("el admin del gimnasio del miembro lo ve; el de otro gimnasio recibe 404", async () => {
+    mocks.readStoredFile.mockResolvedValue({ body: PNG, contentType: "image/png" })
+    receiptOf(member)
+
+    sessionAs(admin)
+    usersInDb(admin)
+    expect((await fileRequest("receipts/123-abc.png")).status).toBe(200)
+
+    sessionAs(otherAdmin)
+    usersInDb(otherAdmin)
+    expect((await fileRequest("receipts/123-abc.png")).status).toBe(404)
+  })
+
+  it("lo ve el coach asignado al miembro, pero no otro coach del gimnasio", async () => {
+    mocks.readStoredFile.mockResolvedValue({ body: PNG, contentType: "image/png" })
+    receiptOf(member, coach.id)
+
+    sessionAs(coach)
+    usersInDb(coach)
+    expect((await fileRequest("receipts/123-abc.png")).status).toBe(200)
+
+    sessionAs(otherCoach)
+    usersInDb(otherCoach)
+    expect((await fileRequest("receipts/123-abc.png")).status).toBe(404)
+  })
+
+  it("el súper admin ve cualquier comprobante", async () => {
+    mocks.readStoredFile.mockResolvedValue({ body: PNG, contentType: "image/png" })
+    receiptOf(member)
+    sessionAs(superAdmin)
+    usersInDb(superAdmin)
+    expect((await fileRequest("receipts/123-abc.png")).status).toBe(200)
+  })
+
+  it("un comprobante sin pago registrado responde 404", async () => {
+    sessionAs(member)
+    usersInDb(member)
+    mocks.paymentFindFirst.mockResolvedValue(null)
+    expect((await fileRequest("receipts/123-abc.png")).status).toBe(404)
+    expect(mocks.readStoredFile).not.toHaveBeenCalled()
+  })
 })
 
 // ---------------------------------------------------------------------------

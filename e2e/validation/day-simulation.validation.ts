@@ -19,9 +19,10 @@ import {
   renewMembership,
   snapshot,
 } from "./db"
+import { SEED_PASSWORD } from "../seed-password"
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-const PASSWORD = "demo123"
+const PASSWORD = SEED_PASSWORD
 const RUN_ID = new Date().toISOString().replace(/[:.]/g, "-")
 const STARTED_AT = new Date().toISOString()
 const UNIQUE = Date.now().toString(36)

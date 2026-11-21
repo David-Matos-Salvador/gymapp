@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { AppShell } from "@/components/layout/shell"
 import { ProfileHeader } from "@/components/profile/profile-header"
 import { ProfileForm } from "@/components/profile/profile-form"
+import { healthConditionsOf } from "@/lib/health-conditions"
 import { ProfileActions } from "@/components/profile/profile-actions"
 import { Suspense } from "react"
 import { ProfileSkeleton } from "@/components/profile/profile-skeleton"
@@ -38,6 +39,7 @@ export default async function ProfilePage() {
       weight: true,
       image: true,
       bio: true,
+      onboardingData: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -45,8 +47,10 @@ export default async function ProfilePage() {
 
   if (!user) redirect("/login")
 
+  const { onboardingData, ...profile } = user
   const serializedUser = {
-    ...user,
+    ...profile,
+    ...healthConditionsOf(onboardingData),
     createdAt: user.createdAt.toISOString(),
     updatedAt: user.updatedAt?.toISOString(),
     birthDate: user.birthDate?.toISOString() ?? null,

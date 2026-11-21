@@ -1,7 +1,8 @@
 import { test, expect, type Page } from "@playwright/test"
+import { SEED_PASSWORD } from "./seed-password"
 
 const EMAIL = "carlos@gymapp.com"
-const PASSWORD = "demo123"
+const PASSWORD = SEED_PASSWORD
 
 async function login(page: Page) {
   await page.goto("/login")
@@ -32,7 +33,7 @@ test.describe("Routines Flow", () => {
   test("no routine assigned shows empty state for new user", async ({ page }) => {
     await page.goto("/login")
     await page.fill('input[type="email"]', "valentina@gymapp.com")
-    await page.fill('input[type="password"]', "demo123")
+    await page.fill('input[type="password"]', PASSWORD)
     await page.getByRole("button", { name: /iniciar sesión/i }).click()
 
     await expect(page.getByText(/No tienes una rutina personalizada asignada/i)).toBeVisible({

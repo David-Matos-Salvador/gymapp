@@ -38,6 +38,13 @@ export default async function MembresiaPage() {
       })
     : []
 
+  const gym = user.gymId
+    ? await prisma.gym.findUnique({
+        where: { id: user.gymId },
+        select: { paymentInstructions: true },
+      })
+    : null
+
   const pendingPayment = await prisma.payment.findFirst({
     where: { userId: user.id, type: "MEMBERSHIP", status: "PENDING" },
     orderBy: { createdAt: "desc" },
@@ -93,6 +100,7 @@ export default async function MembresiaPage() {
         membership={serializedMembership}
         pendingPayment={serializedPendingPayment}
         plans={serializedPlans}
+        paymentInstructions={gym?.paymentInstructions ?? null}
       />
     </AppShell>
   )

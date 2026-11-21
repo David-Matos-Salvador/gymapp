@@ -43,6 +43,9 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-accent-yellow: #ffd700;
+  /* Texto e íconos de marca: #ffd700 sobre blanco no se lee (1,4:1), así que en el tema claro
+     va un dorado oscuro con contraste AA. El amarillo #ffd700 queda solo para fondos. */
+  --color-gold: var(--gold);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -75,6 +78,7 @@
   --border: oklch(0.88 0 0);
   --input: oklch(0.88 0 0);
   --ring: #ffd700;
+  --gold: #7a5f00;
   --chart-1: #ffd700;
   --chart-2: oklch(0.65 0.12 200);
   --chart-3: oklch(0.55 0.22 280);
@@ -113,6 +117,7 @@
   --border: #303030;
   --input: #303030;
   --ring: #ffd700;
+  --gold: #ffd700;
   --chart-1: #ffd700;
   --chart-2: oklch(0.65 0.12 200);
   --chart-3: oklch(0.58 0.2 280);

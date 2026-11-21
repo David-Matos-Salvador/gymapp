@@ -76,7 +76,7 @@ export function ShareProgress({ workout, open, onClose }: ShareProgressProps) {
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
             <div className="flex size-14 items-center justify-center rounded-2xl bg-primary/10">
-              <Trophy className="size-7 text-primary" />
+              <Trophy className="size-7 text-gold" />
             </div>
           </div>
           <DialogTitle className="text-center">Entrenamiento completado</DialogTitle>

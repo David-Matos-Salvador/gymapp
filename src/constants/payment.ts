@@ -7,6 +7,10 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   OTHER: "Otro",
 }
 
+// Métodos que el admin puede registrar a mano. Stripe no: ese pago solo lo registra el
+// webhook de Stripe cuando exista el cobro con tarjeta en la app (#17).
+export const MANUAL_PAYMENT_METHODS = ["CASH", "TRANSFER", "CARD", "YAPE", "OTHER"] as const
+
 // Efectivo y tarjeta se cobran en recepción: no hay comprobante que subir y el pago queda
 // pendiente hasta que el gimnasio confirme que recibió el dinero.
 export const METHODS_PAID_AT_RECEPTION = ["CASH", "CARD"]

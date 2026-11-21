@@ -43,7 +43,7 @@ export default async function GymPage({ params }: GymPageParams) {
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-lg items-center gap-2 px-4 h-12">
-          <Sparkles className="h-4 w-4 text-accent-yellow shrink-0" />
+          <Sparkles className="h-4 w-4 text-gold shrink-0" />
           <span className="font-semibold">GymApp</span>
           <div className="ml-auto flex items-center gap-2">
             <Link href="/login">
@@ -71,7 +71,7 @@ export default async function GymPage({ params }: GymPageParams) {
             />
           ) : (
             <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10">
-              <Dumbbell className="size-7 text-primary" />
+              <Dumbbell className="size-7 text-gold" />
             </div>
           )}
           <div>

@@ -185,7 +185,7 @@ describe("POST /api/appointments", () => {
       title: "Nueva sesión 1:1",
     })
     expect(mockNotificationCreate.mock.calls[0][0].data.message).toContain("09:00")
-    expect(mockEmitRealtime).toHaveBeenCalledWith("notifications")
+    expect(mockEmitRealtime).toHaveBeenCalledWith("notifications", "gym-1")
   })
 })
 

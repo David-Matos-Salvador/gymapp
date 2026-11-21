@@ -38,6 +38,7 @@ interface SerializedGym {
   email: string | null
   logoUrl: string | null
   showMachineNumbers: boolean
+  paymentInstructions: string | null
 }
 
 interface GymManagementTabsProps {

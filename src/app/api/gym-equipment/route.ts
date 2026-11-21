@@ -3,6 +3,7 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { canManageGymEquipment } from "@/lib/gym-equipment"
+import { isSuperAdmin } from "@/lib/authz"
 import { imageUrlSchema } from "@/lib/validation"
 
 const createEquipmentSchema = z.object({
@@ -16,13 +17,34 @@ const createEquipmentSchema = z.object({
 })
 
 export async function GET(request: Request) {
+  const session = await auth()
+  if (!session?.user?.email) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { role: true, gymId: true },
+  })
+  if (!user) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
+  }
+
   const { searchParams } = new URL(request.url)
-  const gymId = searchParams.get("gymId")
+  const requestedGymId = searchParams.get("gymId")
+
+  // Cada persona ve el equipo del sistema y el de su gimnasio; el súper admin elige gimnasio.
+  const gymId = isSuperAdmin(user.role) ? requestedGymId : user.gymId
+  const where =
+    isSuperAdmin(user.role) && !gymId
+      ? undefined
+      : { OR: [{ isSystem: true }, ...(gymId ? [{ gymId }] : [])] }
 
   const equipment = await prisma.gymEquipment.findMany({
-    where: gymId ? { gymId } : undefined,
+    where,
     include: { exercise: { select: { id: true, name: true } } },
     orderBy: { name: "asc" },
+    take: 1000,
   })
 
   return NextResponse.json({ equipment })

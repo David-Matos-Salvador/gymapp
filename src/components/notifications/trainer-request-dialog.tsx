@@ -214,7 +214,7 @@ export function TrainerRequestDialog({
           <div className="flex flex-col items-center justify-center py-10 text-center space-y-3">
             <DialogTitle className="sr-only">Solicitud procesada</DialogTitle>
             <div className="flex size-12 items-center justify-center rounded-full bg-accent-yellow/10">
-              <CheckCircle2 className="size-6 text-accent-yellow" />
+              <CheckCircle2 className="size-6 text-gold" />
             </div>
             <p className="text-base font-medium">Listo</p>
             <p className="text-sm text-muted-foreground">
@@ -230,7 +230,7 @@ export function TrainerRequestDialog({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-accent-yellow" />
+                <Users className="h-5 w-5 text-gold" />
                 Solicitud de entrenador
               </DialogTitle>
               <DialogDescription>
@@ -240,7 +240,7 @@ export function TrainerRequestDialog({
             <div className="space-y-4">
               <div className="flex items-start gap-4">
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10">
-                  <Users className="h-6 w-6 text-accent-yellow" />
+                  <Users className="h-6 w-6 text-gold" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-lg font-semibold">{request.trainer.name || "Sin nombre"}</p>
@@ -300,7 +300,7 @@ export function TrainerRequestDialog({
           <>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <CreditCard className="h-5 w-5 text-accent-yellow" />
+                <CreditCard className="h-5 w-5 text-gold" />
                 Activar tu membresía
               </DialogTitle>
               <DialogDescription>
@@ -328,7 +328,7 @@ export function TrainerRequestDialog({
               {selectedPlanData && (
                 <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
                   <p className="text-sm font-medium">{selectedPlanData.name}</p>
-                  <p className="text-2xl font-bold text-accent-yellow">
+                  <p className="text-2xl font-bold text-gold">
                     {selectedPlanData.currency} ${selectedPlanData.price}
                   </p>
                   <p className="text-xs text-muted-foreground">

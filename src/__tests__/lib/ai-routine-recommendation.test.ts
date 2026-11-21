@@ -22,13 +22,13 @@ const profile = {
 const options = [
   {
     id: "plan-intermedio",
-    name: "Empuje / Tirón / Piernas · Ganancia muscular · 3d",
+    name: "Empuje / Tirón / Piernas · Ganar masa muscular · 3 días",
     difficulty: "INTERMEDIATE",
     splits: [{ name: "Empuje", muscleGroups: ["CHEST", "SHOULDERS"] }],
   },
   {
     id: "plan-base",
-    name: "Base para empezar · Ganancia muscular · 3d",
+    name: "Base para empezar · Ganar masa muscular · 3 días",
     difficulty: "BEGINNER",
     splits: [{ name: "Cuerpo completo A", muscleGroups: ["FULL_BODY"] }],
   },

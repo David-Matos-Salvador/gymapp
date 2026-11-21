@@ -44,6 +44,7 @@ import {
   OBJECTIVE_LABELS,
   EXPERIENCE_LABELS,
   OBJECTIVES,
+  ROUTINE_OBJECTIVES,
   DIFFICULTIES,
   calculateAge,
 } from "@/constants/user"
@@ -59,6 +60,8 @@ interface User {
   objective: string | null
   experienceLevel: string | null
   medicalNotes: string | null
+  physicalConditions?: string[]
+  conditionDetail?: string | null
   emergencyContact: string | null
   emergencyPhone: string | null
   height: number | null
@@ -107,7 +110,7 @@ function InfoItem({
           </p>
         )}
       </div>
-      {value && <CheckCircle2 className="h-4 w-4 text-accent-yellow/60 shrink-0 mt-1" />}
+      {value && <CheckCircle2 className="h-4 w-4 text-gold/60 shrink-0 mt-1" />}
     </div>
   )
 }
@@ -234,7 +237,7 @@ export function ProfileForm({ user }: { user: User }) {
       <Card>
         <CardHeader className="border-b">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <UserIcon className="h-5 w-5 text-accent-yellow" />
+            <UserIcon className="h-5 w-5 text-gold" />
             Información personal
           </CardTitle>
           <CardDescription>Datos básicos de tu cuenta</CardDescription>
@@ -259,7 +262,7 @@ export function ProfileForm({ user }: { user: User }) {
       <Card>
         <CardHeader className="border-b">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Activity className="h-5 w-5 text-accent-yellow" />
+            <Activity className="h-5 w-5 text-gold" />
             Perfil de gimnasio
           </CardTitle>
           <CardDescription>Tu configuración de entrenamiento</CardDescription>
@@ -286,6 +289,15 @@ export function ProfileForm({ user }: { user: User }) {
                   : null
               }
             />
+            {(user.physicalConditions?.length ?? 0) > 0 && (
+              <InfoItem
+                icon={AlertTriangle}
+                label="Condiciones físicas"
+                value={[user.physicalConditions!.join(", "), user.conditionDetail]
+                  .filter(Boolean)
+                  .join(" · ")}
+              />
+            )}
             <InfoItem icon={Heart} label="Contacto de emergencia" value={user.emergencyContact} />
             <InfoItem icon={Phone} label="Teléfono de emergencia" value={user.emergencyPhone} />
           </div>
@@ -297,7 +309,7 @@ export function ProfileForm({ user }: { user: User }) {
         <Card className="border-accent-yellow/20 bg-accent-yellow/[0.03]">
           <CardContent className="py-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/10 text-accent-yellow">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/10 text-gold">
                 <AlertTriangle className="h-4 w-4" />
               </div>
               <div>
@@ -333,7 +345,7 @@ export function ProfileForm({ user }: { user: User }) {
               {avatarPreview ? (
                 <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
               ) : (
-                <span className="text-2xl font-bold text-accent-yellow">
+                <span className="text-2xl font-bold text-gold">
                   {(user.name ?? user.email).charAt(0).toUpperCase()}
                 </span>
               )}
@@ -459,7 +471,9 @@ export function ProfileForm({ user }: { user: User }) {
                   <SelectValue placeholder="Elige tu objetivo" />
                 </SelectTrigger>
                 <SelectContent>
-                  {OBJECTIVES.map(({ value, label }) => (
+                  {OBJECTIVES.filter(
+                    ({ value }) => ROUTINE_OBJECTIVES.includes(value) || value === user.objective
+                  ).map(({ value, label }) => (
                     <SelectItem key={value} value={value}>
                       {label}
                     </SelectItem>

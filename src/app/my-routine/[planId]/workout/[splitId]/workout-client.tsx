@@ -395,7 +395,7 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
         {isActive && isPaused && (
           <Card className="border-accent-yellow/30 bg-accent-yellow/5">
             <CardContent className="flex flex-wrap items-center gap-3 py-3">
-              <Pause className="h-5 w-5 text-accent-yellow" />
+              <Pause className="h-5 w-5 text-gold" />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">Entrenamiento en pausa</p>
                 <p className="text-xs text-muted-foreground">
@@ -431,7 +431,7 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
             <ol aria-label="Ejercicios de hoy" className="w-full divide-y divide-border/60">
               {split.exercises.map((se, idx) => (
                 <li key={se.id} className="flex items-center gap-3 py-2.5">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-yellow/15 text-xs font-semibold tabular-nums text-accent-yellow">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-yellow/15 text-xs font-semibold tabular-nums text-gold">
                     {idx + 1}
                   </span>
                   <div className="min-w-0 flex-1">
@@ -571,12 +571,12 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
         {phase === "done" && !showCelebration && (
           <Card className="bg-accent-yellow/5 border-accent-yellow/30 text-center">
             <CardContent className="py-8 space-y-3">
-              <Trophy className="h-12 w-12 text-accent-yellow mx-auto" />
+              <Trophy className="h-12 w-12 text-gold mx-auto" />
               <h2 className="text-xl font-bold">Entrenamiento completado</h2>
               <p className="text-sm text-muted-foreground">
                 Duración: {elapsedFormatted} · {completedExercises} ejercicios completados
               </p>
-              <div className="flex justify-center gap-2 py-2 text-accent-yellow">
+              <div className="flex justify-center gap-2 py-2 text-gold">
                 <Trophy className="h-7 w-7" />
                 <Flame className="h-7 w-7" />
                 <Zap className="h-7 w-7" />

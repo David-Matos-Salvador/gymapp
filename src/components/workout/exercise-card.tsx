@@ -278,7 +278,7 @@ export function ExerciseCard({
       {/* ── Header row ─────────────────────────── */}
       <div className="flex items-center gap-2">
         {isCompleted ? (
-          <CheckCircle className="h-4 w-4 text-accent-yellow shrink-0" />
+          <CheckCircle className="h-4 w-4 text-gold shrink-0" />
         ) : (
           <div
             {...dragHandleProps}
@@ -313,7 +313,7 @@ export function ExerciseCard({
                 {MUSCLE_LABELS[se.exercise.muscleGroup] ?? se.exercise.muscleGroup}
               </span>
               {machineLabel && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary text-[10px] font-medium px-1.5 py-0.5">
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-gold text-[10px] font-medium px-1.5 py-0.5">
                   <Wrench className="h-2.5 w-2.5" />
                   {machineLabel}
                 </span>
@@ -359,7 +359,7 @@ export function ExerciseCard({
             className={cn(
               "flex min-h-11 shrink-0 items-center gap-1 rounded-md px-2 text-xs transition-colors",
               isCurrent
-                ? "text-accent-yellow hover:bg-accent-yellow/10"
+                ? "text-gold hover:bg-accent-yellow/10"
                 : "text-muted-foreground/60 hover:bg-muted hover:text-foreground"
             )}
             aria-label="Ver detalle del ejercicio"

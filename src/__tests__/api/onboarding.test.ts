@@ -79,6 +79,18 @@ describe("POST /api/onboarding", () => {
     expect(data.trainingFrequency).toBe(3)
   })
 
+  it("guarda el detalle de la condición recortado, y no lo guarda sin condición (#202)", async () => {
+    await post({
+      ...answers,
+      physicalConditions: ["Lesión"],
+      conditionDetail: `  ${"x".repeat(400)} `,
+    })
+    expect(mockUserUpdate.mock.calls[0][0].data.onboardingData.conditionDetail).toHaveLength(300)
+
+    await post({ ...answers, physicalConditions: ["No poseo"], conditionDetail: "algo" })
+    expect(mockUserUpdate.mock.calls[1][0].data.onboardingData.conditionDetail).toBeNull()
+  })
+
   it("marca terminado al elegir una rutina", async () => {
     await post(answers)
 

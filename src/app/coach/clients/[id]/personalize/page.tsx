@@ -97,7 +97,7 @@ export default function PersonalizePage() {
         </Link>
 
         <div className="flex items-center gap-2">
-          <Dumbbell className="h-6 w-6 text-accent-yellow" />
+          <Dumbbell className="h-6 w-6 text-gold" />
           <h1 className="text-2xl font-bold tracking-tight">Personalizar rutina</h1>
         </div>
         <p className="text-sm text-muted-foreground">

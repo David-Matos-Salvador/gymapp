@@ -178,6 +178,17 @@ describe("POST /api/memberships", () => {
     expect(mocks.membershipCreate).not.toHaveBeenCalled()
   })
 
+  it("responde 400 si se registra a mano como pagada con Stripe (#186)", async () => {
+    loginAs("ADMIN")
+
+    const response = await assignMembership(
+      postRequest("/api/memberships", { userId: "u-1", planId: "p-1", paymentMethod: "STRIPE" })
+    )
+
+    expect(response.status).toBe(400)
+    expect(mocks.membershipCreate).not.toHaveBeenCalled()
+  })
+
   it("responde 404 si el plan no existe", async () => {
     loginAs("ADMIN")
     mocks.planFindUnique.mockResolvedValue(null)

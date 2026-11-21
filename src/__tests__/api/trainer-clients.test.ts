@@ -300,7 +300,7 @@ describe("POST /api/trainer/clients", () => {
         type: "TRAINER_REQUEST",
       }),
     })
-    expect(mocks.emitRealtime).toHaveBeenCalledWith("notifications")
+    expect(mocks.emitRealtime).toHaveBeenCalledWith("notifications", "gym-1")
   })
 
   it("reabre una solicitud rechazada en vez de crear otra", async () => {
@@ -380,7 +380,33 @@ describe("GET /api/trainer/clients/[id]", () => {
     const response = await getClient(...idArgs("u-carlos"))
 
     expect(response.status).toBe(200)
-    expect(await response.json()).toEqual({ client: { id: "u-carlos", name: "Carlos" } })
+    expect(await response.json()).toEqual({
+      client: { id: "u-carlos", name: "Carlos", physicalConditions: [], conditionDetail: null },
+    })
+  })
+
+  it("muestra al coach las condiciones físicas y su detalle, sin el resto del onboarding (#202)", async () => {
+    loginAs("TRAINER", "gym-1", "u-ana")
+    mocks.otherUser.mockResolvedValue({
+      id: "u-carlos",
+      name: "Carlos",
+      onboardingData: {
+        physicalConditions: ["Lesión"],
+        conditionDetail: "Rodilla derecha",
+        weight: 80,
+      },
+    })
+
+    const response = await getClient(...idArgs("u-carlos"))
+
+    expect(await response.json()).toEqual({
+      client: {
+        id: "u-carlos",
+        name: "Carlos",
+        physicalConditions: ["Lesión"],
+        conditionDetail: "Rodilla derecha",
+      },
+    })
   })
 
   it.todo(

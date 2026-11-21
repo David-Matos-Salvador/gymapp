@@ -1,6 +1,6 @@
 # Flow: Coach Andrea
 - **Email**: trainer2@gymapp.com
-- **Password**: demo123
+- **Password**: (valor de SEED_PASSWORD)
 - **Role**: TRAINER
 - **Base URL**: http://localhost:3000
 
@@ -9,7 +9,7 @@
 ### 1. Login
 - browser navigate: {baseUrl}/login
 - fill email: trainer2@gymapp.com
-- fill password: demo123
+- fill password: (valor de SEED_PASSWORD)
 - click "Iniciar sesión"
 - expect: redirect to /coach
 

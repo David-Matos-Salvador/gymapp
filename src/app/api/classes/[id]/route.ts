@@ -169,6 +169,6 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     })
   }
 
-  emitRealtime("notifications")
+  emitRealtime("notifications", classItem.gymId)
   return NextResponse.json({ success: true })
 }

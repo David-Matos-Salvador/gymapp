@@ -159,8 +159,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
       },
     })
 
-    emitRealtime("pending-count")
-    emitRealtime("notifications")
+    emitRealtime("pending-count", payment.user.gymId)
+    emitRealtime("notifications", payment.user.gymId)
 
     return NextResponse.json({ payment: updatedPayment })
   }
@@ -200,8 +200,8 @@ export async function PUT(request: Request, { params }: RouteParams) {
     },
   })
 
-  emitRealtime("pending-count")
-  emitRealtime("notifications")
+  emitRealtime("pending-count", payment.user.gymId)
+  emitRealtime("notifications", payment.user.gymId)
 
   return NextResponse.json({ payment: updatedPayment })
 }

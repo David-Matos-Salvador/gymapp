@@ -187,8 +187,8 @@ describe("AppBottomNav: menú por perfil", () => {
     render(<AppBottomNav />)
 
     const nav$ = within(screen.getByRole("navigation"))
-    expect(nav$.getByRole("link", { name: "Clientes" }).className).toContain("text-accent-yellow")
-    expect(nav$.getByRole("link", { name: "Inicio" }).className).not.toContain("text-accent-yellow")
+    expect(nav$.getByRole("link", { name: "Clientes" }).className).toContain("text-gold")
+    expect(nav$.getByRole("link", { name: "Inicio" }).className).not.toContain("text-gold")
   })
 
   it("muestra los comprobantes pendientes y corta en 99+", () => {

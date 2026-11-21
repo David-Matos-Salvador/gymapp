@@ -150,7 +150,7 @@ export function ClassManager({ classItem }: ClassManagerProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-accent-yellow" /> Datos de la clase
+              <CalendarDays className="h-5 w-5 text-gold" /> Datos de la clase
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -228,7 +228,7 @@ export function ClassManager({ classItem }: ClassManagerProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-accent-yellow" /> Inscritos
+              <Users className="h-5 w-5 text-gold" /> Inscritos
             </CardTitle>
           </CardHeader>
           <CardContent>

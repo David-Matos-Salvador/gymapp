@@ -507,7 +507,7 @@ describe("DELETE /api/classes/[id]", () => {
       title: "Clase cancelada",
       message: "La clase Spinning fue cancelada.",
     })
-    expect(mocks.emitRealtime).toHaveBeenCalledWith("notifications")
+    expect(mocks.emitRealtime).toHaveBeenCalledWith("notifications", "gym-1")
   })
 
   it("no crea avisos si nadie había reservado", async () => {

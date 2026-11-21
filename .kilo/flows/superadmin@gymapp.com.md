@@ -1,6 +1,6 @@
 # Flow: Super Admin
 - **Email**: superadmin@gymapp.com
-- **Password**: demo123
+- **Password**: (valor de SEED_PASSWORD)
 - **Role**: SUPER_ADMIN
 - **Base URL**: http://localhost:3000
 
@@ -9,7 +9,7 @@
 ### 1. Login
 - browser navigate: {baseUrl}/login
 - fill input[name="email"]: superadmin@gymapp.com
-- fill input[name="password"]: demo123
+- fill input[name="password"]: (valor de SEED_PASSWORD)
 - click button "Iniciar sesión"
 - expect: redirect to /super-admin
 

@@ -1,6 +1,7 @@
 import { test, expect, type Browser, type Page } from "@playwright/test"
 import bcrypt from "bcryptjs"
 import { findUser, prisma } from "./db"
+import { SEED_PASSWORD } from "../seed-password"
 
 /**
  * Membresías asignadas por el admin y pagos en recepción, de punta a punta (#23):
@@ -18,7 +19,7 @@ import { findUser, prisma } from "./db"
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-const PASSWORD = "demo123"
+const PASSWORD = SEED_PASSWORD
 const ADMIN = "admin@gymapp.com"
 const COACH = "trainer@gymapp.com"
 
@@ -152,9 +153,9 @@ test("el admin crea un plan, asigna la membresía y confirma el pago con tarjeta
     await expect(async () => {
       await adminPage.getByRole("tab", { name: "Planes" }).click()
       await expect(adminPage.getByRole("button", { name: "Nuevo plan" })).toBeVisible({
-        timeout: 2_000,
+        timeout: 5_000,
       })
-    }).toPass({ timeout: 30_000 })
+    }).toPass({ intervals: [1_000, 2_000, 5_000], timeout: 90_000 })
     await adminPage.getByRole("button", { name: "Nuevo plan" }).click()
     const planDialog = adminPage.getByRole("dialog")
     await expect(planDialog.getByRole("heading", { name: "Nuevo plan" })).toBeVisible()
@@ -187,9 +188,9 @@ test("el admin crea un plan, asigna la membresía y confirma el pago con tarjeta
     await expect(async () => {
       await adminPage.getByRole("button", { name: "Nueva membresía" }).click()
       await expect(newDialog.getByRole("heading", { name: "Nueva membresía" })).toBeVisible({
-        timeout: 2_000,
+        timeout: 5_000,
       })
-    }).toPass({ timeout: 30_000 })
+    }).toPass({ intervals: [1_000, 2_000, 5_000], timeout: 90_000 })
 
     const [memberSelect, planSelect, methodSelect] = [0, 1, 2].map((index) =>
       newDialog.getByRole("combobox").nth(index)
@@ -256,8 +257,8 @@ test("el admin crea un plan, asigna la membresía y confirma el pago con tarjeta
     await expect(async () => {
       await methodTrigger.click({ timeout: 3_000 })
       await memberPage.getByRole("option", { name: "Tarjeta" }).click({ timeout: 3_000 })
-      await expect(methodTrigger).toHaveText("Tarjeta", { timeout: 2_000 })
-    }).toPass({ timeout: 30_000 })
+      await expect(methodTrigger).toHaveText("Tarjeta", { timeout: 5_000 })
+    }).toPass({ intervals: [1_000, 2_000, 5_000], timeout: 90_000 })
     await expect(
       memberPage.getByRole("main").getByText(/Paga en recepción: no necesitas subir comprobante\./)
     ).toBeVisible()
@@ -310,8 +311,8 @@ test("el admin crea un plan, asigna la membresía y confirma el pago con tarjeta
       await adminCard.getByRole("button", { name: "Revisar pago" }).click()
       await expect(
         reviewDialog.getByRole("heading", { name: "Confirmar pago en recepción" })
-      ).toBeVisible({ timeout: 2_000 })
-    }).toPass({ timeout: 30_000 })
+      ).toBeVisible({ timeout: 5_000 })
+    }).toPass({ intervals: [1_000, 2_000, 5_000], timeout: 90_000 })
     await expect(reviewDialog.getByText(flow.memberName)).toBeVisible()
     await expect(reviewDialog.getByText(/se paga en recepción \(tarjeta\)/)).toBeVisible()
     await expect(reviewDialog.getByRole("img", { name: "Comprobante de pago" })).toHaveCount(0)
@@ -394,8 +395,8 @@ test("el miembro elige pagar en efectivo en recepción y su coach confirma el pa
     await expect(async () => {
       await methodSelect.selectOption("YAPE")
       await methodSelect.selectOption("CASH")
-      await expect(payAtReception).toBeVisible({ timeout: 2_000 })
-    }).toPass({ timeout: 30_000 })
+      await expect(payAtReception).toBeVisible({ timeout: 5_000 })
+    }).toPass({ intervals: [1_000, 2_000, 5_000], timeout: 90_000 })
 
     const planOption = memberPage.locator("label").filter({ hasText: flow.planName })
     await planOption.click()

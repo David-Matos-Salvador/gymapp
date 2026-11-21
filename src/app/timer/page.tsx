@@ -87,7 +87,7 @@ export default function TimerPage() {
               strokeWidth="6"
               stroke="currentColor"
               strokeLinecap="round"
-              className="transition-[stroke-dashoffset] duration-1000 ease-linear text-accent-yellow"
+              className="transition-[stroke-dashoffset] duration-1000 ease-linear text-gold"
               style={{
                 strokeDasharray: 2 * Math.PI * 54,
                 strokeDashoffset: 2 * Math.PI * 54 * (1 - remaining / total),

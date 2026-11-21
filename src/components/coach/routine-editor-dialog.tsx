@@ -509,7 +509,7 @@ export function RoutineEditorContent({
                     onClick={() => toggleSplit(split.id)}
                   >
                     <div className="flex items-center gap-2">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10 text-gold font-bold text-xs">
                         {split.label}
                       </div>
                       <div>
@@ -826,7 +826,7 @@ export function RoutineEditorDialog({
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Dumbbell className="h-5 w-5 text-accent-yellow" />
+            <Dumbbell className="h-5 w-5 text-gold" />
             Editar rutina
           </DialogTitle>
           <DialogDescription>Modifica el plan de entrenamiento y sus días.</DialogDescription>

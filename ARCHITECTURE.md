@@ -158,7 +158,6 @@ src/
 | `/api/auth/register`          | POST             | No          | Registro de usuario             |
 | `/api/health`                 | GET              | No          | Health check                    |
 | `/api/exercises`              | GET              | No          | Catálogo de ejercicios          |
-| `/api/recommended-routines`   | GET              | No          | Rutinas públicas recomendadas   |
 | `/api/routines`               | GET/POST         | Sí          | Listar/Crear rutinas            |
 | `/api/routines/[id]`          | GET/PATCH/DELETE | Sí          | CRUD de rutina                  |
 | `/api/workout-logs`           | GET/POST         | Sí          | Listar/Registrar entrenamientos |
@@ -170,7 +169,7 @@ src/
 | `/api/bookings`               | POST/DELETE      | Sí          | Reservar/Cancelar clase         |
 | `/api/admin/platform`         | GET              | SUPER_ADMIN | Stats globales de la plataforma |
 | `/api/gyms`                   | GET/POST         | Parcial     | Listar/Crear gimnasio           |
-| `/api/gym-equipment`          | GET/POST         | Parcial     | Listar/Crear equipo             |
+| `/api/gym-equipment`          | GET/POST         | Sí          | Listar/Crear equipo             |
 | `/api/gym-equipment/[id]`     | PATCH/DELETE     | Sí          | Modificar/Eliminar equipo       |
 | `/api/membership-plans`       | GET/POST         | Parcial     | Listar/Crear planes             |
 | `/api/membership-plans/[id]`  | PATCH/DELETE     | Sí          | Modificar/Eliminar plan         |
@@ -288,7 +287,7 @@ El seed (`prisma/seed.ts`) crea datos de prueba realistas para LATAM:
 - **Mediciones corporales** semanales para Carlos y Ana
 - **Check-ins** diarios de 7 días para Carlos, 5 para Ana
 
-**Credenciales**: todas las cuentas usan password `demo123`
+**Credenciales**: todas las cuentas usan la contraseña de la variable `SEED_PASSWORD` (sin valor por defecto en el repo; en local va en `.env`)
 
 | Email                   | Rol         | Acceso                     |
 | ----------------------- | ----------- | -------------------------- |

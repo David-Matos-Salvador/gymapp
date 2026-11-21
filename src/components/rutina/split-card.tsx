@@ -56,10 +56,10 @@ export function SplitCard(props: SplitCardProps) {
           className={cn(
             "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold",
             isProposed && "bg-gym-amber/10 text-gym-amber",
-            isCompleted && "bg-accent-yellow/10 text-accent-yellow",
+            isCompleted && "bg-accent-yellow/10 text-gold",
             isInProgress && "bg-blue-400/10 text-blue-400",
             isLocked && "bg-muted text-muted-foreground",
-            isDefault && "bg-accent-yellow/10 text-accent-yellow"
+            isDefault && "bg-accent-yellow/10 text-gold"
           )}
         >
           {isCompleted ? (
@@ -89,7 +89,7 @@ export function SplitCard(props: SplitCardProps) {
               </span>
             )}
             {isCompleted && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-semibold text-accent-yellow">
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-semibold text-gold">
                 <CheckCircle className="h-2.5 w-2.5" /> Completado
               </span>
             )}

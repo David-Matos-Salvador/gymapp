@@ -4,11 +4,12 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { logger } from "@/lib/logger"
 import { getRequestId } from "@/lib/request-id"
+import { MANUAL_PAYMENT_METHODS } from "@/constants/payment"
 
 const createMembershipSchema = z.object({
   userId: z.string().min(1),
   planId: z.string().min(1),
-  paymentMethod: z.enum(["CASH", "TRANSFER", "CARD", "STRIPE", "YAPE", "OTHER"]).default("CASH"),
+  paymentMethod: z.enum(MANUAL_PAYMENT_METHODS).default("CASH"),
   paymentRef: z.string().optional(),
   notes: z.string().optional(),
   autoRenew: z.boolean().default(false),

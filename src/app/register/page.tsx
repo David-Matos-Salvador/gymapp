@@ -113,7 +113,7 @@ export default function RegisterPage() {
               transition={{ type: "spring", duration: 0.5 }}
               className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent-yellow/10"
             >
-              <CheckCircle className="h-10 w-10 text-accent-yellow" />
+              <CheckCircle className="h-10 w-10 text-gold" />
             </motion.div>
             <CardTitle as="h1" className="text-xl">
               Cuenta creada
@@ -172,11 +172,11 @@ export default function RegisterPage() {
                   {passwordChecks.map((check) => (
                     <div key={check.label} className="flex items-center gap-2 text-xs">
                       {check.met ? (
-                        <Check className="h-3 w-3 text-accent-yellow shrink-0" />
+                        <Check className="h-3 w-3 text-gold shrink-0" />
                       ) : (
                         <X className="h-3 w-3 text-muted-foreground/50 shrink-0" />
                       )}
-                      <span className={check.met ? "text-accent-yellow" : "text-muted-foreground"}>
+                      <span className={check.met ? "text-gold" : "text-muted-foreground"}>
                         {check.label}
                       </span>
                     </div>
@@ -221,7 +221,7 @@ export default function RegisterPage() {
         <CardFooter className="justify-center">
           <p className="text-sm text-muted-foreground">
             ¿Ya tienes cuenta?{" "}
-            <Link href="/login" className="font-medium text-primary hover:underline">
+            <Link href="/login" className="font-medium text-gold hover:underline">
               Inicia sesión
             </Link>
           </p>

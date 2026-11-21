@@ -44,7 +44,10 @@ import {
   getMembershipStatusLabel,
   getMembershipTab,
 } from "@/lib/membership-status"
-import { PAYMENT_METHOD_LABELS as paymentMethodLabels } from "@/constants/payment"
+import {
+  MANUAL_PAYMENT_METHODS,
+  PAYMENT_METHOD_LABELS as paymentMethodLabels,
+} from "@/constants/payment"
 
 interface MembershipUser {
   id: string
@@ -564,7 +567,7 @@ export function MembershipPanel({
 
                     {canRenewMembership(m, now) && (
                       <>
-                        <span className="inline-flex items-center rounded-full border border-accent-yellow/30 px-2 py-0.5 text-[10px] font-medium text-accent-yellow">
+                        <span className="inline-flex items-center rounded-full border border-accent-yellow/30 px-2 py-0.5 text-[10px] font-medium text-gold">
                           Renovable
                         </span>
                         <Button
@@ -736,13 +739,11 @@ export function MembershipPanel({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(paymentMethodLabels)
-                    .filter(([key]) => key !== "STRIPE")
-                    .map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
+                  {MANUAL_PAYMENT_METHODS.map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {paymentMethodLabels[key]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -829,9 +830,9 @@ export function MembershipPanel({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(paymentMethodLabels).map(([key, label]) => (
+                  {MANUAL_PAYMENT_METHODS.map((key) => (
                     <SelectItem key={key} value={key}>
-                      {label}
+                      {paymentMethodLabels[key]}
                     </SelectItem>
                   ))}
                 </SelectContent>

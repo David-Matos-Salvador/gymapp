@@ -94,6 +94,10 @@ export function parseMuscleGroups(text: string): string[] {
     .map((part) => MUSCLE_BY_TEXT.get(normalizeMuscle(part)) ?? part)
 }
 
+// Los objetivos que el onboarding ofrece y el generador de rutinas entiende (#215). Los demás
+// quedan solo para mostrar el de quien ya lo tenía guardado.
+export const ROUTINE_OBJECTIVES = ["WEIGHT_LOSS", "MUSCLE_GAIN", "GENERAL_FITNESS"]
+
 export const OBJECTIVES = Object.entries(OBJECTIVE_LABELS).map(([value, label]) => ({
   value,
   label,

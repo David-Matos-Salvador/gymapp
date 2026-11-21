@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest"
+import { describe, it, expect, vi, beforeEach } from "vitest"
 
 const mocks = vi.hoisted(() => {
   const userFindUnique = vi.fn()
@@ -48,19 +48,9 @@ vi.mock("next/server", () => ({
 import { GET as listCheckIns, POST as createCheckIn } from "@/app/api/check-ins/route"
 import { DELETE as deleteCheckIn } from "@/app/api/check-ins/[id]/route"
 
-const NOW = new Date("2026-11-17T08:00:00.000Z")
-
 function loginAs(role: string, gymId: string | null = "gym-1", id = `u-${role.toLowerCase()}`) {
   mockAuth.mockResolvedValue({ user: { email: `${id}@gymapp.com` } })
   mocks.userFindUnique.mockResolvedValue({ id, role, gymId })
-}
-
-function postRequest(body: unknown) {
-  return new Request("http://localhost:3000/api/check-ins", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  })
 }
 
 function deleteRequest(id = "ci-1") {
@@ -144,86 +134,21 @@ describe("GET /api/check-ins", () => {
 })
 
 describe("POST /api/check-ins", () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-    vi.setSystemTime(NOW)
-  })
+  // Apagado hasta que exista la feature con su pantalla (#225).
+  it.each([
+    ["sin sesión", null],
+    ["un miembro", "MEMBER"],
+    ["un admin", "ADMIN"],
+  ])("%s recibe 404 y no se registra nada", async (_label, role) => {
+    if (role) loginAs(role, "gym-1")
+    else mockAuth.mockResolvedValue(null)
 
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
-  it("responde 401 sin sesión", async () => {
-    mockAuth.mockResolvedValue(null)
-
-    const response = await createCheckIn(postRequest({}))
-
-    expect(response.status).toBe(401)
-    expect(mocks.checkInCreate).not.toHaveBeenCalled()
-  })
-
-  it("responde 404 si el usuario no existe", async () => {
-    mockAuth.mockResolvedValue({ user: { email: "fantasma@gymapp.com" } })
-    mocks.userFindUnique.mockResolvedValue(null)
-
-    const response = await createCheckIn(postRequest({}))
+    const response = await createCheckIn()
 
     expect(response.status).toBe(404)
+    expect(await response.json()).toEqual({ error: "El check-in todavía no está disponible" })
     expect(mocks.checkInCreate).not.toHaveBeenCalled()
   })
-
-  it("responde 400 si intenta registrar el check-in en otro gimnasio", async () => {
-    loginAs("MEMBER", "gym-1")
-
-    const response = await createCheckIn(postRequest({ gymId: "gym-2" }))
-
-    expect(response.status).toBe(400)
-    expect(await response.json()).toEqual({
-      error: "No puedes registrar check-in en otro gimnasio",
-    })
-    expect(mocks.checkInCreate).not.toHaveBeenCalled()
-  })
-
-  it("responde 400 si el usuario no tiene gimnasio y no indica uno", async () => {
-    loginAs("MEMBER", null)
-
-    const response = await createCheckIn(postRequest({}))
-
-    expect(response.status).toBe(400)
-    expect(await response.json()).toEqual({ error: "Sin gimnasio asignado" })
-    expect(mocks.checkInCreate).not.toHaveBeenCalled()
-  })
-
-  it("registra el check-in en el gimnasio del usuario con la hora actual", async () => {
-    loginAs("MEMBER", "gym-1", "u-carlos")
-
-    const response = await createCheckIn(postRequest({}))
-
-    expect(response.status).toBe(201)
-    expect(mocks.checkInCreate).toHaveBeenCalledWith({
-      data: { userId: "u-carlos", gymId: "gym-1", date: NOW },
-    })
-    expect(await response.json()).toEqual({
-      checkIn: { id: "ci-new", userId: "u-carlos", gymId: "gym-1", date: NOW },
-    })
-  })
-
-  it("acepta que envíe el id de su propio gimnasio", async () => {
-    loginAs("MEMBER", "gym-1", "u-carlos")
-
-    const response = await createCheckIn(postRequest({ gymId: "gym-1" }))
-
-    expect(response.status).toBe(201)
-    expect(mocks.checkInCreate.mock.calls[0][0].data.gymId).toBe("gym-1")
-  })
-
-  // Comportamientos dudosos encontrados al escribir estas pruebas (no se tocó el código):
-  it.todo(
-    "un cuerpo inválido (por ejemplo gymId numérico) debería responder 400 en español; hoy z.parse lanza y termina en 500"
-  )
-  it.todo(
-    "un usuario sin gimnasio puede registrar check-in en cualquier gymId que envíe, sin comprobar que el gimnasio exista ni que tenga membresía allí"
-  )
 })
 
 describe("DELETE /api/check-ins/[id]", () => {

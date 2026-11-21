@@ -68,7 +68,7 @@ const h = vi.hoisted(() => {
   }))
   const splitUpdate = vi.fn(async (_args: unknown) => ({}))
   const planFindUniqueOrThrow = vi.fn(async (_args: unknown) => ({
-    name: "Full Body · Ganancia muscular · 3d",
+    name: "Cuerpo completo · Ganar masa muscular · 3 días",
     splits: [],
   }))
   const assignedFindMany = vi.fn(async () => [])
@@ -218,7 +218,7 @@ describe("POST /api/fitness-coach", () => {
     expect(new Set(normalizedNames).size).toBe(names.length)
   })
 
-  it("repite ejercicios entre días en Full Body para que ninguna división quede corta", async () => {
+  it("repite ejercicios entre días en Cuerpo completo para que ninguna división quede corta", async () => {
     const response = await POST(
       new Request("http://localhost:3115/api/fitness-coach", {
         method: "POST",
@@ -233,8 +233,11 @@ describe("POST /api/fitness-coach", () => {
     expect(response.status).toBe(200)
 
     const fullBodyCall = h.planCreate.mock.calls.find(([args]) =>
-      args.data.name.startsWith("Full Body")
+      args.data.name.startsWith("Cuerpo completo")
     )
+    // Nombre en español, con «3 días» en vez de «3d» y sin descripción que repita el nombre (#188).
+    expect(fullBodyCall![0].data.name).toBe("Cuerpo completo · Ganar masa muscular · 3 días")
+    expect(fullBodyCall![0].data.description).toBeNull()
     const splits = (
       fullBodyCall![0].data as unknown as {
         splits: { create: { exercises: { create: unknown[] } }[] }
@@ -418,8 +421,8 @@ describe("POST /api/fitness-coach", () => {
     expect(response.status).toBe(200)
 
     const names = h.getExercises().map((exercise) => exercise.name)
-    expect(names).toContain("Face Pull")
-    expect(names).not.toContain("Face pull")
+    expect(names).toContain("Jalón a la cara")
+    expect(names).not.toContain("Face Pull")
     expect(names).not.toContain("Curl en polea")
   })
 })

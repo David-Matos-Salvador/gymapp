@@ -5,6 +5,7 @@ import { logger } from "@/lib/logger"
 import { getRequestId } from "@/lib/request-id"
 import { isMeasurementInRange, type MeasurementKey } from "@/constants/measurements"
 import { NextResponse } from "next/server"
+import { healthConditionsOf } from "@/lib/health-conditions"
 
 const userSelect = {
   id: true,
@@ -44,7 +45,7 @@ async function resolveUser(sessionEmail: string, memberId: string | null) {
     if (caller.role === "ADMIN" && (!caller.gymId || target.gymId !== caller.gymId)) {
       return { error: "Miembro no encontrado", status: 404 } as const
     }
-    return { user: target, assisted: true } as const
+    return { user: target, assisted: true, callerRole: caller.role } as const
   }
 
   if (caller.role !== "MEMBER") {
@@ -52,7 +53,16 @@ async function resolveUser(sessionEmail: string, memberId: string | null) {
   }
   const target = await prisma.user.findUnique({ where: { id: caller.id }, select: userSelect })
   if (!target) return { error: "Usuario no encontrado", status: 404 } as const
-  return { user: target, assisted: false } as const
+  return { user: target, assisted: false, callerRole: caller.role } as const
+}
+
+// El detalle de la condición física lo ven solo el miembro y su coach (#202).
+function withoutDetailForAdmin(onboardingData: unknown, callerRole: string) {
+  if (!onboardingData || typeof onboardingData !== "object") return onboardingData ?? null
+  if (callerRole !== "ADMIN") return onboardingData
+  const rest = { ...(onboardingData as Record<string, unknown>) }
+  delete rest.conditionDetail
+  return rest
 }
 
 export async function GET(request: Request) {
@@ -133,7 +143,9 @@ export async function GET(request: Request) {
     onboardingCompleted: user.onboardingCompleted,
     onboardingCompletedAt: user.onboardingCompletedAt?.toISOString() ?? null,
     // Respuestas guardadas de un onboarding sin terminar: la persona retoma en las recomendaciones
-    savedData: user.onboardingCompleted ? null : (user.onboardingData ?? null),
+    savedData: user.onboardingCompleted
+      ? null
+      : withoutDetailForAdmin(user.onboardingData, resolved.callerRole),
     gymId: user.gymId,
     gymName: user.gymId
       ? ((await prisma.gym.findUnique({ where: { id: user.gymId }, select: { name: true } }))
@@ -187,6 +199,12 @@ export async function POST(request: Request) {
     const onboardingBody = { ...body }
     delete onboardingBody.memberId
     delete onboardingBody.complete
+    // El detalle solo se guarda si marcó alguna condición (y recortado). El admin no lo ve, así
+    // que si completa el onboarding por el miembro se conserva el que ya estaba.
+    onboardingBody.conditionDetail =
+      resolved.callerRole === "ADMIN"
+        ? healthConditionsOf(target.onboardingData).conditionDetail
+        : healthConditionsOf(body).conditionDetail
 
     await prisma.user.update({
       where: { id: target.id },

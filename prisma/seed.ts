@@ -9,7 +9,12 @@ const prisma = new PrismaClient({
 
 async function main() {
   console.log("🌱 Seeding database...")
-  const passwordHash = await bcrypt.hash("demo123", 10)
+  // La contraseña de las cuentas demo sale del entorno: no hay valor por defecto en el repo.
+  const seedPassword = process.env.SEED_PASSWORD
+  if (!seedPassword) {
+    throw new Error("Falta SEED_PASSWORD: define la contraseña de las cuentas demo en el entorno.")
+  }
+  const passwordHash = await bcrypt.hash(seedPassword, 10)
 
   // ── Default gym (no physical location) ───────────────
   const defaultGym = await prisma.gym.upsert({
@@ -737,7 +742,7 @@ async function main() {
         "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lunges/0.jpg",
     },
     {
-      name: "Hip thrust",
+      name: "Empuje de cadera",
       description: "Empuje de cadera con barra.",
       muscleGroup: "GLUTES" as const,
       equipment: "BARBELL" as const,
@@ -778,7 +783,7 @@ async function main() {
     },
     {
       name: "Burpees",
-      description: "Full body + cardio.",
+      description: "Cuerpo completo + cardio.",
       muscleGroup: "FULL_BODY" as const,
       equipment: "BODYWEIGHT" as const,
       category: "Cardio",
@@ -786,7 +791,7 @@ async function main() {
       imageUrl: "https://img.youtube.com/vi/TU8QYVW0gDU/maxresdefault.jpg",
     },
     {
-      name: "Kettlebell swing",
+      name: "Balanceo con pesa rusa",
       description: "Potencia y cardio.",
       muscleGroup: "FULL_BODY" as const,
       equipment: "KETTLEBELL" as const,
@@ -835,10 +840,10 @@ async function main() {
       },
     }),
     prisma.exercise.upsert({
-      where: { name: "Face Pull" },
+      where: { name: "Jalón a la cara" },
       update: {},
       create: {
-        name: "Face Pull",
+        name: "Jalón a la cara",
         description:
           "Ejercicio para deltoides posterior y trapecio. Con polea alta y cuerda, tira hacia la cara separando los brazos.",
         muscleGroup: "SHOULDERS",
@@ -1058,10 +1063,10 @@ async function main() {
       },
     }),
     prisma.exercise.upsert({
-      where: { name: "Crunch" },
+      where: { name: "Abdominales" },
       update: {},
       create: {
-        name: "Crunch",
+        name: "Abdominales",
         description: "Acostado boca arriba, eleva el tronco contrayendo el recto abdominal.",
         muscleGroup: "ABS",
         equipment: "BODYWEIGHT",
@@ -1072,10 +1077,10 @@ async function main() {
       },
     }),
     prisma.exercise.upsert({
-      where: { name: "Russian Twist" },
+      where: { name: "Giro ruso" },
       update: {},
       create: {
-        name: "Russian Twist",
+        name: "Giro ruso",
         description: "Giro de tronco sentado con pies elevados. Trabaja oblicuos y core.",
         muscleGroup: "ABS",
         equipment: "BODYWEIGHT",
@@ -1086,10 +1091,10 @@ async function main() {
       },
     }),
     prisma.exercise.upsert({
-      where: { name: "Clean and Press" },
+      where: { name: "Cargada y press" },
       update: {},
       create: {
-        name: "Clean and Press",
+        name: "Cargada y press",
         description:
           "Levantamiento olímpico completo. Desde el suelo a los hombros y press sobre la cabeza.",
         muscleGroup: "FULL_BODY",
@@ -1257,7 +1262,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "A",
-        name: "Full Body A",
+        name: "Cuerpo completo A",
         description: "Enfoque en press y empuje",
         muscleGroups: ["FULL_BODY"],
         estimatedDuration: 55,
@@ -1312,7 +1317,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "B",
-        name: "Full Body B",
+        name: "Cuerpo completo B",
         description: "Enfoque en tirón y piernas",
         muscleGroups: ["FULL_BODY"],
         estimatedDuration: 55,
@@ -1367,7 +1372,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "C",
-        name: "Full Body C",
+        name: "Cuerpo completo C",
         description: "Enfoque en fuerza y core",
         muscleGroups: ["FULL_BODY"],
         estimatedDuration: 50,
@@ -1440,7 +1445,7 @@ async function main() {
       data: {
         label: "A",
         name: "Circuito A",
-        description: "Full body alta intensidad",
+        description: "Cuerpo completo de alta intensidad",
         muscleGroups: ["FULL_BODY", "CARDIO"],
         estimatedDuration: 45,
         order: 0,
@@ -1604,11 +1609,11 @@ async function main() {
   }
 
   const plan3 = await prisma.routinePlan.upsert({
-    where: { name_userId: { name: "Hipertrofia Push-Pull-Legs", userId: superadmin.id } },
+    where: { name_userId: { name: "Hipertrofia Empuje-Tracción-Piernas", userId: superadmin.id } },
     update: {},
     create: {
       userId: superadmin.id,
-      name: "Hipertrofia Push-Pull-Legs",
+      name: "Hipertrofia Empuje-Tracción-Piernas",
       description: "Split PPL para ganancia muscular. Volumen óptimo con sobrecarga progresiva.",
       objective: "MUSCLE_GAIN",
       frequency: 3,
@@ -1620,7 +1625,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "A",
-        name: "Push (Empuje)",
+        name: "Empuje",
         description: "Pecho, hombros y tríceps",
         muscleGroups: ["CHEST", "SHOULDERS", "TRICEPS"],
         estimatedDuration: 65,
@@ -1683,7 +1688,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "B",
-        name: "Pull (Tracción)",
+        name: "Tracción",
         description: "Espalda y bíceps",
         muscleGroups: ["BACK", "BICEPS", "FOREARMS"],
         estimatedDuration: 55,
@@ -1738,7 +1743,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "C",
-        name: "Legs (Piernas)",
+        name: "Piernas",
         description: "Cuádriceps, isquiotibiales, glúteos y gemelos",
         muscleGroups: ["LEGS", "GLUTES", "CALVES"],
         estimatedDuration: 60,
@@ -2091,7 +2096,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "D",
-        name: "Full Body Cardio",
+        name: "Cuerpo completo + cardio",
         description: "Circuito completo con cardio",
         muscleGroups: ["FULL_BODY", "CARDIO"],
         estimatedDuration: 45,
@@ -2139,13 +2144,13 @@ async function main() {
 
   console.log("✅ Coach plans created")
 
-  // ── New Platform Plans (Upper/Lower + Weider) ────────
+  // ── New Platform Plans (Superior/Inferior + Weider) ────────
   const planUpperLower = await prisma.routinePlan.upsert({
-    where: { name_userId: { name: "Upper/Lower Split — Hipertrofia", userId: superadmin.id } },
+    where: { name_userId: { name: "Superior / Inferior — Hipertrofia", userId: superadmin.id } },
     update: {},
     create: {
       userId: superadmin.id,
-      name: "Upper/Lower Split — Hipertrofia",
+      name: "Superior / Inferior — Hipertrofia",
       description:
         "Rutina torso/piernas 4 días. Volumen equilibrado con compuestos y aislados para hipertrofia.",
       objective: "MUSCLE_GAIN",
@@ -2158,7 +2163,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "A",
-        name: "Upper A — Empuje",
+        name: "Superior A — Empuje",
         description: "Pecho, hombro frontal, espalda y brazos",
         muscleGroups: ["CHEST", "BACK", "SHOULDERS", "BICEPS", "TRICEPS"],
         estimatedDuration: 55,
@@ -2213,7 +2218,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "B",
-        name: "Lower A — Cuádriceps",
+        name: "Inferior A — Cuádriceps",
         description: "Enfoque en cuádriceps, isquiotibiales y core",
         muscleGroups: ["LEGS", "GLUTES", "CALVES", "ABS"],
         estimatedDuration: 55,
@@ -2268,7 +2273,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "C",
-        name: "Upper B — Tracción",
+        name: "Superior B — Tracción",
         description: "Enfoque en espalda, deltoides posterior y brazos",
         muscleGroups: ["CHEST", "BACK", "SHOULDERS", "BICEPS", "TRICEPS"],
         estimatedDuration: 55,
@@ -2323,7 +2328,7 @@ async function main() {
     await prisma.routineSplit.create({
       data: {
         label: "D",
-        name: "Lower B — Glúteo/Isquio",
+        name: "Inferior B — Glúteo/Isquio",
         description: "Enfoque en glúteos, isquiotibiales y core",
         muscleGroups: ["LEGS", "GLUTES", "CALVES", "ABS"],
         estimatedDuration: 55,
@@ -2378,11 +2383,11 @@ async function main() {
   }
 
   const planWeider = await prisma.routinePlan.upsert({
-    where: { name_userId: { name: "Weider Split — Arnold Clásico", userId: superadmin.id } },
+    where: { name_userId: { name: "Weider — Arnold clásico", userId: superadmin.id } },
     update: {},
     create: {
       userId: superadmin.id,
-      name: "Weider Split — Arnold Clásico",
+      name: "Weider — Arnold clásico",
       description:
         "Rutina Weider 6 días basada en el clásico Arnold Split. Alto volumen, ideal para hipertrofia avanzada.",
       objective: "MUSCLE_GAIN",
@@ -2765,7 +2770,7 @@ async function main() {
       },
     })
   }
-  console.log("✅ Added Upper/Lower and Weider plans")
+  console.log("✅ Added Superior/Inferior and Weider plans")
 
   // ── Plan Assignments ────────────────────────────────
   // Fetch splits for later workout logs
@@ -3324,7 +3329,7 @@ async function main() {
   )
 
   console.log("\n🎉 Seed completed!")
-  console.log("\n📋 Login credentials (password: demo123):")
+  console.log("\n📋 Login credentials (password: la de SEED_PASSWORD):")
   console.log("  Staff:")
   console.log("    Super Admin:  superadmin@gymapp.com")
   console.log("    Admin:        admin@gymapp.com")

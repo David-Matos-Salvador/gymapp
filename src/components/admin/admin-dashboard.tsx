@@ -131,7 +131,7 @@ export function AdminDashboard({
           label="Equipamiento activo"
           value={stats.activeEquipment}
           icon={Wrench}
-          iconColor="text-primary"
+          iconColor="text-gold"
           borderColor="border-t-primary"
           suffix="equipos"
           delay={0.18}
@@ -147,7 +147,7 @@ export function AdminDashboard({
           label="Asistencia diaria"
           value={stats.avgDailyAttendance}
           icon={CalendarCheck}
-          iconColor="text-primary"
+          iconColor="text-gold"
           borderColor="border-t-primary"
           suffix="promedio de 7 días"
           delay={0.24}
@@ -163,7 +163,7 @@ export function AdminDashboard({
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-accent-yellow" />
+                <Clock className="h-5 w-5 text-gold" />
                 <CardTitle className="text-base">Membresías por vencer</CardTitle>
               </div>
               {expiringMemberships.length > 0 && (
@@ -179,7 +179,7 @@ export function AdminDashboard({
                 expiringMemberships.map((m) => (
                   <div key={m.id} className="flex items-center gap-3 rounded-lg border p-3">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
-                      <Users className="h-4 w-4 text-accent-yellow" />
+                      <Users className="h-4 w-4 text-gold" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{m.userName}</p>
@@ -187,9 +187,7 @@ export function AdminDashboard({
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs text-muted-foreground">Vence</p>
-                      <p className="text-sm font-medium text-accent-yellow">
-                        {formatDate(m.endDate)}
-                      </p>
+                      <p className="text-sm font-medium text-gold">{formatDate(m.endDate)}</p>
                     </div>
                   </div>
                 ))
@@ -206,7 +204,7 @@ export function AdminDashboard({
           <Card className="h-full">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <CalendarCheck className="h-5 w-5 text-accent-yellow" />
+                <CalendarCheck className="h-5 w-5 text-gold" />
                 <CardTitle className="text-base">Actividad reciente</CardTitle>
               </div>
             </CardHeader>
@@ -221,7 +219,7 @@ export function AdminDashboard({
                       className="flex items-center gap-3 rounded-lg border p-3"
                     >
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
-                        <Dumbbell className="h-4 w-4 text-accent-yellow" />
+                        <Dumbbell className="h-4 w-4 text-gold" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate">{w.userName} entrenó</p>
@@ -233,7 +231,7 @@ export function AdminDashboard({
                   {recentCheckIns.slice(0, Math.max(0, 4 - recentWorkouts.length)).map((c) => (
                     <div key={c.id} className="flex items-center gap-3 rounded-lg border p-3">
                       <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
-                        <CalendarCheck className="h-4 w-4 text-accent-yellow" />
+                        <CalendarCheck className="h-4 w-4 text-gold" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate">{c.userName}</p>

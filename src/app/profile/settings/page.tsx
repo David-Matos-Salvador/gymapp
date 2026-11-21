@@ -46,7 +46,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Sun className="h-5 w-5 text-accent-yellow" />
+                <Sun className="h-5 w-5 text-gold" />
                 Apariencia
               </CardTitle>
               <CardDescription>Elige el tema que prefieras</CardDescription>
@@ -85,7 +85,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader className="border-b">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <Volume2 className="h-5 w-5 text-accent-yellow" />
+                <Volume2 className="h-5 w-5 text-gold" />
                 Sonido
               </CardTitle>
               <CardDescription>Activa o desactiva los efectos de sonido</CardDescription>
@@ -103,7 +103,7 @@ export default function SettingsPage() {
                     className={cn(
                       "h-10 w-10 rounded-xl flex items-center justify-center transition-colors",
                       soundEnabled
-                        ? "bg-accent-yellow/10 text-accent-yellow"
+                        ? "bg-accent-yellow/10 text-gold"
                         : "bg-muted text-muted-foreground"
                     )}
                   >

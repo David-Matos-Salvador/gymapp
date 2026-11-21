@@ -446,16 +446,36 @@ describe("GET /api/gyms/[id]", () => {
     expect(res.status).toBe(404)
   })
 
-  it("devuelve el gimnasio pedido", async () => {
+  it("sin sesión devuelve solo los datos públicos de un gimnasio activo", async () => {
+    sessionAs(null)
     gymsInDb(gym1)
     const res = await getGym(new Request("http://localhost/api/gyms/gym-1"), params("gym-1"))
     expect(res.status).toBe(200)
     expect((await res.json()).gym.id).toBe("gym-1")
+    expect(mocks.gymFindUnique).toHaveBeenCalledWith({
+      where: { id: "gym-1", active: true, isDefault: false },
+      select: expect.not.objectContaining({ ownerId: true }),
+    })
   })
 
-  it.todo(
-    "GET /api/gyms/[id] no pide sesión y devuelve el registro completo (ownerId, correo, teléfono), también de gimnasios inactivos o del gimnasio por defecto, que la lista pública oculta"
-  )
+  it("un admin de otro gimnasio también recibe solo los datos públicos", async () => {
+    sessionAs(otherAdmin)
+    usersInDb(otherAdmin)
+    gymsInDb(gym1)
+    await getGym(new Request("http://localhost/api/gyms/gym-1"), params("gym-1"))
+    expect(mocks.gymFindUnique).toHaveBeenCalledWith(
+      expect.objectContaining({ select: expect.any(Object) })
+    )
+  })
+
+  it("el admin del gimnasio recibe el registro completo", async () => {
+    sessionAs(admin)
+    usersInDb(admin)
+    gymsInDb(gym1)
+    const res = await getGym(new Request("http://localhost/api/gyms/gym-1"), params("gym-1"))
+    expect(res.status).toBe(200)
+    expect(mocks.gymFindUnique).toHaveBeenCalledWith({ where: { id: "gym-1" } })
+  })
 })
 
 describe("PATCH /api/gyms/[id]", () => {
@@ -535,6 +555,44 @@ describe("PATCH /api/gyms/[id]", () => {
     expect(invalid.status).toBe(400)
     const empty = await updateGym(jsonRequest("/api/gyms/gym-1", {}, "PATCH"), params("gym-1"))
     expect(empty.status).toBe(400)
+  })
+
+  it("un admin escribe las instrucciones de pago de su gimnasio y vacías las borra (#173)", async () => {
+    sessionAs(admin)
+    usersInDb(admin)
+    gymsInDb(gym1)
+    mocks.gymUpdate.mockResolvedValue(gym1)
+
+    const set = await updateGym(
+      jsonRequest("/api/gyms/gym-1", { paymentInstructions: "  Yape: 999 888 777  " }, "PATCH"),
+      params("gym-1")
+    )
+    expect(set.status).toBe(200)
+    expect(mocks.gymUpdate).toHaveBeenLastCalledWith({
+      where: { id: "gym-1" },
+      data: { paymentInstructions: "Yape: 999 888 777" },
+    })
+
+    await updateGym(
+      jsonRequest("/api/gyms/gym-1", { paymentInstructions: "   " }, "PATCH"),
+      params("gym-1")
+    )
+    expect(mocks.gymUpdate).toHaveBeenLastCalledWith({
+      where: { id: "gym-1" },
+      data: { paymentInstructions: null },
+    })
+  })
+
+  it("las instrucciones de pago tienen un máximo de 1000 caracteres", async () => {
+    sessionAs(admin)
+    usersInDb(admin)
+    gymsInDb(gym1)
+    const res = await updateGym(
+      jsonRequest("/api/gyms/gym-1", { paymentInstructions: "x".repeat(1001) }, "PATCH"),
+      params("gym-1")
+    )
+    expect(res.status).toBe(400)
+    expect(mocks.gymUpdate).not.toHaveBeenCalled()
   })
 
   it("un admin edita los datos de contacto de su gimnasio", async () => {
@@ -889,7 +947,7 @@ describe("POST /api/notifications/send", () => {
       title: notice.title,
       body: notice.message,
     })
-    expect(mocks.emitRealtime).toHaveBeenCalledWith("notifications")
+    expect(mocks.emitRealtime).toHaveBeenCalledWith("notifications", "gym-1")
   })
 
   it("un admin notifica a un miembro de su gimnasio y manda el recordatorio de membresía por correo", async () => {
@@ -924,10 +982,29 @@ describe("POST /api/notifications/send", () => {
     expect(res.status).toBe(404)
   })
 
-  it.todo(
-    "un admin sin gimnasio (gymId null) puede notificar a cualquier usuario sin gimnasio, porque la ruta compara null con null; debería exigir que el admin tenga gimnasio"
-  )
-  it.todo(
-    "con un coach, la ruta llama a getTrainerClientIds sin el gymId: un cliente asignado que esté en otro gimnasio sigue contando como suyo"
-  )
+  it("un admin sin gimnasio no puede notificar a un usuario sin gimnasio", async () => {
+    const gymlessAdmin = { ...admin, id: "admin-9", email: "admin9@test.com", gymId: null }
+    sessionAs(gymlessAdmin)
+    usersInDb(gymlessAdmin, { ...gymlessMember, id: "member-1" })
+    const res = await sendNotification(jsonRequest("/api/notifications/send", notice))
+    expect(res.status).toBe(404)
+    expect(mocks.notificationCreate).not.toHaveBeenCalled()
+  })
+
+  it("un coach no puede notificar a un cliente asignado que está en otro gimnasio", async () => {
+    sessionAs(coach)
+    usersInDb(coach, { ...otherGymMember, id: "member-1" })
+    mocks.getTrainerClientIds.mockResolvedValue(["member-1"])
+    const res = await sendNotification(jsonRequest("/api/notifications/send", notice))
+    expect(res.status).toBe(404)
+    expect(mocks.notificationCreate).not.toHaveBeenCalled()
+  })
+
+  it("busca los clientes del coach solo en su gimnasio", async () => {
+    sessionAs(coach)
+    usersInDb(coach, member)
+    mocks.getTrainerClientIds.mockResolvedValue(["member-1"])
+    await sendNotification(jsonRequest("/api/notifications/send", notice))
+    expect(mocks.getTrainerClientIds).toHaveBeenCalledWith("coach-1", "gym-1")
+  })
 })

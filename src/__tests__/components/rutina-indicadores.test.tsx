@@ -50,7 +50,7 @@ describe("WeeklyProgress", () => {
     const { container } = render(<WeeklyProgress completed={5} target={4} />)
 
     expect(barWidth(container)).toBe("100%")
-    expect(screen.getByText("5 de 4 días").className).toContain("text-accent-yellow")
+    expect(screen.getByText("5 de 4 días").className).toContain("text-gold")
   })
 
   it("sin meta no divide entre cero", () => {

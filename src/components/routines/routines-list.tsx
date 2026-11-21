@@ -78,7 +78,7 @@ export function RoutinesList({ routines, isCoach, recommended }: RoutinesListPro
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-base">{routine.name}</CardTitle>
                       {recommended && (
-                        <span className="text-[10px] bg-accent-yellow/10 text-accent-yellow px-1.5 py-0.5 rounded-full">
+                        <span className="text-[10px] bg-accent-yellow/10 text-gold px-1.5 py-0.5 rounded-full">
                           Popular
                         </span>
                       )}

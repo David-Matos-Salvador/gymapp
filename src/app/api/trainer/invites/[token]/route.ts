@@ -96,6 +96,14 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   const { name, email, password, phone } = parsed.data
 
+  // Una invitación con correo solo sirve para ese correo.
+  if (invite.email && invite.email.trim().toLowerCase() !== email.trim().toLowerCase()) {
+    return NextResponse.json(
+      { error: "Usa el correo al que llegó la invitación", details: { email: ["No coincide"] } },
+      { status: 400 }
+    )
+  }
+
   const existingUser = await prisma.user.findUnique({ where: { email } })
   if (existingUser) {
     return NextResponse.json({ error: "El correo ya está registrado" }, { status: 409 })
@@ -103,26 +111,36 @@ export async function POST(request: Request, { params }: RouteParams) {
 
   const passwordHash = await bcrypt.hash(password, 10)
 
-  const user = await prisma.user.create({
-    data: {
-      name,
-      email,
-      password: passwordHash,
-      phone: phone?.trim() || invite.phone,
-      role: "MEMBER",
-      assignedTrainerId: invite.trainerId,
-      gymId: invite.gymId,
-    },
+  // El enlace se marca como usado en la misma transacción que crea la cuenta: si llegan dos
+  // envíos a la vez, solo uno pasa la invitación de PENDING a COMPLETED.
+  const user = await prisma.$transaction(async (tx) => {
+    const claimed = await tx.trainerInvite.updateMany({
+      where: { id: invite.id, status: "PENDING", expiresAt: { gt: new Date() } },
+      data: { status: "COMPLETED", completedAt: new Date() },
+    })
+    if (claimed.count === 0) return null
+
+    const created = await tx.user.create({
+      data: {
+        name,
+        email,
+        password: passwordHash,
+        phone: phone?.trim() || invite.phone,
+        role: "MEMBER",
+        assignedTrainerId: invite.trainerId,
+        gymId: invite.gymId,
+      },
+    })
+    await tx.trainerInvite.update({
+      where: { id: invite.id },
+      data: { usedByUserId: created.id },
+    })
+    return created
   })
 
-  await prisma.trainerInvite.update({
-    where: { id: invite.id },
-    data: {
-      status: "COMPLETED",
-      usedByUserId: user.id,
-      completedAt: new Date(),
-    },
-  })
+  if (!user) {
+    return NextResponse.json({ error: "Esta invitación ya fue usada" }, { status: 410 })
+  }
 
   return NextResponse.json(
     { message: "Cuenta creada", user: { id: user.id, email: user.email, name: user.name } },

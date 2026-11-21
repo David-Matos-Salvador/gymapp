@@ -116,6 +116,14 @@ function LoginFormInner() {
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
+              <p className="text-right">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-medium text-gold hover:underline"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              </p>
             </div>
             {error && <p className="text-sm text-destructive text-center">{error}</p>}
             <Button
@@ -143,7 +151,7 @@ function LoginFormInner() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           ¿No tienes cuenta?{" "}
-          <Link href="/register" className="font-medium text-primary hover:underline">
+          <Link href="/register" className="font-medium text-gold hover:underline">
             Crear cuenta
           </Link>
         </p>

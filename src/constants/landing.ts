@@ -145,35 +145,13 @@ export const steps: LandingFeature[] = [
   },
 ]
 
-export interface LandingPlan {
-  name: string
-  description: string
-  features: string[]
-  highlighted: boolean
-}
-
-// Los precios todavía no están definidos (David, 17/11): se muestra «Precio por definir».
-export const plans: LandingPlan[] = [
-  {
-    name: "Básico",
-    description: "Para gimnasios que empiezan a llevar su día a día en la app.",
-    features: [
-      "Rutinas, entrenamiento e historial para tus miembros",
-      "Membresías con Yape, transferencia y pago en recepción",
-      "Clases con reservas y cupos",
-      "Equipamiento numerado",
-    ],
-    highlighted: false,
-  },
-  {
-    name: "Pro",
-    description: "Para gimnasios con coaches que siguen a sus clientes de cerca.",
-    features: [
-      "Todo lo del plan Básico",
-      "Agenda del coach con sesiones 1:1",
-      "Conexión con Google Calendar",
-      "Rutina recomendada por IA al registrarse",
-    ],
-    highlighted: true,
-  },
+// La app es gratis por ahora (David, 21/11): sin planes «Básico» y «Pro» ni precios.
+export const freeFeatures: string[] = [
+  "Rutinas, entrenamiento e historial para tus miembros",
+  "Membresías con Yape, transferencia y pago en recepción",
+  "Clases con reservas y cupos",
+  "Equipamiento numerado",
+  "Agenda del coach con sesiones 1:1",
+  "Conexión con Google Calendar",
+  "Rutina recomendada por IA al registrarse",
 ]

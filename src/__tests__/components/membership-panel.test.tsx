@@ -577,10 +577,15 @@ describe("MembershipPanel", () => {
       )
     })
 
-    it.todo(
-      "«Nueva membresía» ofrece «Stripe» como método de pago aunque «Registrar pago manual» lo " +
-        "oculta; ¿debería poder elegirse al crearla a mano? (membership-panel.tsx:810 frente a :718)"
-    )
+    it("«Nueva membresía» no ofrece «Stripe» como método de pago (#186)", async () => {
+      renderPanel()
+      const dialog = await openNew()
+      const methodSelect = dialog.getAllByRole("combobox")[2]
+
+      fireEvent.keyDown(methodSelect, { key: "Enter" })
+      await screen.findByRole("option", { name: "Yape" })
+      expect(screen.queryByRole("option", { name: "Stripe" })).toBeNull()
+    })
     it("si se cae la conexión al crearla, lo dice en el diálogo y deja reintentar", async () => {
       offlineFetch()
       renderPanel()

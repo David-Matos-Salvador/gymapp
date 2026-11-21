@@ -1,6 +1,6 @@
 # Flow: Pedro Sánchez
 - **Email**: pedro@gymapp.com
-- **Password**: demo123
+- **Password**: (valor de SEED_PASSWORD)
 - **Role**: MEMBER
 - **Base URL**: http://localhost:3000
 
@@ -9,7 +9,7 @@
 ### 1. Login
 - browser navigate: {baseUrl}/login
 - fill email: pedro@gymapp.com
-- fill password: demo123
+- fill password: (valor de SEED_PASSWORD)
 - click "Iniciar sesión"
 - expect: redirect to /my-routine
 

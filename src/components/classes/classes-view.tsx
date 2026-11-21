@@ -214,7 +214,7 @@ export function ClassesView({ classes, bookings, userRole, userId }: ClassesView
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <CardTitle className="text-base">{cls.name}</CardTitle>
-                  {booked && <CheckCircle2 className="h-5 w-5 text-accent-yellow" />}
+                  {booked && <CheckCircle2 className="h-5 w-5 text-gold" />}
                 </div>
                 {cls.description && (
                   <p className="text-xs text-muted-foreground line-clamp-2">{cls.description}</p>

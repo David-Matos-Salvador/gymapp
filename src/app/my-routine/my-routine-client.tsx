@@ -202,7 +202,7 @@ export function RutinaClient({
 
       {weeklyStreak > 0 && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2.5 py-1 text-xs font-semibold text-accent-yellow">
+          <span className="inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2.5 py-1 text-xs font-semibold text-gold">
             🔥 {weeklyStreak} semana{weeklyStreak !== 1 ? "s" : ""} seguida
             {weeklyStreak !== 1 ? "s" : ""}
           </span>
@@ -214,7 +214,7 @@ export function RutinaClient({
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Dumbbell className="h-5 w-5 text-accent-yellow" />
+          <Dumbbell className="h-5 w-5 text-gold" />
           Mis entrenamientos
         </h2>
 

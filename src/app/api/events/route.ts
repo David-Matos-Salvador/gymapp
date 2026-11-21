@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth"
-import { connectRealtimeSub, subscribeRealtime } from "@/lib/realtime"
+import { prisma } from "@/lib/prisma"
+import { canReceiveRealtime, connectRealtimeSub, subscribeRealtime } from "@/lib/realtime"
 
 export const dynamic = "force-dynamic"
 
@@ -8,6 +9,14 @@ const HEARTBEAT_MS = 25_000
 export async function GET(request: Request) {
   const session = await auth()
   if (!session?.user?.email) {
+    return new Response("No autorizado", { status: 401 })
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    select: { role: true, gymId: true },
+  })
+  if (!user) {
     return new Response("No autorizado", { status: 401 })
   }
 
@@ -26,6 +35,7 @@ export async function GET(request: Request) {
       }
 
       const unsubscribe = subscribeRealtime((payload) => {
+        if (!canReceiveRealtime(payload, user)) return
         send(`event: ${payload.type}\ndata: ${JSON.stringify({ at: Date.now() })}\n\n`)
       })
 

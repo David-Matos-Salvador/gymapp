@@ -7,6 +7,17 @@ export type RealtimeEventType = "pending-count" | "notifications"
 export interface RealtimePayload {
   type: RealtimeEventType
   id: string
+  /** Gimnasio al que pertenece el evento: solo lo reciben las sesiones de ese gimnasio. */
+  gymId: string | null
+}
+
+/** El súper admin recibe todo; el resto, solo los eventos de su gimnasio. */
+export function canReceiveRealtime(
+  payload: Pick<RealtimePayload, "gymId">,
+  user: { role: string; gymId: string | null }
+): boolean {
+  if (user.role === "SUPER_ADMIN") return true
+  return Boolean(payload.gymId && payload.gymId === user.gymId)
 }
 
 const CHANNEL = "gymapp:events"
@@ -43,8 +54,8 @@ function getSub(): Redis | null {
   return globalForRealtime.__realtimeSub
 }
 
-export function emitRealtime(type: RealtimeEventType) {
-  const payload: RealtimePayload = { type, id: randomUUID() }
+export function emitRealtime(type: RealtimeEventType, gymId: string | null) {
+  const payload: RealtimePayload = { type, id: randomUUID(), gymId }
 
   // Siempre emite local (funciona aunque Redis esté caído).
   realtimeEmitter.emit("event", payload)

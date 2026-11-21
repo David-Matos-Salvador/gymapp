@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { useSound } from "@/hooks/use-sound"
 import { calculateBMI, getBMICategory } from "@/lib/health"
 import { createDoubleTap } from "@/lib/double-tap"
+import { CONDITION_DETAIL_MAX, needsProfessionalAdvice } from "@/lib/health-conditions"
 import { exercisesPerDay } from "@/lib/utils"
 import {
   cleanDecimalInput,
@@ -131,6 +132,7 @@ export default function OnboardingPage() {
     experienceLevel: null,
     trainingFrequency: null,
     physicalConditions: [],
+    conditionDetail: "",
     weight: null,
     height: null,
     usualSchedule: null,
@@ -797,7 +799,7 @@ export default function OnboardingPage() {
                       className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-all ${
                         isSelected
                           ? "bg-primary text-primary-foreground shadow-md"
-                          : "bg-primary/10 text-primary"
+                          : "bg-primary/10 text-gold"
                       }`}
                     >
                       <opt.icon className="h-7 w-7" />
@@ -965,6 +967,8 @@ export default function OnboardingPage() {
                 return (
                   <motion.button
                     key={condition}
+                    type="button"
+                    aria-pressed={isSelected}
                     whileTap={{ scale: 0.96 }}
                     onClick={() => {
                       play("click")
@@ -997,6 +1001,30 @@ export default function OnboardingPage() {
                 )
               })}
             </div>
+            {data.physicalConditions.some((c) => c !== "No poseo") && (
+              <div className="space-y-2">
+                <label htmlFor="conditionDetail" className="text-sm font-medium">
+                  ¿Cuál? (opcional)
+                </label>
+                <Input
+                  id="conditionDetail"
+                  value={data.conditionDetail}
+                  maxLength={CONDITION_DETAIL_MAX}
+                  placeholder="Ej.: lesión en la rodilla derecha"
+                  aria-describedby="conditionDetailHint"
+                  onChange={(e) => updateData("conditionDetail", e.target.value)}
+                />
+                <p id="conditionDetailHint" className="text-xs text-muted-foreground">
+                  Solo lo ven tú y tu coach.
+                </p>
+                {needsProfessionalAdvice(data.physicalConditions) && (
+                  <p className="rounded-lg border p-3 text-sm" role="note">
+                    Antes de empezar, consulta con un profesional de la salud qué ejercicios te
+                    convienen.
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )
 
@@ -1168,7 +1196,9 @@ export default function OnboardingPage() {
                       {isSelected && <Check className="h-4 w-4 text-primary-foreground" />}
                     </div>
                     <div className="flex items-center gap-3 flex-1">
-                      <span className="text-xl">{opt.icon}</span>
+                      <span className="text-xl" aria-hidden="true">
+                        {opt.icon}
+                      </span>
                       <div>
                         <p className="font-semibold text-base">{opt.label}</p>
                         <p className="text-sm text-muted-foreground">{opt.time}</p>
@@ -1198,7 +1228,7 @@ export default function OnboardingPage() {
                     <div className="w-24 h-24 rounded-3xl bg-primary/10 flex items-center justify-center">
                       {(() => {
                         const msg = loadingMessages[generationPhase]
-                        return <msg.icon className="h-12 w-12 text-primary" />
+                        return <msg.icon className="h-12 w-12 text-gold" />
                       })()}
                     </div>
                     <motion.div
@@ -1268,7 +1298,14 @@ export default function OnboardingPage() {
               />
               <SummaryRow
                 label="Condiciones"
-                value={data.physicalConditions.map(physicalConditionLabel).join(", ")}
+                value={[
+                  data.physicalConditions.map(physicalConditionLabel).join(", "),
+                  data.physicalConditions.some((c) => c !== "No poseo")
+                    ? data.conditionDetail.trim()
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
                 onEdit={() => jumpToEditStep(6)}
               />
               <SummaryRow
@@ -1301,8 +1338,8 @@ export default function OnboardingPage() {
             {coachPlan && (
               <div className="rounded-2xl border-2 border-accent-yellow/40 bg-accent-yellow/5 p-4 space-y-3">
                 <div className="flex items-center gap-2">
-                  <UserRound className="h-4 w-4 text-accent-yellow" />
-                  <p className="text-sm font-semibold text-accent-yellow">
+                  <UserRound className="h-4 w-4 text-gold" />
+                  <p className="text-sm font-semibold text-gold">
                     Tu coach{coachPlan.coachName ? ` ${coachPlan.coachName}` : ""} ya te asignó una
                     rutina
                   </p>
@@ -1406,7 +1443,7 @@ export default function OnboardingPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2.5 flex-wrap">
-                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-accent-yellow/10 text-accent-yellow flex items-center gap-1">
+                            <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-accent-yellow/10 text-gold flex items-center gap-1">
                               <UserRound className="h-3 w-3" />
                               Asignada por tu coach
                               {coachPlan.coachName ? ` · ${coachPlan.coachName}` : ""}
@@ -1428,7 +1465,7 @@ export default function OnboardingPage() {
                           </div>
                         </div>
                         <ChevronRight
-                          className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${expandedPlanId === `coach-${coachPlan.id}` ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`}
+                          className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${expandedPlanId === `coach-${coachPlan.id}` ? "text-gold rotate-90" : "text-muted-foreground"}`}
                         />
                       </div>
                       {expandedPlanId === `coach-${coachPlan.id}` && (
@@ -1447,7 +1484,7 @@ export default function OnboardingPage() {
                             {coachPlan.splits.map((split) => (
                               <div key={split.id} className="rounded-lg border bg-muted/30 p-3">
                                 <div className="flex items-center gap-2 mb-1.5">
-                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
+                                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-yellow/10 text-gold font-bold text-xs">
                                     {split.label}
                                   </span>
                                   <span className="text-xs font-semibold">{split.name}</span>
@@ -1523,7 +1560,7 @@ export default function OnboardingPage() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex-1">
                             {isRecommended && (
-                              <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-medium text-accent-yellow">
+                              <span className="mb-1.5 inline-flex items-center gap-1 rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-medium text-gold">
                                 <Sparkles className="h-3 w-3" />
                                 Recomendada por IA
                               </span>
@@ -1534,15 +1571,17 @@ export default function OnboardingPage() {
                                 className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
                                   plan.difficulty === "ADVANCED" || plan.difficulty === "ELITE"
                                     ? "bg-violet-100 text-violet-700"
-                                    : "bg-accent-yellow/10 text-accent-yellow"
+                                    : "bg-accent-yellow/10 text-gold"
                                 }`}
                               >
                                 {experienceLabelMap[plan.difficulty] ?? plan.difficulty}
                               </span>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {plan.description}
-                            </p>
+                            {plan.description && (
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {plan.description}
+                              </p>
+                            )}
                             {isRecommended && aiRecommendation && (
                               <p className="mt-2 text-xs font-medium">{aiRecommendation.reason}</p>
                             )}
@@ -1551,15 +1590,17 @@ export default function OnboardingPage() {
                                 <Dumbbell className="h-3 w-3" />
                                 {plan.splits.length} divisiones
                               </span>
-                              <span className="flex items-center gap-1">
-                                <Zap className="h-3 w-3" />
-                                {plan.focus}
-                              </span>
+                              {plan.focus && (
+                                <span className="flex items-center gap-1">
+                                  <Zap className="h-3 w-3" />
+                                  {plan.focus}
+                                </span>
+                              )}
                               <span>{exercisesPerDay(plan.splits)}</span>
                             </div>
                           </div>
                           <ChevronRight
-                            className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${isExpanded ? "text-accent-yellow rotate-90" : "text-muted-foreground"}`}
+                            className={`h-5 w-5 shrink-0 mt-1 transition-transform duration-200 ${isExpanded ? "text-gold rotate-90" : "text-muted-foreground"}`}
                           />
                         </div>
                         {isExpanded && (
@@ -1575,7 +1616,7 @@ export default function OnboardingPage() {
                               {plan.splits.map((split) => (
                                 <div key={split.id} className="rounded-lg border bg-muted/30 p-3">
                                   <div className="flex items-center gap-2 mb-1.5">
-                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow font-bold text-xs">
+                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-yellow/10 text-gold font-bold text-xs">
                                       {split.label}
                                     </span>
                                     <span className="text-xs font-semibold">{split.name}</span>
@@ -1627,7 +1668,7 @@ export default function OnboardingPage() {
               </div>
             ) : (
               <div className="flex flex-col items-center gap-4 py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-gold" />
                 <p className="text-muted-foreground">Generando rutinas personalizadas...</p>
               </div>
             )}
@@ -1642,7 +1683,7 @@ export default function OnboardingPage() {
   if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-gold" />
       </div>
     )
   }
@@ -1664,7 +1705,7 @@ export default function OnboardingPage() {
 
           <div className="flex items-center gap-3">
             {assisted && memberName && (
-              <span className="max-w-[140px] truncate rounded-full bg-accent-yellow/10 px-2.5 py-0.5 text-xs font-semibold text-accent-yellow">
+              <span className="max-w-[140px] truncate rounded-full bg-accent-yellow/10 px-2.5 py-0.5 text-xs font-semibold text-gold">
                 {memberName}
               </span>
             )}
@@ -1760,7 +1801,7 @@ function SummaryRow({
       <button
         onClick={onEdit}
         aria-label={`Editar ${label}`}
-        className="-mr-2 ml-1 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center px-2 text-xs font-semibold text-primary hover:underline"
+        className="-mr-2 ml-1 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center px-2 text-xs font-semibold text-gold hover:underline"
       >
         Editar
       </button>

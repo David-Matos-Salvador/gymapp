@@ -6,6 +6,7 @@ import { emitRealtime } from "@/lib/realtime"
 import { sendPush } from "@/lib/push-notifications"
 import { sendMembershipReminder } from "@/lib/email"
 import { getTrainerClientIds } from "@/lib/trainer-client"
+import { canAccessGym } from "@/lib/authz"
 
 const sendNotificationSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
@@ -63,11 +64,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
-  if (currentUser.role === "ADMIN" && targetUser.gymId !== currentUser.gymId) {
+  // Admin y coach solo notifican dentro de su gimnasio (los dos deben tener uno).
+  if (!canAccessGym(currentUser, targetUser.gymId)) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
   if (currentUser.role === "TRAINER") {
-    const clientIds = await getTrainerClientIds(currentUser.id)
+    const clientIds = await getTrainerClientIds(currentUser.id, currentUser.gymId)
     if (!clientIds.includes(targetUser.id)) {
       return NextResponse.json({ error: "Solo puedes notificar a tus clientes" }, { status: 403 })
     }
@@ -77,7 +79,7 @@ export async function POST(request: Request) {
     data: { title, message, type, userId },
   })
 
-  emitRealtime("notifications")
+  emitRealtime("notifications", targetUser.gymId)
 
   const emailResult: { triggered: boolean; success?: boolean; error?: string } = {
     triggered: false,

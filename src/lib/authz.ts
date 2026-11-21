@@ -19,5 +19,12 @@ export function canAccessGym(
 export function canEditGymField(role: string, field: string): boolean {
   if (isSuperAdmin(role)) return true
   if (role !== "ADMIN") return false
-  return ["address", "phone", "email", "logoUrl", "showMachineNumbers"].includes(field)
+  return [
+    "address",
+    "phone",
+    "email",
+    "logoUrl",
+    "showMachineNumbers",
+    "paymentInstructions",
+  ].includes(field)
 }
