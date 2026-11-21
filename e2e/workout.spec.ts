@@ -1,7 +1,8 @@
 import { test, expect, type Page } from "@playwright/test"
+import { SEED_PASSWORD } from "./seed-password"
 
 const EMAIL = "carlos@gymapp.com"
-const PASSWORD = "demo123"
+const PASSWORD = SEED_PASSWORD
 
 async function login(page: Page) {
   await page.goto("/login")

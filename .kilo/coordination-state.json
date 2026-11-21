@@ -1,7 +1,7 @@
 {
   "batch": 1,
   "baseUrl": "http://localhost:3001",
-  "password": "demo123",
+  "password": "(valor de SEED_PASSWORD)",
   "dependencies": [
     { "id": "dep-1", "from": "trainer", "to": "diego", "action": "assign-plan", "status": "completed", "note": "ya está asignado en seed: plan coachPlan1" },
     { "id": "dep-2", "from": "trainer2", "to": "valentina", "action": "send-request", "status": "completed" },

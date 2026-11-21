@@ -1,6 +1,7 @@
 import { test, expect, type Browser, type Page } from "@playwright/test"
 import bcrypt from "bcryptjs"
 import { findUser, prisma } from "./db"
+import { SEED_PASSWORD } from "../seed-password"
 
 /**
  * Check-in (#23).
@@ -22,7 +23,7 @@ import { findUser, prisma } from "./db"
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-const PASSWORD = "demo123"
+const PASSWORD = SEED_PASSWORD
 const SEED_ADMIN = "admin@gymapp.com"
 
 const RUN = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`

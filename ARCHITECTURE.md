@@ -287,7 +287,7 @@ El seed (`prisma/seed.ts`) crea datos de prueba realistas para LATAM:
 - **Mediciones corporales** semanales para Carlos y Ana
 - **Check-ins** diarios de 7 días para Carlos, 5 para Ana
 
-**Credenciales**: todas las cuentas usan password `demo123`
+**Credenciales**: todas las cuentas usan la contraseña de la variable `SEED_PASSWORD` (sin valor por defecto en el repo; en local va en `.env`)
 
 | Email                   | Rol         | Acceso                     |
 | ----------------------- | ----------- | -------------------------- |

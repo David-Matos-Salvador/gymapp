@@ -1,6 +1,6 @@
 # Flow: Diego Vargas
 - **Email**: diego@gymapp.com
-- **Password**: demo123
+- **Password**: (valor de SEED_PASSWORD)
 - **Role**: MEMBER
 - **Dependencies**: dep-1 (trainer already assigned plan in seed — completed)
 - **Base URL**: http://localhost:3000
@@ -10,7 +10,7 @@
 ### 1. Login + Auto-redirect to Onboarding
 - browser navigate: {baseUrl}/login
 - fill email: diego@gymapp.com
-- fill password: demo123
+- fill password: (valor de SEED_PASSWORD)
 - click "Iniciar sesión"
 - expect: redirect to /dashboard → redirect to /onboarding (onboarding NOT completed)
 

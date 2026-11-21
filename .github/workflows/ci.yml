@@ -112,6 +112,14 @@ jobs:
           --to-config-datasource
           --exit-code
 
+      - name: Generate test seed password
+        # Valor de prueba nuevo en cada corrida (nunca la contraseña real de las cuentas demo):
+        # el seed lo usa para crear las cuentas y la E2E para iniciar sesión.
+        run: |
+          value="Ci$(openssl rand -hex 12)9"
+          echo "::add-mask::$value"
+          echo "SEED_PASSWORD=$value" >> "$GITHUB_ENV"
+
       - name: Seed demo data (CI only)
         run: npm run db:seed
 

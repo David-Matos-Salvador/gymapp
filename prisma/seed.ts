@@ -9,7 +9,12 @@ const prisma = new PrismaClient({
 
 async function main() {
   console.log("🌱 Seeding database...")
-  const passwordHash = await bcrypt.hash("demo123", 10)
+  // La contraseña de las cuentas demo sale del entorno: no hay valor por defecto en el repo.
+  const seedPassword = process.env.SEED_PASSWORD
+  if (!seedPassword) {
+    throw new Error("Falta SEED_PASSWORD: define la contraseña de las cuentas demo en el entorno.")
+  }
+  const passwordHash = await bcrypt.hash(seedPassword, 10)
 
   // ── Default gym (no physical location) ───────────────
   const defaultGym = await prisma.gym.upsert({
@@ -3324,7 +3329,7 @@ async function main() {
   )
 
   console.log("\n🎉 Seed completed!")
-  console.log("\n📋 Login credentials (password: demo123):")
+  console.log("\n📋 Login credentials (password: la de SEED_PASSWORD):")
   console.log("  Staff:")
   console.log("    Super Admin:  superadmin@gymapp.com")
   console.log("    Admin:        admin@gymapp.com")

@@ -1,6 +1,7 @@
 import { test, expect, type Browser, type Page } from "@playwright/test"
 import bcrypt from "bcryptjs"
 import { findUser, prisma } from "./db"
+import { SEED_PASSWORD } from "../seed-password"
 
 /**
  * Membresías asignadas por el admin y pagos en recepción, de punta a punta (#23):
@@ -18,7 +19,7 @@ import { findUser, prisma } from "./db"
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-const PASSWORD = "demo123"
+const PASSWORD = SEED_PASSWORD
 const ADMIN = "admin@gymapp.com"
 const COACH = "trainer@gymapp.com"
 

@@ -1,6 +1,6 @@
 # Flow: Valentina Ríos
 - **Email**: valentina@gymapp.com
-- **Password**: demo123
+- **Password**: (valor de SEED_PASSWORD)
 - **Role**: MEMBER
 - **Dependencies**: dep-2 (trainer2 sends request) MUST be completed before step 4
 - **Base URL**: http://localhost:3000
@@ -10,7 +10,7 @@
 ### 1. Login
 - browser navigate: {baseUrl}/login
 - fill email: valentina@gymapp.com
-- fill password: demo123
+- fill password: (valor de SEED_PASSWORD)
 - click "Iniciar sesión"
 - expect: redirect to /my-routine (onboarding completed)
 

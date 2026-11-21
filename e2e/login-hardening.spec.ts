@@ -1,7 +1,8 @@
 import { test, expect } from "@playwright/test"
+import { SEED_PASSWORD } from "./seed-password"
 
 const EMAIL = "carlos@gymapp.com"
-const PASSWORD = "demo123"
+const PASSWORD = SEED_PASSWORD
 const LOGIN_URL = "/login"
 
 test.describe("Login hardening (F-01)", () => {

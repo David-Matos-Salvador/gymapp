@@ -1,6 +1,7 @@
 import { test, expect, type Browser, type Page } from "@playwright/test"
 import bcrypt from "bcryptjs"
 import { findUser, prisma } from "./db"
+import { SEED_PASSWORD } from "../seed-password"
 
 /**
  * Pago de membresía con comprobante, de punta a punta (#23):
@@ -14,7 +15,7 @@ import { findUser, prisma } from "./db"
  */
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-const PASSWORD = "demo123"
+const PASSWORD = SEED_PASSWORD
 const COACH = "trainer@gymapp.com"
 const OTHER_COACH = "trainer2@gymapp.com"
 
