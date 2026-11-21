@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
           )}
         </CardContent>
         <CardFooter className="justify-center">
-          <Link href="/login" className="text-sm font-medium text-primary hover:underline">
+          <Link href="/login" className="text-sm font-medium text-gold hover:underline">
             Volver a iniciar sesión
           </Link>
         </CardFooter>

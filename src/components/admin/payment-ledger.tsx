@@ -49,7 +49,7 @@ export function PaymentLedger({ payments }: { payments: PaymentRow[] }) {
     <div className="space-y-4">
       <div>
         <h2 className="text-lg font-semibold flex items-center gap-2">
-          <CreditCard className="h-5 w-5 text-accent-yellow" />
+          <CreditCard className="h-5 w-5 text-gold" />
           Pagos del gimnasio
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -75,7 +75,7 @@ export function PaymentLedger({ payments }: { payments: PaymentRow[] }) {
               onClick={() => setStatus(value)}
               className={`rounded-full border px-3 py-1 text-xs font-medium ${
                 status === value
-                  ? "border-accent-yellow bg-accent-yellow/10 text-accent-yellow"
+                  ? "border-accent-yellow bg-accent-yellow/10 text-gold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -128,7 +128,7 @@ export function PaymentLedger({ payments }: { payments: PaymentRow[] }) {
                   href={payment.receiptUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-accent-yellow hover:underline"
+                  className="inline-flex items-center gap-1 text-xs text-gold hover:underline"
                 >
                   <ExternalLink className="h-3 w-3" />
                   Ver comprobante

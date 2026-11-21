@@ -169,7 +169,7 @@ export function MembershipPlanManager({
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-accent-yellow" />
+            <CreditCard className="h-5 w-5 text-gold" />
             Planes de membresía
           </h2>
           <p className="text-sm text-muted-foreground">

@@ -99,7 +99,7 @@ export function CelebrationOverlay({
             {CELEBRATION_ICONS.map((Icon, i) => (
               <motion.span
                 key={i}
-                className="text-accent-yellow"
+                className="text-gold"
                 initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.2 + i * 0.08, duration: 0.25 }}
@@ -134,21 +134,21 @@ export function CelebrationOverlay({
             transition={{ delay: 0.6 }}
           >
             <div className="rounded-xl bg-muted/50 p-3">
-              <p className="text-2xl font-bold tabular-nums text-accent-yellow">
+              <p className="text-2xl font-bold tabular-nums text-gold">
                 {weeklyCompleted}/{weeklyTarget}
               </p>
               <p className="text-[10px] text-muted-foreground">días esta semana</p>
             </div>
             {weeklyStreak > 0 ? (
               <div className="rounded-xl bg-muted/50 p-3">
-                <p className="text-2xl font-bold tabular-nums text-accent-yellow">{weeklyStreak}</p>
+                <p className="text-2xl font-bold tabular-nums text-gold">{weeklyStreak}</p>
                 <p className="text-[10px] text-muted-foreground">
                   {weeklyStreak === 1 ? "semana seguida" : "semanas seguidas"}
                 </p>
               </div>
             ) : (
               <div className="rounded-xl bg-muted/50 p-3">
-                <p className="text-2xl font-bold tabular-nums text-accent-yellow">{daysLeft}</p>
+                <p className="text-2xl font-bold tabular-nums text-gold">{daysLeft}</p>
                 <p className="text-[10px] text-muted-foreground">
                   {daysLeft === 1 ? "día" : "días"} para completar tu semana
                 </p>

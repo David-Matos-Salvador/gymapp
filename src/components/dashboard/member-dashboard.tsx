@@ -164,7 +164,7 @@ export function MemberDashboard({
                       : membership.daysRemaining === 1
                         ? "Resta "
                         : "Restan "}
-                    <span className="font-medium text-accent-yellow">
+                    <span className="font-medium text-gold">
                       {formatDays(membership.daysRemaining)}
                     </span>
                   </p>
@@ -217,7 +217,7 @@ export function MemberDashboard({
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-accent-yellow" /> Próximo entrenamiento
+                <Trophy className="h-5 w-5 text-gold" /> Próximo entrenamiento
               </CardTitle>
               {nextWorkout && (
                 <Button variant="ghost" size="sm" asChild>
@@ -233,7 +233,7 @@ export function MemberDashboard({
                   <p className="text-sm font-medium">{nextWorkout.planName}</p>
                   {nextWorkout.splitName ? (
                     <div className="flex items-center gap-2 text-sm">
-                      <Dumbbell className="h-4 w-4 text-accent-yellow" />
+                      <Dumbbell className="h-4 w-4 text-gold" />
                       <span className="text-muted-foreground">Siguiente entrenamiento:</span>
                       <span className="font-medium">{nextWorkout.splitName}</span>
                     </div>
@@ -266,7 +266,7 @@ export function MemberDashboard({
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <CalendarDays className="h-5 w-5 text-accent-yellow" /> Próximas clases
+                <CalendarDays className="h-5 w-5 text-gold" /> Próximas clases
               </CardTitle>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/classes">
@@ -287,7 +287,7 @@ export function MemberDashboard({
                   >
                     <div className="flex items-center gap-3 rounded-lg border p-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/10">
-                        <CalendarDays className="h-5 w-5 text-accent-yellow" />
+                        <CalendarDays className="h-5 w-5 text-gold" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{booking.className}</p>

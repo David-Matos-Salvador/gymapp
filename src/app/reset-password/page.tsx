@@ -130,10 +130,7 @@ function ResetPasswordForm() {
       </CardContent>
       {!done && (
         <CardFooter className="justify-center">
-          <Link
-            href="/forgot-password"
-            className="text-sm font-medium text-primary hover:underline"
-          >
+          <Link href="/forgot-password" className="text-sm font-medium text-gold hover:underline">
             Pedir otro enlace
           </Link>
         </CardFooter>

@@ -56,7 +56,7 @@ const typeColor: Record<MockNotification["type"], string> = {
   WARNING: "text-amber-500 bg-amber-500/10",
   REMINDER: "text-violet-500 bg-violet-500/10",
   PAYMENT: "text-emerald-500 bg-emerald-500/10",
-  MEMBERSHIP: "text-accent-yellow bg-accent-yellow/10",
+  MEMBERSHIP: "text-gold bg-accent-yellow/10",
   CLASS: "text-rose-500 bg-rose-500/10",
   CHECK_IN: "text-cyan-500 bg-cyan-500/10",
   GOAL: "text-orange-500 bg-orange-500/10",
@@ -142,7 +142,7 @@ export function NotificationList({
           <button
             type="button"
             onClick={onMarkAllRead}
-            className="inline-flex items-center gap-1 text-xs font-medium text-accent-yellow hover:underline"
+            className="inline-flex items-center gap-1 text-xs font-medium text-gold hover:underline"
           >
             <CheckCheck className="size-3.5" />
             Marcar todas leídas

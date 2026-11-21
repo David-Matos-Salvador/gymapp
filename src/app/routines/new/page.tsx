@@ -264,7 +264,7 @@ export default function NewRoutinePage() {
                           className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-muted transition-colors text-left"
                           onClick={() => addExercise(ex)}
                         >
-                          <Plus className="h-4 w-4 text-accent-yellow shrink-0" />
+                          <Plus className="h-4 w-4 text-gold shrink-0" />
                           <div>
                             <p className="text-sm font-medium">{ex.name}</p>
                             <p className="text-[10px] text-muted-foreground">

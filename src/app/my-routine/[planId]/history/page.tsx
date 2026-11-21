@@ -72,7 +72,7 @@ export default async function HistorialPage({ params }: PageProps) {
 
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-            <History className="h-6 w-6 text-accent-yellow" />
+            <History className="h-6 w-6 text-gold" />
             Historial de entrenamientos
           </h1>
           <p className="text-muted-foreground">{plan.name}</p>
@@ -139,7 +139,7 @@ export default async function HistorialPage({ params }: PageProps) {
                             {name}
                             {records.get(name)?.logId === log.id &&
                               (records.get(name)?.weight ?? 0) > 0 && (
-                                <Badge className="bg-accent-yellow/15 text-accent-yellow text-[11px]">
+                                <Badge className="bg-accent-yellow/15 text-gold text-[11px]">
                                   PR
                                 </Badge>
                               )}

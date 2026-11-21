@@ -84,7 +84,7 @@ export default async function ClassesPage() {
             className="flex items-center justify-between gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-accent/50"
           >
             <div className="flex items-center gap-3">
-              <CalendarClock className="h-5 w-5 text-accent-yellow" />
+              <CalendarClock className="h-5 w-5 text-gold" />
               <div>
                 <p className="font-medium">Sesiones 1:1 con tu coach</p>
                 <p className="text-sm text-muted-foreground">Reserva una hora a solas</p>

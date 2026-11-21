@@ -119,7 +119,7 @@ function LoginFormInner() {
               <p className="text-right">
                 <Link
                   href="/forgot-password"
-                  className="text-sm font-medium text-primary hover:underline"
+                  className="text-sm font-medium text-gold hover:underline"
                 >
                   ¿Olvidaste tu contraseña?
                 </Link>
@@ -151,7 +151,7 @@ function LoginFormInner() {
       <CardFooter className="justify-center">
         <p className="text-sm text-muted-foreground">
           ¿No tienes cuenta?{" "}
-          <Link href="/register" className="font-medium text-primary hover:underline">
+          <Link href="/register" className="font-medium text-gold hover:underline">
             Crear cuenta
           </Link>
         </p>

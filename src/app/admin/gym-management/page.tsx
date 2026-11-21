@@ -210,7 +210,7 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
               href={`/admin/gym-management?gymId=${item.id}`}
               className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
                 item.id === selectedGymId
-                  ? "border-accent-yellow bg-accent-yellow/10 text-accent-yellow"
+                  ? "border-accent-yellow bg-accent-yellow/10 text-gold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >

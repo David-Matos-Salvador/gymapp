@@ -53,7 +53,7 @@ export function ExerciseDetailSheet({
       <SheetContent side="right" className="w-full sm:max-w-[400px] p-0">
         <SheetHeader className="p-6 pb-4 border-b border-border">
           <SheetTitle className="text-lg font-bold flex items-center gap-2">
-            <Dumbbell className="h-5 w-5 text-accent-yellow" />
+            <Dumbbell className="h-5 w-5 text-gold" />
             {exercise.name}
           </SheetTitle>
           <SheetDescription className="sr-only">
@@ -68,7 +68,7 @@ export function ExerciseDetailSheet({
               <Layers className="h-3 w-3 text-muted-foreground" />
               {muscleLabel}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-gold">
               <Wrench className="h-3 w-3" />
               Equipo: {equipmentLabel}
             </span>
@@ -129,7 +129,7 @@ export function ExerciseDetailSheet({
                     href={exercise.videoUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-full w-full items-center justify-center text-sm text-primary hover:underline"
+                    className="flex h-full w-full items-center justify-center text-sm text-gold hover:underline"
                   >
                     Ver video
                   </a>

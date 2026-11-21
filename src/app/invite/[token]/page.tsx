@@ -139,7 +139,7 @@ export default function InvitePage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-gold" />
       </div>
     )
   }
@@ -174,7 +174,7 @@ export default function InvitePage() {
               transition={{ type: "spring", duration: 0.5 }}
               className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent-yellow/10"
             >
-              <CheckCircle className="h-10 w-10 text-accent-yellow" />
+              <CheckCircle className="h-10 w-10 text-gold" />
             </motion.div>
             <CardTitle className="text-xl">Cuenta creada</CardTitle>
             <CardDescription>
@@ -191,7 +191,7 @@ export default function InvitePage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-yellow/10 mb-3">
-            <Dumbbell className="h-7 w-7 text-accent-yellow" />
+            <Dumbbell className="h-7 w-7 text-gold" />
           </div>
           <CardTitle className="text-2xl">Únete como cliente</CardTitle>
           <CardDescription>
@@ -264,11 +264,11 @@ export default function InvitePage() {
                   {passwordChecks.map((check) => (
                     <div key={check.label} className="flex items-center gap-2 text-xs">
                       {check.met ? (
-                        <Check className="h-3 w-3 text-accent-yellow shrink-0" />
+                        <Check className="h-3 w-3 text-gold shrink-0" />
                       ) : (
                         <X className="h-3 w-3 text-muted-foreground/50 shrink-0" />
                       )}
-                      <span className={check.met ? "text-accent-yellow" : "text-muted-foreground"}>
+                      <span className={check.met ? "text-gold" : "text-muted-foreground"}>
                         {check.label}
                       </span>
                     </div>

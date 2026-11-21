@@ -275,14 +275,14 @@ export function SuperAdminDashboard({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Globe className="h-7 w-7 text-accent-yellow" />
+            <Globe className="h-7 w-7 text-gold" />
             Panel de Plataforma
           </h1>
           <p className="text-muted-foreground">Súper Admin — Gestión global de GymApp</p>
         </div>
         <div className="flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4 text-accent-yellow" />
-          <span className="text-sm font-medium text-accent-yellow">Súper Admin</span>
+          <ShieldCheck className="h-4 w-4 text-gold" />
+          <span className="text-sm font-medium text-gold">Súper Admin</span>
         </div>
       </div>
 
@@ -300,7 +300,7 @@ export function SuperAdminDashboard({
           label="Entrenadores"
           value={stats.totalTrainers}
           icon={Dumbbell}
-          iconColor="text-primary"
+          iconColor="text-gold"
           borderColor="border-t-primary"
           delay={0.16}
         />
@@ -308,7 +308,7 @@ export function SuperAdminDashboard({
           label="Ingresos totales"
           value={formatCurrency(stats.totalRevenue)}
           icon={TrendingUp}
-          iconColor="text-primary"
+          iconColor="text-gold"
           borderColor="border-t-primary"
           delay={0.2}
         />
@@ -323,7 +323,7 @@ export function SuperAdminDashboard({
           <Card className="h-full">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-accent-yellow" /> Gimnasios
+                <Building2 className="h-5 w-5 text-gold" /> Gimnasios
               </CardTitle>
               <Button
                 variant="outline"
@@ -343,7 +343,7 @@ export function SuperAdminDashboard({
                 gyms.map((gym) => (
                   <div key={gym.id} className="flex items-center gap-3 rounded-lg border p-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-yellow/10">
-                      <Store className="h-5 w-5 text-accent-yellow" />
+                      <Store className="h-5 w-5 text-gold" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -351,7 +351,7 @@ export function SuperAdminDashboard({
                         {gym.active ? (
                           <Badge
                             variant="default"
-                            className="text-[10px] bg-accent-yellow/10 text-accent-yellow hover:bg-accent-yellow/10"
+                            className="text-[10px] bg-accent-yellow/10 text-gold hover:bg-accent-yellow/10"
                           >
                             Activo
                           </Badge>
@@ -368,7 +368,7 @@ export function SuperAdminDashboard({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className={gym.showMachineNumbers ? "text-primary" : "text-muted-foreground"}
+                      className={gym.showMachineNumbers ? "text-gold" : "text-muted-foreground"}
                       onClick={() => handleToggleMachineNumbers(gym.id, gym.showMachineNumbers)}
                       aria-label={
                         gym.showMachineNumbers
@@ -395,7 +395,7 @@ export function SuperAdminDashboard({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className={gym.active ? "text-muted-foreground" : "text-accent-yellow"}
+                      className={gym.active ? "text-muted-foreground" : "text-gold"}
                       onClick={() => setStatusGym(gym)}
                       aria-label={gym.active ? "Desactivar gimnasio" : "Activar gimnasio"}
                       title={gym.active ? "Desactivar gimnasio" : "Activar gimnasio"}
@@ -430,7 +430,7 @@ export function SuperAdminDashboard({
           <Card className="h-full">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <Users className="h-5 w-5 text-accent-yellow" /> Usuarios recientes
+                <Users className="h-5 w-5 text-gold" /> Usuarios recientes
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">

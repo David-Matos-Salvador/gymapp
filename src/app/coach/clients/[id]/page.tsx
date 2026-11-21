@@ -366,11 +366,11 @@ export default function CoachClientDetail() {
           <Card className="md:col-span-1">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5 text-accent-yellow" /> Perfil
+                <User className="h-5 w-5 text-gold" /> Perfil
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow text-xl font-bold">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-accent-yellow/10 text-gold text-xl font-bold">
                 {(client.name ?? client.email)[0].toUpperCase()}
               </div>
               <div>
@@ -379,7 +379,7 @@ export default function CoachClientDetail() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {isMembershipActive ? (
-                  <span className="inline-flex items-center gap-1 text-xs text-accent-yellow bg-accent-yellow/10 rounded-full px-2 py-0.5">
+                  <span className="inline-flex items-center gap-1 text-xs text-gold bg-accent-yellow/10 rounded-full px-2 py-0.5">
                     <CheckCircle className="h-3 w-3" /> Membresía activa
                   </span>
                 ) : (
@@ -427,8 +427,8 @@ export default function CoachClientDetail() {
               {client.medicalNotes && (
                 <div className="rounded-lg bg-accent-yellow/10 p-3 mt-2">
                   <div className="flex items-center gap-1.5 text-xs">
-                    <AlertTriangle className="h-3 w-3 text-accent-yellow" />
-                    <span className="font-medium text-accent-yellow">Notas médicas</span>
+                    <AlertTriangle className="h-3 w-3 text-gold" />
+                    <span className="font-medium text-gold">Notas médicas</span>
                   </div>
                   <p className="text-xs mt-1">{client.medicalNotes}</p>
                 </div>
@@ -450,7 +450,7 @@ export default function CoachClientDetail() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-accent-yellow" /> Últimas mediciones
+                  <TrendingUp className="h-5 w-5 text-gold" /> Últimas mediciones
                 </CardTitle>
                 <Button
                   size="sm"
@@ -531,7 +531,7 @@ export default function CoachClientDetail() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
-                  <Dumbbell className="h-5 w-5 text-accent-yellow" /> Rutinas
+                  <Dumbbell className="h-5 w-5 text-gold" /> Rutinas
                 </CardTitle>
                 {activePlan ? (
                   <div className="flex items-center gap-1.5">
@@ -583,7 +583,7 @@ export default function CoachClientDetail() {
                         href={`/routines/${activePlan.id}`}
                         className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors"
                       >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-yellow/10 text-accent-yellow font-bold text-sm">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-yellow/10 text-gold font-bold text-sm">
                           {s.label}
                         </div>
                         <div>
@@ -603,7 +603,7 @@ export default function CoachClientDetail() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-accent-yellow" /> Últimos entrenamientos
+                  <TrendingUp className="h-5 w-5 text-gold" /> Últimos entrenamientos
                 </CardTitle>
               </CardHeader>
               <CardContent>

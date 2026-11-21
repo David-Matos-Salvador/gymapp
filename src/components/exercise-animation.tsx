@@ -544,7 +544,7 @@ export function ExerciseAnimation({ exerciseId }: ExerciseAnimationProps) {
       )}
 
       {/* Muscle group label */}
-      <span className="text-[11px] font-medium uppercase tracking-wider text-primary">
+      <span className="text-[11px] font-medium uppercase tracking-wider text-gold">
         {exercise.muscleGroup.replace(/_/g, " ")}
       </span>
     </motion.div>

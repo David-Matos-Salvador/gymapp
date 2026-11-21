@@ -90,7 +90,7 @@ export default async function SessionsPage() {
                 <p className="text-sm text-muted-foreground">
                   Necesitas una membresía activa y confirmada para reservar una sesión.
                 </p>
-                <Link href="/membresia" className="text-sm font-medium text-accent-yellow">
+                <Link href="/membresia" className="text-sm font-medium text-gold">
                   Ver mi membresía
                 </Link>
               </CardContent>

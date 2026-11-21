@@ -19,7 +19,7 @@ export function CTASection() {
           href="/register"
           sound="success"
           size="lg"
-          className="h-12 shrink-0 self-start rounded-full bg-primary-foreground px-8 text-base text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-foreground md:self-auto [a]:hover:bg-primary-foreground/85"
+          className="h-12 shrink-0 self-start rounded-full bg-primary-foreground px-8 text-base text-gold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary-foreground md:self-auto [a]:hover:bg-primary-foreground/85"
         >
           Crear cuenta
         </SoundLinkButton>

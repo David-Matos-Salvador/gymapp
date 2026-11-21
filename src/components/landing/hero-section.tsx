@@ -29,7 +29,7 @@ export function HeroSection() {
               href="/register"
               sound="success"
               size="lg"
-              className="h-12 rounded-full bg-primary-foreground px-7 text-base text-primary hover:bg-primary-foreground/85 [a]:hover:bg-primary-foreground/85"
+              className="h-12 rounded-full bg-primary-foreground px-7 text-base text-gold hover:bg-primary-foreground/85 [a]:hover:bg-primary-foreground/85"
             >
               Crear cuenta
             </SoundLinkButton>

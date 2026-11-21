@@ -27,9 +27,9 @@ import { TrainerRequestDialog } from "@/components/notifications/trainer-request
 import { toast } from "sonner"
 
 const userRoleChip: Record<string, { label: string; className: string }> = {
-  ADMIN: { label: "Admin", className: "text-accent-yellow bg-accent-yellow/10" },
-  TRAINER: { label: "Coach", className: "text-accent-yellow bg-accent-yellow/10" },
-  MEMBER: { label: "Miembro", className: "text-accent-yellow bg-accent-yellow/10" },
+  ADMIN: { label: "Admin", className: "text-gold bg-accent-yellow/10" },
+  TRAINER: { label: "Coach", className: "text-gold bg-accent-yellow/10" },
+  MEMBER: { label: "Miembro", className: "text-gold bg-accent-yellow/10" },
   SUPER_ADMIN: { label: "Súper Admin", className: "text-destructive bg-destructive/10" },
 }
 
@@ -108,7 +108,7 @@ export function AppBottomNav({
               onClick={() => play("click")}
               className={cn(
                 "relative flex flex-col items-center justify-center gap-0.5 min-w-[44px] min-h-[44px] py-1 text-xs font-medium transition-colors",
-                isActive ? "text-accent-yellow" : "text-muted-foreground hover:text-foreground"
+                isActive ? "text-gold" : "text-muted-foreground hover:text-foreground"
               )}
             >
               <item.icon
@@ -258,7 +258,7 @@ export function AppShell({
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <header className="flex h-12 items-center gap-2 border-b bg-card px-4 shrink-0">
-        <Sparkles className="h-4 w-4 text-accent-yellow shrink-0" />
+        <Sparkles className="h-4 w-4 text-gold shrink-0" />
         <span className="font-semibold">GymApp</span>
         <div className="ml-auto flex items-center gap-1">
           <NotificationBell unreadCount={unreadCount}>

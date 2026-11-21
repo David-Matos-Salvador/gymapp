@@ -113,7 +113,7 @@ export function MemberManagement({ initialMembers, canManage }: MemberManagement
       <div className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Users className="h-5 w-5 text-accent-yellow" />
+            <Users className="h-5 w-5 text-gold" />
             Miembros
           </h2>
           <p className="text-sm text-muted-foreground">Directorio de miembros del gimnasio.</p>
@@ -147,7 +147,7 @@ export function MemberManagement({ initialMembers, canManage }: MemberManagement
           {filtered.map((member) => (
             <div key={member.id} className="flex items-center gap-3 rounded-lg border p-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10">
-                <UserRound className="h-4 w-4 text-accent-yellow" />
+                <UserRound className="h-4 w-4 text-gold" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium truncate">{member.name ?? "Sin nombre"}</p>

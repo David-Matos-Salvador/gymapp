@@ -107,7 +107,7 @@ export function MembresiaContent({
           <Card>
             <CardContent className="space-y-3 py-6">
               <div className="flex items-center gap-2">
-                <Clock className="size-5 text-accent-yellow" />
+                <Clock className="size-5 text-gold" />
                 <p className="font-semibold">Pendiente de confirmar en recepción</p>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -122,7 +122,7 @@ export function MembresiaContent({
           <Card>
             <CardContent className="space-y-3 py-6">
               <div className="flex items-center gap-2">
-                <Clock className="size-5 text-accent-yellow" />
+                <Clock className="size-5 text-gold" />
                 <p className="font-semibold">Comprobante en revisión</p>
               </div>
               <p className="text-sm text-muted-foreground">
@@ -135,7 +135,7 @@ export function MembresiaContent({
                   href={pendingPayment.receiptUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-accent-yellow hover:underline"
+                  className="inline-flex items-center gap-1 text-sm text-gold hover:underline"
                 >
                   <Eye className="size-4" />
                   Ver comprobante

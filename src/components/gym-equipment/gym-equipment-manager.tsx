@@ -323,7 +323,7 @@ export function GymEquipmentManager({
                         {item.name}
                       </p>
                       {item.machineNumber != null && (
-                        <span className="inline-flex items-center rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-medium text-accent-yellow">
+                        <span className="inline-flex items-center rounded-full bg-accent-yellow/10 px-2 py-0.5 text-[10px] font-medium text-gold">
                           Máquina #{item.machineNumber}
                         </span>
                       )}

@@ -376,7 +376,7 @@ export function CoachDashboard({
           label="Rutinas"
           value={stats.totalRoutines}
           icon={Dumbbell}
-          iconColor="text-primary"
+          iconColor="text-gold"
           borderColor="border-t-primary"
           delay={0.15}
         />
@@ -390,7 +390,7 @@ export function CoachDashboard({
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-accent-yellow" />
+              <UserPlus className="h-5 w-5 text-gold" />
               <CardTitle>Buscar y enviar solicitud</CardTitle>
             </div>
             <Button size="sm" onClick={openInviteDialog}>
@@ -433,7 +433,7 @@ export function CoachDashboard({
                       >
                         <div className="flex items-center gap-3">
                           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
-                            <Users className="h-4 w-4 text-accent-yellow" />
+                            <Users className="h-4 w-4 text-gold" />
                           </div>
                           <div>
                             <p className="text-sm font-medium">{member.name || "Sin nombre"}</p>
@@ -477,9 +477,7 @@ export function CoachDashboard({
                 )}
             </div>
             {searchError && <p className="text-sm text-destructive">{searchError}</p>}
-            {assignSuccess && (
-              <p className="text-sm text-accent-yellow font-medium">{assignSuccess}</p>
-            )}
+            {assignSuccess && <p className="text-sm text-gold font-medium">{assignSuccess}</p>}
 
             {sentRequests.length > 0 && (
               <div className="mt-4">
@@ -494,7 +492,7 @@ export function CoachDashboard({
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-yellow/10">
-                          <Clock className="h-4 w-4 text-accent-yellow" />
+                          <Clock className="h-4 w-4 text-gold" />
                         </div>
                         <div>
                           <p className="text-sm font-medium">{req.client.name || "Sin nombre"}</p>
@@ -523,7 +521,7 @@ export function CoachDashboard({
                       >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10">
-                            <Link2 className="h-4 w-4 text-accent-yellow" />
+                            <Link2 className="h-4 w-4 text-gold" />
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium truncate">
@@ -615,7 +613,7 @@ export function CoachDashboard({
                         onClick={() => play("select")}
                       >
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-yellow/10">
-                          <Users className="h-5 w-5 text-accent-yellow" />
+                          <Users className="h-5 w-5 text-gold" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -623,7 +621,7 @@ export function CoachDashboard({
                               {client.name || "Sin nombre"}
                             </p>
                             {client.hasActiveMembership ? (
-                              <span className="inline-flex shrink-0 items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-accent-yellow">
+                              <span className="inline-flex shrink-0 items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-gold">
                                 Membresía activa
                               </span>
                             ) : (
@@ -727,7 +725,7 @@ export function CoachDashboard({
                         onClick={() => play("select")}
                       >
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10">
-                          <Dumbbell className="h-4 w-4 text-accent-yellow" />
+                          <Dumbbell className="h-4 w-4 text-gold" />
                         </div>
                         <div>
                           <p className="text-sm font-medium">{r.name}</p>
@@ -773,7 +771,7 @@ export function CoachDashboard({
                         className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
                       >
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent-yellow/10">
-                          <CalendarDays className="h-4 w-4 text-accent-yellow" />
+                          <CalendarDays className="h-4 w-4 text-gold" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">{c.name}</p>

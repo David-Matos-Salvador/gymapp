@@ -80,14 +80,14 @@ export default async function CoachClientsListPage() {
                   <Card className="hover:shadow-md hover:border-primary/40 transition-all group cursor-pointer">
                     <CardContent className="py-4">
                       <div className="flex items-start gap-4">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10 text-accent-yellow font-bold text-lg">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10 text-gold font-bold text-lg">
                           {(client.name ?? client.email)[0].toUpperCase()}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold">{client.name || "Sin nombre"}</p>
                             {isMembershipActive ? (
-                              <span className="inline-flex items-center gap-1 text-[10px] text-accent-yellow bg-accent-yellow/10 rounded-full px-1.5 py-0.5">
+                              <span className="inline-flex items-center gap-1 text-[10px] text-gold bg-accent-yellow/10 rounded-full px-1.5 py-0.5">
                                 <BadgeCheck className="h-3 w-3" /> Membresía activa
                               </span>
                             ) : (

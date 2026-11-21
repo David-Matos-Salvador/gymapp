@@ -77,7 +77,7 @@ export default function NotificationsPage() {
       <div className="container mx-auto px-4 py-6 md:py-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="flex size-10 items-center justify-center rounded-full bg-accent-yellow/10">
-            <Bell className="size-5 text-accent-yellow" />
+            <Bell className="size-5 text-gold" />
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Notificaciones</h1>

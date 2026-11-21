@@ -66,7 +66,7 @@ export function GymProfileForm({ gym }: { gym: GymProfile }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Building2 className="h-5 w-5 text-accent-yellow" />
+          <Building2 className="h-5 w-5 text-gold" />
           Perfil de {gym.name}
         </CardTitle>
       </CardHeader>

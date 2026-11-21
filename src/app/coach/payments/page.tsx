@@ -154,7 +154,7 @@ export default function CoachPaymentsPage() {
                       <div className="flex-1 min-w-0 space-y-2">
                         <div className="flex items-center gap-3">
                           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10">
-                            <CreditCard className="h-5 w-5 text-accent-yellow" />
+                            <CreditCard className="h-5 w-5 text-gold" />
                           </div>
                           <div>
                             <p className="font-semibold">{payment.user.name || "Sin nombre"}</p>
@@ -165,7 +165,7 @@ export default function CoachPaymentsPage() {
                           </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-3 text-sm">
-                          <span className="font-semibold text-accent-yellow">
+                          <span className="font-semibold text-gold">
                             {formatCurrency(payment.amount, payment.currency)}
                           </span>
                           <Badge variant="outline" className="text-xs">

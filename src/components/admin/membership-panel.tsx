@@ -567,7 +567,7 @@ export function MembershipPanel({
 
                     {canRenewMembership(m, now) && (
                       <>
-                        <span className="inline-flex items-center rounded-full border border-accent-yellow/30 px-2 py-0.5 text-[10px] font-medium text-accent-yellow">
+                        <span className="inline-flex items-center rounded-full border border-accent-yellow/30 px-2 py-0.5 text-[10px] font-medium text-gold">
                           Renovable
                         </span>
                         <Button

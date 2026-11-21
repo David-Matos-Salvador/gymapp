@@ -23,7 +23,7 @@ export function StatCard({
   label,
   value,
   icon: Icon,
-  iconColor = "text-accent-yellow",
+  iconColor = "text-gold",
   borderColor = "border-t-accent-yellow",
   suffix,
   delay = 0,

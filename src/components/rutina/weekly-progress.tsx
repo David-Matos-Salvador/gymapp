@@ -18,7 +18,7 @@ export function WeeklyProgress({ completed, target }: WeeklyProgressProps) {
         <span
           className={cn(
             "text-sm font-bold tabular-nums",
-            isComplete ? "text-accent-yellow" : "text-foreground"
+            isComplete ? "text-gold" : "text-foreground"
           )}
         >
           {completed} de {target} día{target !== 1 ? "s" : ""}

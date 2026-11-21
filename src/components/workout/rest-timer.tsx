@@ -24,7 +24,7 @@ export function RestTimer({ remaining, total, status, onPause, onResume, onSkip 
   const formatted = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`
 
   const strokeColor =
-    remaining <= 5 ? "text-red-500" : remaining <= 10 ? "text-amber-500" : "text-accent-yellow"
+    remaining <= 5 ? "text-red-500" : remaining <= 10 ? "text-amber-500" : "text-gold"
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl border border-accent-yellow/20 bg-accent-yellow/5 animate-in fade-in slide-in-from-top-2">

@@ -411,7 +411,7 @@ export default function ProgressPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Scale className="h-5 w-5 text-accent-yellow" />
+                  <Scale className="h-5 w-5 text-gold" />
                   Evolución del peso
                 </CardTitle>
               </CardHeader>
@@ -447,7 +447,7 @@ export default function ProgressPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Percent className="h-5 w-5 text-accent-yellow" />
+                    <Percent className="h-5 w-5 text-gold" />
                     Composición corporal
                   </CardTitle>
                 </CardHeader>

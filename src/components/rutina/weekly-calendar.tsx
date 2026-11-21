@@ -57,7 +57,7 @@ export function WeeklyCalendar({ workoutDates }: WeeklyCalendarProps) {
               className={cn(
                 "flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition-colors",
                 isToday && "bg-accent-yellow text-white shadow-sm shadow-accent-yellow/30",
-                !isToday && hasWorkout && "bg-accent-yellow/15 text-accent-yellow",
+                !isToday && hasWorkout && "bg-accent-yellow/15 text-gold",
                 !isToday && !hasWorkout && "text-muted-foreground"
               )}
             >
