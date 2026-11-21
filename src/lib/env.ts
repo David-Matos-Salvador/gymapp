@@ -62,6 +62,9 @@ const envObjectSchema = z.object({
   GOOGLE_CALENDAR_CLIENT_ID: optionalString(),
   GOOGLE_CALENDAR_CLIENT_SECRET: optionalString(),
   CALENDAR_TOKEN_ENCRYPTION_KEY: optionalString(),
+  // Correos con Resend. Sin llave no se envían (se registra en el log).
+  RESEND_API_KEY: optionalString(),
+  EMAIL_FROM: optionalString(),
   STRIPE_SECRET_KEY: optionalString(),
   STRIPE_WEBHOOK_SECRET: optionalString(),
   // Recomendación de rutina con IA en el onboarding (#117). Sin llave se usa la regla normal.

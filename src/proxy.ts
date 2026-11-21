@@ -8,7 +8,14 @@ import { REQUEST_ID_HEADER, appendRequestId, getRequestId } from "@/lib/request-
  * Note: /_next/*, /favicon.ico, /icons, /manifest are already excluded
  * by the config.matcher below and never reach this function.
  */
-const PUBLIC_PATHS = ["/login", "/register", "/invite", "/gym/"]
+const PUBLIC_PATHS = [
+  "/login",
+  "/register",
+  "/invite",
+  "/gym/",
+  "/forgot-password",
+  "/reset-password",
+]
 
 /**
  * Optimistic role-based route prefixes.

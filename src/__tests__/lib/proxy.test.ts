@@ -15,14 +15,19 @@ beforeEach(() => {
 })
 
 describe("proxy: qué se ve sin sesión", () => {
-  it.each(["/", "/login", "/register?gym=fitness-total", "/invite/abc", "/gym/fitness-total"])(
-    "%s es pública",
-    async (path) => {
-      const res = await visit(path)
-      expect(res.headers.get("location")).toBeNull()
-      expect(res.status).toBe(200)
-    }
-  )
+  it.each([
+    "/",
+    "/login",
+    "/register?gym=fitness-total",
+    "/invite/abc",
+    "/gym/fitness-total",
+    "/forgot-password",
+    "/reset-password?token=x",
+  ])("%s es pública", async (path) => {
+    const res = await visit(path)
+    expect(res.headers.get("location")).toBeNull()
+    expect(res.status).toBe(200)
+  })
 
   it.each(["/dashboard", "/onboarding", "/membresia", "/gym", "/equipamiento"])(
     "%s manda al login",
