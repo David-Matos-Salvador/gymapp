@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import { paymentNeedsReceipt } from "@/constants/payment"
+import { PaymentInstructions } from "./payment-instructions"
 
 interface MembershipPlan {
   name: string
@@ -37,6 +38,7 @@ interface PaymentFormProps {
   plan: MembershipPlan
   currentPaymentMethod?: string | null
   currentPaymentRef?: string | null
+  paymentInstructions?: string | null
   onSuccess?: () => void
 }
 
@@ -52,6 +54,7 @@ export function PaymentForm({
   plan,
   currentPaymentMethod,
   currentPaymentRef,
+  paymentInstructions = null,
   onSuccess,
 }: PaymentFormProps) {
   const [method, setMethod] = useState(currentPaymentMethod ?? "CASH")
@@ -164,6 +167,8 @@ export function PaymentForm({
               </SelectContent>
             </Select>
           </div>
+
+          <PaymentInstructions method={method} instructions={paymentInstructions} />
 
           {method === "TRANSFER" && (
             <div className="space-y-1.5">

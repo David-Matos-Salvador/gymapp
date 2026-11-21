@@ -166,6 +166,8 @@ model Gym {
   active              Boolean  @default(true)
   isDefault           Boolean  @default(false)
   showMachineNumbers  Boolean  @default(false)
+  // Texto libre del admin (número de Yape, cuenta bancaria) que el miembro ve al pagar.
+  paymentInstructions String?
   // Zona horaria IANA del gimnasio: la agenda 1:1 convierte horas locales a UTC con ella.
   timezone            String   @default("America/Lima")
   ownerId             String?  @unique

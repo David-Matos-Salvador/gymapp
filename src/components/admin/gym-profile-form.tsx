@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import { useSound } from "@/hooks/use-sound"
 import { toast } from "sonner"
 import { Building2, Hash, Loader2 } from "lucide-react"
@@ -18,6 +19,7 @@ interface GymProfile {
   email: string | null
   logoUrl: string | null
   showMachineNumbers: boolean
+  paymentInstructions: string | null
 }
 
 export function GymProfileForm({ gym }: { gym: GymProfile }) {
@@ -29,6 +31,7 @@ export function GymProfileForm({ gym }: { gym: GymProfile }) {
     email: gym.email ?? "",
     logoUrl: gym.logoUrl ?? "",
     showMachineNumbers: gym.showMachineNumbers,
+    paymentInstructions: gym.paymentInstructions ?? "",
   })
   const [saving, setSaving] = useState(false)
 
@@ -44,6 +47,8 @@ export function GymProfileForm({ gym }: { gym: GymProfile }) {
         email: form.email.trim() || undefined,
         logoUrl: form.logoUrl.trim() || undefined,
         showMachineNumbers: form.showMachineNumbers,
+        // Se manda siempre: vacío borra las instrucciones.
+        paymentInstructions: form.paymentInstructions,
       }),
     })
     if (res.ok) {
@@ -101,6 +106,23 @@ export function GymProfileForm({ gym }: { gym: GymProfile }) {
               placeholder="https://..."
             />
           </div>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="gymPaymentInstructions">Instrucciones de pago</Label>
+          <Textarea
+            id="gymPaymentInstructions"
+            value={form.paymentInstructions}
+            maxLength={1000}
+            rows={4}
+            aria-describedby="gymPaymentInstructionsHint"
+            onChange={(e) => setForm((f) => ({ ...f, paymentInstructions: e.target.value }))}
+            placeholder={
+              "Yape: 999 888 777 (Gimnasio Centro)\nBCP: 191-12345678-0-12, CCI 002-191-..."
+            }
+          />
+          <p id="gymPaymentInstructionsHint" className="text-xs text-muted-foreground">
+            Los miembros lo ven cuando eligen pagar con Yape o transferencia.
+          </p>
         </div>
         <Button
           type="button"

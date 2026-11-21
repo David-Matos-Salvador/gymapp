@@ -48,6 +48,32 @@ describe("PaymentForm", () => {
     expect(screen.queryByLabelText("Referencia de transferencia")).toBeNull()
   })
 
+  it("con Yape muestra a qué número pagar, como lo escribió el gimnasio (#173)", () => {
+    render(
+      <PaymentForm
+        membershipId="m1"
+        plan={plan}
+        currentPaymentMethod="YAPE"
+        paymentInstructions={"Yape: 999 888 777\nA nombre de Gimnasio Centro"}
+      />
+    )
+
+    expect(screen.getByText("Cómo pagar")).toBeTruthy()
+    expect(screen.getByText(/Yape: 999 888 777/)).toBeTruthy()
+  })
+
+  it("con transferencia y sin instrucciones dice que pregunte en recepción", () => {
+    render(<PaymentForm membershipId="m1" plan={plan} currentPaymentMethod="TRANSFER" />)
+
+    expect(screen.getByText(/aún no publicó a qué número o cuenta pagar/)).toBeTruthy()
+  })
+
+  it("en efectivo no muestra instrucciones de pago", () => {
+    render(<PaymentForm membershipId="m1" plan={plan} paymentInstructions="Yape: 999 888 777" />)
+
+    expect(screen.queryByText("Cómo pagar")).toBeNull()
+  })
+
   it("con tarjeta tampoco pide comprobante", () => {
     render(<PaymentForm membershipId="m1" plan={plan} currentPaymentMethod="CARD" />)
 

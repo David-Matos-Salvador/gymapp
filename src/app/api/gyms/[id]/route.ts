@@ -16,6 +16,13 @@ const updateGymSchema = z.object({
   logoUrl: z.string().url().optional(),
   active: z.boolean().optional(),
   showMachineNumbers: z.boolean().optional(),
+  // Vacío borra las instrucciones.
+  paymentInstructions: z
+    .string()
+    .trim()
+    .max(1000, "Máximo 1000 caracteres")
+    .transform((value) => value || null)
+    .optional(),
 })
 
 /** Lo que cualquiera ve de un gimnasio, igual que en su página pública `/gym/[slug]`. */

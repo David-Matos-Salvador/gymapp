@@ -557,6 +557,44 @@ describe("PATCH /api/gyms/[id]", () => {
     expect(empty.status).toBe(400)
   })
 
+  it("un admin escribe las instrucciones de pago de su gimnasio y vacías las borra (#173)", async () => {
+    sessionAs(admin)
+    usersInDb(admin)
+    gymsInDb(gym1)
+    mocks.gymUpdate.mockResolvedValue(gym1)
+
+    const set = await updateGym(
+      jsonRequest("/api/gyms/gym-1", { paymentInstructions: "  Yape: 999 888 777  " }, "PATCH"),
+      params("gym-1")
+    )
+    expect(set.status).toBe(200)
+    expect(mocks.gymUpdate).toHaveBeenLastCalledWith({
+      where: { id: "gym-1" },
+      data: { paymentInstructions: "Yape: 999 888 777" },
+    })
+
+    await updateGym(
+      jsonRequest("/api/gyms/gym-1", { paymentInstructions: "   " }, "PATCH"),
+      params("gym-1")
+    )
+    expect(mocks.gymUpdate).toHaveBeenLastCalledWith({
+      where: { id: "gym-1" },
+      data: { paymentInstructions: null },
+    })
+  })
+
+  it("las instrucciones de pago tienen un máximo de 1000 caracteres", async () => {
+    sessionAs(admin)
+    usersInDb(admin)
+    gymsInDb(gym1)
+    const res = await updateGym(
+      jsonRequest("/api/gyms/gym-1", { paymentInstructions: "x".repeat(1001) }, "PATCH"),
+      params("gym-1")
+    )
+    expect(res.status).toBe(400)
+    expect(mocks.gymUpdate).not.toHaveBeenCalled()
+  })
+
   it("un admin edita los datos de contacto de su gimnasio", async () => {
     sessionAs(admin)
     usersInDb(admin)

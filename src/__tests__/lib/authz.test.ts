@@ -20,6 +20,7 @@ describe("authz", () => {
     expect(canEditGymField("SUPER_ADMIN", "active")).toBe(true)
     expect(canEditGymField("ADMIN", "address")).toBe(true)
     expect(canEditGymField("ADMIN", "showMachineNumbers")).toBe(true)
+    expect(canEditGymField("ADMIN", "paymentInstructions")).toBe(true)
     expect(canEditGymField("ADMIN", "name")).toBe(false)
     expect(canEditGymField("ADMIN", "active")).toBe(false)
     expect(canEditGymField("TRAINER", "address")).toBe(false)

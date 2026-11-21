@@ -3,6 +3,7 @@
 import { useRef, useState } from "react"
 import { MembershipCard } from "@/components/memberships/membership-card"
 import { PaymentForm } from "@/components/memberships/payment-form"
+import { PaymentInstructions } from "@/components/memberships/payment-instructions"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Clock, CreditCard, Eye, Loader2, Upload } from "lucide-react"
@@ -54,10 +55,12 @@ export function MembresiaContent({
   membership,
   pendingPayment,
   plans,
+  paymentInstructions,
 }: {
   membership: MembershipData | null
   pendingPayment: PendingPayment | null
   plans: PlanOption[]
+  paymentInstructions: string | null
 }) {
   const router = useRouter()
 
@@ -83,7 +86,7 @@ export function MembresiaContent({
             </CardContent>
           </Card>
         ) : (
-          <NewMembershipForm plans={plans} />
+          <NewMembershipForm plans={plans} paymentInstructions={paymentInstructions} />
         )}
       </div>
     )
@@ -146,6 +149,7 @@ export function MembresiaContent({
             plan={membership.plan}
             currentPaymentMethod={membership.paymentMethod}
             currentPaymentRef={membership.paymentRef}
+            paymentInstructions={paymentInstructions}
             onSuccess={() => router.refresh()}
           />
         ))}
@@ -153,7 +157,13 @@ export function MembresiaContent({
   )
 }
 
-function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
+function NewMembershipForm({
+  plans,
+  paymentInstructions,
+}: {
+  plans: PlanOption[]
+  paymentInstructions: string | null
+}) {
   const router = useRouter()
   const [planId, setPlanId] = useState(plans[0]?.id ?? "")
   const [method, setMethod] = useState("YAPE")
@@ -264,6 +274,9 @@ function NewMembershipForm({ plans }: { plans: PlanOption[] }) {
                 <option value="CARD">Tarjeta</option>
               </select>
             </div>
+          )}
+          {selectedPlan?.price !== 0 && (
+            <PaymentInstructions method={method} instructions={paymentInstructions} />
           )}
           {selectedPlan?.price !== 0 && needsReceipt && (
             <div className="space-y-2">

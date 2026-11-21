@@ -54,6 +54,7 @@ export default async function GymManagementPage({ searchParams }: GymManagementP
           email: true,
           logoUrl: true,
           showMachineNumbers: true,
+          paymentInstructions: true,
         },
       })
     : null
