@@ -6,23 +6,16 @@ import { findUser, prisma } from "./db"
  * Check-in (#23).
  *
  * La app todavía NO tiene check-in con QR: no hay QR del miembro, ni pantalla de escaneo,
- * ni registro en recepción. Lo único que existe es la API de autoservicio
- * (`POST /api/check-ins`, `GET /api/check-ins`, `DELETE /api/check-ins/[id]`) y el panel
- * del admin, que muestra los check-ins de su gimnasio en «Actividad reciente». La feature
- * está diferida (MBR-18 en `docs/roles/member/decisions.md`), con estas reglas pendientes:
- * una vez por día calendario, membresía pagada y gimnasio derivado del usuario.
+ * ni registro en recepción. La feature está diferida (MBR-18 en
+ * `docs/roles/member/decisions.md`) y, hasta que exista con su pantalla, `POST /api/check-ins`
+ * está apagada (#225). Quedan `GET /api/check-ins`, `DELETE /api/check-ins/[id]` y el panel
+ * del admin, que muestra los check-ins de su gimnasio en «Actividad reciente».
  *
- * Este spec cubre lo que hoy funciona y deja con `test.fixme` las reglas que la API aún
- * no cumple:
- *
- * 1. Un miembro con membresía activa registra su check-in: queda en su gimnasio, lo ve en
- *    su historial y el admin de su gimnasio lo ve en el panel. No puede registrarlo en
- *    otro gimnasio, ni sin sesión.
+ * 1. Nadie puede registrar un check-in (ni sin sesión ni con membresía activa). Un check-in
+ *    guardado en la base lo ve el miembro en su historial y el admin de su gimnasio en el panel.
  * 2. Permisos para borrar un check-in por rol: otro miembro y el coach del mismo gimnasio
  *    no pueden (403); el admin de otro gimnasio no lo encuentra (404); el admin de su
  *    gimnasio sí puede, y el propio miembro también.
- * 3. (fixme) Sin membresía activa y pagada, el check-in se rechaza.
- * 4. (fixme) Un segundo check-in el mismo día no crea otro registro.
  *
  * Todo (gimnasio, admin, coach, miembros, plan, membresías y check-ins) se crea en la
  * corrida con nombres únicos y se borra al terminar: no toca los datos del seed.
@@ -40,10 +33,7 @@ const ADMIN = { email: `e2e-ci-admin-${RUN}@gymapp.test`, name: `Admin Check-in 
 const COACH = { email: `e2e-ci-coach-${RUN}@gymapp.test`, name: `Coach Check-in ${RUN}` }
 const MEMBER = { email: `e2e-ci-miembro-${RUN}@gymapp.test`, name: `Miembro Check-in ${RUN}` }
 const OTHER = { email: `e2e-ci-otro-${RUN}@gymapp.test`, name: `Otro Miembro ${RUN}` }
-const NO_PLAN = { email: `e2e-ci-sinplan-${RUN}@gymapp.test`, name: `Sin Plan ${RUN}` }
-const UNPAID = { email: `e2e-ci-impago-${RUN}@gymapp.test`, name: `Impago ${RUN}` }
-const EXPIRED = { email: `e2e-ci-vencido-${RUN}@gymapp.test`, name: `Vencido ${RUN}` }
-const ALL_EMAILS = [ADMIN, COACH, MEMBER, OTHER, NO_PLAN, UNPAID, EXPIRED].map((u) => u.email)
+const ALL_EMAILS = [ADMIN, COACH, MEMBER, OTHER].map((u) => u.email)
 
 const DAY = 86_400_000
 
@@ -134,7 +124,7 @@ test.afterAll(async () => {
   await removeEverything()
 })
 
-test("el miembro con membresía activa registra su check-in y lo ve el admin de su gimnasio", async ({
+test("nadie registra check-in; uno guardado lo ven el miembro y el admin de su gimnasio", async ({
   browser,
   request,
 }) => {
@@ -150,7 +140,7 @@ test("el miembro con membresía activa registra su check-in y lo ve el admin de 
   try {
     // 1. Sin sesión no se puede registrar ni consultar.
     const anonymous = await request.post("/api/check-ins", { data: {} })
-    expect(anonymous.status()).toBe(401)
+    expect(anonymous.status()).toBe(404)
     const anonymousList = await request.get("/api/check-ins")
     expect(anonymousList.status()).toBe(401)
 
@@ -158,26 +148,13 @@ test("el miembro con membresía activa registra su check-in y lo ve el admin de 
     pages.push(memberPage)
     const api = memberPage.request
 
-    // 2. Check-in válido: queda en su gimnasio, con la hora actual.
-    const before = Date.now()
+    // 2. La ruta está apagada: ni con membresía activa se registra (#225).
     const created = await api.post("/api/check-ins", { data: {} })
-    expect(created.status()).toBe(201)
-    const { checkIn } = (await created.json()) as { checkIn: { id: string } }
+    expect(created.status()).toBe(404)
+    expect(await prisma.checkIn.count({ where: { userId: member.id } })).toBe(0)
 
-    const row = await prisma.checkIn.findUniqueOrThrow({ where: { id: checkIn.id } })
-    expect(row.userId).toBe(member.id)
-    expect(row.gymId).toBe(gymId)
-    expect(row.date.getTime()).toBeGreaterThanOrEqual(before - 60_000)
-    expect(row.date.getTime()).toBeLessThanOrEqual(Date.now() + 60_000)
-
-    // 3. No puede registrarlo en otro gimnasio.
-    const crossGym = await api.post("/api/check-ins", { data: { gymId: seedAdmin.gymId } })
-    expect(crossGym.status()).toBe(400)
-    expect((await crossGym.json()).error).toBe("No puedes registrar check-in en otro gimnasio")
-    expect(await prisma.checkIn.count({ where: { userId: member.id } })).toBe(1)
-    expect(
-      await prisma.checkIn.count({ where: { userId: member.id, gymId: { not: gymId } } })
-    ).toBe(0)
+    // 3. Un check-in guardado en la base (como lo hará la feature) queda en su gimnasio.
+    const checkIn = await prisma.checkIn.create({ data: { userId: member.id, gymId } })
 
     // 4. Lo ve en su historial (solo los suyos).
     const list = await api.get("/api/check-ins")
@@ -254,49 +231,5 @@ test("permisos para borrar un check-in según el rol", async ({ browser }) => {
     expect(await prisma.checkIn.findUnique({ where: { id: second.id } })).toBeNull()
   } finally {
     await Promise.all(pages.map((page) => page.context().close()))
-  }
-})
-
-// FALLO DE LA APP: `POST /api/check-ins` no revisa la membresía; responde 201 a un miembro
-// sin membresía, con el pago sin confirmar o vencida. La regla está acordada en
-// `docs/roles/member/decisions.md` (política 2 y MBR-18) pero no implementada.
-test.fixme("sin membresía activa y pagada el check-in se rechaza", async ({ browser }) => {
-  const noPlan = await createUser(NO_PLAN)
-  const unpaid = await createUser(UNPAID)
-  await giveMembership(unpaid.id, { paid: false })
-  const expired = await createUser(EXPIRED)
-  await giveMembership(expired.id, { endsInDays: -1 })
-  const pages: Page[] = []
-
-  try {
-    for (const user of [noPlan, unpaid, expired]) {
-      const page = await login(browser, user.email)
-      pages.push(page)
-      const response = await page.request.post("/api/check-ins", { data: {} })
-      expect(response.status(), user.email).toBe(403)
-      expect(await prisma.checkIn.count({ where: { userId: user.id } }), user.email).toBe(0)
-    }
-  } finally {
-    await Promise.all(pages.map((page) => page.context().close()))
-  }
-})
-
-// FALLO DE LA APP: cada `POST /api/check-ins` crea un registro nuevo. La restricción única
-// `@@unique([userId, date])` usa la fecha con hora, así que nunca choca y el mismo miembro
-// puede marcar asistencia varias veces el mismo día (infla «Asistencia diaria»). MBR-18
-// pide una vez por día calendario.
-test.fixme("un segundo check-in el mismo día no crea otro registro", async ({ browser }) => {
-  const member = await findUser(MEMBER.email)
-  await prisma.checkIn.deleteMany({ where: { userId: member.id } })
-  const page = await login(browser, MEMBER.email)
-
-  try {
-    const first = await page.request.post("/api/check-ins", { data: {} })
-    expect(first.status()).toBe(201)
-    const second = await page.request.post("/api/check-ins", { data: {} })
-    expect([200, 409]).toContain(second.status())
-    expect(await prisma.checkIn.count({ where: { userId: member.id } })).toBe(1)
-  } finally {
-    await page.context().close()
   }
 })

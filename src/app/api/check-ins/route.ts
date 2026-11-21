@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
@@ -34,38 +33,11 @@ export async function GET(request: Request) {
   return NextResponse.json({ checkIns })
 }
 
-export async function POST(request: Request) {
-  const session = await auth()
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 })
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, gymId: true },
-  })
-  if (!user) {
-    return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
-  }
-
-  const body = await request.json()
-  const { gymId: requestedGymId } = z.object({ gymId: z.string().optional() }).parse(body)
-
-  if (user.gymId && requestedGymId && requestedGymId !== user.gymId) {
-    return NextResponse.json(
-      { error: "No puedes registrar check-in en otro gimnasio" },
-      { status: 400 }
-    )
-  }
-
-  const gymId = user.gymId ?? requestedGymId
-  if (!gymId) {
-    return NextResponse.json({ error: "Sin gimnasio asignado" }, { status: 400 })
-  }
-
-  const checkIn = await prisma.checkIn.create({
-    data: { userId: user.id, gymId, date: new Date() },
-  })
-
-  return NextResponse.json({ checkIn }, { status: 201 })
+/**
+ * El check-in está apagado hasta que exista la feature con su pantalla (MBR-18, #225):
+ * cuando vuelva, debe exigir membresía activa y pagada, solo miembros, una vez por día
+ * calendario y el gimnasio del usuario. Mientras tanto no se registra ninguno.
+ */
+export async function POST() {
+  return NextResponse.json({ error: "El check-in todavía no está disponible" }, { status: 404 })
 }
