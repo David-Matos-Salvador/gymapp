@@ -64,8 +64,7 @@ const typeColor: Record<MockNotification["type"], string> = {
   TRAINER_REQUEST: "text-indigo-500 bg-indigo-500/10",
 }
 
-function relativeTime(iso: string): string {
-  const now = Date.now()
+export function relativeTime(iso: string, now: number = Date.now()): string {
   const then = new Date(iso).getTime()
   const diff = now - then
   const seconds = Math.floor(diff / 1000)
@@ -77,8 +76,9 @@ function relativeTime(iso: string): string {
   if (minutes < 60) return `hace ${minutes}m`
   if (hours < 24) return `hace ${hours}h`
   if (days < 7) return `hace ${days}d`
-  if (days < 30) return `hace ${Math.floor(days / 7)}sem`
-  return `hace ${Math.floor(days / 30)}mes`
+  if (days < 30) return `hace ${Math.floor(days / 7)} sem`
+  const months = Math.floor(days / 30)
+  return `hace ${months} ${months === 1 ? "mes" : "meses"}`
 }
 
 interface NotificationListProps {
