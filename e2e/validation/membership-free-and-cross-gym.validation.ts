@@ -167,13 +167,15 @@ test("el miembro activa un plan gratuito y ya puede reservar", async ({ browser 
     const freeOption = memberPage.locator("label").filter({ hasText: FREE.freePlanName })
     const paidOption = memberPage.locator("label").filter({ hasText: FREE.paidPlanName })
     const activate = memberPage.getByRole("button", { name: "Activar plan gratis" })
-    // El botón cambia de texto al cambiar de plan: eso solo pasa con React hidratado.
+    // El botón cambia de texto al cambiar de plan: eso solo pasa con React hidratado. Con la CI
+    // cargada, el servidor de desarrollo puede tardar más de 30 s en compilar e hidratar la
+    // página (#230): cada intento espera 5 s y el total llega a 90 s.
     await expect(async () => {
       await paidOption.click()
-      await expect(activate).toHaveCount(0, { timeout: 2_000 })
+      await expect(activate).toHaveCount(0, { timeout: 5_000 })
       await freeOption.click()
-      await expect(activate).toBeVisible({ timeout: 2_000 })
-    }).toPass({ timeout: 30_000 })
+      await expect(activate).toBeVisible({ timeout: 5_000 })
+    }).toPass({ intervals: [1_000, 2_000, 5_000], timeout: 90_000 })
 
     await expect(freeOption.getByRole("radio")).toBeChecked()
     await expect(freeOption.getByText("Gratis", { exact: true })).toBeVisible()

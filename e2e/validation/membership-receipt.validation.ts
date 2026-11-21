@@ -147,9 +147,9 @@ test("membresía con comprobante: el miembro paga, su coach confirma y la membre
         buffer: TINY_PNG,
       })
       await expect(memberPage.getByRole("main").getByText(RECEIPT_NAME)).toBeVisible({
-        timeout: 2_000,
+        timeout: 5_000,
       })
-    }).toPass({ timeout: 30_000 })
+    }).toPass({ intervals: [1_000, 2_000, 5_000], timeout: 90_000 })
     const planOption = memberPage.locator("label").filter({ hasText: PLAN_NAME })
     await planOption.click()
     await expect(planOption.getByRole("radio")).toBeChecked()
