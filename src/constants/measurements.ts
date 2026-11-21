@@ -74,6 +74,17 @@ export function measurementFormError(form: Record<string, string | undefined>): 
   return null
 }
 
+// Altura escrita en el campo de centímetros. Mucha gente la dice en metros («1.68», «1,68»):
+// un valor con decimales entre 1 y 2,5 se toma como metros y se pasa a centímetros.
+export function heightInputToCm(cleaned: string): { cm: number; fromMeters: boolean } | null {
+  const num = parseFloat(cleaned)
+  if (isNaN(num)) return null
+  if (cleaned.includes(".") && num >= 1 && num <= 2.5) {
+    return { cm: Math.round(num * 100), fromMeters: true }
+  }
+  return { cm: num, fromMeters: false }
+}
+
 // Limpia lo que se escribe en un campo decimal. Acepta coma o punto (los teclados en español
 // traen coma) y devuelve null si quedaría más de un separador.
 export function cleanDecimalInput(value: string): string | null {
