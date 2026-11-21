@@ -4,9 +4,9 @@ import { Sparkles } from "lucide-react"
 export function FooterSection() {
   return (
     <footer className="border-t py-10">
-      <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="container mx-auto flex flex-col items-start justify-between gap-4 px-4 md:flex-row md:items-center">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Sparkles className="h-4 w-4 text-accent-yellow" />
+          <Sparkles className="h-4 w-4 text-accent-yellow" aria-hidden />
           GymApp &copy; {new Date().getFullYear()}
         </div>
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
@@ -14,7 +14,7 @@ export function FooterSection() {
             Iniciar sesión
           </Link>
           <Link href="/register" className="hover:text-foreground transition-colors">
-            Registrarse
+            Crear cuenta
           </Link>
         </div>
       </div>
