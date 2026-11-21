@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { logger } from "@/lib/logger"
 import { getRequestId } from "@/lib/request-id"
 import Stripe from "stripe"
+import { calculateRenewal, MS_PER_DAY } from "@/lib/membership-dates"
 
 export const dynamic = "force-dynamic"
 
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
 
         const payment = await prisma.payment.findUnique({
           where: { stripeSessionId: session.id },
+          select: { id: true, userId: true, status: true },
         })
 
         if (!payment) {
@@ -67,17 +69,24 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "Pago no encontrado" }, { status: 404 })
         }
 
-        await prisma.payment.update({
-          where: { stripeSessionId: session.id },
-          data: {
-            status: "COMPLETED",
-            stripePaymentIntentId:
-              typeof session.payment_intent === "string"
-                ? session.payment_intent
-                : (session.payment_intent?.id ?? null),
-          },
-        })
+        // Stripe reenvía eventos: si el pago ya se procesó, no se crea nada otra vez.
+        if (payment.status === "COMPLETED") {
+          logger.info("Stripe checkout already processed", {
+            requestId,
+            context: { route: "POST /api/stripe/webhook", checkout: session.id },
+          })
+          break
+        }
 
+        if (payment.userId !== userId) {
+          logger.error("Stripe checkout user does not match the payment", {
+            requestId,
+            context: { route: "POST /api/stripe/webhook", checkout: session.id },
+          })
+          return NextResponse.json({ error: "El pago no corresponde al usuario" }, { status: 400 })
+        }
+
+        // El plan se revisa antes de marcar el pago: si no existe, el pago queda pendiente.
         const plan = await prisma.membershipPlan.findUnique({ where: { id: planId } })
         if (!plan) {
           logger.error("Stripe membership plan not found", {
@@ -87,21 +96,55 @@ export async function POST(request: Request) {
           return NextResponse.json({ error: "Plan no encontrado" }, { status: 400 })
         }
 
-        const startDate = new Date()
-        const endDate = new Date(startDate)
-        endDate.setDate(endDate.getDate() + plan.durationDays)
+        const stripePaymentIntentId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : (session.payment_intent?.id ?? null)
 
-        await prisma.membership.create({
-          data: {
-            userId,
-            planId,
-            startDate,
-            endDate,
-            status: "ACTIVE",
+        await prisma.$transaction(async (tx) => {
+          // Solo un evento puede pasar el pago de PENDING a COMPLETED.
+          const claimed = await tx.payment.updateMany({
+            where: { id: payment.id, status: "PENDING" },
+            data: { status: "COMPLETED", stripePaymentIntentId, confirmedAt: new Date() },
+          })
+          if (claimed.count === 0) return
+
+          const paid = {
             paymentConfirmed: true,
-            paymentMethod: "STRIPE",
+            paymentMethod: "STRIPE" as const,
             paymentRef: session.id,
-          },
+            planPrice: plan.price,
+            planCurrency: plan.currency,
+            planDurationDays: plan.durationDays,
+          }
+          // Si ya tiene ese plan, se renueva: una membresía vigente se extiende desde su fin.
+          const existing = await tx.membership.findUnique({
+            where: { userId_planId: { userId, planId } },
+          })
+          let membershipId: string
+          if (existing) {
+            const renewal = calculateRenewal(existing, plan)
+            const updated = await tx.membership.update({
+              where: { id: existing.id },
+              data: { ...renewal, ...paid },
+            })
+            membershipId = updated.id
+          } else {
+            const startDate = new Date()
+            const created = await tx.membership.create({
+              data: {
+                userId,
+                planId,
+                startDate,
+                endDate: new Date(startDate.getTime() + plan.durationDays * MS_PER_DAY),
+                status: "ACTIVE",
+                ...paid,
+              },
+            })
+            membershipId = created.id
+          }
+
+          await tx.payment.update({ where: { id: payment.id }, data: { membershipId } })
         })
 
         break

@@ -12,10 +12,14 @@ const mocks = vi.hoisted(() => {
   const paymentUpdate = vi.fn()
   const planFindUnique = vi.fn()
   const membershipCreate = vi.fn()
+  const membershipFindUnique = vi.fn()
+  const membershipUpdate = vi.fn()
+  const paymentUpdateMany = vi.fn()
   const checkoutCreate = vi.fn()
   const customersCreate = vi.fn()
   const constructEvent = vi.fn()
   const stripeConstructor = vi.fn()
+  const prisma = makePrisma()
   return {
     userFindUnique,
     userUpdate,
@@ -24,17 +28,36 @@ const mocks = vi.hoisted(() => {
     paymentUpdate,
     planFindUnique,
     membershipCreate,
+    membershipFindUnique,
+    membershipUpdate,
+    paymentUpdateMany,
     checkoutCreate,
     customersCreate,
     constructEvent,
     stripeConstructor,
     logger: { error: vi.fn(), warn: vi.fn(), info: vi.fn(), debug: vi.fn() },
-    prisma: {
+    prisma,
+  }
+
+  function makePrisma() {
+    const client = {
       user: { findUnique: userFindUnique, update: userUpdate },
-      payment: { create: paymentCreate, findUnique: paymentFindUnique, update: paymentUpdate },
+      payment: {
+        create: paymentCreate,
+        findUnique: paymentFindUnique,
+        update: paymentUpdate,
+        updateMany: paymentUpdateMany,
+      },
       membershipPlan: { findUnique: planFindUnique },
-      membership: { create: membershipCreate },
-    },
+      membership: {
+        create: membershipCreate,
+        findUnique: membershipFindUnique,
+        update: membershipUpdate,
+      },
+      // La transacción usa el mismo cliente simulado.
+      $transaction: async (fn: (tx: unknown) => unknown): Promise<unknown> => fn(client),
+    }
+    return client
   }
 })
 
@@ -81,6 +104,16 @@ const member = {
   stripeCustomerId: null as string | null,
 }
 
+const plan = {
+  id: "plan-1",
+  name: "Mensual",
+  price: 99.99,
+  currency: "PEN",
+  durationDays: 30,
+  active: true,
+  gymId: "gym-1",
+}
+
 function jsonRequest(body: unknown) {
   return new Request("http://localhost:3000/api/stripe/x", {
     method: "POST",
@@ -121,31 +154,45 @@ beforeEach(() => {
   mocks.paymentCreate.mockResolvedValue({ id: "payment-1" })
   mocks.customersCreate.mockResolvedValue({ id: "cus_1" })
   mocks.userUpdate.mockResolvedValue({ ...member, stripeCustomerId: "cus_1" })
-  mocks.paymentFindUnique.mockResolvedValue({ id: "payment-1", status: "PENDING" })
+  mocks.paymentFindUnique.mockResolvedValue({
+    id: "payment-1",
+    userId: "member-1",
+    status: "PENDING",
+  })
   mocks.paymentUpdate.mockResolvedValue({ id: "payment-1", status: "COMPLETED" })
-  mocks.planFindUnique.mockResolvedValue({ id: "plan-1", durationDays: 30, gymId: "gym-1" })
+  mocks.paymentUpdateMany.mockResolvedValue({ count: 1 })
+  mocks.planFindUnique.mockResolvedValue(plan)
   mocks.membershipCreate.mockResolvedValue({ id: "membership-1" })
+  mocks.membershipFindUnique.mockResolvedValue(null)
+  mocks.membershipUpdate.mockResolvedValue({ id: "membership-viejo" })
   mocks.constructEvent.mockReturnValue(checkoutCompleted())
 })
 
 describe("POST /api/stripe/checkout", () => {
   it("401 sin sesión", async () => {
     mockAuth.mockResolvedValue(null)
-    const res = await checkout(jsonRequest({ planId: "plan-1", price: 100, planName: "Mensual" }))
+    const res = await checkout(jsonRequest({ planId: "plan-1" }))
     expect(res.status).toBe(401)
     expect(mocks.checkoutCreate).not.toHaveBeenCalled()
   })
 
   it("404 si el usuario de la sesión ya no existe", async () => {
     mocks.userFindUnique.mockResolvedValue(null)
-    const res = await checkout(jsonRequest({ planId: "plan-1", price: 100, planName: "Mensual" }))
+    const res = await checkout(jsonRequest({ planId: "plan-1" }))
     expect(res.status).toBe(404)
     expect(await res.json()).toEqual({ error: "Usuario no encontrado" })
     expect(mocks.checkoutCreate).not.toHaveBeenCalled()
   })
 
-  it("crea la sesión de pago con el correo y los metadatos del usuario", async () => {
-    const res = await checkout(jsonRequest({ planId: "plan-1", price: 99.99, planName: "Mensual" }))
+  it("400 en español si no se elige un plan", async () => {
+    const res = await checkout(jsonRequest({ price: 1 }))
+    expect(res.status).toBe(400)
+    expect((await res.json()).details.planId).toBeDefined()
+    expect(mocks.checkoutCreate).not.toHaveBeenCalled()
+  })
+
+  it("crea la sesión de pago con el precio, el nombre y la moneda del plan en la base", async () => {
+    const res = await checkout(jsonRequest({ planId: "plan-1", price: 1, planName: "Trampa" }))
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ url: "https://checkout.stripe/cs_1" })
 
@@ -153,17 +200,19 @@ describe("POST /api/stripe/checkout", () => {
     expect(args.customer_email).toBe("ana@test.com")
     expect(args.metadata).toEqual({ userId: "member-1", planId: "plan-1" })
     expect(args.line_items[0].price_data.unit_amount).toBe(9999)
+    expect(args.line_items[0].price_data.currency).toBe("pen")
     expect(args.line_items[0].price_data.product_data).toEqual({ name: "Mensual" })
     expect(args.success_url).toMatch(/\/membresia\?success=true$/)
     expect(args.cancel_url).toMatch(/\/membresia\?canceled=true$/)
   })
 
-  it("registra el pago como PENDING enlazado a la sesión de Stripe", async () => {
-    await checkout(jsonRequest({ planId: "plan-1", price: 100, planName: "Mensual" }))
+  it("registra el pago como PENDING enlazado a la sesión de Stripe, con el precio del plan", async () => {
+    await checkout(jsonRequest({ planId: "plan-1", price: 1 }))
     expect(mocks.paymentCreate).toHaveBeenCalledWith({
       data: expect.objectContaining({
         userId: "member-1",
-        amount: 100,
+        amount: 99.99,
+        currency: "PEN",
         status: "PENDING",
         method: "STRIPE",
         stripeSessionId: "cs_test_1",
@@ -172,24 +221,33 @@ describe("POST /api/stripe/checkout", () => {
     })
   })
 
+  it.each([
+    ["no existe", null],
+    ["está inactivo", { ...plan, active: false }],
+    ["es de otro gimnasio", { ...plan, gymId: "gym-2" }],
+  ])("404 si el plan %s", async (_label, found) => {
+    mocks.planFindUnique.mockResolvedValue(found)
+    const res = await checkout(jsonRequest({ planId: "plan-1" }))
+    expect(res.status).toBe(404)
+    expect(await res.json()).toEqual({ error: "Plan no encontrado" })
+    expect(mocks.checkoutCreate).not.toHaveBeenCalled()
+  })
+
+  it("400 si el plan es gratis", async () => {
+    mocks.planFindUnique.mockResolvedValue({ ...plan, price: 0 })
+    const res = await checkout(jsonRequest({ planId: "plan-1" }))
+    expect(res.status).toBe(400)
+    expect(mocks.checkoutCreate).not.toHaveBeenCalled()
+  })
+
   it("500 con mensaje en español si Stripe falla, sin registrar el pago", async () => {
     mocks.checkoutCreate.mockRejectedValue(new Error("stripe caído"))
-    const res = await checkout(jsonRequest({ planId: "plan-1", price: 100, planName: "Mensual" }))
+    const res = await checkout(jsonRequest({ planId: "plan-1" }))
     expect(res.status).toBe(500)
     expect(await res.json()).toEqual({ error: "Error al crear sesión de pago" })
     expect(mocks.paymentCreate).not.toHaveBeenCalled()
     expect(mocks.logger.error).toHaveBeenCalled()
   })
-
-  it.todo(
-    "toma el precio y el nombre del plan del cuerpo que manda el navegador: no busca el plan en la base, así que se puede pagar 1 por un plan de 300 (el webhook luego crea la membresía del plan completo)"
-  )
-  it.todo(
-    "no valida el cuerpo (planId, price, planName): sin precio manda NaN a Stripe y termina en 500 en vez de un 400 en español"
-  )
-  it.todo(
-    "cobra en «mxn» (pesos mexicanos) aunque la app es para Perú y el resto de pagos usa soles"
-  )
 })
 
 describe("POST /api/stripe/create-customer", () => {
@@ -279,11 +337,12 @@ describe("POST /api/stripe/webhook", () => {
     expect(mocks.membershipCreate).not.toHaveBeenCalled()
   })
 
-  it("400 si el plan ya no existe, sin crear membresía", async () => {
+  it("400 si el plan ya no existe, sin marcar el pago ni crear membresía", async () => {
     mocks.planFindUnique.mockResolvedValue(null)
     const res = await webhook(webhookRequest())
     expect(res.status).toBe(400)
     expect(await res.json()).toEqual({ error: "Plan no encontrado" })
+    expect(mocks.paymentUpdateMany).not.toHaveBeenCalled()
     expect(mocks.membershipCreate).not.toHaveBeenCalled()
   })
 
@@ -292,9 +351,9 @@ describe("POST /api/stripe/webhook", () => {
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ received: true })
 
-    expect(mocks.paymentUpdate).toHaveBeenCalledWith({
-      where: { stripeSessionId: "cs_test_1" },
-      data: { status: "COMPLETED", stripePaymentIntentId: "pi_1" },
+    expect(mocks.paymentUpdateMany).toHaveBeenCalledWith({
+      where: { id: "payment-1", status: "PENDING" },
+      data: expect.objectContaining({ status: "COMPLETED", stripePaymentIntentId: "pi_1" }),
     })
 
     const data = mocks.membershipCreate.mock.calls[0][0].data
@@ -305,15 +364,20 @@ describe("POST /api/stripe/webhook", () => {
       paymentConfirmed: true,
       paymentMethod: "STRIPE",
       paymentRef: "cs_test_1",
+      planDurationDays: 30,
     })
     const days = (data.endDate.getTime() - data.startDate.getTime()) / 86400000
     expect(Math.round(days)).toBe(30)
+    expect(mocks.paymentUpdate).toHaveBeenCalledWith({
+      where: { id: "payment-1" },
+      data: { membershipId: "membership-1" },
+    })
   })
 
   it("acepta payment_intent como objeto y guarda su id", async () => {
     mocks.constructEvent.mockReturnValue(checkoutCompleted({ payment_intent: { id: "pi_obj" } }))
     await webhook(webhookRequest())
-    expect(mocks.paymentUpdate.mock.calls[0][0].data.stripePaymentIntentId).toBe("pi_obj")
+    expect(mocks.paymentUpdateMany.mock.calls[0][0].data.stripePaymentIntentId).toBe("pi_obj")
   })
 
   it("payment_intent.payment_failed: responde recibido sin tocar pagos ni membresías", async () => {
@@ -323,7 +387,7 @@ describe("POST /api/stripe/webhook", () => {
     })
     const res = await webhook(webhookRequest())
     expect(res.status).toBe(200)
-    expect(mocks.paymentUpdate).not.toHaveBeenCalled()
+    expect(mocks.paymentUpdateMany).not.toHaveBeenCalled()
     expect(mocks.membershipCreate).not.toHaveBeenCalled()
     expect(mocks.logger.warn).toHaveBeenCalled()
   })
@@ -336,24 +400,62 @@ describe("POST /api/stripe/webhook", () => {
   })
 
   it("500 si la base falla al procesar el evento", async () => {
-    mocks.paymentUpdate.mockRejectedValue(new Error("db caída"))
+    mocks.paymentUpdateMany.mockRejectedValue(new Error("db caída"))
     const res = await webhook(webhookRequest())
     expect(res.status).toBe(500)
     expect(await res.json()).toEqual({ error: "Error interno al procesar webhook" })
   })
 
-  it.todo(
-    "no es idempotente: Stripe reintenta eventos y la ruta no mira si el pago ya estaba COMPLETED, así que el mismo evento repetido crea otra membresía"
-  )
-  it.todo(
-    "no compara el userId de los metadatos con el dueño del pago (payment.userId) antes de crear la membresía"
-  )
-  it.todo(
-    "marca el pago como COMPLETED antes de comprobar que el plan exista: si el plan se borró, el pago queda cobrado y sin membresía, y responde 400 (Stripe reintenta sin éxito)"
-  )
-  it.todo(
-    "la membresía nueva no tiene en cuenta una membresía activa previa: empieza hoy en vez de extender la vigente"
-  )
+  it("es idempotente: si el pago ya estaba completado responde recibido sin crear otra membresía", async () => {
+    mocks.paymentFindUnique.mockResolvedValue({
+      id: "payment-1",
+      userId: "member-1",
+      status: "COMPLETED",
+    })
+    const res = await webhook(webhookRequest())
+    expect(res.status).toBe(200)
+    expect(mocks.paymentUpdateMany).not.toHaveBeenCalled()
+    expect(mocks.membershipCreate).not.toHaveBeenCalled()
+  })
+
+  it("si otro evento igual ganó la carrera, no crea otra membresía", async () => {
+    mocks.paymentUpdateMany.mockResolvedValue({ count: 0 })
+    const res = await webhook(webhookRequest())
+    expect(res.status).toBe(200)
+    expect(mocks.membershipCreate).not.toHaveBeenCalled()
+    expect(mocks.membershipUpdate).not.toHaveBeenCalled()
+  })
+
+  it("400 si el usuario de los metadatos no es el dueño del pago", async () => {
+    mocks.constructEvent.mockReturnValue(
+      checkoutCompleted({ metadata: { userId: "otro", planId: "plan-1" } })
+    )
+    const res = await webhook(webhookRequest())
+    expect(res.status).toBe(400)
+    expect(mocks.paymentUpdateMany).not.toHaveBeenCalled()
+    expect(mocks.membershipCreate).not.toHaveBeenCalled()
+  })
+
+  it("con una membresía vigente del mismo plan, la extiende desde su fin", async () => {
+    const endDate = new Date(Date.now() + 10 * 86400000)
+    mocks.membershipFindUnique.mockResolvedValue({
+      id: "membership-viejo",
+      status: "ACTIVE",
+      startDate: new Date(Date.now() - 20 * 86400000),
+      endDate,
+      paymentConfirmed: true,
+    })
+    await webhook(webhookRequest())
+    expect(mocks.membershipCreate).not.toHaveBeenCalled()
+    const { where, data } = mocks.membershipUpdate.mock.calls[0][0]
+    expect(where).toEqual({ id: "membership-viejo" })
+    expect(data.endDate.getTime()).toBe(endDate.getTime() + 30 * 86400000)
+    expect(data).toMatchObject({
+      status: "ACTIVE",
+      paymentConfirmed: true,
+      paymentMethod: "STRIPE",
+    })
+  })
 })
 
 describe("Stripe sin configurar", () => {
@@ -368,7 +470,7 @@ describe("Stripe sin configurar", () => {
         import("@/app/api/stripe/webhook/route"),
       ])
       const [c, cc, w] = await Promise.all([
-        routes[0].POST(jsonRequest({ planId: "plan-1", price: 1, planName: "x" })),
+        routes[0].POST(jsonRequest({ planId: "plan-1" })),
         routes[1].POST(jsonRequest({})),
         routes[2].POST(webhookRequest()),
       ])

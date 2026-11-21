@@ -7,9 +7,23 @@ const mocks = vi.hoisted(() => {
   const inviteFindUnique = vi.fn()
   const inviteCreate = vi.fn()
   const inviteUpdate = vi.fn()
+  const inviteUpdateMany = vi.fn()
   const requestFindMany = vi.fn()
   const getFreeSlots = vi.fn()
   const refreshCalendarCache = vi.fn()
+  const prisma = {
+    user: { findUnique: userFindUnique, create: userCreate },
+    trainerInvite: {
+      findMany: inviteFindMany,
+      findUnique: inviteFindUnique,
+      create: inviteCreate,
+      update: inviteUpdate,
+      updateMany: inviteUpdateMany,
+    },
+    trainerRequest: { findMany: requestFindMany },
+    // La transacción usa el mismo cliente simulado.
+    $transaction: async (fn: (tx: unknown) => unknown): Promise<unknown> => fn(prisma),
+  }
   return {
     userFindUnique,
     userCreate,
@@ -17,19 +31,11 @@ const mocks = vi.hoisted(() => {
     inviteFindUnique,
     inviteCreate,
     inviteUpdate,
+    inviteUpdateMany,
     requestFindMany,
     getFreeSlots,
     refreshCalendarCache,
-    prisma: {
-      user: { findUnique: userFindUnique, create: userCreate },
-      trainerInvite: {
-        findMany: inviteFindMany,
-        findUnique: inviteFindUnique,
-        create: inviteCreate,
-        update: inviteUpdate,
-      },
-      trainerRequest: { findMany: requestFindMany },
-    },
+    prisma,
   }
 })
 
@@ -146,6 +152,7 @@ beforeEach(() => {
   }))
   mocks.inviteFindUnique.mockResolvedValue({ ...pendingInvite })
   mocks.inviteUpdate.mockResolvedValue({})
+  mocks.inviteUpdateMany.mockResolvedValue({ count: 1 })
   mocks.userCreate.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
     id: "nuevo-1",
     ...data,
@@ -409,9 +416,13 @@ describe("POST /api/trainer/invites/[token]", () => {
       phone: "999888777",
     })
 
+    expect(mocks.inviteUpdateMany).toHaveBeenCalledWith({
+      where: { id: "invite-1", status: "PENDING", expiresAt: { gt: expect.any(Date) } },
+      data: expect.objectContaining({ status: "COMPLETED" }),
+    })
     expect(mocks.inviteUpdate).toHaveBeenCalledWith({
       where: { id: "invite-1" },
-      data: expect.objectContaining({ status: "COMPLETED", usedByUserId: "nuevo-1" }),
+      data: { usedByUserId: "nuevo-1" },
     })
   })
 
@@ -423,12 +434,52 @@ describe("POST /api/trainer/invites/[token]", () => {
     expect(mocks.userCreate.mock.calls[0][0].data.phone).toBe("911222333")
   })
 
-  it.todo(
-    "si la invitación trae un correo, no se exige que la cuenta se cree con ese correo: cualquiera con el enlace puede registrarse con otro"
-  )
-  it.todo(
-    "crear la cuenta y marcar la invitación no van en una transacción ni con updateMany condicionado a PENDING: dos envíos simultáneos con el mismo enlace crean dos cuentas"
-  )
+  it("si la invitación trae un correo, no deja crear la cuenta con otro (400)", async () => {
+    const res = await completeInvite(
+      jsonRequest("/api/trainer/invites/tok123", "POST", {
+        ...validSignup,
+        email: "otra@test.com",
+      }),
+      tokenParams()
+    )
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toBe("Usa el correo al que llegó la invitación")
+    expect(mocks.userCreate).not.toHaveBeenCalled()
+  })
+
+  it("acepta el correo de la invitación sin importar mayúsculas", async () => {
+    const res = await completeInvite(
+      jsonRequest("/api/trainer/invites/tok123", "POST", {
+        ...validSignup,
+        email: "Invitada@Test.com",
+      }),
+      tokenParams()
+    )
+    expect(res.status).toBe(201)
+  })
+
+  it("una invitación sin correo acepta cualquier correo", async () => {
+    mocks.inviteFindUnique.mockResolvedValue({ ...pendingInvite, email: null })
+    const res = await completeInvite(
+      jsonRequest("/api/trainer/invites/tok123", "POST", {
+        ...validSignup,
+        email: "otra@test.com",
+      }),
+      tokenParams()
+    )
+    expect(res.status).toBe(201)
+  })
+
+  it("si otro envío ya usó el enlace, responde 410 y no crea otra cuenta", async () => {
+    mocks.inviteUpdateMany.mockResolvedValue({ count: 0 })
+    const res = await completeInvite(
+      jsonRequest("/api/trainer/invites/tok123", "POST", validSignup),
+      tokenParams()
+    )
+    expect(res.status).toBe(410)
+    expect(await res.json()).toEqual({ error: "Esta invitación ya fue usada" })
+    expect(mocks.userCreate).not.toHaveBeenCalled()
+  })
 })
 
 describe("GET /api/trainer/requests", () => {

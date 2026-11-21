@@ -229,8 +229,15 @@ export default function InvitePage() {
                 autoComplete="email"
                 placeholder="tu@correo.com"
                 value={form.email}
+                readOnly={Boolean(invite?.email)}
+                aria-describedby={invite?.email ? "invEmailHint" : undefined}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               />
+              {invite?.email && (
+                <p id="invEmailHint" className="text-xs text-muted-foreground">
+                  La invitación es para este correo.
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="invPhone">Teléfono (opcional)</Label>
