@@ -9,6 +9,7 @@ import {
   getWorkoutsThisWeek,
   getNextPropuestoSplit,
 } from "@/lib/weekly-progress"
+import { formatSplitTitle } from "@/lib/split-title"
 import { MemberDashboard } from "@/components/dashboard/member-dashboard"
 import { CoachDashboard } from "@/components/coach/coach-dashboard"
 import { AdminDashboard } from "@/components/admin/admin-dashboard"
@@ -84,7 +85,7 @@ export default async function DashboardPage() {
       const propuestoSplitId = await getNextPropuestoSplit(user.id, assignment.plan.id)
       if (propuestoSplitId) {
         const split = assignment.plan.splits.find((s) => s.id === propuestoSplitId)
-        nextSplitName = split ? `${split.label}: ${split.name}` : null
+        nextSplitName = split ? formatSplitTitle(split.label, split.name) : null
       }
     }
 
