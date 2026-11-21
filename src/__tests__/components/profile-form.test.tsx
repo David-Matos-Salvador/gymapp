@@ -21,6 +21,7 @@ vi.mock("framer-motion", () => {
 })
 
 import { ProfileForm } from "@/components/profile/profile-form"
+import { OBJECTIVE_LABELS } from "@/constants/user"
 
 type User = React.ComponentProps<typeof ProfileForm>["user"]
 
@@ -125,7 +126,7 @@ describe("ProfileForm", () => {
       expect(personal.getByText("Miembro")).toBeTruthy()
       expect(personal.getByText("Femenino")).toBeTruthy()
       const gym = cardOf("Perfil de gimnasio")
-      expect(gym.getByText("Ganancia muscular")).toBeTruthy()
+      expect(gym.getByText(OBJECTIVE_LABELS.MUSCLE_GAIN)).toBeTruthy()
       expect(gym.getByText("Intermedio")).toBeTruthy()
       expect(gym.getByText("165 cm")).toBeTruthy()
       expect(gym.getByText("60 kg")).toBeTruthy()
@@ -219,7 +220,7 @@ describe("ProfileForm", () => {
       )
       expect(screen.getByRole("combobox", { name: "Sexo" }).textContent).toContain("Femenino")
       expect(screen.getByRole("combobox", { name: "Objetivo" }).textContent).toContain(
-        "Ganancia muscular"
+        OBJECTIVE_LABELS.MUSCLE_GAIN
       )
       expect(screen.getByRole("combobox", { name: "Nivel de experiencia" }).textContent).toContain(
         "Intermedio"
