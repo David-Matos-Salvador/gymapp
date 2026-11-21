@@ -4,6 +4,7 @@ import { getTrainerClientIds } from "@/lib/trainer-client"
 import { MuscleGroup, Equipment } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { z } from "zod"
+import { generatedPlanName } from "@/lib/generated-routine"
 
 const fitnessCoachSchema = z.object({
   objective: z.enum(["WEIGHT_LOSS", "MUSCLE_GAIN", "GENERAL_FITNESS", "UNSURE"]),
@@ -17,7 +18,7 @@ const SPLIT_TEMPLATES: Record<
 > = {
   3: [
     {
-      name: "Full Body",
+      name: "Cuerpo completo",
       focus: "Cuerpo completo",
       level: "BEGINNER",
       muscleGroups: [["FULL_BODY"], ["FULL_BODY"], ["FULL_BODY"]],
@@ -63,7 +64,7 @@ const SPLIT_TEMPLATES: Record<
       ],
     },
     {
-      name: "Empuje / Tirón / Piernas / Full Body",
+      name: "Empuje / Tirón / Piernas / Cuerpo completo",
       focus: "Hipertrofia",
       level: "ADVANCED",
       muscleGroups: [
@@ -74,7 +75,7 @@ const SPLIT_TEMPLATES: Record<
       ],
     },
     {
-      name: "Pecho+Tríceps / Espalda+Bíceps / Piernas / Hombros+Abs",
+      name: "Pecho+Tríceps / Espalda+Bíceps / Piernas / Hombros+Abdomen",
       focus: "Definición",
       level: "INTERMEDIATE",
       muscleGroups: [
@@ -99,7 +100,7 @@ const SPLIT_TEMPLATES: Record<
       ],
     },
     {
-      name: "Pecho+Tríceps / Espalda+Bíceps / Piernas / Hombros / Full Body",
+      name: "Pecho+Tríceps / Espalda+Bíceps / Piernas / Hombros / Cuerpo completo",
       focus: "Rendimiento máximo",
       level: "ADVANCED",
       muscleGroups: [
@@ -123,7 +124,7 @@ const SPLIT_TEMPLATES: Record<
       ],
     },
     {
-      name: "Hipertrofia Superior / Inferior / Empuje / Tirón / Full Body",
+      name: "Hipertrofia Superior / Inferior / Empuje / Tirón / Cuerpo completo",
       focus: "Volumen",
       level: "ELITE",
       muscleGroups: [
@@ -239,7 +240,7 @@ const MUSCLE_POOL: Record<
       reps: "12-15",
       restSeconds: 60,
     },
-    { name: "Face Pull", equipment: "CABLE", sets: 3, reps: "15-20", restSeconds: 60 },
+    { name: "Jalón a la cara", equipment: "CABLE", sets: 3, reps: "15-20", restSeconds: 60 },
     {
       name: "Pájaros para deltoides posterior",
       equipment: "DUMBBELL",
@@ -294,7 +295,7 @@ const MUSCLE_POOL: Record<
   ],
   GLUTES: [
     {
-      name: "Hip thrust",
+      name: "Empuje de cadera",
       equipment: "BARBELL",
       sets: 4,
       reps: "8-12",
@@ -320,7 +321,13 @@ const MUSCLE_POOL: Record<
       reps: "15-20",
       restSeconds: 60,
     },
-    { name: "Crunches en máquina", equipment: "MACHINE", sets: 3, reps: "15-20", restSeconds: 60 },
+    {
+      name: "Abdominales en máquina",
+      equipment: "MACHINE",
+      sets: 3,
+      reps: "15-20",
+      restSeconds: 60,
+    },
     { name: "Rueda abdominal", equipment: "OTHER", sets: 3, reps: "10-15", restSeconds: 60 },
   ],
   CALVES: [
@@ -345,14 +352,26 @@ const MUSCLE_POOL: Record<
   ],
   FULL_BODY: [
     { name: "Burpees", equipment: "BODYWEIGHT", sets: 3, reps: "10-15", restSeconds: 60 },
-    { name: "Kettlebell swing", equipment: "KETTLEBELL", sets: 3, reps: "15-20", restSeconds: 45 },
-    { name: "Thrusters", equipment: "DUMBBELL", sets: 3, reps: "10-12", restSeconds: 75 },
-    { name: "Battle ropes", equipment: "OTHER", sets: 3, reps: "30s", restSeconds: 45 },
+    {
+      name: "Balanceo con pesa rusa",
+      equipment: "KETTLEBELL",
+      sets: 3,
+      reps: "15-20",
+      restSeconds: 45,
+    },
+    {
+      name: "Sentadilla con press",
+      equipment: "DUMBBELL",
+      sets: 3,
+      reps: "10-12",
+      restSeconds: 75,
+    },
+    { name: "Cuerdas de batalla", equipment: "OTHER", sets: 3, reps: "30s", restSeconds: 45 },
   ],
   CARDIO: [
     { name: "Burpees", equipment: "BODYWEIGHT", sets: 4, reps: "12-15", restSeconds: 45 },
     { name: "Saltos al cajón", equipment: "OTHER", sets: 3, reps: "10-15", restSeconds: 60 },
-    { name: "Mountain climbers", equipment: "BODYWEIGHT", sets: 3, reps: "20", restSeconds: 45 },
+    { name: "Escaladores", equipment: "BODYWEIGHT", sets: 3, reps: "20", restSeconds: 45 },
   ],
 }
 
@@ -604,17 +623,9 @@ export async function POST(request: Request) {
     experienceLevel
   )
 
-  const objectiveLabels: Record<string, string> = {
-    WEIGHT_LOSS: "Quema de grasa",
-    MUSCLE_GAIN: "Ganancia muscular",
-    GENERAL_FITNESS: "Acondicionamiento general",
-    UNSURE: "Acondicionamiento general",
-  }
-
   const plans = await Promise.all(
     templates.map(async (template) => {
-      const planName = `${template.name} · ${objectiveLabels[objective] ?? "General"} · ${trainingFrequency}d`
-      const description = `Rutina ${template.name}. ${objectiveLabels[objective] ?? "General"}. ${trainingFrequency} días por semana.`
+      const planName = generatedPlanName(template.name, objective, trainingFrequency)
       // Las rutinas se comparten entre personas: la de principiante se arma siempre con volumen
       // de principiante, aunque la genere por primera vez alguien con más experiencia.
       const beginner = template.level === "BEGINNER"
@@ -707,7 +718,8 @@ export async function POST(request: Request) {
         data: {
           userId: superadmin?.id ?? "seed",
           name: planName,
-          description,
+          // Sin descripción: solo repetía el nombre (#188).
+          description: null,
           objective: objective === "UNSURE" ? "GENERAL_FITNESS" : objective,
           frequency: trainingFrequency,
           difficulty: template.level,

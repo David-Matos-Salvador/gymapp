@@ -1540,9 +1540,11 @@ export default function OnboardingPage() {
                                 {experienceLabelMap[plan.difficulty] ?? plan.difficulty}
                               </span>
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {plan.description}
-                            </p>
+                            {plan.description && (
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                {plan.description}
+                              </p>
+                            )}
                             {isRecommended && aiRecommendation && (
                               <p className="mt-2 text-xs font-medium">{aiRecommendation.reason}</p>
                             )}
