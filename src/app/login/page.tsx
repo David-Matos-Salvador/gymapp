@@ -4,7 +4,7 @@ export const dynamic = "force-dynamic"
 
 import { Suspense, useState, useSyncExternalStore } from "react"
 import { useForm, type FieldErrors, type Resolver } from "react-hook-form"
-import { signIn } from "next-auth/react"
+import { getSession, signIn } from "next-auth/react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { AuthCardSkeleton } from "@/components/auth/auth-card-skeleton"
 import { useSound } from "@/hooks/use-sound"
-import { validateLogin, type LoginForm } from "@/lib/login-form"
+import { homeAfterLogin, validateLogin, type LoginForm } from "@/lib/login-form"
 
 const loginResolver: Resolver<LoginForm> = (values) => {
   const errors: FieldErrors<LoginForm> = {}
@@ -68,7 +68,8 @@ function LoginFormInner() {
       play("delete")
     } else {
       play("success")
-      router.push(callbackUrl)
+      const session = await getSession()
+      router.push(searchParams.get("callbackUrl") ?? homeAfterLogin(session?.user?.role))
       router.refresh()
     }
   }

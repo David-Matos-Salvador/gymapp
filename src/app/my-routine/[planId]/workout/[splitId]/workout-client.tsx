@@ -20,6 +20,7 @@ import {
 import { Save, Play, Trophy, ChevronDown, Pause, X, Flame, Zap } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { MUSCLE_LABELS } from "@/constants/user"
 import type { SplitExercise, SplitData } from "@/types/exercise"
 
 interface WorkoutClientProps {
@@ -357,7 +358,7 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
         />
       )}
 
-      <div
+      <main
         className={cn(
           "container mx-auto max-w-2xl space-y-5 px-4 py-4 pb-28 md:py-8",
           showCelebration && "hidden"
@@ -423,7 +424,28 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
 
         {phase === "prepare" && (
           <div className="flex flex-col items-center gap-3 py-6 px-4 rounded-xl bg-accent-yellow/5 border border-accent-yellow/30">
-            <p className="text-sm text-muted-foreground">{totalExercises} ejercicios</p>
+            <p className="text-sm text-muted-foreground">
+              {totalExercises === 1 ? "1 ejercicio" : `${totalExercises} ejercicios`}{" "}
+            </p>
+            {/* Vista previa del día (#199): antes solo decía cuántos ejercicios venían. */}
+            <ol aria-label="Ejercicios de hoy" className="w-full divide-y divide-border/60">
+              {split.exercises.map((se, idx) => (
+                <li key={se.id} className="flex items-center gap-3 py-2.5">
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-yellow/15 text-xs font-semibold tabular-nums text-accent-yellow">
+                    {idx + 1}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium leading-tight">{se.exercise.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {MUSCLE_LABELS[se.exercise.muscleGroup] ?? se.exercise.muscleGroup}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                    {se.sets} × {se.reps}
+                  </span>
+                </li>
+              ))}
+            </ol>
             <Button onClick={startWorkout} disabled={!ready} className="min-h-11 gap-2">
               <Play className="h-4 w-4" /> Iniciar entrenamiento
             </Button>
@@ -641,7 +663,7 @@ export function WorkoutClient({ planId, split, gym, lastPerformance }: WorkoutCl
             </Button>
           </div>
         )}
-      </div>
+      </main>
     </AppShell>
   )
 }

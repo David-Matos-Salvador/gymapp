@@ -119,10 +119,10 @@ export const useWorkoutStore = create<WorkoutStore>()(
         set((s) => ({
           setsData: {
             ...s.setsData,
-            [exerciseId]: (s.setsData[exerciseId] ?? []).map((set) => ({
-              ...set,
-              weight,
-            })),
+            // Las series ya hechas guardan el peso con el que se hicieron.
+            [exerciseId]: (s.setsData[exerciseId] ?? []).map((set) =>
+              set.completed ? set : { ...set, weight }
+            ),
           },
         })),
       setNotes: (notes) => set({ notes }),

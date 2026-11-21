@@ -57,7 +57,7 @@ export const measurementFields: {
   unit: string
   placeholder: string
 }[] = [
-  { key: "bodyFat", label: "% Grasa", unit: "%", placeholder: "Ej: 18" },
+  { key: "bodyFat", label: "Grasa corporal", unit: "%", placeholder: "Ej: 18" },
   { key: "muscleMass", label: "Masa muscular", unit: "kg", placeholder: "Ej: 35" },
   { key: "neck", label: "Cuello", unit: "cm", placeholder: "Ej: 38" },
   { key: "shoulders", label: "Hombros", unit: "cm", placeholder: "Ej: 115" },
@@ -172,13 +172,13 @@ export const objectiveOptions: {
   {
     value: "UNSURE",
     label: "Necesito ayuda",
-    description: "No estoy seguro de mi objetivo",
+    description: "Aún no sé cuál elegir",
     icon: HelpCircle,
   },
 ]
 
 export const trainingHistoryOptions = [
-  { value: "NONE", label: "No he entrenado antes", description: "Soy completamente nuevo" },
+  { value: "NONE", label: "No he entrenado antes", description: "Empiezo desde cero" },
   { value: "ONCE", label: "1 vez por semana", description: "Entrenamiento ocasional" },
   { value: "TWO_TO_THREE", label: "2 a 3 veces por semana", description: "Entrenamiento regular" },
   { value: "FOUR_PLUS", label: "4 o más veces por semana", description: "Entrenamiento frecuente" },
@@ -268,10 +268,10 @@ export const objectiveLabelMap: Record<string, string> = {
 }
 
 export const trainingHistoryLabelMap: Record<string, string> = {
-  NONE: "No he entrenado",
-  ONCE: "1x por semana",
-  TWO_TO_THREE: "2x a 3x",
-  FOUR_PLUS: "4x o más",
+  NONE: "No he entrenado antes",
+  ONCE: "1 vez por semana",
+  TWO_TO_THREE: "2 a 3 veces por semana",
+  FOUR_PLUS: "4 o más veces por semana",
 }
 
 export const experienceLabelMap: Record<string, string> = {

@@ -98,14 +98,22 @@ export function MemberDashboard({
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Racha semanal" icon={Flame} delay={0}>
-          <p className="mt-1 text-2xl md:text-3xl font-bold tracking-tight tabular-nums leading-none">
-            {weeklyStreak.streak}
-            <span className="ml-1.5 text-xs md:text-sm font-normal text-muted-foreground">
-              {weeklyStreak.streak === 1 ? "semana" : "semanas"}
-            </span>
-          </p>
+          {weeklyStreak.streak > 0 ? (
+            <p className="mt-1 text-2xl md:text-3xl font-bold tracking-tight tabular-nums leading-none">
+              {weeklyStreak.streak}
+              <span className="ml-1.5 text-xs md:text-sm font-normal text-muted-foreground">
+                {weeklyStreak.streak === 1 ? "semana" : "semanas"}
+              </span>
+            </p>
+          ) : (
+            <p className="mt-1 text-lg md:text-xl font-bold tracking-tight leading-tight">
+              Por empezar
+            </p>
+          )}
           <p className="mt-1.5 text-xs text-muted-foreground">
-            Mejor: {pluralize(weeklyStreak.bestStreak, "semana", "semanas")}
+            {weeklyStreak.bestStreak > 0
+              ? `Mejor: ${pluralize(weeklyStreak.bestStreak, "semana", "semanas")}`
+              : "Cumple tus días de la semana para sumar la primera"}
           </p>
         </StatCard>
 
@@ -168,7 +176,12 @@ export function MemberDashboard({
           </div>
         </StatCard>
 
-        <StatCard label="Coach" icon={UserCheck} delay={0.15}>
+        <StatCard
+          label="Coach"
+          icon={UserCheck}
+          href={coach.hasCoach ? "/sessions" : undefined}
+          delay={0.15}
+        >
           <div className="mt-1.5">
             {coach.hasCoach ? (
               <>
@@ -184,7 +197,12 @@ export function MemberDashboard({
                 <p className="text-xs text-muted-foreground mt-1">Solicitud enviada</p>
               </>
             ) : (
-              <p className="text-xs text-muted-foreground">Sin entrenador asignado</p>
+              <>
+                <p className="text-xs text-muted-foreground">Sin entrenador asignado</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Un coach del gimnasio te enviará una solicitud
+                </p>
+              </>
             )}
           </div>
         </StatCard>

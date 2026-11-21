@@ -2,6 +2,7 @@
 
 import { pluralize } from "@/lib/utils"
 import { buildInviteUrl } from "@/lib/public-url"
+import { inviteState } from "@/lib/trainer-invite"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useSound } from "@/hooks/use-sound"
 import { motion } from "framer-motion"
@@ -147,7 +148,8 @@ export function CoachDashboard({
   const [inviteSaving, setInviteSaving] = useState(false)
   const [inviteForm, setInviteForm] = useState({ name: "", email: "", phone: "" })
   const [inviteUrl, setInviteUrl] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
+  // Qué enlace se acaba de copiar («dialog» o el id de la invitación), para marcar solo ese botón.
+  const [copiedKey, setCopiedKey] = useState<string | null>(null)
   const [invites, setInvites] = useState<InviteData[]>([])
   const searchRef = useRef<HTMLDivElement>(null)
   const debounceRef = useRef<NodeJS.Timeout | null>(null)
@@ -256,7 +258,7 @@ export function CoachDashboard({
     play("click")
     setInviteForm({ name: "", email: "", phone: "" })
     setInviteUrl(null)
-    setCopied(false)
+    setCopiedKey(null)
     setInviteDialogOpen(true)
   }
 
@@ -289,12 +291,12 @@ export function CoachDashboard({
     }
   }
 
-  async function copyInviteLink(url: string) {
+  async function copyInviteLink(url: string, key: string) {
     try {
       await navigator.clipboard.writeText(url)
-      setCopied(true)
+      setCopiedKey(key)
       play("success")
-      setTimeout(() => setCopied(false), 2000)
+      setTimeout(() => setCopiedKey((current) => (current === key ? null : current)), 2000)
     } catch {
       toast.error("No se pudo copiar")
     }
@@ -512,50 +514,66 @@ export function CoachDashboard({
               <div className="mt-4">
                 <p className="text-sm font-medium text-muted-foreground mb-2">Invitaciones</p>
                 <div className="space-y-2">
-                  {invites.map((inv) => (
-                    <div
-                      key={inv.id}
-                      className="flex items-center justify-between rounded-lg border p-3 bg-muted/30 gap-2"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10">
-                          <Link2 className="h-4 w-4 text-accent-yellow" />
+                  {invites.map((inv) => {
+                    const state = inviteState(inv)
+                    return (
+                      <div
+                        key={inv.id}
+                        className="flex items-center justify-between rounded-lg border p-3 bg-muted/30 gap-2"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-yellow/10">
+                            <Link2 className="h-4 w-4 text-accent-yellow" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {inv.usedBy
+                                ? inv.usedBy.name || inv.usedBy.email
+                                : inv.name || inv.email || "Invitación sin datos"}
+                            </p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {inv.email || "Sin correo"}
+                              {state === "pending" &&
+                                ` · vence el ${new Date(inv.expiresAt).toLocaleDateString("es-PE")}`}
+                              {state === "expired" &&
+                                ` · venció el ${new Date(inv.expiresAt).toLocaleDateString("es-PE")}`}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {inv.usedBy
-                              ? inv.usedBy.name || inv.usedBy.email
-                              : inv.name || inv.email || "Invitación sin datos"}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {inv.email || "Sin correo"} · expira{" "}
-                            {new Date(inv.expiresAt).toLocaleDateString("es-PE")}
-                          </p>
-                        </div>
+                        {state === "accepted" ? (
+                          <Badge variant="secondary" className="text-xs shrink-0 gap-1">
+                            <CheckCircle className="h-3 w-3" /> Aceptada
+                          </Badge>
+                        ) : state === "expired" ? (
+                          <Badge
+                            variant="outline"
+                            className="text-xs shrink-0 text-muted-foreground"
+                          >
+                            Vencida
+                          </Badge>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="shrink-0"
+                            onClick={() =>
+                              copyInviteLink(
+                                buildInviteUrl(window.location.origin, inv.token),
+                                inv.id
+                              )
+                            }
+                          >
+                            {copiedKey === inv.id ? (
+                              <Check className="mr-1 h-3 w-3" />
+                            ) : (
+                              <Copy className="mr-1 h-3 w-3" />
+                            )}
+                            {copiedKey === inv.id ? "Copiado" : "Copiar enlace"}
+                          </Button>
+                        )}
                       </div>
-                      {inv.status === "COMPLETED" ? (
-                        <Badge variant="secondary" className="text-xs shrink-0 gap-1">
-                          <CheckCircle className="h-3 w-3" /> Aceptada
-                        </Badge>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="shrink-0"
-                          onClick={() =>
-                            copyInviteLink(buildInviteUrl(window.location.origin, inv.token))
-                          }
-                        >
-                          {copied ? (
-                            <Check className="mr-1 h-3 w-3" />
-                          ) : (
-                            <Copy className="mr-1 h-3 w-3" />
-                          )}
-                          {copied ? "Copiado" : "Copiar enlace"}
-                        </Button>
-                      )}
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             )}
@@ -600,13 +618,17 @@ export function CoachDashboard({
                           <Users className="h-5 w-5 text-accent-yellow" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <p className="text-sm font-medium truncate">
                               {client.name || "Sin nombre"}
                             </p>
-                            {client.hasActiveMembership && (
-                              <span className="inline-flex items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-accent-yellow">
-                                Activo
+                            {client.hasActiveMembership ? (
+                              <span className="inline-flex shrink-0 items-center rounded-full bg-accent-yellow/10 px-1.5 py-0.5 text-xs font-medium text-accent-yellow">
+                                Membresía activa
+                              </span>
+                            ) : (
+                              <span className="inline-flex shrink-0 items-center rounded-full bg-destructive/10 px-1.5 py-0.5 text-xs font-medium text-destructive">
+                                Sin membresía activa
                               </span>
                             )}
                             {!client.onboardingCompleted && (
@@ -912,13 +934,17 @@ export function CoachDashboard({
                 <p className="text-xs font-medium">Link de invitación:</p>
                 <p className="text-xs break-all">{inviteUrl}</p>
                 <div className="flex gap-2">
-                  <Button size="sm" variant="outline" onClick={() => copyInviteLink(inviteUrl)}>
-                    {copied ? (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => copyInviteLink(inviteUrl, "dialog")}
+                  >
+                    {copiedKey === "dialog" ? (
                       <Check className="mr-1 h-3 w-3" />
                     ) : (
                       <Copy className="mr-1 h-3 w-3" />
                     )}
-                    {copied ? "Copiado" : "Copiar"}
+                    {copiedKey === "dialog" ? "Copiado" : "Copiar"}
                   </Button>
                   <Button
                     size="sm"

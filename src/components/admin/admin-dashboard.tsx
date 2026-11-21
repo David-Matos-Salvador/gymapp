@@ -149,7 +149,7 @@ export function AdminDashboard({
           icon={CalendarCheck}
           iconColor="text-primary"
           borderColor="border-t-primary"
-          suffix="prom. semanal"
+          suffix="promedio de 7 días"
           delay={0.24}
         />
       </div>

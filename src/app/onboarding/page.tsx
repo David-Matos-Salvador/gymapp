@@ -9,8 +9,10 @@ import { Input } from "@/components/ui/input"
 import { useSound } from "@/hooks/use-sound"
 import { calculateBMI, getBMICategory } from "@/lib/health"
 import { createDoubleTap } from "@/lib/double-tap"
+import { exercisesPerDay } from "@/lib/utils"
 import {
   cleanDecimalInput,
+  heightInputToCm,
   isMeasurementInRange,
   measurementRangeMessage,
 } from "@/constants/measurements"
@@ -289,6 +291,7 @@ export default function OnboardingPage() {
   const [heightInput, setHeightInput] = useState("")
   const [weightError, setWeightError] = useState("")
   const [heightError, setHeightError] = useState("")
+  const [heightHint, setHeightHint] = useState("")
   const [measurementInputs, setMeasurementInputs] = useState<Record<string, string>>({})
 
   const searchGyms = useCallback(async () => {
@@ -614,15 +617,26 @@ export default function OnboardingPage() {
     const cleaned = cleanDecimalInput(value)
     if (cleaned === null) return
     setHeightInput(cleaned)
-    const num = parseFloat(cleaned)
+    setHeightHint("")
+    const height = heightInputToCm(cleaned)
     if (cleaned === "") {
       updateData("height", null)
       setHeightError("")
-    } else if (isNaN(num) || num < 100 || num > 250) {
+    } else if (!height || height.cm < 100 || height.cm > 250) {
       setHeightError("Ingresa una altura entre 100 y 250 cm")
     } else {
-      updateData("height", num)
+      updateData("height", height.cm)
       setHeightError("")
+      if (height.fromMeters) setHeightHint(`Lo tomamos como ${height.cm} cm`)
+    }
+  }
+
+  // Al salir del campo, una altura escrita en metros queda en centímetros.
+  const handleHeightBlur = () => {
+    const height = heightInputToCm(heightInput)
+    if (height?.fromMeters && !heightError) {
+      setHeightInput(String(height.cm))
+      setHeightHint("")
     }
   }
 
@@ -1029,6 +1043,7 @@ export default function OnboardingPage() {
                     inputMode="decimal"
                     value={heightInput}
                     onChange={(e) => handleHeightChange(e.target.value)}
+                    onBlur={handleHeightBlur}
                     placeholder="Ej: 170"
                     className="w-full h-16 rounded-2xl border-2 border-border bg-card px-5 pr-16 text-2xl font-semibold text-center placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                   />
@@ -1037,6 +1052,11 @@ export default function OnboardingPage() {
                   </span>
                 </div>
                 {heightError && <p className="text-sm text-red-500 text-center">{heightError}</p>}
+                {heightHint && (
+                  <p className="text-sm text-muted-foreground text-center" aria-live="polite">
+                    {heightHint}
+                  </p>
+                )}
               </div>
 
               {bmi !== null && (
@@ -1295,8 +1315,7 @@ export default function OnboardingPage() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground mt-1">
-                    {coachPlan.splits.length} divisiones ·{" "}
-                    {coachPlan.splits.reduce((s, sp) => s + sp.exercises.length, 0)} ejercicios
+                    {coachPlan.splits.length} divisiones · {exercisesPerDay(coachPlan.splits)}
                   </p>
                 </div>
                 <Button
@@ -1486,7 +1505,6 @@ export default function OnboardingPage() {
                 {orderedPlans.map((plan, i) => {
                   const isExpanded = expandedPlanId === plan.id
                   const isRecommended = plan.id === recommendedPlan?.id
-                  const totalExercises = plan.splits.reduce((sum, s) => sum + s.exercises.length, 0)
                   const allMuscleGroups = [...new Set(plan.splits.flatMap((s) => s.muscleGroups))]
                   return (
                     <div key={plan.id} className="space-y-2">
@@ -1537,7 +1555,7 @@ export default function OnboardingPage() {
                                 <Zap className="h-3 w-3" />
                                 {plan.focus}
                               </span>
-                              <span>{totalExercises} ejercicios</span>
+                              <span>{exercisesPerDay(plan.splits)}</span>
                             </div>
                           </div>
                           <ChevronRight
@@ -1635,7 +1653,7 @@ export default function OnboardingPage() {
         <div className="mx-auto flex max-w-lg items-center justify-between px-5 h-14">
           <button
             onClick={goBack}
-            className={`flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors ${
+            className={`flex h-11 w-11 items-center justify-center rounded-xl hover:bg-muted transition-colors ${
               step <= 1 || isSubmitting || isGenerating ? "invisible" : ""
             }`}
             disabled={isSubmitting || isGenerating}
@@ -1661,7 +1679,7 @@ export default function OnboardingPage() {
           {assisted ? (
             <button
               onClick={() => router.push("/coach")}
-              className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
+              className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
               disabled={isGenerating}
               title="Salir del onboarding asistido"
               aria-label="Salir del onboarding asistido"
@@ -1671,7 +1689,7 @@ export default function OnboardingPage() {
           ) : (
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="flex h-10 w-10 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
+              className="flex h-11 w-11 items-center justify-center rounded-xl hover:bg-muted transition-colors disabled:opacity-30"
               disabled={isGenerating}
               aria-label="Cerrar sesión"
             >
@@ -1742,7 +1760,7 @@ function SummaryRow({
       <button
         onClick={onEdit}
         aria-label={`Editar ${label}`}
-        className="ml-3 text-xs font-semibold text-primary hover:underline shrink-0"
+        className="-mr-2 ml-1 inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center px-2 text-xs font-semibold text-primary hover:underline"
       >
         Editar
       </button>
