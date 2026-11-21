@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     },
   })
 
-  emitRealtime("notifications")
+  emitRealtime("notifications", user.gymId)
 
   return NextResponse.json({ request: trainerRequest }, { status: 201 })
 }

@@ -300,7 +300,7 @@ describe("POST /api/trainer/clients", () => {
         type: "TRAINER_REQUEST",
       }),
     })
-    expect(mocks.emitRealtime).toHaveBeenCalledWith("notifications")
+    expect(mocks.emitRealtime).toHaveBeenCalledWith("notifications", "gym-1")
   })
 
   it("reabre una solicitud rechazada en vez de crear otra", async () => {

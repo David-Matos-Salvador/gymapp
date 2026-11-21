@@ -11,8 +11,9 @@ const mocks = vi.hoisted(() => {
   const getTrainerClientIds = vi.fn()
   const connectRealtimeSub = vi.fn()
   const unsubscribe = vi.fn()
-  const realtimeListeners: Array<(payload: { type: string; id: string }) => void> = []
-  const subscribeRealtime = vi.fn((listener: (payload: { type: string; id: string }) => void) => {
+  type Payload = { type: string; id: string; gymId: string | null }
+  const realtimeListeners: Array<(payload: Payload) => void> = []
+  const subscribeRealtime = vi.fn((listener: (payload: Payload) => void) => {
     realtimeListeners.push(listener)
     return unsubscribe
   })
@@ -51,7 +52,8 @@ vi.mock("@/lib/auth", () => ({ auth: () => mockAuth() }))
 vi.mock("@/lib/trainer-client", () => ({
   getTrainerClientIds: (...args: unknown[]) => mocks.getTrainerClientIds(...args),
 }))
-vi.mock("@/lib/realtime", () => ({
+vi.mock("@/lib/realtime", async (importOriginal) => ({
+  canReceiveRealtime: (await importOriginal<typeof import("@/lib/realtime")>()).canReceiveRealtime,
   connectRealtimeSub: () => mocks.connectRealtimeSub(),
   subscribeRealtime: mocks.subscribeRealtime,
 }))
@@ -303,7 +305,7 @@ describe("POST /api/notifications", () => {
 
     expect(response.status).toBe(403)
     expect((await response.json()).error).toBe("Solo puedes notificar a tus clientes")
-    expect(mocks.getTrainerClientIds).toHaveBeenCalledWith("u-trainer")
+    expect(mocks.getTrainerClientIds).toHaveBeenCalledWith("u-trainer", "gym-1")
     expect(mocks.notificationCreate).not.toHaveBeenCalled()
   })
 
@@ -337,12 +339,30 @@ describe("POST /api/notifications", () => {
   it.todo(
     "con un cuerpo que no es JSON debería responder 400; hoy `request.json()` no está protegido y la ruta lanza un error (500 sin cuerpo JSON)"
   )
-  it.todo(
-    "un admin sin gimnasio (gymId null) puede notificar a cualquier usuario sin gimnasio, porque compara null con null (mismo caso que `notifications/send`)"
-  )
-  it.todo(
-    "con un coach llama a getTrainerClientIds sin el gymId: un cliente asignado que esté en otro gimnasio sigue contando como suyo (mismo caso que `notifications/send`)"
-  )
+  it("un admin sin gimnasio no puede notificar a un usuario sin gimnasio (404)", async () => {
+    loginAs("ADMIN", null)
+    withTargets({ "member-1": { id: "member-1", gymId: null } })
+
+    const response = await createNotification(
+      jsonRequest("/api/notifications", "POST", validNotification)
+    )
+
+    expect(response.status).toBe(404)
+    expect(mocks.notificationCreate).not.toHaveBeenCalled()
+  })
+
+  it("un coach no puede notificar a un cliente asignado que está en otro gimnasio (404)", async () => {
+    loginAs("TRAINER", "gym-1")
+    withTargets({ "member-1": { id: "member-1", gymId: "gym-2" } })
+    mocks.getTrainerClientIds.mockResolvedValue(["member-1"])
+
+    const response = await createNotification(
+      jsonRequest("/api/notifications", "POST", validNotification)
+    )
+
+    expect(response.status).toBe(404)
+    expect(mocks.notificationCreate).not.toHaveBeenCalled()
+  })
   it.todo("no limita el largo del título ni del mensaje")
   it.todo(
     "no llama a emitRealtime(«notifications») como `notifications/send`: la campana del destinatario no se actualiza hasta que recarga"
@@ -576,7 +596,7 @@ describe("GET /api/events", () => {
     const reader = response.body!.getReader()
     await readChunk(reader)
 
-    mocks.realtimeListeners[0]({ type: "notifications", id: "evt-1" })
+    mocks.realtimeListeners.at(-1)!({ type: "notifications", id: "evt-1", gymId: "gym-1" })
     const chunk = await readChunk(reader)
 
     expect(chunk).toMatch(/^event: notifications\ndata: \{"at":\d+\}\n\n$/)
@@ -599,7 +619,36 @@ describe("GET /api/events", () => {
     expect((await reader.read()).done).toBe(true)
   })
 
-  it.todo(
-    "cada sesión recibe los eventos de todos los gimnasios (no filtra por usuario ni gimnasio): un pago en un gimnasio hace que todos los clientes conectados vuelvan a pedir datos"
-  )
+  it("no reenvía los eventos de otro gimnasio", async () => {
+    loginAs("ADMIN", "gym-1")
+    const controller = new AbortController()
+    const response = await openEvents(
+      new Request("http://localhost:3000/api/events", { signal: controller.signal })
+    )
+    const reader = response.body!.getReader()
+    await readChunk(reader)
+
+    const listener = mocks.realtimeListeners.at(-1)!
+    listener({ type: "pending-count", id: "evt-otro", gymId: "gym-2" })
+    listener({ type: "pending-count", id: "evt-sin-gym", gymId: null })
+    listener({ type: "notifications", id: "evt-propio", gymId: "gym-1" })
+
+    expect(await readChunk(reader)).toMatch(/^event: notifications\n/)
+    controller.abort()
+  })
+
+  it("el súper admin recibe los eventos de todos los gimnasios", async () => {
+    loginAs("SUPER_ADMIN", null)
+    const controller = new AbortController()
+    const response = await openEvents(
+      new Request("http://localhost:3000/api/events", { signal: controller.signal })
+    )
+    const reader = response.body!.getReader()
+    await readChunk(reader)
+
+    mocks.realtimeListeners.at(-1)!({ type: "pending-count", id: "evt-1", gymId: "gym-2" })
+
+    expect(await readChunk(reader)).toMatch(/^event: pending-count\n/)
+    controller.abort()
+  })
 })

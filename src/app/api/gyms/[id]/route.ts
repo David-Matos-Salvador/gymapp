@@ -18,10 +18,42 @@ const updateGymSchema = z.object({
   showMachineNumbers: z.boolean().optional(),
 })
 
+/** Lo que cualquiera ve de un gimnasio, igual que en su página pública `/gym/[slug]`. */
+const PUBLIC_GYM_FIELDS = {
+  id: true,
+  name: true,
+  slug: true,
+  address: true,
+  phone: true,
+  email: true,
+  logoUrl: true,
+  showMachineNumbers: true,
+} as const
+
 export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { id } = await params
-    const gym = await prisma.gym.findUnique({ where: { id } })
+
+    // El registro completo solo lo ven el súper admin y el admin de ese gimnasio.
+    const session = await auth()
+    const user = session?.user?.email
+      ? await prisma.user.findUnique({
+          where: { email: session.user.email },
+          select: { role: true, gymId: true },
+        })
+      : null
+    if (user && (isSuperAdmin(user.role) || (user.role === "ADMIN" && user.gymId === id))) {
+      const gym = await prisma.gym.findUnique({ where: { id } })
+      if (!gym) {
+        return NextResponse.json({ error: "Gimnasio no encontrado" }, { status: 404 })
+      }
+      return NextResponse.json({ gym })
+    }
+
+    const gym = await prisma.gym.findUnique({
+      where: { id, active: true, isDefault: false },
+      select: PUBLIC_GYM_FIELDS,
+    })
     if (!gym) {
       return NextResponse.json({ error: "Gimnasio no encontrado" }, { status: 404 })
     }

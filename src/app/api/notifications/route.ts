@@ -3,6 +3,7 @@ import { z } from "zod"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { getTrainerClientIds } from "@/lib/trainer-client"
+import { canAccessGym } from "@/lib/authz"
 
 const createNotificationSchema = z.object({
   title: z.string().min(1, "El título es requerido"),
@@ -77,11 +78,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
 
-  if (user.role === "ADMIN" && targetUser.gymId !== user.gymId) {
+  // Admin y coach solo notifican dentro de su gimnasio (los dos deben tener uno).
+  if (!canAccessGym(user, targetUser.gymId)) {
     return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
   }
   if (user.role === "TRAINER") {
-    const clientIds = await getTrainerClientIds(user.id)
+    const clientIds = await getTrainerClientIds(user.id, user.gymId)
     if (!clientIds.includes(targetUser.id)) {
       return NextResponse.json({ error: "Solo puedes notificar a tus clientes" }, { status: 403 })
     }

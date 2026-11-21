@@ -51,15 +51,19 @@ export async function PATCH(request: Request) {
     where: { id: gymId },
     select: { id: true, ownerId: true },
   })
+  if (!gym) {
+    return NextResponse.json({ error: "Gimnasio no encontrado" }, { status: 404 })
+  }
   if (!canManageGymEquipment(user, gym)) {
     return NextResponse.json({ error: "Sin permisos" }, { status: 403 })
   }
 
   const equipment = await prisma.gymEquipment.findUnique({
     where: { id: equipmentId },
-    select: { id: true },
+    select: { id: true, isSystem: true, gymId: true },
   })
-  if (!equipment) {
+  // Solo se activa equipo del sistema o del mismo gimnasio; el de otro gimnasio «no existe».
+  if (!equipment || (!equipment.isSystem && equipment.gymId !== gymId)) {
     return NextResponse.json({ error: "Equipo no encontrado" }, { status: 404 })
   }
 

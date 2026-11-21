@@ -113,7 +113,7 @@ export async function POST(request: Request) {
       )
     }
 
-    emitRealtime("notifications")
+    emitRealtime("notifications", coach.gymId)
     return NextResponse.json({ appointment: result.appointment }, { status: 201 })
   } catch (error) {
     logger.error("Appointment creation failed", {

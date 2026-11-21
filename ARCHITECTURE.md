@@ -158,7 +158,6 @@ src/
 | `/api/auth/register`          | POST             | No          | Registro de usuario             |
 | `/api/health`                 | GET              | No          | Health check                    |
 | `/api/exercises`              | GET              | No          | Catálogo de ejercicios          |
-| `/api/recommended-routines`   | GET              | No          | Rutinas públicas recomendadas   |
 | `/api/routines`               | GET/POST         | Sí          | Listar/Crear rutinas            |
 | `/api/routines/[id]`          | GET/PATCH/DELETE | Sí          | CRUD de rutina                  |
 | `/api/workout-logs`           | GET/POST         | Sí          | Listar/Registrar entrenamientos |
@@ -170,7 +169,7 @@ src/
 | `/api/bookings`               | POST/DELETE      | Sí          | Reservar/Cancelar clase         |
 | `/api/admin/platform`         | GET              | SUPER_ADMIN | Stats globales de la plataforma |
 | `/api/gyms`                   | GET/POST         | Parcial     | Listar/Crear gimnasio           |
-| `/api/gym-equipment`          | GET/POST         | Parcial     | Listar/Crear equipo             |
+| `/api/gym-equipment`          | GET/POST         | Sí          | Listar/Crear equipo             |
 | `/api/gym-equipment/[id]`     | PATCH/DELETE     | Sí          | Modificar/Eliminar equipo       |
 | `/api/membership-plans`       | GET/POST         | Parcial     | Listar/Crear planes             |
 | `/api/membership-plans/[id]`  | PATCH/DELETE     | Sí          | Modificar/Eliminar plan         |

@@ -8,7 +8,7 @@ import { REQUEST_ID_HEADER, appendRequestId, getRequestId } from "@/lib/request-
  * Note: /_next/*, /favicon.ico, /icons, /manifest are already excluded
  * by the config.matcher below and never reach this function.
  */
-const PUBLIC_PATHS = ["/login", "/register", "/invite"]
+const PUBLIC_PATHS = ["/login", "/register", "/invite", "/gym/"]
 
 /**
  * Optimistic role-based route prefixes.
@@ -45,13 +45,15 @@ export async function proxy(request: NextRequest) {
     return nextWithRequestId(request, requestId)
   }
 
-  // ----- Public routes (no auth required) -----
-  if (pathname === "/" || PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
-    return nextWithRequestId(request, requestId)
+  // Comprobantes viejos guardados en public/: ya no se sirven a nadie (los nuevos van por
+  // /api/files, que revisa quién puede verlos).
+  if (pathname.startsWith("/uploads/receipts/")) {
+    return NextResponse.json({ error: "Archivo no encontrado" }, { status: 404 })
   }
 
-  // Allow unauthenticated access to onboarding (needed for first-time setup)
-  if (pathname.startsWith("/onboarding")) {
+  // ----- Public routes (no auth required) -----
+  // Sin sesión solo se ven la portada, la página pública de cada gimnasio y el acceso.
+  if (pathname === "/" || PUBLIC_PATHS.some((p) => pathname.startsWith(p))) {
     return nextWithRequestId(request, requestId)
   }
 

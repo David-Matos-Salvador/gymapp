@@ -211,11 +211,11 @@ export async function POST(request: Request) {
               metadata: { paymentId: payment.id, clientId: user.id },
             },
           })
-          emitRealtime("notifications")
+          emitRealtime("notifications", user.gymId)
         }
       }
 
-      emitRealtime("pending-count")
+      emitRealtime("pending-count", user.gymId)
 
       return NextResponse.json({ membership, payment }, { status: 201 })
     } catch (err) {

@@ -79,6 +79,6 @@ export async function PATCH(request: Request, { params }: RouteParams) {
     )
   }
 
-  emitRealtime("notifications")
+  emitRealtime("notifications", appointment.gymId)
   return NextResponse.json({ success: true })
 }

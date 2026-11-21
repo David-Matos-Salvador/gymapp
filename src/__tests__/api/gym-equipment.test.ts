@@ -121,31 +121,64 @@ beforeEach(() => {
 })
 
 describe("GET /api/gym-equipment", () => {
-  it("con gymId lista el equipamiento de ese gimnasio por nombre", async () => {
+  it("responde 401 sin sesión", async () => {
+    mockAuth.mockResolvedValue(null)
+
+    const response = await listEquipment(jsonRequest("/api/gym-equipment", "GET"))
+
+    expect(response.status).toBe(401)
+    expect(mocks.equipmentFindMany).not.toHaveBeenCalled()
+  })
+
+  it("un miembro ve el equipo del sistema y el de su gimnasio, por nombre y con límite", async () => {
+    loginAs("MEMBER", "gym-1")
     mocks.equipmentFindMany.mockResolvedValue([{ id: "eq-1", name: "Banco" }])
 
-    const response = await listEquipment(jsonRequest("/api/gym-equipment?gymId=gym-1", "GET"))
+    const response = await listEquipment(jsonRequest("/api/gym-equipment", "GET"))
 
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual({ equipment: [{ id: "eq-1", name: "Banco" }] })
     expect(mocks.equipmentFindMany).toHaveBeenCalledWith({
-      where: { gymId: "gym-1" },
+      where: { OR: [{ isSystem: true }, { gymId: "gym-1" }] },
       include: { exercise: { select: { id: true, name: true } } },
       orderBy: { name: "asc" },
+      take: 1000,
     })
   })
 
-  it("sin gymId no filtra por gimnasio", async () => {
-    await listEquipment(jsonRequest("/api/gym-equipment", "GET"))
+  it("un admin no puede pedir el equipo de otro gimnasio con gymId", async () => {
+    loginAs("ADMIN", "gym-1")
+
+    await listEquipment(jsonRequest("/api/gym-equipment?gymId=gym-2", "GET"))
 
     expect(mocks.equipmentFindMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: undefined })
+      expect.objectContaining({ where: { OR: [{ isSystem: true }, { gymId: "gym-1" }] } })
     )
   })
 
-  it.todo(
-    "no pide sesión y, sin gymId, devuelve el equipamiento de todos los gimnasios (nombre, ubicación, fotos); además no tiene límite"
-  )
+  it("sin gimnasio solo ve el equipo del sistema", async () => {
+    loginAs("MEMBER", null)
+
+    await listEquipment(jsonRequest("/api/gym-equipment", "GET"))
+
+    expect(mocks.equipmentFindMany).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { OR: [{ isSystem: true }] } })
+    )
+  })
+
+  it("el súper admin puede filtrar por gimnasio o ver todo", async () => {
+    loginAs("SUPER_ADMIN", null)
+
+    await listEquipment(jsonRequest("/api/gym-equipment?gymId=gym-2", "GET"))
+    expect(mocks.equipmentFindMany).toHaveBeenLastCalledWith(
+      expect.objectContaining({ where: { OR: [{ isSystem: true }, { gymId: "gym-2" }] } })
+    )
+
+    await listEquipment(jsonRequest("/api/gym-equipment", "GET"))
+    expect(mocks.equipmentFindMany).toHaveBeenLastCalledWith(
+      expect.objectContaining({ where: undefined })
+    )
+  })
 })
 
 describe("POST /api/gym-equipment", () => {
@@ -568,7 +601,7 @@ describe("PATCH /api/gym-equipment-activations", () => {
   it("un admin desactiva un equipo en su gimnasio sin tocar el número ni la imagen", async () => {
     loginAs("ADMIN", "gym-1")
     withGyms("gym-1")
-    mocks.equipmentFindUnique.mockResolvedValue({ id: "eq-1" })
+    mocks.equipmentFindUnique.mockResolvedValue({ id: "eq-1", isSystem: true, gymId: null })
 
     const response = await setActivation(
       jsonRequest(url, "PATCH", { equipmentId: "eq-1", active: false })
@@ -598,7 +631,7 @@ describe("PATCH /api/gym-equipment-activations", () => {
   it("al poner un número de máquina activa la opción de mostrar números en el gimnasio", async () => {
     loginAs("ADMIN", "gym-1")
     withGyms("gym-1")
-    mocks.equipmentFindUnique.mockResolvedValue({ id: "eq-1" })
+    mocks.equipmentFindUnique.mockResolvedValue({ id: "eq-1", isSystem: true, gymId: null })
 
     const response = await setActivation(
       jsonRequest(url, "PATCH", { equipmentId: "eq-1", machineNumber: 7 })
@@ -621,7 +654,7 @@ describe("PATCH /api/gym-equipment-activations", () => {
   it("el súper admin activa equipos en el gimnasio que indique", async () => {
     loginAs("SUPER_ADMIN", null)
     withGyms("gym-2")
-    mocks.equipmentFindUnique.mockResolvedValue({ id: "eq-1" })
+    mocks.equipmentFindUnique.mockResolvedValue({ id: "eq-1", isSystem: true, gymId: null })
 
     const response = await setActivation(
       jsonRequest(url, "PATCH", { equipmentId: "eq-1", gymId: "gym-2", active: true })
@@ -643,12 +676,39 @@ describe("PATCH /api/gym-equipment-activations", () => {
     expect(response.status).toBe(403)
   })
 
-  it.todo(
-    "no revisa que el equipo sea del sistema (isSystem) ni a qué gimnasio pertenece: un admin puede crear una activación en su gimnasio para el equipo propio de otro gimnasio y, de paso, confirmar que ese id existe"
-  )
-  it.todo(
-    "con el gymId de un gimnasio que no existe, el súper admin pasa el permiso y el upsert falla por la clave foránea (500); debería responder 404"
-  )
+  it("con el equipo propio de otro gimnasio responde 404 sin activarlo", async () => {
+    loginAs("ADMIN", "gym-1")
+    withGyms("gym-1", "gym-2")
+    mocks.equipmentFindUnique.mockResolvedValue({ id: "eq-2", isSystem: false, gymId: "gym-2" })
+
+    const response = await setActivation(jsonRequest(url, "PATCH", { equipmentId: "eq-2" }))
+
+    expect(response.status).toBe(404)
+    expect(mocks.activationUpsert).not.toHaveBeenCalled()
+  })
+
+  it("un admin puede activar el equipo propio de su gimnasio", async () => {
+    loginAs("ADMIN", "gym-1")
+    withGyms("gym-1")
+    mocks.equipmentFindUnique.mockResolvedValue({ id: "eq-1", isSystem: false, gymId: "gym-1" })
+
+    const response = await setActivation(jsonRequest(url, "PATCH", { equipmentId: "eq-1" }))
+
+    expect(response.status).toBe(200)
+  })
+
+  it("con el gymId de un gimnasio que no existe, el súper admin recibe 404", async () => {
+    loginAs("SUPER_ADMIN", null)
+    withGyms("gym-1")
+    mocks.equipmentFindUnique.mockResolvedValue({ id: "eq-1", isSystem: true, gymId: null })
+
+    const response = await setActivation(
+      jsonRequest(url, "PATCH", { equipmentId: "eq-1", gymId: "gym-x" })
+    )
+
+    expect(response.status).toBe(404)
+    expect(mocks.activationUpsert).not.toHaveBeenCalled()
+  })
   it.todo(
     "con un cuerpo que no es JSON debería responder 400; hoy `request.json()` no está protegido y la ruta lanza un error (500 sin cuerpo JSON)"
   )

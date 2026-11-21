@@ -91,7 +91,6 @@ vi.mock("next/server", () => ({
 }))
 
 import { POST as assignRoutine } from "@/app/api/onboarding/assign-routine/route"
-import { GET as getRecommended } from "@/app/api/recommended-routines/route"
 import { GET as getWorkoutLog, DELETE as deleteWorkoutLog } from "@/app/api/workout-logs/[id]/route"
 import {
   PATCH as updateMeasurement,
@@ -392,25 +391,6 @@ describe("POST /api/onboarding/assign-routine", () => {
   )
   it.todo(
     "con un coach, getTrainerClientIds se llama sin el gymId: un cliente asignado que esté en otro gimnasio sigue contando como suyo"
-  )
-})
-
-describe("GET /api/recommended-routines", () => {
-  it("devuelve los planes con sus splits y ejercicios, del más reciente al más antiguo", async () => {
-    mocks.routinePlanFindMany.mockResolvedValue([{ id: "rp-1", name: "Fuerza", splits: [] }])
-
-    const response = await getRecommended()
-
-    expect(response.status).toBe(200)
-    const data = await response.json()
-    expect(data.plans).toHaveLength(1)
-    expect(mocks.routinePlanFindMany).toHaveBeenCalledWith(
-      expect.objectContaining({ orderBy: { updatedAt: "desc" } })
-    )
-  })
-
-  it.todo(
-    "no pide sesión ni filtra nada: devuelve TODAS las rutinas de la base (personales de coaches y miembros de cualquier gimnasio), no solo las plantillas del súper admin"
   )
 })
 
